@@ -35,6 +35,7 @@ namespace Vitex
 		static bool InitializePlatform() noexcept;
 		static bool InitializeGraphics() noexcept;
 		static bool InitializeAudio() noexcept;
+		static void CleanupInstances() noexcept;
 		static void CleanupPlatform() noexcept;
 		static void CleanupImporter() noexcept;
 		static void CleanupScripting() noexcept;

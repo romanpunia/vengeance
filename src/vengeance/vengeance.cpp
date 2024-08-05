@@ -131,6 +131,11 @@ namespace Vitex
 		Status.Report("audio initialization error");
 		return !!Status;
 	}
+	void HeavyRuntime::CleanupInstances() noexcept
+	{
+		Runtime::CleanupInstances();
+		Layer::GUI::Subsystem::CleanupInstance();
+	}
 	void HeavyRuntime::CleanupPlatform() noexcept
 	{
 #ifdef VI_SDL2

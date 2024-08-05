@@ -52,13 +52,14 @@ namespace Vitex
 				RenderConstants* Constants;
 				Trigonometry::Matrix4x4 Transform;
 				Trigonometry::Matrix4x4 Ortho;
+				bool HasScissor;
 				bool HasTransform;
 
 			public:
 				Graphics::Texture2D* Background;
 
 			public:
-				RenderSubsystem() : Rml::RenderInterfaceCompatibility(), Device(nullptr), Content(nullptr), Constants(nullptr), HasTransform(false), Background(nullptr)
+				RenderSubsystem() : Rml::RenderInterfaceCompatibility(), Device(nullptr), Content(nullptr), Constants(nullptr), HasTransform(false), HasScissor(false), Background(nullptr)
 				{
 					Shader = nullptr;
 					VertexBuffer = nullptr;
@@ -81,11 +82,10 @@ namespace Vitex
 					VI_ASSERT(Device != nullptr, "graphics device should be set");
 					VI_ASSERT(Vertices != nullptr, "vertices should be set");
 					VI_ASSERT(Indices != nullptr, "indices should be set");
-
+					EnableScissorRegion(HasScissor);
 					Device->ImBegin();
 					Device->ImTopology(Graphics::PrimitiveTopology::Triangle_List);
 					Device->ImTexture((Graphics::Texture2D*)Texture);
-
 					if (HasTransform)
 						Device->ImTransform(Trigonometry::Matrix4x4::CreateTranslation(Trigonometry::Vector3(Translation.x, Translation.y)) * Transform * Ortho);
 					else
@@ -99,7 +99,6 @@ namespace Vitex
 						Device->ImTexCoord(V.tex_coord.x, V.tex_coord.y);
 						Device->ImColor(V.colour.red / 255.0f, V.colour.green / 255.0f, V.colour.blue / 255.0f, V.colour.alpha / 255.0f);
 					}
-
 					Device->ImEnd();
 				}
 				Rml::CompiledGeometryHandle CompileGeometry(Rml::Vertex* Vertices, int VerticesCount, int* Indices, int IndicesCount, Rml::TextureHandle Handle) override
@@ -140,7 +139,9 @@ namespace Vitex
 					else
 						Constants->Render.Transform = Trigonometry::Matrix4x4::CreateTranslation(Trigonometry::Vector3(Translation.x, Translation.y)) * Ortho;
 
+					EnableScissorRegion(HasScissor);
 					Constants->UpdateConstantBuffer(RenderBufferType::Render);
+					Device->SetInputLayout(Layout);
 					Device->SetShader(Shader, VI_VS | VI_PS);
 					Device->SetTexture2D(Buffer->Texture, 1, VI_PS);
 					Device->SetVertexBuffer(Buffer->VertexBuffer);
@@ -155,6 +156,7 @@ namespace Vitex
 				void EnableScissorRegion(bool Enable) override
 				{
 					VI_ASSERT(Device != nullptr, "graphics device should be set");
+					HasScissor = Enable;
 					Ortho = Trigonometry::Matrix4x4::CreateOrthographicOffCenter(0, (float)Device->GetRenderTarget()->GetWidth(), (float)Device->GetRenderTarget()->GetHeight(), 0.0f, -30000.0f, 10000.0f);
 					Device->SetSamplerState(Sampler, 1, 1, VI_PS);
 					Device->SetBlendState(AlphaBlend);
@@ -176,7 +178,6 @@ namespace Vitex
 						Device->SetRasterizerState(NoneRasterizer);
 						Device->SetDepthStencilState(NoneDepthStencil);
 					}
-					Device->SetInputLayout(Layout);
 				}
 				void SetScissorRegion(int X, int Y, int Width, int Height) override
 				{

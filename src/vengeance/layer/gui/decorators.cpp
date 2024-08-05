@@ -116,7 +116,7 @@ namespace Vitex
 				virtual ~BoxShadow() = default;
 				Rml::DecoratorDataHandle GenerateElementData(Rml::Element* Element, Rml::BoxArea PaintArea) const override
 				{
-					return Rml::Decorator::INVALID_DECORATORDATAHANDLE;
+					return 1;
 				}
 				void ReleaseElementData(Rml::DecoratorDataHandle ElementData) const override
 				{
@@ -166,7 +166,7 @@ namespace Vitex
 				virtual ~BoxBlur() = default;
 				Rml::DecoratorDataHandle GenerateElementData(Rml::Element* Element, Rml::BoxArea PaintArea) const override
 				{
-					return Rml::Decorator::INVALID_DECORATORDATAHANDLE;
+					return 1;
 				}
 				void ReleaseElementData(Rml::DecoratorDataHandle ElementData) const override
 				{

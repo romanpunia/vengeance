@@ -39,9 +39,8 @@ if (VI_RMLUI)
     target_include_directories(vitex PRIVATE
         ${CMAKE_CURRENT_LIST_DIR}/rmlui
         ${CMAKE_CURRENT_LIST_DIR}/rmlui/Include)
-    if (NOT VI_FREETYPE OR (NOT Freetype_FOUND AND NOT FREETYPE_LIBRARIES))
-        target_compile_definitions(vitex PRIVATE -DRMLUI_NO_FONT_INTERFACE_DEFAULT)
-    else()
+    if (VI_FREETYPE AND (Freetype_FOUND OR FREETYPE_LIBRARIES))
+        target_compile_definitions(vitex PRIVATE -DRMLUI_FONT_ENGINE_FREETYPE)
         unset(Freetype_FOUND CACHE)
         unset(FREETYPE_LIBRARIES CACHE)
     endif()
