@@ -9,4 +9,4 @@ jobs:
       with:
         submodules: recursive
     - name: Build
-      run: docker build -f var/images/gcc.Dockerfile -t package:staging .
+      run: docker build -f var/images/test.Dockerfile -t package:staging .
