@@ -1,6 +1,26 @@
 # Include installation targets
 install(TARGETS vitex DESTINATION lib)
 install(FILES
+        deps/vitex/src/vitex/layer/processors.h
+        DESTINATION include/vitex/layer)
+install(FILES
+        deps/vitex/src/vitex/network/http.h
+        deps/vitex/src/vitex/network/ldb.h
+        deps/vitex/src/vitex/network/mdb.h
+        deps/vitex/src/vitex/network/pdb.h
+        deps/vitex/src/vitex/network/smtp.h
+        DESTINATION include/vitex/network)
+install(FILES
+        deps/vitex/src/vitex/config.hpp
+        deps/vitex/src/vitex/bindings.h
+        deps/vitex/src/vitex/compute.h
+        deps/vitex/src/vitex/core.h
+        deps/vitex/src/vitex/layer.h
+        deps/vitex/src/vitex/network.h
+        deps/vitex/src/vitex/scripting.h
+        deps/vitex/src/vitex/vitex.h
+        DESTINATION include/vitex)
+install(FILES
         src/vengeance/audio/effects.h
         src/vengeance/audio/filters.h
         DESTINATION include/vengeance/audio)
@@ -17,6 +37,5 @@ install(FILES
         src/vengeance/physics.h
         src/vengeance/layer.h
         src/vengeance/graphics.h
-        src/vengeance/scripting.h
         src/vengeance/vengeance.h
         DESTINATION include/vengeance)

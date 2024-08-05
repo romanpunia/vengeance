@@ -878,6 +878,8 @@ namespace Vitex
 			static float FastInvSqrt(float Value);
 			static float FastSqrt(float Value);
 			static float AabbVolume(const Vector3& Min, const Vector3& Max);
+			static float AngluarLerp(float A, float B, float DeltaTime);
+			static float AngleDistance(float A, float B);
 
 		public:
 			template <typename T>

@@ -2,6 +2,7 @@
 #include "audio.h"
 #include "bindings.h"
 #include "layer/gui.h"
+#include <sstream>
 #ifdef VI_SDL2
 #include "internal/sdl2.hpp"
 #endif

@@ -207,16 +207,14 @@ namespace Vitex
 		}
 		Vector2 Vector2::aLerp(const Vector2& B, float DeltaTime) const
 		{
-			float Ax = Compute::Mathf::AngluarLerp(X, B.X, DeltaTime);
-			float Ay = Compute::Mathf::AngluarLerp(Y, B.Y, DeltaTime);
-
+			float Ax = Geometric::AngluarLerp(X, B.X, DeltaTime);
+			float Ay = Geometric::AngluarLerp(Y, B.Y, DeltaTime);
 			return Vector2(Ax, Ay);
 		}
 		Vector2 Vector2::rLerp() const
 		{
 			float Ax = Compute::Mathf::SaturateAngle(X);
 			float Ay = Compute::Mathf::SaturateAngle(Y);
-
 			return Vector2(Ax, Ay);
 		}
 		Vector2 Vector2::Abs() const
@@ -681,9 +679,9 @@ namespace Vitex
 		}
 		Vector3 Vector3::aLerp(const Vector3& B, float DeltaTime) const
 		{
-			float Ax = Compute::Mathf::AngluarLerp(X, B.X, DeltaTime);
-			float Ay = Compute::Mathf::AngluarLerp(Y, B.Y, DeltaTime);
-			float Az = Compute::Mathf::AngluarLerp(Z, B.Z, DeltaTime);
+			float Ax = Geometric::AngluarLerp(X, B.X, DeltaTime);
+			float Ay = Geometric::AngluarLerp(Y, B.Y, DeltaTime);
+			float Az = Geometric::AngluarLerp(Z, B.Z, DeltaTime);
 
 			return Vector3(Ax, Ay, Az);
 		}
@@ -1175,10 +1173,10 @@ namespace Vitex
 		}
 		Vector4 Vector4::aLerp(const Vector4& B, float DeltaTime) const
 		{
-			float Ax = Compute::Mathf::AngluarLerp(X, B.X, DeltaTime);
-			float Ay = Compute::Mathf::AngluarLerp(Y, B.Y, DeltaTime);
-			float Az = Compute::Mathf::AngluarLerp(Z, B.Z, DeltaTime);
-			float Aw = Compute::Mathf::AngluarLerp(W, B.W, DeltaTime);
+			float Ax = Geometric::AngluarLerp(X, B.X, DeltaTime);
+			float Ay = Geometric::AngluarLerp(Y, B.Y, DeltaTime);
+			float Az = Geometric::AngluarLerp(Z, B.Z, DeltaTime);
+			float Aw = Geometric::AngluarLerp(W, B.W, DeltaTime);
 
 			return Vector4(Ax, Ay, Az, Aw);
 		}
@@ -4344,6 +4342,20 @@ namespace Vitex
 				(Max[0] - Min[0]) * (Max[2] - Min[2]) +
 				(Max[0] - Min[0]) * (Max[1] - Min[1]);
 			return Volume * 2.0f;
+		}
+		float Geometric::AngluarLerp(float A, float B, float DeltaTime)
+		{
+			if (A == B)
+				return A;
+
+			Vector2 ACircle = Vector2(cosf(A), sinf(A));
+			Vector2 BCircle = Vector2(cosf(B), sinf(B));
+			Vector2 floatnterpolation = ACircle.Lerp(BCircle, (float)DeltaTime);
+			return std::atan2(floatnterpolation.Y, floatnterpolation.X);
+		}
+		float Geometric::AngleDistance(float A, float B)
+		{
+			return Vector2(cosf(A), sinf(A)).Distance(Vector2(cosf(B), sinf(B)));
 		}
 		bool Geometric::LeftHanded = true;
 

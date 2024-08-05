@@ -3142,6 +3142,8 @@ namespace Vitex
 				VM->SetFunction("float fast_inv_sqrt(float)", &Trigonometry::Geometric::FastInvSqrt);
 				VM->SetFunction("float fast_sqrt(float)", &Trigonometry::Geometric::FastSqrt);
 				VM->SetFunction("float aabb_volume(const vector3 &in, const vector3 &in)", &Trigonometry::Geometric::AabbVolume);
+				VM->SetFunction("float angle_distance(float, float)", &Trigonometry::Geometric::AngleDistance);
+				VM->SetFunction("float angle_lerp(float, float, float)", &Trigonometry::Geometric::AngluarLerp);
 				VM->EndNamespace();
 
 				return true;
