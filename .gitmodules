@@ -1,7 +1,6 @@
 [submodule "deps/vitex"]
 	path = deps/vitex
 	url = https://github.com/romanpunia/vitex
-	branch = vitex3
 [submodule "deps/rmlui"]
 	path = deps/rmlui
 	url = https://github.com/mikke89/RmlUi
