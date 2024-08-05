@@ -6379,19 +6379,20 @@ namespace Vitex
 				VHeavyApplicationCacheInfo->SetDestructorEx("void f()", &ApplicationCacheInfoDestructor);
 
 				auto VHeavyApplicationDesc = VM->SetStructTrivial<HeavyApplication::Desc>("heavy_application_desc");
-				VHeavyApplicationDesc->SetProperty<HeavyApplication::Desc>("application_frame_info refreshrate", &HeavyApplication::Desc::Refreshrate);
+				VHeavyApplicationDesc->SetProperty<Application::Desc>("application_frame_info refreshrate", &Application::Desc::Refreshrate);
 				VHeavyApplicationDesc->SetProperty<HeavyApplication::Desc>("graphics_device_desc graphics", &HeavyApplication::Desc::GraphicsDevice);
 				VHeavyApplicationDesc->SetProperty<HeavyApplication::Desc>("activity_desc window", &HeavyApplication::Desc::Activity);
-				VHeavyApplicationDesc->SetProperty<HeavyApplication::Desc>("schedule_policy scheduler", &HeavyApplication::Desc::Scheduler);
-				VHeavyApplicationDesc->SetProperty<HeavyApplication::Desc>("string preferences", &HeavyApplication::Desc::Preferences);
-				VHeavyApplicationDesc->SetProperty<HeavyApplication::Desc>("string environment", &HeavyApplication::Desc::Environment);
-				VHeavyApplicationDesc->SetProperty<HeavyApplication::Desc>("string directory", &HeavyApplication::Desc::Directory);
-				VHeavyApplicationDesc->SetProperty<HeavyApplication::Desc>("usize polling_timeout", &HeavyApplication::Desc::PollingTimeout);
-				VHeavyApplicationDesc->SetProperty<HeavyApplication::Desc>("usize polling_events", &HeavyApplication::Desc::PollingEvents);
-				VHeavyApplicationDesc->SetProperty<HeavyApplication::Desc>("usize threads", &HeavyApplication::Desc::Threads);
-				VHeavyApplicationDesc->SetProperty<HeavyApplication::Desc>("usize usage", &HeavyApplication::Desc::Usage);
+				VHeavyApplicationDesc->SetProperty<Application::Desc>("schedule_policy scheduler", &Application::Desc::Scheduler);
+				VHeavyApplicationDesc->SetProperty<Application::Desc>("string preferences", &Application::Desc::Preferences);
+				VHeavyApplicationDesc->SetProperty<Application::Desc>("string environment", &Application::Desc::Environment);
+				VHeavyApplicationDesc->SetProperty<Application::Desc>("string directory", &Application::Desc::Directory);
+				VHeavyApplicationDesc->SetProperty<Application::Desc>("usize polling_timeout", &Application::Desc::PollingTimeout);
+				VHeavyApplicationDesc->SetProperty<Application::Desc>("usize polling_events", &Application::Desc::PollingEvents);
+				VHeavyApplicationDesc->SetProperty<Application::Desc>("usize threads", &Application::Desc::Threads);
+				VHeavyApplicationDesc->SetProperty<Application::Desc>("usize usage", &Application::Desc::Usage);
+				VHeavyApplicationDesc->SetProperty<HeavyApplication::Desc>("usize advanced_usage", &HeavyApplication::Desc::AdvancedUsage);
 				VHeavyApplicationDesc->SetProperty<HeavyApplication::Desc>("bool blocking_dispatch", &HeavyApplication::Desc::BlockingDispatch);
-				VHeavyApplicationDesc->SetProperty<HeavyApplication::Desc>("bool daemon", &HeavyApplication::Desc::Daemon);
+				VHeavyApplicationDesc->SetProperty<Application::Desc>("bool daemon", &Application::Desc::Daemon);
 				VHeavyApplicationDesc->SetProperty<HeavyApplication::Desc>("bool cursor", &HeavyApplication::Desc::Cursor);
 				VHeavyApplicationDesc->SetConstructor<HeavyApplication::Desc>("void f()");
 
