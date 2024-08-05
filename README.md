@@ -1,7 +1,7 @@
 <br/>
 <div align="center">
     <br />
-    <img src="https://github.com/romanpunia/vengeance/blob/master/var/assets/logo.png?raw=true" alt="Vengeance Logo" width="300" />
+    <img src="https://github.com/romanpunia/vengeance/blob/main/var/assets/logo.png?raw=true" alt="Vengeance Logo" width="300" />
     <h3>C++ Cross-Platform Framework</h3>
 </div>
 <div align="center">
