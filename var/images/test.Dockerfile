@@ -1,5 +1,5 @@
 FROM gcc:latest
-ARG CONFIGURE="-DCMAKE_BUILD_TYPE=Release -DVI_RMLUI=OFF"
+ARG CONFIGURE="-DCMAKE_BUILD_TYPE=Release -DVI_RMLUI=OFF -DVI_BULLET3=OFF"
 ARG COMPILE="-j"
 RUN apt update -y && apt upgrade -y
 RUN apt install -y cmake \
