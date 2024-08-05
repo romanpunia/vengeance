@@ -1,0 +1,7 @@
+.idea/
+.git/
+debug/
+release/
+bin/
+src/vengeance/graphics/shaders/*.hpp
+**/.DS_Store
