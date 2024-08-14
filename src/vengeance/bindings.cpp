@@ -6368,11 +6368,6 @@ namespace Vitex
 				});
 				VSceneGraph->SetReleaseRefsEx<Layer::SceneGraph>([](Layer::SceneGraph* Base, asIScriptEngine*) { });
 
-				auto VHeavyApplicationFrameInfo = VM->SetStructTrivial<HeavyApplication::Desc::FramesInfo>("heavy_application_frame_info");
-				VHeavyApplicationFrameInfo->SetProperty<HeavyApplication::Desc::FramesInfo>("float stable", &HeavyApplication::Desc::FramesInfo::Stable);
-				VHeavyApplicationFrameInfo->SetProperty<HeavyApplication::Desc::FramesInfo>("float limit", &HeavyApplication::Desc::FramesInfo::Limit);
-				VHeavyApplicationFrameInfo->SetConstructor<HeavyApplication::Desc::FramesInfo>("void f()");
-
 				auto VHeavyApplicationCacheInfo = VM->SetStruct<HeavyApplication::CacheInfo>("heavy_application_cache_info");
 				VHeavyApplicationCacheInfo->SetProperty<HeavyApplication::CacheInfo>("shader_cache@ shaders", &HeavyApplication::CacheInfo::Shaders);
 				VHeavyApplicationCacheInfo->SetProperty<HeavyApplication::CacheInfo>("primitive_cache@ primitives", &HeavyApplication::CacheInfo::Primitives);
@@ -6402,14 +6397,7 @@ namespace Vitex
 				VHeavyApplication->SetFunctionDef("void input_event_sync(const string_view&in)");
 				VHeavyApplication->SetFunctionDef("void wheel_event_sync(int, int, bool)");
 				VHeavyApplication->SetFunctionDef("void window_event_sync(window_state, int, int)");
-				VHeavyApplication->SetFunctionDef("void dispatch_sync(clock_timer@+)");
-				VHeavyApplication->SetFunctionDef("void publish_sync(clock_timer@+)");
-				VHeavyApplication->SetFunctionDef("void composition_sync()");
-				VHeavyApplication->SetFunctionDef("void script_hook_sync()");
-				VHeavyApplication->SetFunctionDef("void initialize_sync()");
-				VHeavyApplication->SetFunctionDef("void startup_sync()");
-				VHeavyApplication->SetFunctionDef("void shutdown_sync()");
-				VHeavyApplication->SetProperty<Layer::HeavyApplication>("application_cache_info cache", &Layer::HeavyApplication::Cache);
+				VHeavyApplication->SetProperty<Layer::HeavyApplication>("heavy_application_cache_info cache", &Layer::HeavyApplication::Cache);
 				VHeavyApplication->SetProperty<Layer::HeavyApplication>("audio_device@ audio", &Layer::HeavyApplication::Audio);
 				VHeavyApplication->SetProperty<Layer::HeavyApplication>("graphics_device@ renderer", &Layer::HeavyApplication::Renderer);
 				VHeavyApplication->SetProperty<Layer::HeavyApplication>("activity@ window", &Layer::HeavyApplication::Activity);
@@ -6417,8 +6405,8 @@ namespace Vitex
 				VHeavyApplication->SetProperty<Layer::HeavyApplication>("content_manager@ content", &Layer::HeavyApplication::Content);
 				VHeavyApplication->SetProperty<Layer::HeavyApplication>("app_data@ database", &Layer::HeavyApplication::Database);
 				VHeavyApplication->SetProperty<Layer::HeavyApplication>("scene_graph@ scene", &Layer::HeavyApplication::Scene);
-				VHeavyApplication->SetProperty<Layer::HeavyApplication>("application_desc control", &Layer::HeavyApplication::Control);
-				VHeavyApplication->SetGcConstructor<HeavyApplication, HeavyApplicationName, HeavyApplication::Desc&, void*, int>("application@ f(application_desc &in, ?&in)");
+				VHeavyApplication->SetProperty<Layer::HeavyApplication>("heavy_application_desc control", &Layer::HeavyApplication::Control);
+				VHeavyApplication->SetGcConstructor<HeavyApplication, HeavyApplicationName, HeavyApplication::Desc&, void*, int>("heavy_application@ f(heavy_application_desc &in, ?&in)");
 				VHeavyApplication->SetMethod("void set_on_key_event(key_event_sync@)", &HeavyApplication::SetOnKeyEvent);
 				VHeavyApplication->SetMethod("void set_on_input_event(input_event_sync@)", &HeavyApplication::SetOnInputEvent);
 				VHeavyApplication->SetMethod("void set_on_wheel_event(wheel_event_sync@)", &HeavyApplication::SetOnWheelEvent);
@@ -6440,7 +6428,7 @@ namespace Vitex
 				VHeavyApplication->SetMethod("bool retrieve_initiator(?&out) const", &HeavyApplication::RetrieveInitiatorObject);
 				VHeavyApplication->SetMethod("ui_context@+ try_get_ui() const", &HeavyApplication::TryGetUI);
 				VHeavyApplication->SetMethod("ui_context@+ fetch_ui()", &HeavyApplication::FetchUI);
-				VHeavyApplication->SetMethodStatic("application@+ get()", &Layer::HeavyApplication::Get);
+				VHeavyApplication->SetMethodStatic("heavy_application@+ get()", &Layer::HeavyApplication::Get);
 				VHeavyApplication->SetMethodStatic("bool wants_restart(int)", &HeavyApplication::WantsRestart);
 				VHeavyApplication->SetEnumRefsEx<HeavyApplication>([](HeavyApplication* Base, asIScriptEngine* VM)
 				{
