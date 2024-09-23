@@ -19,7 +19,6 @@ float4 ps_main(VOutput V) : SV_TARGET0
 {
 	float2 TexCoord = GetTexCoord(V.TexCoord);
 	Fragment Frag = GetFragment(TexCoord);
-
 	[branch] if (Frag.Depth >= 1.0)
 	{
 		[branch] if (ScatterIntensity <= 0.0)
@@ -40,10 +39,8 @@ float4 ps_main(VOutput V) : SV_TARGET0
 	Material Mat = Materials[Frag.Material];
 	float G = GetRoughness(Frag, Mat);
 	float3 M = GetMetallic(Frag, Mat);
-	float3 E = GetSurface(Frag, Mat);
 	float3 D = normalize(vb_Position - Frag.Position);
 	float3 R = GetCookTorranceBRDF(Frag.Normal, D, Position, Frag.Diffuse, M, G);
-	float3 S = GetSubsurface(Frag.Normal, D, Position, Mat.Scatter) * E;
-
+	float3 S = GetSubsurface(Frag.Normal, Position, Mat.Subsurface, Mat.Scattering);
 	return float4(Lighting * (R + S), 1.0);
 };

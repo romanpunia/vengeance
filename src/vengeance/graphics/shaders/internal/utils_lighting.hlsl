@@ -9,9 +9,9 @@ float GetConeAttenuation(float3 L, float3 LN, float C1, float C2, float Distance
 {
 	return 3.0 * GetRangeAttenuation(L, C1, C2, Distance) * max(1.0 - (1.0 - dot(-LN, Axis)) * 1.0 / (1.0 - Angle), 0.0);
 }
-float GetSubsurface(float3 N, float3 V, float3 Origin, float3 Scatter)
+float3 GetSubsurface(float3 N, float3 L, float4 Subsurface, float3 Penetration)
 {
-	return saturate(dot(-N, Origin)) * pow(saturate(dot(V, -normalize(Origin + N * Scatter.x))), Scatter.y) * Scatter.z;
+	return Subsurface.w * Subsurface.xyz * Penetration * 0.2 * exp(-3.0 * abs(dot(N, L)) / (Subsurface.xyz + 0.001));
 }
 float3 GetFresnelSchlick(float NdotV, float3 Metallic)
 {

@@ -545,6 +545,7 @@ namespace Vitex
 				Trigonometry::Matrix4x4 View[6];
 				Trigonometry::Vector3 Diffuse = 1.0f;
 				float Emission = 1.0f;
+				float Disperse = 0.0f;
 
 			public:
 				LineLight(Entity* Ref);

@@ -251,7 +251,8 @@ namespace Vitex
 					float Softness = 0.0f;
 					Trigonometry::Vector3 Position;
 					float Cascades = 0.0f;
-					Trigonometry::Vector2 Padding;
+					float Padding = 0.0f;
+					float Umbra = 0.0f;
 					float Bias = 0.0f;
 					float Iterations = 0.0f;
 					float ScatterIntensity = 0.0f;

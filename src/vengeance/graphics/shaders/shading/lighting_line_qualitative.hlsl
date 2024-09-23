@@ -9,19 +9,9 @@
 #pragma warning(disable: 3595)
 
 Texture2D DepthMap[6] : register(t5);
-SamplerComparisonState DepthLessSampler : register(s5);
+SamplerState DepthSampler : register(s5);
+SamplerComparisonState DepthLessSampler : register(s6);
 
-float GetLightness(uniform uint Index, float2 D, float L)
-{
-	float Result = 0.0;
-	[loop] for (float j = 0; j < Iterations; j++)
-	{
-		float2 Offset = SampleDisk[j % 64].xy * (j / 64.0) / Softness;
-		Result += DepthMap[Index].SampleCmpLevelZero(DepthLessSampler, D + Offset, L);
-    }
-
-	return Result / Iterations;
-}
 float GetCascade(float3 Position, uniform uint Index)
 {
 	[branch] if (Index >= (uint)Cascades)
@@ -36,8 +26,13 @@ float GetCascade(float3 Position, uniform uint Index)
 	[branch] if (saturate(T.x) != T.x || saturate(T.y) != T.y)
 		return -1.0;
 	
-	float D = L.z / L.w - Bias, C, B;
-	return GetLightness(Index, T, D);
+	float Q = 0.0, Z = L.z / L.w - Bias;
+	[loop] for (float j = 0; j < Iterations; j++)
+	{
+		float2 O = SampleDisk[j % 64].xy / Softness;
+		Q += DepthMap[Index].SampleCmpLevelZero(DepthLessSampler, O + T, Z);
+	}
+	return Q / Iterations;
 }
 
 VOutput vs_main(VInput V)
@@ -74,10 +69,9 @@ float4 ps_main(VOutput V) : SV_TARGET0
 	Material Mat = Materials[Frag.Material];
 	float G = GetRoughness(Frag, Mat);
 	float3 M = GetMetallic(Frag, Mat);
-	float3 E = GetSurface(Frag, Mat);
 	float3 D = normalize(vb_Position - Frag.Position);
 	float3 R = GetCookTorranceBRDF(Frag.Normal, D, Position, Frag.Diffuse, M, G);
-	float3 S = GetSubsurface(Frag.Normal, D, Position, Mat.Scatter) * E;
+	float3 S = GetSubsurface(Frag.Normal, Position, Mat.Subsurface, Mat.Scattering);
 	R = Lighting * (R + S);
 
 	float H = GetCascade(Frag.Position, 0);

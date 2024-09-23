@@ -10,7 +10,8 @@ struct LineLight
 	float Softness;
 	float3 Position;
 	float Cascades;
-	float2 Padding;
+	float Padding;
+	float Umbra;
 	float Bias;
 	float Iterations;
 	float ScatterIntensity;

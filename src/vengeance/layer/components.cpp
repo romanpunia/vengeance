@@ -2,7 +2,6 @@
 #include "renderers.h"
 #include "../bindings.h"
 #include "../audio/effects.h"
-#include <cstddef>
 
 namespace
 {
@@ -2807,6 +2806,7 @@ namespace Vitex
 				VI_ASSERT(Node != nullptr, "schema should be set");
 				HeavySeries::Unpack(Node->Find("diffuse"), &Diffuse);
 				Series::Unpack(Node->Find("emission"), &Emission);
+				Series::Unpack(Node->Find("disperse"), &Disperse);
 
 				for (uint32_t i = 0; i < 6; i++)
 				{
@@ -2838,6 +2838,7 @@ namespace Vitex
 				VI_ASSERT(Node != nullptr, "schema should be set");
 				HeavySeries::Pack(Node->Set("diffuse"), Diffuse);
 				Series::Pack(Node->Set("emission"), Emission);
+				Series::Pack(Node->Set("disperse"), Disperse);
 
 				for (uint32_t i = 0; i < 6; i++)
 				{

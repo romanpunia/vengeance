@@ -21,7 +21,3 @@ float3 GetEmission(Fragment Frag, Material Mat)
 {
 	return (Mat.Emission.xyz + Frag.Emission) * Mat.Emission.w;
 }
-float3 GetSurface(Fragment Frag, Material Mat)
-{
-	return Mat.Emission.xyz + Frag.Emission;
-}

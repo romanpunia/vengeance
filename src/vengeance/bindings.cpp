@@ -5904,9 +5904,10 @@ namespace Vitex
 				auto VSubsurface = VM->SetPod<Layer::Subsurface>("subsurface");
 				VSubsurface->SetProperty<Layer::Subsurface>("vector4 emission", &Layer::Subsurface::Emission);
 				VSubsurface->SetProperty<Layer::Subsurface>("vector4 metallic", &Layer::Subsurface::Metallic);
+				VSubsurface->SetProperty<Layer::Subsurface>("vector4 penetration", &Layer::Subsurface::Penetration);
 				VSubsurface->SetProperty<Layer::Subsurface>("vector3 diffuse", &Layer::Subsurface::Diffuse);
 				VSubsurface->SetProperty<Layer::Subsurface>("float fresnel", &Layer::Subsurface::Fresnel);
-				VSubsurface->SetProperty<Layer::Subsurface>("vector3 scatter", &Layer::Subsurface::Scatter);
+				VSubsurface->SetProperty<Layer::Subsurface>("vector3 scattering", &Layer::Subsurface::Scattering);
 				VSubsurface->SetProperty<Layer::Subsurface>("float transparency", &Layer::Subsurface::Transparency);
 				VSubsurface->SetProperty<Layer::Subsurface>("vector3 padding", &Layer::Subsurface::Padding);
 				VSubsurface->SetProperty<Layer::Subsurface>("float bias", &Layer::Subsurface::Bias);

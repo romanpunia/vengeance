@@ -701,8 +701,9 @@ namespace Vitex
 				Core::String Name;
 				HeavySeries::Unpack(Data->Get("emission"), &Object->Surface.Emission);
 				HeavySeries::Unpack(Data->Get("metallic"), &Object->Surface.Metallic);
+				HeavySeries::Unpack(Data->Get("penetration"), &Object->Surface.Penetration);
 				HeavySeries::Unpack(Data->Get("diffuse"), &Object->Surface.Diffuse);
-				HeavySeries::Unpack(Data->Get("scatter"), &Object->Surface.Scatter);
+				HeavySeries::Unpack(Data->Get("scattering"), &Object->Surface.Scattering);
 				HeavySeries::Unpack(Data->Get("roughness"), &Object->Surface.Roughness);
 				HeavySeries::Unpack(Data->Get("occlusion"), &Object->Surface.Occlusion);
 				Series::Unpack(Data->Get("fresnel"), &Object->Surface.Fresnel);
@@ -761,8 +762,9 @@ namespace Vitex
 
 				HeavySeries::Pack(Data->Set("emission"), Object->Surface.Emission);
 				HeavySeries::Pack(Data->Set("metallic"), Object->Surface.Metallic);
+				HeavySeries::Pack(Data->Set("penetration"), Object->Surface.Penetration);
 				HeavySeries::Pack(Data->Set("diffuse"), Object->Surface.Diffuse);
-				HeavySeries::Pack(Data->Set("scatter"), Object->Surface.Scatter);
+				HeavySeries::Pack(Data->Set("scattering"), Object->Surface.Scattering);
 				HeavySeries::Pack(Data->Set("roughness"), Object->Surface.Roughness);
 				HeavySeries::Pack(Data->Set("occlusion"), Object->Surface.Occlusion);
 				Series::Pack(Data->Set("fresnel"), Object->Surface.Fresnel);
@@ -842,6 +844,8 @@ namespace Vitex
 				Layer::SceneGraph* Object = new Layer::SceneGraph(I);
 				Layer::IdxSnapshot Snapshot;
 				Object->Snapshot = &Snapshot;
+				if (SetupCallback)
+					SetupCallback(Object);
 
 				auto IsActive = Args.find("active");
 				if (IsActive != Args.end())
@@ -982,6 +986,8 @@ namespace Vitex
 				}
 
 				Layer::SceneGraph* Object = (Layer::SceneGraph*)Instance;
+				if (SetupCallback)
+					SetupCallback(Object);
 				Object->Actualize();
 
 				Layer::IdxSnapshot Snapshot;

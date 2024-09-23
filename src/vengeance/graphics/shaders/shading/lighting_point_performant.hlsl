@@ -23,13 +23,11 @@ float4 ps_main(VOutput V) : SV_TARGET0
 	Material Mat = Materials[Frag.Material];
 	float G = GetRoughness(Frag, Mat);
 	float3 M = GetMetallic(Frag, Mat);
-	float3 E = GetSurface(Frag, Mat);
 	float3 K = Position - Frag.Position;
 	float3 D = normalize(vb_Position - Frag.Position);
 	float3 L = normalize(K);
 	float3 R = GetCookTorranceBRDF(Frag.Normal, D, L, Frag.Diffuse, M, G);
-	float3 S = GetSubsurface(Frag.Normal, D, L, Mat.Scatter) * E;
+	float3 S = GetSubsurface(Frag.Normal, L, Mat.Subsurface, Mat.Scattering);
 	float A = GetRangeAttenuation(K, Attenuation.x, Attenuation.y, Range);
-
 	return float4(Lighting * (R + S) * A, A);
 };

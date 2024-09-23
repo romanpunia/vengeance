@@ -275,9 +275,10 @@ namespace Vitex
 		{
 			Trigonometry::Vector4 Emission = { 0.0f, 0.0f, 0.0f, 0.0f };
 			Trigonometry::Vector4 Metallic = { 0.0f, 0.0f, 0.0f, 0.0f };
+			Trigonometry::Vector4 Penetration = { 0.75f, 0.75f, 0.75f, 0.0f };
 			Trigonometry::Vector3 Diffuse = { 1.0f, 1.0f, 1.0f };
 			float Fresnel = 0.0f;
-			Trigonometry::Vector3 Scatter = { 0.1f, 16.0f, 0.0f };
+			Trigonometry::Vector3 Scattering = { 1.0f, 0.25f, 0.04f };
 			float Transparency = 0.0f;
 			Trigonometry::Vector3 Padding;
 			float Bias = 0.0f;

@@ -108,6 +108,9 @@ namespace Vitex
 			class VI_OUT SceneGraphProcessor final : public Processor
 			{
 			public:
+				std::function<void(SceneGraph*)> SetupCallback;
+
+			public:
 				SceneGraphProcessor(ContentManager * Manager);
 				ExpectsContent<Core::Unique<void>> Deserialize(Core::Stream* Stream, size_t Offset, const Core::VariantArgs& Args) override;
 				ExpectsContent<void> Serialize(Core::Stream* Stream, void* Object, const Core::VariantArgs& Args) override;

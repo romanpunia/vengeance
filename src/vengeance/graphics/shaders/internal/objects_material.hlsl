@@ -2,9 +2,10 @@ struct Material
 {
 	float4 Emission;
 	float4 Metallic;
+	float4 Subsurface;
 	float3 Diffuse;
 	float Fresnel;
-	float3 Scatter;
+	float3 Scattering;
 	float Transparency;
 	float3 Padding;
 	float Bias;

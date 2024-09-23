@@ -1667,7 +1667,6 @@ namespace Vitex
 
 			In->SetActive(true);
 			Transform->MakeDirty();
-
 			return In;
 		}
 		Component* Entity::GetComponent(uint64_t Id)
@@ -2129,19 +2128,19 @@ namespace Vitex
 		}
 		void RenderSystem::FetchVisibility(Component* Base, VisibilityQuery& Data)
 		{
+			auto* Varying = (Drawable*)Base;
 			auto& Snapshot = Base->Parent->Snapshot;
 			Snapshot.Distance = Base->Parent->Transform->GetPosition().Distance(View.Position);
 			Snapshot.Visibility = std::max<float>(0.0f, 1.0f - Snapshot.Distance / (View.FarPlane + Base->Parent->GetRadius()));
 			if (OcclusionCulling && Snapshot.Visibility >= Threshold && State.IsTop() && Base->IsDrawable())
 			{
-				auto* Varying = (Drawable*)Base;
 				Snapshot.Visibility = Varying->Overlapping;
 				Data.Category = Varying->GetCategory();
 				Data.QueryPixels = (Data.Category == GeoCategory::Opaque);
 			}
 			else
 			{
-				Data.Category = GeoCategory::Opaque;
+				Data.Category = Varying->GetCategory();
 				Data.QueryPixels = false;
 			}
 			Data.BoundaryVisible = Snapshot.Visibility >= Threshold;
@@ -3307,6 +3306,7 @@ namespace Vitex
 		void SceneGraph::Actualize()
 		{
 			VI_TRACE("[scene] actualize 0x%" PRIXPTR, (void*)this);
+			StepEvents();
 			StepTransactions();
 		}
 		void SceneGraph::ResizeBuffers()
@@ -3722,6 +3722,7 @@ namespace Vitex
 				if (Base->Set & (size_t)ActorSet::Message)
 					GetActors(ActorType::Message).Add(Base);
 			}
+			Mutate(Base, "push");
 		}
 		void SceneGraph::UnregisterComponent(Component* Base)
 		{
@@ -3739,6 +3740,7 @@ namespace Vitex
 				GetActors(ActorType::Animate).Remove(Base);
 			if (Base->Set & (size_t)ActorSet::Message)
 				GetActors(ActorType::Message).Remove(Base);
+			Mutate(Base, "pop");
 		}
 		void SceneGraph::LoadComponent(Component* Base)
 		{
@@ -3974,18 +3976,26 @@ namespace Vitex
 		bool SceneGraph::ClearListener(const std::string_view& EventName, MessageCallback* Id)
 		{
 			VI_ASSERT(!EventName.empty(), "event name should not be empty");
-			VI_ASSERT(Id != nullptr, "callback id should be set");
 			VI_TRACE("[scene] detach listener %.*s on 0x%" PRIXPTR, (int)EventName.size(), EventName.data(), (void*)this);
 
 			Core::UMutex<std::mutex> Unique(Exclusive);
 			auto& Source = Listeners[Core::String(EventName)];
-			auto It = Source.find(Id);
-			if (It == Source.end())
-				return false;
+			if (Id != nullptr)
+			{
+				auto It = Source.find(Id);
+				if (It == Source.end())
+					return false;
 
-			Source.erase(It);
-			Core::Memory::Delete(Id);
-			return true;
+				Source.erase(It);
+				Core::Memory::Delete(Id);
+				return true;
+			}
+
+			bool Updates = !Source.empty();
+			for (auto& Listener : Source)
+				Core::Memory::Delete(Listener);
+			Source.clear();
+			return Updates;
 		}
 		bool SceneGraph::PushEvent(const std::string_view& EventName, Core::VariantArgs&& Args, bool Propagate)
 		{

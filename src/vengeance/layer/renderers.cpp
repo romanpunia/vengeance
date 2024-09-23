@@ -1060,7 +1060,7 @@ namespace Vitex
 			void Lighting::RenderResultBuffers()
 			{
 				Graphics::MultiRenderTarget2D* MRT = System->GetMRT(TargetType::Main);
-				Graphics::RenderTarget2D* RT = (System->State.IsSubpass() ? Surfaces.Input : System->GetRT(TargetType::Main));
+				Graphics::RenderTarget2D* RT = (System->State.IsSubpass() ? System->GetRT(TargetType::Secondary) : System->GetRT(TargetType::Main));
 				State.Backcull = true;
 
 				Graphics::ElementBuffer* Cube[2];
@@ -1159,7 +1159,7 @@ namespace Vitex
 				auto& Data = Lights.Surfaces.Top();
 				if (Data.empty())
 					return;
-
+				
 				if (!Surfaces.Merger || !Surfaces.Subresource || !Surfaces.Input || !Surfaces.Output)
 					SetSurfaceBufferSize(Surfaces.Size);
 
@@ -1344,8 +1344,6 @@ namespace Vitex
 					{
 						Graphics::TextureCube* DepthMap = Light->DepthMap->GetTarget();
 						State.Device->SetTextureCube(DepthMap, 5, VI_PS);
-						State.Device->SetTextureCube(DepthMap, 6, VI_PS);
-						State.Device->SetTextureCube(DepthMap, 7, VI_PS);
 						BaseShader = Shaders.Point[1];
 					}
 					else
@@ -1375,8 +1373,6 @@ namespace Vitex
 					{
 						Graphics::Texture2D* DepthMap = Light->DepthMap->GetTarget();
 						State.Device->SetTexture2D(DepthMap, 5, VI_PS);
-						State.Device->SetTexture2D(DepthMap, 6, VI_PS);
-						State.Device->SetTexture2D(DepthMap, 7, VI_PS);
 						BaseShader = Shaders.Spot[1];
 					}
 					else
@@ -1398,7 +1394,6 @@ namespace Vitex
 				}
 
 				State.Device->SetDepthStencilState(DepthStencilNone);
-				State.Device->SetSamplerState(DepthLessSampler, 5, 6, VI_PS);
 				State.Device->SetBuffer(Shaders.Line[0], 3, VI_VS | VI_PS);
 				State.Device->SetVertexBuffer(System->GetPrimitives()->GetQuad());
 
@@ -1410,14 +1405,9 @@ namespace Vitex
 						uint32_t Size = (uint32_t)LineLight.Cascades;
 						for (uint32_t i = 0; i < Size; i++)
 							State.Device->SetTexture2D((*Light->DepthMap)[i]->GetTarget(), 5 + i, VI_PS);
+						for (uint32_t i = Size; i < 6; i++)
+							State.Device->SetTexture2D((*Light->DepthMap)[Size - 1]->GetTarget(), 5 + i, VI_PS);
 						BaseShader = Shaders.Line[1];
-
-						if (Size < 6)
-						{
-							auto* Target = (*Light->DepthMap)[Size - 1]->GetTarget();
-							for (uint32_t i = Size; i < 6; i++)
-								State.Device->SetTexture2D(Target, 5 + i, VI_PS);
-						}
 					}
 					else
 						BaseShader = Shaders.Line[0];
@@ -1525,7 +1515,7 @@ namespace Vitex
 			void Lighting::RenderAmbient()
 			{
 				Graphics::MultiRenderTarget2D* MRT = System->GetMRT(TargetType::Main);
-				Graphics::RenderTarget2D* RT = (System->State.IsSubpass() ? Surfaces.Output : System->GetRT(TargetType::Secondary));
+				Graphics::RenderTarget2D* RT = (System->State.IsSubpass() ? System->GetRT(TargetType::Main) : System->GetRT(TargetType::Secondary));
 				State.Device->CopyTarget(MRT, 0, RT, 0);
 				State.Device->CopyTexture2D(RT, 0, &LightingMap);
 				State.Device->SetSamplerState(WrapSampler, 1, 6, VI_PS);
@@ -1811,6 +1801,7 @@ namespace Vitex
 
 				Dest->Softness = Light->Shadow.Softness <= 0 ? 0 : (float)State.Scene->GetConf().LinesSize / Light->Shadow.Softness;
 				Dest->Iterations = (float)Light->Shadow.Iterations;
+				Dest->Umbra = Light->Disperse;
 				Dest->Bias = Light->Shadow.Bias;
 				Dest->Cascades = (float)std::min(Light->Shadow.Cascades, (uint32_t)Light->DepthMap->size());
 

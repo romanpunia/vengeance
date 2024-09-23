@@ -29,14 +29,6 @@ float3 GetCoverage(float2 TexCoord, float L)
 {
 	return GetOpaque(TexCoord, GetDepth(TexCoord), L);
 }
-float2 GetUV(float2 TexCoord, float L, float V)
-{
-	float2 T = TexCoord - 0.5;
-	float R = T.x * T.x + T.y * T.y;
-	float F = 1.0 + R * (lerp(0, V, abs(L)) - L);
-	
-	return F * T + 0.5;
-}
 
 VOutput vs_main(VInput V)
 {
@@ -64,10 +56,6 @@ float4 ps_main(VOutput V) : SV_TARGET0
 	float4 Diffuse = LDiffuseBuffer.Sample(Sampler, TexCoord);
 	float A = min(1.0, (1.0 - Diffuse.w) + Mat.Transparency);
 	float R = max(0.0, Mat.Roughness.x + LSurfaceBuffer.Sample(Sampler, TexCoord).x * Mat.Roughness.y - 0.25) / 0.75;
-
-	Diffuse.x += GetCoverage(GetUV(TexCoord, Mat.Refraction, 0.05), R * Mips).x * A;
-	Diffuse.y += GetCoverage(GetUV(TexCoord, Mat.Refraction, 0.0), R * Mips).y * A;
-	Diffuse.z += GetCoverage(GetUV(TexCoord, Mat.Refraction, -0.05), R * Mips).z * A;
-
-	return float4(Diffuse.xyz, 1.0 - A);
+	float2 F = TexCoord + (Mat.Refraction * length(Normal.xyz) - Mat.Refraction * 1.2);
+	return float4(Diffuse.xyz * GetCoverage(F, R * Mips) * A, 1.0);
 };

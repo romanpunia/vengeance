@@ -1,34 +1,3 @@
-/*
-	// @Gaussian is generated using following algorithm (js):
-	function get_distribution(circles = 3, repeats = 11, samples = 4, radius = 0.5, angle = 90)
-	{
-		let points = [], rotation = 0.0;
-		for (let k = 0; k < repeats; k++)
-		{
-			for (let i = 0; i < circles; i++)
-			{
-				for (let j = 0; j < samples; j++)
-				{
-					let theta = j * 2 * Math.PI / samples;
-					theta += rotation;
-
-					let x = Math.cos(theta), y = Math.sin(theta);
-					x += x * radius * i;
-					y += y * radius * i;
-
-					points.push([x, y]);
-				}
-				rotation += (angle * Math.PI / 180) / repeats;
-			}
-		}
-
-		let floats = '';
-		for (let i = 0; i < points.length; i++)
-			floats += `\tfloat2(${points[i][0]}, ${points[i][1]}),\n`;
-
-		return floats.substring(0, floats.length - 2);
-	}
-*/
 static const float2 Gaussian[132] =
 {
 	float2(1, 0),
