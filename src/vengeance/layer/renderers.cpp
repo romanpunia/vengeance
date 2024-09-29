@@ -1007,7 +1007,7 @@ namespace Vitex
 				HeavySeries::Unpack(Node->Find("fog-near"), &AmbientLight.FogNear);
 				Series::Unpack(Node->Find("recursive"), &AmbientLight.Recursive);
 				Series::Unpack(Node->Find("shadow-distance"), &Shadows.Distance);
-				Series::Unpack(Node->Find("sf-size"), &Surfaces.Size);
+				Series::UnpackA(Node->Find("sf-size"), &Surfaces.Size);
 				Series::Unpack(Node->Find("gi"), &EnableGI);
 			}
 			void Lighting::Serialize(Core::Schema* Node)
@@ -1028,7 +1028,7 @@ namespace Vitex
 				HeavySeries::Pack(Node->Set("fog-near"), AmbientLight.FogNear);
 				Series::Pack(Node->Set("recursive"), AmbientLight.Recursive);
 				Series::Pack(Node->Set("shadow-distance"), Shadows.Distance);
-				Series::Pack(Node->Set("sf-size"), Surfaces.Size);
+				Series::Pack(Node->Set("sf-size"), (uint64_t)Surfaces.Size);
 				Series::Pack(Node->Set("gi"), EnableGI);
 			}
 			void Lighting::ResizeBuffers()

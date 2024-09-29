@@ -307,7 +307,7 @@ namespace Vitex
 		void HeavySeries::Pack(Core::Schema* V, const Trigonometry::Joint& Value)
 		{
 			VI_ASSERT(V != nullptr, "schema should be set");
-			Series::Pack(V->Set("index"), Value.Index);
+			Series::Pack(V->Set("index"), (uint64_t)Value.Index);
 			Series::Pack(V->Set("name"), Value.Name);
 			HeavySeries::Pack(V->Set("global"), Value.Global);
 			HeavySeries::Pack(V->Set("local"), Value.Local);
@@ -727,7 +727,7 @@ namespace Vitex
 			if (!V)
 				return false;
 
-			Series::Unpack(V->Get("index"), &O->Index);
+			Series::UnpackA(V->Get("index"), &O->Index);
 			Series::Unpack(V->Get("name"), &O->Name);
 			HeavySeries::Unpack(V->Get("global"), &O->Global);
 			HeavySeries::Unpack(V->Get("local"), &O->Local);

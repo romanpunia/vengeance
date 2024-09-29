@@ -7,13 +7,10 @@
 #include <tinyfiledialogs.h>
 #endif
 #ifdef VI_SPIRV
+#include <glslang/Public/ShaderLang.h>
 #include <spirv_cross/spirv_glsl.hpp>
-#ifdef VI_MICROSOFT
 #include <spirv_cross/spirv_hlsl.hpp>
-#endif
-#ifdef VI_APPLE
 #include <spirv_cross/spirv_msl.hpp>
-#endif
 #include <SPIRV/GlslangToSpv.h>
 #endif
 #ifdef VI_SDL2
@@ -1322,7 +1319,7 @@ namespace Vitex
 					VI_ASSERT(false, "transpilation requests a defined shader type to proceed");
 					return GraphicsException("shader model is not valid");
 			}
-
+			
 			Core::String Entry = GetShaderMain(Type);
 			std::vector<uint32_t> Binary;
 			glslang::InitializeProcess();
@@ -3264,7 +3261,7 @@ namespace Vitex
 #ifdef SDL_VIDEO_DRIVER_COCOA
 			SDL_SysWMinfo Info;
 			Target->Load(&Info);
-			return (size_t)Info.info.cocoa.window;
+			return Info.info.cocoa.window;
 #else
 			return nullptr;
 #endif

@@ -814,22 +814,22 @@ namespace Vitex
 						HeavySeries::Unpack(Simulator->Find("gravity"), &I.Simulator.Gravity);
 					}
 
-					Series::Unpack(Metadata->Find("materials"), &I.StartMaterials);
-					Series::Unpack(Metadata->Find("entities"), &I.StartEntities);
-					Series::Unpack(Metadata->Find("components"), &I.StartComponents);
+					Series::UnpackA(Metadata->Find("materials"), &I.StartMaterials);
+					Series::UnpackA(Metadata->Find("entities"), &I.StartEntities);
+					Series::UnpackA(Metadata->Find("components"), &I.StartComponents);
 					Series::Unpack(Metadata->Find("render-quality"), &I.RenderQuality);
 					Series::Unpack(Metadata->Find("enable-hdr"), &I.EnableHDR);
-					Series::Unpack(Metadata->Find("grow-margin"), &I.GrowMargin);
+					Series::UnpackA(Metadata->Find("grow-margin"), &I.GrowMargin);
 					Series::Unpack(Metadata->Find("grow-rate"), &I.GrowRate);
-					Series::Unpack(Metadata->Find("max-updates"), &I.MaxUpdates);
-					Series::Unpack(Metadata->Find("voxels-size"), &I.VoxelsSize);
-					Series::Unpack(Metadata->Find("voxels-max"), &I.VoxelsMax);
-					Series::Unpack(Metadata->Find("points-size"), &I.PointsSize);
-					Series::Unpack(Metadata->Find("points-max"), &I.PointsMax);
-					Series::Unpack(Metadata->Find("spots-size"), &I.SpotsSize);
-					Series::Unpack(Metadata->Find("spots-max"), &I.SpotsMax);
-					Series::Unpack(Metadata->Find("line-size"), &I.LinesSize);
-					Series::Unpack(Metadata->Find("lines-max"), &I.LinesMax);
+					Series::UnpackA(Metadata->Find("max-updates"), &I.MaxUpdates);
+					Series::UnpackA(Metadata->Find("voxels-size"), &I.VoxelsSize);
+					Series::UnpackA(Metadata->Find("voxels-max"), &I.VoxelsMax);
+					Series::UnpackA(Metadata->Find("points-size"), &I.PointsSize);
+					Series::UnpackA(Metadata->Find("points-max"), &I.PointsMax);
+					Series::UnpackA(Metadata->Find("spots-size"), &I.SpotsSize);
+					Series::UnpackA(Metadata->Find("spots-max"), &I.SpotsMax);
+					Series::UnpackA(Metadata->Find("line-size"), &I.LinesSize);
+					Series::UnpackA(Metadata->Find("lines-max"), &I.LinesMax);
 				}
 
 				bool IntegrityCheck = false;
@@ -864,7 +864,7 @@ namespace Vitex
 						auto Value = Content->Load<Layer::Material>(Path);
 						if (Value)
 						{
-							Series::Unpack(It, &Value->Slot);
+							Series::UnpackA(It, &Value->Slot);
 							Object->AddMaterial(*Value);
 						}
 						else if (IntegrityCheck)
@@ -923,7 +923,7 @@ namespace Vitex
 							HeavySeries::Unpack(Parent->Find("world"), &Space->Offset);
 
 							size_t Where = 0;
-							if (Series::Unpack(Parent->Find("where"), &Where))
+							if (Series::UnpackA(Parent->Find("where"), &Where))
 							{
 								auto It = Snapshot.From.find(Where);
 								if (It != Snapshot.From.end() && It->second != Entity)
@@ -999,22 +999,22 @@ namespace Vitex
 
 				auto& Conf = Object->GetConf();
 				Core::Schema* Metadata = Blob->Set("metadata");
-				Series::Pack(Metadata->Set("materials"), Conf.StartMaterials);
-				Series::Pack(Metadata->Set("entities"), Conf.StartEntities);
-				Series::Pack(Metadata->Set("components"), Conf.StartComponents);
+				Series::Pack(Metadata->Set("materials"), (uint64_t)Conf.StartMaterials);
+				Series::Pack(Metadata->Set("entities"), (uint64_t)Conf.StartEntities);
+				Series::Pack(Metadata->Set("components"), (uint64_t)Conf.StartComponents);
 				Series::Pack(Metadata->Set("render-quality"), Conf.RenderQuality);
 				Series::Pack(Metadata->Set("enable-hdr"), Conf.EnableHDR);
-				Series::Pack(Metadata->Set("grow-margin"), Conf.GrowMargin);
+				Series::Pack(Metadata->Set("grow-margin"), (uint64_t)Conf.GrowMargin);
 				Series::Pack(Metadata->Set("grow-rate"), Conf.GrowRate);
-				Series::Pack(Metadata->Set("max-updates"), Conf.MaxUpdates);
-				Series::Pack(Metadata->Set("voxels-size"), Conf.VoxelsSize);
-				Series::Pack(Metadata->Set("voxels-max"), Conf.VoxelsMax);
-				Series::Pack(Metadata->Set("points-size"), Conf.PointsSize);
-				Series::Pack(Metadata->Set("points-max"), Conf.PointsMax);
-				Series::Pack(Metadata->Set("spots-size"), Conf.SpotsSize);
-				Series::Pack(Metadata->Set("spots-max"), Conf.SpotsMax);
-				Series::Pack(Metadata->Set("line-size"), Conf.LinesSize);
-				Series::Pack(Metadata->Set("lines-max"), Conf.LinesMax);
+				Series::Pack(Metadata->Set("max-updates"), (uint64_t)Conf.MaxUpdates);
+				Series::Pack(Metadata->Set("voxels-size"), (uint64_t)Conf.VoxelsSize);
+				Series::Pack(Metadata->Set("voxels-max"), (uint64_t)Conf.VoxelsMax);
+				Series::Pack(Metadata->Set("points-size"), (uint64_t)Conf.PointsSize);
+				Series::Pack(Metadata->Set("points-max"), (uint64_t)Conf.PointsMax);
+				Series::Pack(Metadata->Set("spots-size"), (uint64_t)Conf.SpotsSize);
+				Series::Pack(Metadata->Set("spots-max"), (uint64_t)Conf.SpotsMax);
+				Series::Pack(Metadata->Set("line-size"), (uint64_t)Conf.LinesSize);
+				Series::Pack(Metadata->Set("lines-max"), (uint64_t)Conf.LinesMax);
 
 				auto* fSimulator = Object->GetSimulator();
 				Core::Schema* Simulator = Metadata->Set("simulator");
@@ -1046,7 +1046,7 @@ namespace Vitex
 					if (Content->Save<Layer::Material>(Path, Material, Args))
 					{
 						Core::Schema* Where = Materials->Set("material");
-						Series::Pack(Where, Material->Slot);
+						Series::Pack(Where, (uint64_t)Material->Slot);
 						Series::Pack(Where, Path);
 					}
 				}
@@ -1059,7 +1059,7 @@ namespace Vitex
 
 					Core::Schema* Entity = Entities->Set("entity");
 					Series::Pack(Entity->Set("name"), Ref->GetName());
-					Series::Pack(Entity->Set("refer"), i);
+					Series::Pack(Entity->Set("refer"), (uint64_t)i);
 
 					Core::Schema* Transform = Entity->Set("transform");
 					HeavySeries::Pack(Transform->Set("position"), Offset->GetPosition());
@@ -1074,7 +1074,7 @@ namespace Vitex
 						{
 							auto It = Snapshot.To.find((Layer::Entity*)Offset->GetRoot());
 							if (It != Snapshot.To.end())
-								Series::Pack(Parent->Set("where"), It->second);
+								Series::Pack(Parent->Set("where"), (uint64_t)It->second);
 						}
 
 						Trigonometry::Transform::Spacing& Space = Offset->GetSpacing();

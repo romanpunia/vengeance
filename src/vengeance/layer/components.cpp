@@ -41,7 +41,7 @@ namespace Vitex
 			void RigidBody::DeserializeBody(Core::Schema* Node)
 			{
 				size_t ActivationState;
-				if (Series::Unpack(Node->Find("activation-state"), &ActivationState))
+				if (Series::UnpackA(Node->Find("activation-state"), &ActivationState))
 					Instance->SetActivationState((Physics::MotionState)ActivationState);
 
 				float AngularDamping;
@@ -125,7 +125,7 @@ namespace Vitex
 					Instance->SetLinearVelocity(LinearVelocity);
 
 				size_t CollisionFlags;
-				if (Series::Unpack(Node->Find("collision-flags"), &CollisionFlags))
+				if (Series::UnpackA(Node->Find("collision-flags"), &CollisionFlags))
 					Instance->SetCollisionFlags(CollisionFlags);
 			}
 			void RigidBody::Deserialize(Core::Schema* Node)
@@ -159,7 +159,7 @@ namespace Vitex
 							Node->Release();
 						});
 					}
-					else if (Series::Unpack(Shaping->Find("type"), &Type))
+					else if (Series::UnpackA(Shaping->Find("type"), &Type))
 					{
 						btCollisionShape* Shape = Parent->GetScene()->GetSimulator()->CreateShape((Physics::Shape)Type);
 						if (Shape != nullptr)
@@ -201,11 +201,11 @@ namespace Vitex
 						Series::Pack(Shaping->Set("path"), Path);
 				}
 				else
-					Series::Pack(Shaping->Set("type"), (size_t)Instance->GetCollisionShapeType());
+					Series::Pack(Shaping->Set("type"), (uint64_t)Instance->GetCollisionShapeType());
 
 				Series::Pack(Node->Set("mass"), Instance->GetMass());
 				Series::Pack(Node->Set("ccd-motion-threshold"), Instance->GetCcdMotionThreshold());
-				Series::Pack(Node->Set("activation-state"), (size_t)Instance->GetActivationState());
+				Series::Pack(Node->Set("activation-state"), (uint64_t)Instance->GetActivationState());
 				Series::Pack(Node->Set("angular-damping"), Instance->GetAngularDamping());
 				Series::Pack(Node->Set("angular-sleeping-threshold"), Instance->GetAngularSleepingThreshold());
 				Series::Pack(Node->Set("friction"), Instance->GetFriction());
@@ -226,7 +226,7 @@ namespace Vitex
 				HeavySeries::Pack(Node->Set("gravity"), Instance->GetGravity());
 				HeavySeries::Pack(Node->Set("linear-factor"), Instance->GetLinearFactor());
 				HeavySeries::Pack(Node->Set("linear-velocity"), Instance->GetLinearVelocity());
-				Series::Pack(Node->Set("collision-flags"), Instance->GetCollisionFlags());
+				Series::Pack(Node->Set("collision-flags"), (uint64_t)Instance->GetCollisionFlags());
 			}
 			void RigidBody::Synchronize(Core::Timer* Time)
 			{
@@ -367,14 +367,14 @@ namespace Vitex
 					Series::Unpack(Conf->Get("collisions"), &I.Collisions);
 
 					size_t AeroModel;
-					if (Series::Unpack(Conf->Get("aero-model"), &AeroModel))
+					if (Series::UnpackA(Conf->Get("aero-model"), &AeroModel))
 						I.AeroModel = (Physics::SoftAeroModel)AeroModel;
 
 					Instance->SetConfig(I);
 				}
 
 				size_t ActivationState;
-				if (Series::Unpack(Node->Find("activation-state"), &ActivationState))
+				if (Series::UnpackA(Node->Find("activation-state"), &ActivationState))
 					Instance->SetActivationState((Physics::MotionState)ActivationState);
 
 				float Friction;
@@ -449,7 +449,7 @@ namespace Vitex
 				SetCategory((GeoCategory)NewCategory);
 
 				size_t Slot = 0;
-				if (Series::Unpack(Node->Find("material"), &Slot))
+				if (Series::UnpackA(Node->Find("material"), &Slot))
 					SetMaterial(nullptr, Parent->GetScene()->GetMaterial(Slot));
 
 				if (!Extended)
@@ -514,7 +514,7 @@ namespace Vitex
 
 				Material* Slot = GetMaterial();
 				if (Slot != nullptr)
-					Series::Pack(Node->Set("material"), Slot->Slot);
+					Series::Pack(Node->Set("material"), (uint64_t)Slot->Slot);
 
 				HeavySeries::Pack(Node->Set("texcoord"), TexCoord);
 				Series::Pack(Node->Set("category"), (uint32_t)GetCategory());
@@ -528,7 +528,7 @@ namespace Vitex
 
 				Physics::SoftBody::Desc& I = Instance->GetInitialState();
 				Core::Schema* Conf = Node->Set("config");
-				Series::Pack(Conf->Set("aero-model"), (size_t)I.Config.AeroModel);
+				Series::Pack(Conf->Set("aero-model"), (uint64_t)I.Config.AeroModel);
 				Series::Pack(Conf->Set("vcf"), I.Config.VCF);
 				Series::Pack(Conf->Set("dp"), I.Config.DP);
 				Series::Pack(Conf->Set("dg"), I.Config.DG);
@@ -602,7 +602,7 @@ namespace Vitex
 				}
 
 				Series::Pack(Node->Set("ccd-motion-threshold"), Instance->GetCcdMotionThreshold());
-				Series::Pack(Node->Set("activation-state"), (size_t)Instance->GetActivationState());
+				Series::Pack(Node->Set("activation-state"), (uint64_t)Instance->GetActivationState());
 				Series::Pack(Node->Set("friction"), Instance->GetFriction());
 				Series::Pack(Node->Set("restitution"), Instance->GetRestitution());
 				Series::Pack(Node->Set("hit-fraction"), Instance->GetHitFraction());
@@ -616,7 +616,7 @@ namespace Vitex
 				HeavySeries::Pack(Node->Set("angular-velocity"), Instance->GetAngularVelocity());
 				HeavySeries::Pack(Node->Set("anisotropic-friction"), Instance->GetAnisotropicFriction());
 				HeavySeries::Pack(Node->Set("linear-velocity"), Instance->GetLinearVelocity());
-				Series::Pack(Node->Set("collision-flags"), Instance->GetCollisionFlags());
+				Series::Pack(Node->Set("collision-flags"), (uint64_t)Instance->GetCollisionFlags());
 				HeavySeries::Pack(Node->Set("wind-velocity"), Instance->GetWindVelocity());
 				Series::Pack(Node->Set("total-mass"), Instance->GetTotalMass());
 				Series::Pack(Node->Set("core-length-scale"), Instance->GetRestLengthScale());
@@ -865,7 +865,7 @@ namespace Vitex
 					return;
 
 				size_t ConnectionId = 0;
-				if (Series::Unpack(Node->Find("connection"), &ConnectionId))
+				if (Series::UnpackA(Node->Find("connection"), &ConnectionId))
 				{
 					IdxSnapshot* Snapshot = Parent->GetScene()->Snapshot;
 					if (Snapshot != nullptr)
@@ -1254,7 +1254,7 @@ namespace Vitex
 						for (auto&& Material : Node->FetchCollection("materials.material"))
 						{
 							Core::String Name; size_t Slot = 0;
-							if (Series::Unpack(Material->Find("name"), &Name) && Series::Unpack(Material->Find("slot"), &Slot))
+							if (Series::Unpack(Material->Find("name"), &Name) && Series::UnpackA(Material->Find("slot"), &Slot))
 							{
 								Graphics::MeshBuffer* Surface = Instance->FindMesh(Name);
 								if (Surface != nullptr)
@@ -1283,7 +1283,7 @@ namespace Vitex
 						Core::Schema* Material = Slots->Set("material");
 						Series::Pack(Material->Set("name"), Buffer->Name);
 						if (Slot.second != nullptr)
-							Series::Pack(Material->Set("slot"), Slot.second->Slot);
+							Series::Pack(Material->Set("slot"), (uint64_t)Slot.second->Slot);
 					}
 				}
 			}
@@ -1391,7 +1391,7 @@ namespace Vitex
 						for (auto&& Material : Node->FetchCollection("materials.material"))
 						{
 							Core::String Name; size_t Slot = 0;
-							if (Series::Unpack(Material->Find("name"), &Name) && Series::Unpack(Material->Find("slot"), &Slot))
+							if (Series::Unpack(Material->Find("name"), &Name) && Series::UnpackA(Material->Find("slot"), &Slot))
 							{
 								Graphics::SkinMeshBuffer* Surface = Instance->FindMesh(Name);
 								if (Surface != nullptr)
@@ -1420,7 +1420,7 @@ namespace Vitex
 						Series::Pack(Material->Set("name"), ((Graphics::MeshBuffer*)Slot.first)->Name);
 
 						if (Slot.second != nullptr)
-							Series::Pack(Material->Set("slot"), Slot.second->Slot);
+							Series::Pack(Material->Set("slot"), (uint64_t)Slot.second->Slot);
 					}
 				}
 			}
@@ -1506,7 +1506,7 @@ namespace Vitex
 				VI_ASSERT(Node != nullptr, "schema should be set");
 
 				SceneGraph* Scene = Parent->GetScene(); size_t Slot = 0;
-				if (Series::Unpack(Node->Find("material"), &Slot))
+				if (Series::UnpackA(Node->Find("material"), &Slot))
 					SetMaterial(nullptr, Scene->GetMaterial(Slot));
 
 				uint32_t NewCategory = (uint32_t)GeoCategory::Opaque;
@@ -1519,7 +1519,7 @@ namespace Vitex
 				SetCategory((GeoCategory)NewCategory);
 
 				size_t Limit;
-				if (Series::Unpack(Node->Find("limit"), &Limit) && Instance != nullptr)
+				if (Series::UnpackA(Node->Find("limit"), &Limit) && Instance != nullptr)
 				{
 					auto& Dest = Instance->GetArray();
 					HeavySeries::Unpack(Node->Find("elements"), &Dest);
@@ -1532,7 +1532,7 @@ namespace Vitex
 
 				Material* Slot = GetMaterial();
 				if (Slot != nullptr)
-					Series::Pack(Node->Set("material"), Slot->Slot);
+					Series::Pack(Node->Set("material"), (uint64_t)Slot->Slot);
 
 				Series::Pack(Node->Set("category"), (uint32_t)GetCategory());
 				Series::Pack(Node->Set("quad-based"), QuadBased);
@@ -1543,7 +1543,7 @@ namespace Vitex
 
 				if (Instance != nullptr)
 				{
-					Series::Pack(Node->Set("limit"), Instance->GetElementLimit());
+					Series::Pack(Node->Set("limit"), (uint64_t)Instance->GetElementLimit());
 					HeavySeries::Pack(Node->Set("elements"), Instance->GetArray());
 				}
 			}
@@ -1596,7 +1596,7 @@ namespace Vitex
 				VI_ASSERT(Node != nullptr, "schema should be set");
 
 				size_t Slot = 0;
-				if (Series::Unpack(Node->Find("material"), &Slot))
+				if (Series::UnpackA(Node->Find("material"), &Slot))
 					SetMaterial(nullptr, Parent->GetScene()->GetMaterial(Slot));
 
 				uint32_t NewCategory = (uint32_t)GeoCategory::Opaque;
@@ -1611,7 +1611,7 @@ namespace Vitex
 
 				Material* Slot = GetMaterial();
 				if (Slot != nullptr)
-					Series::Pack(Node->Set("material"), Slot->Slot);
+					Series::Pack(Node->Set("material"), (uint64_t)Slot->Slot);
 
 				HeavySeries::Pack(Node->Set("texcoord"), TexCoord);
 				Series::Pack(Node->Set("static"), Static);
@@ -3309,12 +3309,12 @@ namespace Vitex
 				Series::Unpack(Node->Find("near-plane"), &NearPlane);
 				Series::Unpack(Node->Find("width"), &Width);
 				Series::Unpack(Node->Find("height"), &Height);
-				Series::Unpack(Node->Find("occluder-skips"), &Renderer->OccluderSkips);
-				Series::Unpack(Node->Find("occludee-skips"), &Renderer->OccludeeSkips);
-				Series::Unpack(Node->Find("occlusion-skips"), &Renderer->OcclusionSkips);
+				Series::UnpackA(Node->Find("occluder-skips"), &Renderer->OccluderSkips);
+				Series::UnpackA(Node->Find("occludee-skips"), &Renderer->OccludeeSkips);
+				Series::UnpackA(Node->Find("occlusion-skips"), &Renderer->OcclusionSkips);
 				Series::Unpack(Node->Find("occlusion-cull"), &Renderer->OcclusionCulling);
 				Series::Unpack(Node->Find("occludee-scaling"), &Renderer->OccludeeScaling);
-				Series::Unpack(Node->Find("max-queries"), &Renderer->MaxQueries);
+				Series::UnpackA(Node->Find("max-queries"), &Renderer->MaxQueries);
 
 				Core::Vector<Core::Schema*> Renderers = Node->FetchCollection("renderers.renderer");
 				for (auto& Render : Renderers)
@@ -3348,12 +3348,12 @@ namespace Vitex
 				Series::Pack(Node->Set("near-plane"), NearPlane);
 				Series::Pack(Node->Set("width"), Width);
 				Series::Pack(Node->Set("height"), Height);
-				Series::Pack(Node->Set("occluder-skips"), Renderer->OccluderSkips);
-				Series::Pack(Node->Set("occludee-skips"), Renderer->OccludeeSkips);
-				Series::Pack(Node->Set("occlusion-skips"), Renderer->OcclusionSkips);
+				Series::Pack(Node->Set("occluder-skips"), (uint64_t)Renderer->OccluderSkips);
+				Series::Pack(Node->Set("occludee-skips"), (uint64_t)Renderer->OccludeeSkips);
+				Series::Pack(Node->Set("occlusion-skips"), (uint64_t)Renderer->OcclusionSkips);
 				Series::Pack(Node->Set("occlusion-cull"), Renderer->OcclusionCulling);
 				Series::Pack(Node->Set("occludee-scaling"), Renderer->OccludeeScaling);
-				Series::Pack(Node->Set("max-queries"), Renderer->MaxQueries);
+				Series::Pack(Node->Set("max-queries"), (uint64_t)Renderer->MaxQueries);
 
 				Core::Schema* Renderers = Node->Set("renderers", Core::Var::Array());
 				for (auto* Next : Renderer->GetRenderers())
