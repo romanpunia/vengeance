@@ -482,6 +482,7 @@ namespace Vitex
 				ExpectsGraphics<void> CubemapFace(Cubemap* Resource, Trigonometry::CubeFace Face) override;
 				ExpectsGraphics<void> CubemapPop(Cubemap* Resource) override;
 				ExpectsGraphics<void> CopyBackBuffer(Texture2D** Result) override;
+				ExpectsGraphics<void> RescaleBuffers(uint32_t Width, uint32_t Height) override;
 				ExpectsGraphics<void> ResizeBuffers(uint32_t Width, uint32_t Height) override;
 				ExpectsGraphics<void> GenerateTexture(Texture2D* Resource) override;
 				ExpectsGraphics<void> GenerateTexture(Texture3D* Resource) override;

@@ -616,8 +616,10 @@ namespace Vitex
 				if (I.Debug)
 				{
 					glEnable(GL_DEBUG_OUTPUT);
+#ifndef VI_APPLE
 					glDebugMessageCallback(DebugMessage, nullptr);
 					glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, NULL, GL_TRUE);
+#endif
 				}
 
 				Register.Programs[GetProgramHash()] = GL_NONE;
@@ -784,9 +786,9 @@ namespace Vitex
 				if (!OldState || OldState->State.FillMode != NewState->State.FillMode)
 				{
 					if (NewState->State.FillMode == SurfaceFill::Solid)
-						glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+						glPolygonMode(GL_BACK, GL_FILL);
 					else
-						glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+						glPolygonMode(GL_BACK, GL_LINE);
 				}
 
 				if (!OldState || OldState->State.FrontCounterClockwise != NewState->State.FrontCounterClockwise)
@@ -1270,7 +1272,7 @@ namespace Vitex
 				else
 				{
 					glBindFramebuffer(GL_FRAMEBUFFER, GL_NONE);
-					glDrawBuffer(GL_FRONT_AND_BACK);
+					glDrawBuffer(GL_BACK);
 				}
 
 				glViewport((GLuint)Viewarea.TopLeftX, (GLuint)Viewarea.TopLeftY, (GLuint)Viewarea.Width, (GLuint)Viewarea.Height);
@@ -1293,12 +1295,11 @@ namespace Vitex
 
 					glBindFramebuffer(GL_FRAMEBUFFER, TargetBuffer->Buffer);
 					glDrawBuffers(Resource->GetTargetCount(), Targets);
-
 				}
 				else
 				{
 					glBindFramebuffer(GL_FRAMEBUFFER, GL_NONE);
-					glDrawBuffer(GL_FRONT_AND_BACK);
+					glDrawBuffer(GL_BACK);
 				}
 
 				glViewport((GLuint)Viewarea.TopLeftX, (GLuint)Viewarea.TopLeftY, (GLuint)Viewarea.Width, (GLuint)Viewarea.Height);
@@ -1318,7 +1319,7 @@ namespace Vitex
 				else
 				{
 					glBindFramebuffer(GL_FRAMEBUFFER, GL_NONE);
-					glDrawBuffer(GL_FRONT_AND_BACK);
+					glDrawBuffer(GL_BACK);
 				}
 
 				glViewport((GLuint)Viewarea.TopLeftX, (GLuint)Viewarea.TopLeftY, (GLuint)Viewarea.Width, (GLuint)Viewarea.Height);
@@ -1341,7 +1342,7 @@ namespace Vitex
 				else
 				{
 					glBindFramebuffer(GL_FRAMEBUFFER, GL_NONE);
-					glDrawBuffer(GL_FRONT_AND_BACK);
+					glDrawBuffer(GL_BACK);
 				}
 
 				glViewport((GLuint)Viewarea.TopLeftX, (GLuint)Viewarea.TopLeftY, (GLuint)Viewarea.Width, (GLuint)Viewarea.Height);
@@ -1370,7 +1371,7 @@ namespace Vitex
 				else
 				{
 					glBindFramebuffer(GL_FRAMEBUFFER, GL_NONE);
-					glDrawBuffer(GL_FRONT_AND_BACK);
+					glDrawBuffer(GL_BACK);
 				}
 
 				glViewport((GLuint)Viewarea.TopLeftX, (GLuint)Viewarea.TopLeftY, (GLuint)Viewarea.Width, (GLuint)Viewarea.Height);
@@ -1468,7 +1469,7 @@ namespace Vitex
 			}
 			void OGLDevice::Clear(float R, float G, float B)
 			{
-				glClearColor(R, G, B, 0.0f);
+				glClearColor(R, G, B, 1.0f);
 				glClear(GL_COLOR_BUFFER_BIT);
 			}
 			void OGLDevice::Clear(Graphics::RenderTarget* Resource, uint32_t Target, float R, float G, float B)
@@ -1732,17 +1733,19 @@ namespace Vitex
 
 				GLint LastProgram = GL_NONE, LastTexture = GL_NONE;
 				glGetIntegerv(GL_CURRENT_PROGRAM, &LastProgram);
-
+				
 				glBindBuffer(GL_ARRAY_BUFFER, Immediate.VertexBuffer);
 				GLvoid* Data = glMapBuffer(GL_ARRAY_BUFFER, GL_WRITE_ONLY);
 				memcpy(Data, Elements.data(), (size_t)Elements.size() * sizeof(Vertex));
 				glUnmapBuffer(GL_ARRAY_BUFFER);
 
-				const GLuint ImageSlot = 1;
+				const GLuint TransformSlot = glGetUniformLocation(Immediate.Program, "Transform");
+				const GLuint ImageSlot = glGetUniformLocation(Immediate.Program, "Diffuse");
+				const GLuint PaddingSlot = glGetUniformLocation(Immediate.Program, "Padding");
 				glBindBuffer(GL_ARRAY_BUFFER, LastVBO);
 				glUseProgram(Immediate.Program);
-				glUniformMatrix4fv(0, 1, GL_FALSE, (const GLfloat*)&Direct.Transform.Row);
-				glUniform4fARB(2, Direct.Padding.X, Direct.Padding.Y, Direct.Padding.Z, Direct.Padding.W);	
+				glUniformMatrix4fv(TransformSlot, 1, GL_FALSE, (const GLfloat*)&Direct.Transform.Row);
+				glUniform4fARB(PaddingSlot, Direct.Padding.X, Direct.Padding.Y, Direct.Padding.Z, Direct.Padding.W);
 				glActiveTexture(GL_TEXTURE0 + ImageSlot);
 				glGetIntegerv(GL_SAMPLER_BINDING, &LastSampler);
 				glGetIntegerv(GL_TEXTURE_BINDING_2D, &LastTexture);
@@ -1760,7 +1763,15 @@ namespace Vitex
 			ExpectsGraphics<void> OGLDevice::Submit()
 			{
 				VI_ASSERT(Window != nullptr, "window should be set");
+#ifdef VI_APPLE
+				GLint LastFrameBuffer = 0;
+				glGetIntegerv(GL_FRAMEBUFFER_BINDING, &LastFrameBuffer);
+				glBindFramebuffer(GL_FRAMEBUFFER, 0);
 				Video::GLEW::PerformSwap(Window);
+				glBindFramebuffer(GL_FRAMEBUFFER, LastFrameBuffer);
+#else
+				Video::GLEW::PerformSwap(Window);
+#endif
 				DispatchQueue();
 				return Core::Expectation::Met;
 			}
@@ -2423,6 +2434,12 @@ namespace Vitex
 				glCopyTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 0, 0, (GLsizei)Viewport[2], (GLsizei)Viewport[3], 0);
 				glGenerateMipmap(GL_TEXTURE_2D);
 				return GenerateTexture(Texture);
+			}
+			ExpectsGraphics<void> OGLDevice::RescaleBuffers(uint32_t Width, uint32_t Height)
+			{
+				VI_ASSERT(Window != nullptr, "window should be set");
+				auto Size = Window->GetDrawableSize(Width, Height);
+				return ResizeBuffers((uint32_t)Size.X, (uint32_t)Size.Y);
 			}
 			ExpectsGraphics<void> OGLDevice::ResizeBuffers(uint32_t Width, uint32_t Height)
 			{
@@ -3816,9 +3833,9 @@ namespace Vitex
 				if (Immediate.VertexShader == GL_NONE)
 				{
 					static const char* VertexShaderCode = OGL_INLINE(
-						layout(location = 0) uniform mat4 Transform;
-
-						layout(location = 0) in vec3 iPosition;
+						uniform mat4 Transform;
+																	 
+                        layout(location = 0) in vec3 iPosition;
 						layout(location = 1) in vec2 iTexCoord;
 						layout(location = 2) in vec4 iColor;
 
@@ -3855,11 +3872,11 @@ namespace Vitex
 				if (Immediate.PixelShader == GL_NONE)
 				{
 					static const char* PixelShaderCode = OGL_INLINE(
-						layout(binding = 1) uniform sampler2D Diffuse;
-						layout(location = 2) uniform vec4 Padding;
+						uniform sampler2D Diffuse;
+						uniform vec4 Padding;
 
-						in vec2 oTexCoord;
-						in vec4 oColor;
+                        in vec2 oTexCoord;
+                        in vec4 oColor;
 
 						out vec4 oResult;
 

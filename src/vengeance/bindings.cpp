@@ -3157,7 +3157,7 @@ namespace Vitex
 #ifdef VI_BINDINGS
 				VI_ASSERT(VM != nullptr, "manager should be set");
 				auto VAppState = VM->SetEnum("app_state");
-				VAppState->SetValue("close_window", (int)Graphics::AppState::Close_Window);
+				VAppState->SetValue("close", (int)Graphics::AppState::Close);
 				VAppState->SetValue("terminating", (int)Graphics::AppState::Terminating);
 				VAppState->SetValue("low_memory", (int)Graphics::AppState::Low_Memory);
 				VAppState->SetValue("enter_background_start", (int)Graphics::AppState::Enter_Background_Start);
@@ -3667,6 +3667,7 @@ namespace Vitex
 				VActivity->SetMethod("vector2 get_offset() const", &Graphics::Activity::GetOffset);
 				VActivity->SetMethod("vector2 get_size() const", &Graphics::Activity::GetSize);
 				VActivity->SetMethod("vector2 get_client_size() const", &Graphics::Activity::GetClientSize);
+				VActivity->SetMethod("vector2 get_drawable_size(uint32, uint32) const", &Graphics::Activity::GetDrawableSize);
 				VActivity->SetMethod("vector2 get_global_cursor_position() const", &Graphics::Activity::GetGlobalCursorPosition);
 				VActivity->SetMethod<Graphics::Activity, Trigonometry::Vector2>("vector2 get_cursor_position() const", &Graphics::Activity::GetCursorPosition);
 				VActivity->SetMethod<Graphics::Activity, Trigonometry::Vector2, float, float>("vector2 get_cursor_position(float, float) const", &Graphics::Activity::GetCursorPosition);
@@ -5234,6 +5235,7 @@ namespace Vitex
 				VGraphicsDevice->SetMethodEx("bool cubemap_pop(cubemap@+)", &VI_EXPECTIFY_VOID(Graphics::GraphicsDevice::CubemapPop));
 				VGraphicsDevice->SetMethodEx("array<viewport>@ get_viewports()", &GraphicsDeviceGetViewports);
 				VGraphicsDevice->SetMethodEx("array<rectangle>@ get_scissor_rects()", &GraphicsDeviceGetScissorRects);
+				VGraphicsDevice->SetMethodEx("bool rescale_buffers(uint32, uint32)", &VI_EXPECTIFY_VOID(Graphics::GraphicsDevice::RescaleBuffers));
 				VGraphicsDevice->SetMethodEx("bool resize_buffers(uint32, uint32)", &VI_EXPECTIFY_VOID(Graphics::GraphicsDevice::ResizeBuffers));
 				VGraphicsDevice->SetMethodEx("bool generate_texture(texture_2d@+)", &GraphicsDeviceGenerateTexture1);
 				VGraphicsDevice->SetMethodEx("bool generate_texture(texture_3d@+)", &GraphicsDeviceGenerateTexture2);

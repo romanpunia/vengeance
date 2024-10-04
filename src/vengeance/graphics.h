@@ -29,7 +29,7 @@ namespace Vitex
 
 		enum class AppState
 		{
-			Close_Window,
+			Close,
 			Terminating,
 			Low_Memory,
 			Enter_Background_Start,
@@ -1784,6 +1784,7 @@ namespace Vitex
 			virtual ExpectsGraphics<void> CubemapPush(Cubemap* Resource, TextureCube* Result) = 0;
 			virtual ExpectsGraphics<void> CubemapFace(Cubemap* Resource, Trigonometry::CubeFace Face) = 0;
 			virtual ExpectsGraphics<void> CubemapPop(Cubemap* Resource) = 0;
+			virtual ExpectsGraphics<void> RescaleBuffers(uint32_t Width, uint32_t Height) = 0;
 			virtual ExpectsGraphics<void> ResizeBuffers(uint32_t Width, uint32_t Height) = 0;
 			virtual ExpectsGraphics<void> GenerateTexture(Texture2D* Resource) = 0;
 			virtual ExpectsGraphics<void> GenerateTexture(Texture3D* Resource) = 0;
@@ -1992,6 +1993,7 @@ namespace Vitex
 			Trigonometry::Vector2 GetOffset() const;
 			Trigonometry::Vector2 GetSize() const;
 			Trigonometry::Vector2 GetClientSize() const;
+			Trigonometry::Vector2 GetDrawableSize(uint32_t Width, uint32_t Height) const;
 			Trigonometry::Vector2 GetGlobalCursorPosition() const;
 			Trigonometry::Vector2 GetCursorPosition() const;
 			Trigonometry::Vector2 GetCursorPosition(float ScreenWidth, float ScreenHeight) const;

@@ -2255,8 +2255,10 @@ namespace Vitex
 					case SDL_QUIT:
 						for (auto& Item : Sources.Consumers)
 						{
+							if (Item.second->Callbacks.WindowStateChange)
+								Item.second->Callbacks.WindowStateChange(WindowState::Close, 0, 0);
 							if (Item.second->Callbacks.AppStateChange)
-								Item.second->Callbacks.AppStateChange(AppState::Close_Window);
+								Item.second->Callbacks.AppStateChange(AppState::Close);
 						}
 						break;
 					case SDL_APP_TERMINATING:
@@ -2911,6 +2913,18 @@ namespace Vitex
 			return Trigonometry::Vector2();
 #endif
 		}
+		Trigonometry::Vector2 Activity::GetDrawableSize(uint32_t Width, uint32_t Height) const
+		{
+#ifdef VI_SDL2
+			VI_ASSERT(Handle != nullptr, "activity should be initialized");
+
+			int W = -1, H = -1;
+			SDL_GL_GetDrawableSize(Handle, &W, &H);
+			return Trigonometry::Vector2((float)(W < 0 ? Width : W), (float)(H < 0 ? Height : H));
+#else
+			return Trigonometry::Vector2(Width, Height);
+#endif
+		}
 		Trigonometry::Vector2 Activity::GetOffset() const
 		{
 #ifdef VI_SDL2
@@ -3398,11 +3412,11 @@ namespace Vitex
 		bool Video::GLEW::SetSwapParameters(int32_t R, int32_t G, int32_t B, int32_t A, bool Debugging)
 		{
 #ifdef VI_SDL2
-			SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
 			SDL_GL_SetAttribute(SDL_GL_RED_SIZE, R);
 			SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, G);
 			SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, B);
 			SDL_GL_SetAttribute(SDL_GL_ALPHA_SIZE, A);
+			SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
 			SDL_GL_SetAttribute(SDL_GL_ACCELERATED_VISUAL, 1);
 			SDL_GL_SetAttribute(SDL_GL_CONTEXT_NO_ERROR, Debugging ? 0 : 1);
 			SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, Debugging ? SDL_GL_CONTEXT_DEBUG_FLAG : 0);
