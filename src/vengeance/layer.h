@@ -50,7 +50,9 @@ namespace Vitex
 			USE_GRAPHICS = 1 << 3,
 			USE_ACTIVITY = 1 << 4,
 			USE_AUDIO = 1 << 5,
-			MAX_STACK_DEPTH = 4
+			MAX_STACK_DEPTH = 4,
+			THRESHOLD_PER_ELEMENT = 48,
+			THRESHOLD_PER_THREAD = 1
 		};
 
 		enum class RenderOpt
@@ -933,7 +935,7 @@ namespace Vitex
 				if (Indexing.Queue.empty())
 					return;
 
-				Watch(Parallel::ForEach(Indexing.Queue.begin(), Indexing.Queue.end(), [Match](void* Item)
+				Watch(Parallel::ForEach(Indexing.Queue.begin(), Indexing.Queue.end(), THRESHOLD_PER_THREAD, [Match](void* Item)
 				{
 					Match(Parallel::GetThreadIndex(), (T*)Item);
 				}));
@@ -1034,7 +1036,7 @@ namespace Vitex
 					}
 					default:
 						if (!Storage.Data.Empty())
-							Watch(Parallel::Distribute(Storage.Data.Begin(), Storage.Data.End(), std::move(InitCallback), std::move(ElementCallback)));
+							Watch(Parallel::Distribute(Storage.Data.Begin(), Storage.Data.End(), THRESHOLD_PER_THREAD, std::move(InitCallback), std::move(ElementCallback)));
 						break;
 				}
 			}
@@ -2113,7 +2115,7 @@ namespace Vitex
 				{
 					auto& Batcher = Proxy.Batcher((GeoCategory)i);
 					auto& Frame = Proxy.Top((GeoCategory)i);
-					Parallel::WailAll(Parallel::Distribute(Frame.begin(), Frame.end(), [&Batcher](size_t Threads)
+					Parallel::WailAll(Parallel::Distribute(Frame.begin(), Frame.end(), THRESHOLD_PER_THREAD, [&Batcher](size_t Threads)
 					{
 						Batcher.Prepare(Threads);
 					}, [this, &Batcher](size_t Thread, T* Next)

@@ -3485,7 +3485,7 @@ namespace Vitex
 			auto& Storage = Actors[(size_t)ActorType::Synchronize];
 			if (!Storage.Empty())
 			{
-				Watch(TaskType::Processing, Parallel::ForEach(Storage.Begin(), Storage.End(), [Time](Component* Next)
+				Watch(TaskType::Processing, Parallel::ForEach(Storage.Begin(), Storage.End(), THRESHOLD_PER_ELEMENT, [Time](Component* Next)
 				{
 					Next->Synchronize(Time);
 				}));
@@ -3499,7 +3499,7 @@ namespace Vitex
 			auto& Storage = Actors[(size_t)ActorType::Animate];
 			if (Active && !Storage.Empty())
 			{
-				Watch(TaskType::Processing, Parallel::ForEach(Storage.Begin(), Storage.End(), [Time](Component* Next)
+				Watch(TaskType::Processing, Parallel::ForEach(Storage.Begin(), Storage.End(), THRESHOLD_PER_ELEMENT, [Time](Component* Next)
 				{
 					Next->Animate(Time);
 				}));
@@ -3568,7 +3568,7 @@ namespace Vitex
 			auto End = Dirty.End();
 			Dirty.Clear();
 
-			Watch(TaskType::Processing, Parallel::ForEach(Begin, End, [this](Entity* Next)
+			Watch(TaskType::Processing, Parallel::ForEach(Begin, End, THRESHOLD_PER_ELEMENT, [this](Entity* Next)
 			{
 				Next->Transform->Synchronize();
 				Next->UpdateBounds();
