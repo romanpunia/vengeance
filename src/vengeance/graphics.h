@@ -1756,6 +1756,9 @@ namespace Vitex
 			virtual void ImTexCoordOffset(float X, float Y) = 0;
 			virtual void ImPosition(float X, float Y, float Z) = 0;
 			virtual bool ImEnd() = 0;
+			virtual bool HasExplicitSlots() const = 0;
+			virtual ExpectsGraphics<uint32_t> GetShaderSlot(Shader* Resource, const std::string_view& Name) const = 0;
+			virtual ExpectsGraphics<uint32_t> GetShaderSamplerSlot(Shader* Resource, const std::string_view& ResourceName, const std::string_view& SamplerName) const = 0;
 			virtual ExpectsGraphics<void> Submit() = 0;
 			virtual ExpectsGraphics<void> Map(ElementBuffer* Resource, ResourceMap Mode, MappedSubresource* Map) = 0;
 			virtual ExpectsGraphics<void> Map(Texture2D* Resource, ResourceMap Mode, MappedSubresource* Map) = 0;

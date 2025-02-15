@@ -36,6 +36,14 @@ namespace Vitex
 			class RenderSubsystem final : public Rml::RenderInterfaceCompatibility
 			{
 			private:
+				struct
+				{
+					uint32_t DiffuseMap = (uint32_t)-1;
+					uint32_t Sampler = (uint32_t)-1;
+					uint32_t Object = (uint32_t)-1;
+				} Slots;
+
+			private:
 				Graphics::RasterizerState* ScissorNoneRasterizer;
 				Graphics::RasterizerState* NoneRasterizer;
 				Graphics::DepthStencilState* LessDepthStencil;
@@ -140,10 +148,10 @@ namespace Vitex
 						Constants->Render.Transform = Trigonometry::Matrix4x4::CreateTranslation(Trigonometry::Vector3(Translation.x, Translation.y)) * Ortho;
 
 					EnableScissorRegion(HasScissor);
-					Constants->UpdateConstantBuffer(RenderBufferType::Render);
+					Constants->SetUpdatedConstantBuffer(RenderBufferType::Render, Slots.Object, VI_VS | VI_PS);
 					Device->SetInputLayout(Layout);
 					Device->SetShader(Shader, VI_VS | VI_PS);
-					Device->SetTexture2D(Buffer->Texture, 1, VI_PS);
+					Device->SetTexture2D(Buffer->Texture, Slots.DiffuseMap, VI_PS);
 					Device->SetVertexBuffer(Buffer->VertexBuffer);
 					Device->SetIndexBuffer(Buffer->IndexBuffer, Graphics::Format::R32_Uint);
 					Device->DrawIndexed((unsigned int)Buffer->IndexBuffer->GetElements(), 0, 0);
@@ -158,7 +166,7 @@ namespace Vitex
 					VI_ASSERT(Device != nullptr, "graphics device should be set");
 					HasScissor = Enable;
 					Ortho = Trigonometry::Matrix4x4::CreateOrthographicOffCenter(0, (float)Device->GetRenderTarget()->GetWidth(), (float)Device->GetRenderTarget()->GetHeight(), 0.0f, -30000.0f, 10000.0f);
-					Device->SetSamplerState(Sampler, 1, 1, VI_PS);
+					Device->SetSamplerState(Sampler, Slots.Sampler, 1, VI_PS);
 					Device->SetBlendState(AlphaBlend);
 					if (Enable)
 					{
@@ -280,7 +288,12 @@ namespace Vitex
 
 					Graphics::Shader::Desc I = Graphics::Shader::Desc();
 					if (Device->GetSectionData("materials/material_ui_element", &I))
+					{
 						Shader = *Device->CreateShader(I);
+						Slots.DiffuseMap = *Device->GetShaderSlot(Shader, "DiffuseMap");
+						Slots.Sampler = *Device->GetShaderSamplerSlot(Shader, "DiffuseMap", "Sampler");
+						Slots.Object = *Device->GetShaderSlot(Shader, "Object");
+					}
 
 					Graphics::ElementBuffer::Desc F = Graphics::ElementBuffer::Desc();
 					F.AccessFlags = Graphics::CPUAccess::Write;

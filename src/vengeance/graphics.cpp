@@ -1326,8 +1326,8 @@ namespace Vitex
 
 			glslang::TShader Transpiler(Stage);
 			Transpiler.setStringsWithLengths(&Buffer, &Size, 1);
-			Transpiler.setAutoMapBindings(true);
-			Transpiler.setAutoMapLocations(true);
+			Transpiler.setAutoMapBindings(false);
+			Transpiler.setAutoMapLocations(false);
 			Transpiler.setEnvInput(glslang::EShSourceHlsl, Stage, glslang::EShClientVulkan, 100);
 			Transpiler.setEnvTarget(glslang::EShTargetSpv, glslang::EShTargetSpv_1_4);
 			Transpiler.setEnvClient(glslang::EShClientVulkan, glslang::EShTargetVulkan_1_1);

@@ -19,11 +19,52 @@ namespace Vitex
 				Sampler = Device->GetSamplerState("a16_fa_wrap");
 				Layout = Device->GetInputLayout("vx_base");
 
-				Shaders.Geometry = *System->CompileShader("materials/material_model_geometry");
-				Shaders.Voxelizer = *System->CompileShader("materials/material_model_voxelizer", sizeof(Lighting::IVoxelBuffer));
 				Shaders.Depth.Culling = *System->CompileShader("materials/material_model_depth_culling");
+				Slots.Depth.Culling.Object = *Device->GetShaderSlot(Shaders.Depth.Culling, "Object");
+
 				Shaders.Depth.Linear = *System->CompileShader("materials/material_model_depth_linear");
+				Slots.Depth.Linear.Slotdata.DiffuseMap = *Device->GetShaderSlot(Shaders.Depth.Linear, "DiffuseMap");
+				Slots.Depth.Linear.Sampler = *Device->GetShaderSamplerSlot(Shaders.Depth.Linear, "DiffuseMap", "Sampler");
+				Slots.Depth.Linear.Materials = *Device->GetShaderSlot(Shaders.Depth.Linear, "Materials");
+				Slots.Depth.Linear.Object = *Device->GetShaderSlot(Shaders.Depth.Linear, "Object");
+
 				Shaders.Depth.Cubic = *System->CompileShader("materials/material_model_depth_cubic", sizeof(Trigonometry::Matrix4x4) * 6);
+				Slots.Depth.Cubic.Slotdata.DiffuseMap = *Device->GetShaderSlot(Shaders.Depth.Cubic, "DiffuseMap");
+				Slots.Depth.Cubic.Sampler = *Device->GetShaderSamplerSlot(Shaders.Depth.Cubic, "DiffuseMap", "Sampler");
+				Slots.Depth.Cubic.Materials = *Device->GetShaderSlot(Shaders.Depth.Cubic, "Materials");
+				Slots.Depth.Cubic.Object = *Device->GetShaderSlot(Shaders.Depth.Cubic, "Object");
+				Slots.Depth.Cubic.Viewer = *Device->GetShaderSlot(Shaders.Depth.Cubic, "Viewer");
+				Slots.Depth.Cubic.Cubic = *Device->GetShaderSlot(Shaders.Depth.Cubic, "RenderConstant");
+
+				Shaders.Geometry = *System->CompileShader("materials/material_model_geometry");
+				Slots.Geometry.Slotdata.DiffuseMap = *Device->GetShaderSlot(Shaders.Geometry, "DiffuseMap");
+				Slots.Geometry.Slotdata.NormalMap = *Device->GetShaderSlot(Shaders.Geometry, "NormalMap");
+				Slots.Geometry.Slotdata.MetallicMap = *Device->GetShaderSlot(Shaders.Geometry, "MetallicMap");
+				Slots.Geometry.Slotdata.RoughnessMap = *Device->GetShaderSlot(Shaders.Geometry, "RoughnessMap");
+				Slots.Geometry.Slotdata.HeightMap = *Device->GetShaderSlot(Shaders.Geometry, "HeightMap");
+				Slots.Geometry.Slotdata.OcclusionMap = *Device->GetShaderSlot(Shaders.Geometry, "OcclusionMap");
+				Slots.Geometry.Slotdata.EmissionMap = *Device->GetShaderSlot(Shaders.Geometry, "EmissionMap");
+				Slots.Geometry.Sampler = *Device->GetShaderSamplerSlot(Shaders.Geometry, "DiffuseMap", "Sampler");
+				Slots.Geometry.Materials = *Device->GetShaderSlot(Shaders.Geometry, "Materials");
+				Slots.Geometry.Object = *Device->GetShaderSlot(Shaders.Geometry, "Object");
+				Slots.Geometry.Viewer = *Device->GetShaderSlot(Shaders.Geometry, "Viewer");
+
+				Shaders.Voxelizer = *System->CompileShader("materials/material_model_voxelizer", sizeof(Lighting::IVoxelBuffer));
+				Slots.Voxelizer.Slotdata.DiffuseMap = *Device->GetShaderSlot(Shaders.Voxelizer, "DiffuseMap");
+				Slots.Voxelizer.Slotdata.NormalMap = *Device->GetShaderSlot(Shaders.Voxelizer, "NormalMap");
+				Slots.Voxelizer.Slotdata.MetallicMap = *Device->GetShaderSlot(Shaders.Voxelizer, "MetallicMap");
+				Slots.Voxelizer.Slotdata.RoughnessMap = *Device->GetShaderSlot(Shaders.Voxelizer, "RoughnessMap");
+				Slots.Voxelizer.Slotdata.HeightMap = *Device->GetShaderSlot(Shaders.Voxelizer, "HeightMap");
+				Slots.Voxelizer.Slotdata.OcclusionMap = *Device->GetShaderSlot(Shaders.Voxelizer, "OcclusionMap");
+				Slots.Voxelizer.Slotdata.EmissionMap = *Device->GetShaderSlot(Shaders.Voxelizer, "EmissionMap");
+				Slots.Voxelizer.Sampler = *Device->GetShaderSamplerSlot(Shaders.Voxelizer, "DiffuseMap", "Sampler");
+				Slots.Voxelizer.Materials = *Device->GetShaderSlot(Shaders.Voxelizer, "Materials");
+				Slots.Voxelizer.DiffuseBuffer = *Device->GetShaderSlot(Shaders.Voxelizer, "DiffuseBuffer");
+				Slots.Voxelizer.NormalBuffer = *Device->GetShaderSlot(Shaders.Voxelizer, "NormalBuffer");
+				Slots.Voxelizer.SurfaceBuffer = *Device->GetShaderSlot(Shaders.Voxelizer, "SurfaceBuffer");
+				Slots.Voxelizer.Object = *Device->GetShaderSlot(Shaders.Voxelizer, "Object");
+				Slots.Voxelizer.Viewer = *Device->GetShaderSlot(Shaders.Voxelizer, "Viewer");
+				Slots.Voxelizer.Voxelizer = *Device->GetShaderSlot(Shaders.Voxelizer, "Voxelizer");
 
 				Graphics::ElementBuffer* Buffers[2];
 				if (Lab->CompileBuffers(Buffers, "soft-body", sizeof(Trigonometry::Vertex), 16384))
@@ -53,6 +94,7 @@ namespace Vitex
 				System->GetPrimitives()->GetBoxBuffers(Box);
 
 				Graphics::GraphicsDevice* Device = System->GetDevice();
+				System->SetConstantBuffer(RenderBufferType::Render, Slots.Geometry.Object, VI_VS);
 				Device->SetRasterizerState(Rasterizer);
 				Device->SetInputLayout(Layout);
 				Device->SetShader(nullptr, VI_PS);
@@ -105,11 +147,14 @@ namespace Vitex
 				Graphics::GraphicsDevice* Device = System->GetDevice();
 				bool Static = System->State.IsSet(RenderOpt::Static);
 
+				System->SetConstantBuffer(RenderBufferType::Render, Slots.Geometry.Object, VI_VS | VI_PS);
+				System->SetConstantBuffer(RenderBufferType::View, Slots.Geometry.Viewer, VI_VS | VI_PS);
+				Device->SetStructureBuffer(System->GetMaterialBuffer(), Slots.Geometry.Materials, VI_PS);
 				Device->SetDepthStencilState(DepthStencil);
 				Device->SetBlendState(Blend);
 				Device->SetRasterizerState(Rasterizer);
 				Device->SetInputLayout(Layout);
-				Device->SetSamplerState(Sampler, 1, 7, VI_PS);
+				Device->SetSamplerState(Sampler, Slots.Geometry.Sampler, 7, VI_PS);
 				Device->SetShader(Shaders.Geometry, VI_VS | VI_PS);
 
 				size_t Count = 0;
@@ -118,7 +163,7 @@ namespace Vitex
 					if ((Static && !Base->Static) || Base->GetIndices().empty())
 						continue;
 
-					if (!System->TryGeometry(Base->GetMaterial(), true))
+					if (!System->TryGeometry(Base->GetMaterial(), &Slots.Geometry.Slotdata))
 						continue;
 
 					Base->Fill(Device, IndexBuffer, VertexBuffer);
@@ -138,8 +183,11 @@ namespace Vitex
 			{
 				VI_ASSERT(System->GetScene() != nullptr, "scene should be set");
 				Graphics::GraphicsDevice* Device = System->GetDevice();
+				System->SetConstantBuffer(RenderBufferType::Render, Slots.Voxelizer.Object, VI_VS | VI_PS | VI_GS);
+				System->SetConstantBuffer(RenderBufferType::View, Slots.Voxelizer.Viewer, VI_VS | VI_PS | VI_GS);
+				Device->SetStructureBuffer(System->GetMaterialBuffer(), Slots.Voxelizer.Materials, VI_PS);
 				Device->SetInputLayout(Layout);
-				Device->SetSamplerState(Sampler, 4, 6, VI_PS);
+				Device->SetSamplerState(Sampler, Slots.Voxelizer.Sampler, 6, VI_PS);
 				Device->SetShader(Shaders.Voxelizer, VI_VS | VI_PS | VI_GS);
 				Lighting::SetVoxelBuffer(System, Shaders.Voxelizer, 3);
 
@@ -149,7 +197,7 @@ namespace Vitex
 					if (!Base->Static || Base->GetIndices().empty())
 						continue;
 
-					if (!System->TryGeometry(Base->GetMaterial(), true))
+					if (!System->TryGeometry(Base->GetMaterial(), &Slots.Voxelizer.Slotdata))
 						continue;
 
 					Base->Fill(Device, IndexBuffer, VertexBuffer);
@@ -171,11 +219,13 @@ namespace Vitex
 			{
 				VI_ASSERT(System->GetScene() != nullptr, "scene should be set");
 				Graphics::GraphicsDevice* Device = System->GetDevice();
+				System->SetConstantBuffer(RenderBufferType::Render, Slots.Depth.Linear.Object, VI_VS | VI_PS | VI_GS);
+				Device->SetStructureBuffer(System->GetMaterialBuffer(), Slots.Depth.Linear.Materials, VI_PS);
 				Device->SetDepthStencilState(DepthStencil);
 				Device->SetBlendState(Blend);
 				Device->SetRasterizerState(Rasterizer);
 				Device->SetInputLayout(Layout);
-				Device->SetSamplerState(Sampler, 1, 1, VI_PS);
+				Device->SetSamplerState(Sampler, Slots.Depth.Linear.Sampler, 1, VI_PS);
 				Device->SetShader(Shaders.Depth.Linear, VI_VS | VI_PS);
 
 				size_t Count = 0;
@@ -184,7 +234,7 @@ namespace Vitex
 					if (Base->GetIndices().empty())
 						continue;
 
-					if (!System->TryGeometry(Base->GetMaterial(), true))
+					if (!System->TryGeometry(Base->GetMaterial(), &Slots.Depth.Linear.Slotdata))
 						continue;
 
 					Base->Fill(Device, IndexBuffer, VertexBuffer);
@@ -206,13 +256,16 @@ namespace Vitex
 			{
 				VI_ASSERT(System->GetScene() != nullptr, "scene should be set");
 				Graphics::GraphicsDevice* Device = System->GetDevice();
+				System->SetConstantBuffer(RenderBufferType::Render, Slots.Depth.Cubic.Object, VI_VS | VI_PS | VI_GS);
+				System->SetConstantBuffer(RenderBufferType::View, Slots.Depth.Cubic.Viewer, VI_VS | VI_PS | VI_GS);
+				Device->SetStructureBuffer(System->GetMaterialBuffer(), Slots.Depth.Cubic.Materials, VI_PS);
 				Device->SetDepthStencilState(DepthStencil);
 				Device->SetBlendState(Blend);
 				Device->SetRasterizerState(Rasterizer);
 				Device->SetInputLayout(Layout);
-				Device->SetSamplerState(Sampler, 1, 1, VI_PS);
-				Device->SetShader(Shaders.Depth.Linear, VI_VS | VI_PS | VI_GS);
-				Device->SetBuffer(Shaders.Depth.Cubic, 3, VI_VS | VI_PS | VI_GS);
+				Device->SetSamplerState(Sampler, Slots.Depth.Cubic.Sampler, 1, VI_PS);
+				Device->SetShader(Shaders.Depth.Cubic, VI_VS | VI_PS | VI_GS);
+				Device->SetBuffer(Shaders.Depth.Cubic, Slots.Depth.Cubic.Cubic, VI_VS | VI_PS | VI_GS);
 				Device->UpdateBuffer(Shaders.Depth.Cubic, ViewProjection);
 
 				size_t Count = 0;
@@ -221,7 +274,7 @@ namespace Vitex
 					if (!Base->GetBody())
 						continue;
 
-					if (!System->TryGeometry(Base->GetMaterial(), true))
+					if (!System->TryGeometry(Base->GetMaterial(), &Slots.Depth.Cubic.Slotdata))
 						continue;
 
 					Base->Fill(Device, IndexBuffer, VertexBuffer);

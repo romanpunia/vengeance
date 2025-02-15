@@ -53,6 +53,12 @@ namespace Vitex
 					float Padding = 0.0f;
 				} RenderPass;
 
+				struct
+				{
+					uint32_t Object = (uint32_t)-1;
+					uint32_t Constant = (uint32_t)-1;
+				} Slots;
+
 			public:
 				Rml::PropertyId Color;
 				Rml::PropertyId OffsetX;
@@ -85,6 +91,14 @@ namespace Vitex
 					float Alpha = 1.0f;
 				} RenderPass;
 
+				struct
+				{
+					uint32_t DiffuseMap = (uint32_t)-1;
+					uint32_t Sampler = (uint32_t)-1;
+					uint32_t Object = (uint32_t)-1;
+					uint32_t Constant = (uint32_t)-1;
+				} Slots;
+
 			public:
 				Rml::PropertyId Color;
 				Rml::PropertyId Softness;
@@ -92,6 +106,7 @@ namespace Vitex
 			public:
 				Graphics::Texture2D* Background;
 				Graphics::ElementBuffer* VertexBuffer;
+				Graphics::SamplerState* Sampler;
 				Graphics::Shader* Shader;
 				Graphics::GraphicsDevice* Device;
 				RenderConstants* Constants;
@@ -143,10 +158,9 @@ namespace Vitex
 
 					RenderConstants* Constants = IBoxShadow->Constants;
 					DecoratorUtils::SetWorldViewProjection(Constants, Element, Position, Size, Offset.Abs() + Radius + 4096.0f);
-					Constants->UpdateConstantBuffer(RenderBufferType::Render);
-
+					Constants->SetUpdatedConstantBuffer(RenderBufferType::Render, IBoxShadow->Slots.Object, VI_VS | VI_PS);
 					Device->SetShader(IBoxShadow->Shader, VI_VS | VI_PS);
-					Device->SetBuffer(IBoxShadow->Shader, 3, VI_PS);
+					Device->SetBuffer(IBoxShadow->Shader, IBoxShadow->Slots.Constant, VI_PS);
 					Device->SetVertexBuffer(IBoxShadow->VertexBuffer);
 					Device->UpdateBuffer(IBoxShadow->Shader, &IBoxShadow->RenderPass);
 					Device->Draw((unsigned int)IBoxShadow->VertexBuffer->GetElements(), 0);
@@ -197,12 +211,12 @@ namespace Vitex
 
 					RenderConstants* Constants = IBoxBlur->Constants;
 					DecoratorUtils::SetWorldViewProjection(Constants, Element, Position, Size);
-					Constants->UpdateConstantBuffer(RenderBufferType::Render);
-
+					Constants->SetUpdatedConstantBuffer(RenderBufferType::Render, IBoxBlur->Slots.Object, VI_VS | VI_PS);
 					Device->CopyTexture2D(Background, &IBoxBlur->Background);
-					Device->SetTexture2D(IBoxBlur->Background, 1, VI_PS);
+					Device->SetTexture2D(IBoxBlur->Background, IBoxBlur->Slots.DiffuseMap, VI_PS);
+					Device->SetSamplerState(IBoxBlur->Sampler, IBoxBlur->Slots.Sampler, 1, VI_PS);
 					Device->SetShader(IBoxBlur->Shader, VI_VS | VI_PS);
-					Device->SetBuffer(IBoxBlur->Shader, 3, VI_PS);
+					Device->SetBuffer(IBoxBlur->Shader, IBoxBlur->Slots.Constant, VI_PS);
 					Device->SetVertexBuffer(IBoxBlur->VertexBuffer);
 					Device->UpdateBuffer(IBoxBlur->Shader, &IBoxBlur->RenderPass);
 					Device->Draw((unsigned int)IBoxBlur->VertexBuffer->GetElements(), 0);
@@ -219,6 +233,8 @@ namespace Vitex
 				if (Device->GetSectionData("materials/material_ui_box_shadow", &I))
 				{
 					Shader = *Device->CreateShader(I);
+					Slots.Object = *Device->GetShaderSlot(Shader, "Object");
+					Slots.Constant = *Device->GetShaderSlot(Shader, "RenderConstant");
 					Device->UpdateBufferSize(Shader, sizeof(RenderPass));
 				}
 
@@ -277,6 +293,10 @@ namespace Vitex
 				if (Device->GetSectionData("materials/material_ui_box_blur", &I))
 				{
 					Shader = *Device->CreateShader(I);
+					Slots.DiffuseMap = *Device->GetShaderSlot(Shader, "DiffuseMap");
+					Slots.Sampler = *Device->GetShaderSamplerSlot(Shader, "DiffuseMap", "Sampler");
+					Slots.Object = *Device->GetShaderSlot(Shader, "Object");
+					Slots.Constant = *Device->GetShaderSlot(Shader, "RenderConstant");
 					Device->UpdateBufferSize(Shader, sizeof(RenderPass));
 				}
 
@@ -297,6 +317,7 @@ namespace Vitex
 				F.Elements = &Elements[0];
 
 				VertexBuffer = *Device->CreateElementBuffer(F);
+				Sampler = Device->GetSamplerState("a16_fa_wrap");
 				Color = RegisterProperty("color", "#fff").AddParser("color").GetId();
 				Softness = RegisterProperty("softness", "8").AddParser("number").GetId();
 				RegisterShorthand("decorator", "softness, color", Rml::ShorthandType::FallThrough);

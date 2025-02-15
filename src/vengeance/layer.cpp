@@ -1914,8 +1914,6 @@ namespace Vitex
 			Binding.Buffers[(size_t)RenderBufferType::View] = *Device->CreateElementBuffer(Desc);
 			Binding.Pointers[(size_t)RenderBufferType::View] = &View;
 			Binding.Sizes[(size_t)RenderBufferType::View] = sizeof(View);
-
-			SetConstantBuffers();
 		}
 		RenderConstants::~RenderConstants() noexcept
 		{
@@ -1923,10 +1921,14 @@ namespace Vitex
 				Core::Memory::Release(Binding.Buffers[i]);
 			Core::Memory::Release(Binding.BasicEffect);
 		}
-		void RenderConstants::SetConstantBuffers()
+		void RenderConstants::SetConstantBuffer(RenderBufferType Buffer, uint32_t Slot, uint32_t Type)
 		{
-			for (size_t i = 0; i < 3; i++)
-				Device->SetConstantBuffer(Binding.Buffers[i], (uint32_t)i, VI_VS | VI_PS | VI_GS | VI_CS | VI_HS | VI_DS);
+			Device->SetConstantBuffer(Binding.Buffers[(size_t)Buffer], Slot, Type);
+		}
+		void RenderConstants::SetUpdatedConstantBuffer(RenderBufferType Buffer, uint32_t Slot, uint32_t Type)
+		{
+			Device->UpdateConstantBuffer(Binding.Buffers[(size_t)Buffer], Binding.Pointers[(size_t)Buffer], Binding.Sizes[(size_t)Buffer]);
+			Device->SetConstantBuffer(Binding.Buffers[(size_t)Buffer], Slot, Type);
 		}
 		void RenderConstants::UpdateConstantBuffer(RenderBufferType Buffer)
 		{
@@ -2114,6 +2116,14 @@ namespace Vitex
 			Core::Memory::Release(Buffers[0]);
 			Core::Memory::Release(Buffers[1]);
 		}
+		void RenderSystem::SetConstantBuffer(RenderBufferType Buffer, uint32_t Slot, uint32_t Type)
+		{
+			Constants->SetConstantBuffer(Buffer, Slot, Type);
+		}
+		void RenderSystem::SetUpdatedConstantBuffer(RenderBufferType Buffer, uint32_t Slot, uint32_t Type)
+		{
+			Constants->SetUpdatedConstantBuffer(Buffer, Slot, Type);
+		}
 		void RenderSystem::UpdateConstantBuffer(RenderBufferType Buffer)
 		{
 			Constants->UpdateConstantBuffer(Buffer);
@@ -2199,7 +2209,7 @@ namespace Vitex
 
 			return true;
 		}
-		bool RenderSystem::TryGeometry(Material* Next, bool WithTextures)
+		bool RenderSystem::TryGeometry(Material* Next, Material::Slots* Slotdata)
 		{
 			if (!Next)
 				return false;
@@ -2213,28 +2223,28 @@ namespace Vitex
 			Constants->Render.Height = (float)(Next->HeightMap != nullptr);
 			Constants->Render.MaterialId = (float)Next->Slot;
 
-			if (WithTextures)
+			if (Slotdata != nullptr)
 			{
 				if (Next->DiffuseMap != nullptr)
-					Device->SetTexture2D(Next->DiffuseMap, 1, VI_PS);
+					Device->SetTexture2D(Next->DiffuseMap, Slotdata->DiffuseMap, VI_PS);
 
 				if (Next->NormalMap != nullptr)
-					Device->SetTexture2D(Next->NormalMap, 2, VI_PS);
+					Device->SetTexture2D(Next->NormalMap, Slotdata->NormalMap, VI_PS);
 
 				if (Next->MetallicMap != nullptr)
-					Device->SetTexture2D(Next->MetallicMap, 3, VI_PS);
+					Device->SetTexture2D(Next->MetallicMap, Slotdata->MetallicMap, VI_PS);
 
 				if (Next->RoughnessMap != nullptr)
-					Device->SetTexture2D(Next->RoughnessMap, 4, VI_PS);
+					Device->SetTexture2D(Next->RoughnessMap, Slotdata->RoughnessMap, VI_PS);
 
 				if (Next->HeightMap != nullptr)
-					Device->SetTexture2D(Next->HeightMap, 5, VI_PS);
+					Device->SetTexture2D(Next->HeightMap, Slotdata->HeightMap, VI_PS);
 
 				if (Next->OcclusionMap != nullptr)
-					Device->SetTexture2D(Next->OcclusionMap, 6, VI_PS);
+					Device->SetTexture2D(Next->OcclusionMap, Slotdata->OcclusionMap, VI_PS);
 
 				if (Next->EmissionMap != nullptr)
-					Device->SetTexture2D(Next->EmissionMap, 7, VI_PS);
+					Device->SetTexture2D(Next->EmissionMap, Slotdata->EmissionMap, VI_PS);
 			}
 
 			return true;
@@ -2368,6 +2378,10 @@ namespace Vitex
 		Graphics::RenderTarget2D* RenderSystem::GetRT(TargetType Type) const
 		{
 			return Scene->GetRT(Type);
+		}
+		Graphics::ElementBuffer* RenderSystem::GetMaterialBuffer() const
+		{
+			return Scene->GetMaterialBuffer();
 		}
 		Graphics::GraphicsDevice* RenderSystem::GetDevice() const
 		{
@@ -3274,6 +3288,10 @@ namespace Vitex
 				Conf = NewConf;
 				Conf.AddRef();
 
+				Slots.DiffuseMap = *Device->GetShaderSlot(Conf.Shared.Constants->GetBasicEffect(), "DiffuseMap");
+				Slots.Sampler = *Device->GetShaderSamplerSlot(Conf.Shared.Constants->GetBasicEffect(), "DiffuseMap", "Sampler");
+				Slots.Object = *Device->GetShaderSlot(Conf.Shared.Constants->GetBasicEffect(), "Object");
+
 				Materials.Reserve(Conf.StartMaterials);
 				Entities.Reserve(Conf.StartEntities);
 				Dirty.Reserve(Conf.StartEntities);
@@ -3362,7 +3380,6 @@ namespace Vitex
 			}
 
 			Device->Unmap(Display.MaterialBuffer, &Stream);
-			Device->SetStructureBuffer(Display.MaterialBuffer, 0, VI_PS | VI_CS);
 		}
 		void SceneGraph::Submit()
 		{
@@ -3371,19 +3388,18 @@ namespace Vitex
 			VI_ASSERT(Conf.Shared.Primitives != nullptr, "primitive cache should be set");
 			Conf.Shared.Constants->Render.TexCoord = 1.0f;
 			Conf.Shared.Constants->Render.Transform.Identify();
-			Conf.Shared.Constants->UpdateConstantBuffer(RenderBufferType::Render);
-
+			Conf.Shared.Constants->SetUpdatedConstantBuffer(RenderBufferType::Render, Slots.Object, VI_VS | VI_PS);
 			Device->SetTarget();
 			Device->SetDepthStencilState(Display.DepthStencil);
 			Device->SetBlendState(Display.Blend);
 			Device->SetRasterizerState(Display.Rasterizer);
 			Device->SetInputLayout(Display.Layout);
-			Device->SetSamplerState(Display.Sampler, 1, 1, VI_PS);
-			Device->SetTexture2D(Display.MRT[(size_t)TargetType::Main]->GetTarget(0), 1, VI_PS);
+			Device->SetSamplerState(Display.Sampler, Slots.Sampler, 1, VI_PS);
+			Device->SetTexture2D(Display.MRT[(size_t)TargetType::Main]->GetTarget(0), Slots.DiffuseMap, VI_PS);
 			Device->SetShader(Conf.Shared.Constants->GetBasicEffect(), VI_VS | VI_PS);
 			Device->SetVertexBuffer(Conf.Shared.Primitives->GetQuad());
 			Device->Draw(6, 0);
-			Device->SetTexture2D(nullptr, 1, VI_PS);
+			Device->SetTexture2D(nullptr, Slots.DiffuseMap, VI_PS);
 			Statistics.DrawCalls++;
 		}
 		void SceneGraph::Dispatch(Core::Timer* Time)
@@ -4910,7 +4926,7 @@ namespace Vitex
 		{
 			return &Display.Merger;
 		}
-		Graphics::ElementBuffer* SceneGraph::GetStructure() const
+		Graphics::ElementBuffer* SceneGraph::GetMaterialBuffer() const
 		{
 			return Display.MaterialBuffer;
 		}
@@ -5384,11 +5400,14 @@ namespace Vitex
 			SamplerClamp = Device->GetSamplerState("a16_fa_clamp");
 			SamplerMirror = Device->GetSamplerState("a16_fa_mirror");
 			Layout = Device->GetInputLayout("vx_shape");
+			Slots.DiffuseMap = *Device->GetShaderSlot(Lab->GetBasicEffect(), "DiffuseMap");
+			Slots.Sampler = *Device->GetShaderSamplerSlot(Lab->GetBasicEffect(), "DiffuseMap", "Sampler");
+			Slots.Object = *Device->GetShaderSlot(Lab->GetBasicEffect(), "Object");
 		}
 		EffectRenderer::~EffectRenderer() noexcept
 		{
 			for (auto It = Effects.begin(); It != Effects.end(); ++It)
-				System->FreeShader(It->first, It->second);
+				System->FreeShader(It->second.Filename, It->second.Effect);
 		}
 		void EffectRenderer::ResizeBuffers()
 		{
@@ -5424,55 +5443,65 @@ namespace Vitex
 			Graphics::GraphicsDevice* Device = System->GetDevice();
 			Device->SetTarget(Output, 0, 0, 0, 0);
 		}
-		void EffectRenderer::RenderTexture(uint32_t Slot6, Graphics::Texture2D* Resource)
+		void EffectRenderer::RenderTexture(uint32_t Slot, Graphics::Texture2D* Resource)
 		{
 			Graphics::GraphicsDevice* Device = System->GetDevice();
-			Device->SetTexture2D(Resource, 6 + Slot6, VI_PS);
-
+			Device->SetTexture2D(Resource, Slot, VI_PS);
 			if (Resource != nullptr)
-				MaxSlot = std::max(MaxSlot, 6 + Slot6);
+				MaxSlot = std::max(MaxSlot, 1 + Slot);
 		}
-		void EffectRenderer::RenderTexture(uint32_t Slot6, Graphics::Texture3D* Resource)
+		void EffectRenderer::RenderTexture(uint32_t Slot, Graphics::Texture3D* Resource)
 		{
 			Graphics::GraphicsDevice* Device = System->GetDevice();
-			Device->SetTexture3D(Resource, 6 + Slot6, VI_PS);
-
+			Device->SetTexture3D(Resource, Slot, VI_PS);
 			if (Resource != nullptr)
-				MaxSlot = std::max(MaxSlot, 6 + Slot6);
+				MaxSlot = std::max(MaxSlot, 1 + Slot);
 		}
-		void EffectRenderer::RenderTexture(uint32_t Slot6, Graphics::TextureCube* Resource)
+		void EffectRenderer::RenderTexture(uint32_t Slot, Graphics::TextureCube* Resource)
 		{
 			Graphics::GraphicsDevice* Device = System->GetDevice();
-			Device->SetTextureCube(Resource, 6 + Slot6, VI_PS);
-
+			Device->SetTextureCube(Resource, Slot, VI_PS);
 			if (Resource != nullptr)
-				MaxSlot = std::max(MaxSlot, 6 + Slot6);
+				MaxSlot = std::max(MaxSlot, 1 + Slot);
 		}
-		void EffectRenderer::RenderMerge(Graphics::Shader* Effect, void* Buffer, size_t Count)
+		void EffectRenderer::RenderMerge(Graphics::Shader* Effect, Graphics::SamplerState* Sampler, void* Buffer, size_t Count)
 		{
+			auto Source = Effect ? Effects.find(Effect) : Effects.begin();
+			VI_ASSERT(Source != Effects.end(), "effect not registered");
 			VI_ASSERT(Count > 0, "count should be greater than zero");
-			if (!Effect)
-				Effect = Effects.begin()->second;
 
 			Graphics::GraphicsDevice* Device = System->GetDevice();
-			Graphics::Texture2D** Merger = System->GetMerger();
+			Graphics::MultiRenderTarget2D* Input = System->GetMRT(TargetType::Main);
+			Device->SetSamplerState(Sampler, Source->second.Slots.Sampler, MaxSlot, VI_PS);
+			if (Source->second.Slots.DiffuseBuffer != (uint32_t)-1)
+				Device->SetTexture2D(Input->GetTarget(0), Source->second.Slots.DiffuseBuffer, VI_PS);
+			if (Source->second.Slots.NormalBuffer != (uint32_t)-1)
+				Device->SetTexture2D(Input->GetTarget(1), Source->second.Slots.NormalBuffer, VI_PS);
+			if (Source->second.Slots.DepthBuffer != (uint32_t)-1)
+				Device->SetTexture2D(Input->GetTarget(2), Source->second.Slots.DepthBuffer, VI_PS);
+			if (Source->second.Slots.SurfaceBuffer != (uint32_t)-1)
+				Device->SetTexture2D(Input->GetTarget(3), Source->second.Slots.SurfaceBuffer, VI_PS);
 
-			if (Swap != nullptr && Output != Swap)
+			Graphics::Texture2D** Merger = System->GetMerger();
+			if (Source->second.Slots.ImageBuffer != (uint32_t)-1)
 			{
-				Device->SetTexture2D(nullptr, 5, VI_PS);
-				Device->SetTexture2D(Swap->GetTarget(), 5, VI_PS);
-			}
-			else if (Merger != nullptr)
-			{
-				Device->SetTexture2D(nullptr, 5, VI_PS);
-				Device->SetTexture2D(*Merger, 5, VI_PS);
+				if (Swap != nullptr && Output != Swap)
+				{
+					Device->SetTexture2D(nullptr, Source->second.Slots.ImageBuffer, VI_PS);
+					Device->SetTexture2D(Swap->GetTarget(), Source->second.Slots.ImageBuffer, VI_PS);
+				}
+				else if (Merger != nullptr)
+				{
+					Device->SetTexture2D(nullptr, Source->second.Slots.ImageBuffer, VI_PS);
+					Device->SetTexture2D(*Merger, Source->second.Slots.ImageBuffer, VI_PS);
+				}
 			}
 
 			Device->SetShader(Effect, VI_VS | VI_PS);
-			if (Buffer != nullptr)
+			if (Buffer != nullptr && Source->second.Slots.Constant != (uint32_t)-1)
 			{
 				Device->UpdateBuffer(Effect, Buffer);
-				Device->SetBuffer(Effect, 3, VI_VS | VI_PS);
+				Device->SetBuffer(Effect, Source->second.Slots.Constant, VI_VS | VI_PS);
 			}
 
 			for (size_t i = 0; i < Count; i++)
@@ -5484,34 +5513,46 @@ namespace Vitex
 
 			auto* Scene = System->GetScene();
 			Scene->Statistics.DrawCalls += Count;
-
 			if (Swap == Output)
 				RenderOutput();
 		}
-		void EffectRenderer::RenderResult(Graphics::Shader* Effect, void* Buffer)
+		void EffectRenderer::RenderResult(Graphics::Shader* Effect, Graphics::SamplerState* Sampler, void* Buffer)
 		{
-			if (!Effect)
-				Effect = Effects.begin()->second;
+			auto Source = Effect ? Effects.find(Effect) : Effects.begin();
+			VI_ASSERT(Source != Effects.end(), "effect not registered");
 
 			Graphics::GraphicsDevice* Device = System->GetDevice();
+			Graphics::MultiRenderTarget2D* Input = System->GetMRT(TargetType::Main);
+			Device->SetSamplerState(Sampler, Source->second.Slots.Sampler, MaxSlot, VI_PS);
+			if (Source->second.Slots.DiffuseBuffer != (uint32_t)-1)
+				Device->SetTexture2D(Input->GetTarget(0), Source->second.Slots.DiffuseBuffer, VI_PS);
+			if (Source->second.Slots.NormalBuffer != (uint32_t)-1)
+				Device->SetTexture2D(Input->GetTarget(1), Source->second.Slots.NormalBuffer, VI_PS);
+			if (Source->second.Slots.DepthBuffer != (uint32_t)-1)
+				Device->SetTexture2D(Input->GetTarget(2), Source->second.Slots.DepthBuffer, VI_PS);
+			if (Source->second.Slots.SurfaceBuffer != (uint32_t)-1)
+				Device->SetTexture2D(Input->GetTarget(3), Source->second.Slots.SurfaceBuffer, VI_PS);
+
 			Graphics::Texture2D** Merger = System->GetMerger();
-
-			if (Swap != nullptr && Output != Swap)
+			if (Source->second.Slots.ImageBuffer != (uint32_t)-1)
 			{
-				Device->SetTexture2D(nullptr, 5, VI_PS);
-				Device->SetTexture2D(Swap->GetTarget(), 5, VI_PS);
+				if (Swap != nullptr && Output != Swap)
+				{
+					Device->SetTexture2D(nullptr, Source->second.Slots.ImageBuffer, VI_PS);
+					Device->SetTexture2D(Swap->GetTarget(), Source->second.Slots.ImageBuffer, VI_PS);
+				}
+				else if (Merger != nullptr)
+				{
+					Device->SetTexture2D(nullptr, Source->second.Slots.ImageBuffer, VI_PS);
+					Device->SetTexture2D(*Merger, Source->second.Slots.ImageBuffer, VI_PS);
+				}
 			}
-			else if (Merger != nullptr)
-			{
-				Device->SetTexture2D(nullptr, 5, VI_PS);
-				Device->SetTexture2D(*Merger, 5, VI_PS);
-			}
-
+			
 			Device->SetShader(Effect, VI_VS | VI_PS);
-			if (Buffer != nullptr)
+			if (Buffer != nullptr && Source->second.Slots.Constant != (uint32_t)-1)
 			{
 				Device->UpdateBuffer(Effect, Buffer);
-				Device->SetBuffer(Effect, 3, VI_VS | VI_PS);
+				Device->SetBuffer(Effect, Source->second.Slots.Constant, VI_VS | VI_PS);
 			}
 
 			Device->Draw(6, 0);
@@ -5520,16 +5561,16 @@ namespace Vitex
 			auto* Scene = System->GetScene();
 			Scene->Statistics.DrawCalls++;
 		}
-		void EffectRenderer::RenderResult()
+		void EffectRenderer::RenderResult(Graphics::SamplerState* Sampler)
 		{
 			Graphics::GraphicsDevice* Device = System->GetDevice();
 			Graphics::Texture2D** Merger = System->GetMerger();
-
 			if (Swap != nullptr && Output != Swap)
-				Device->SetTexture2D(Swap->GetTarget(), 1, VI_PS);
+				Device->SetTexture2D(Swap->GetTarget(), Slots.DiffuseMap, VI_PS);
 			else if (Merger != nullptr)
-				Device->SetTexture2D(*Merger, 1, VI_PS);
+				Device->SetTexture2D(*Merger, Slots.DiffuseMap, VI_PS);
 
+			Device->SetSamplerState(Sampler, Slots.Sampler, MaxSlot, VI_PS);
 			Device->SetShader(System->GetBasicEffect(), VI_VS | VI_PS);
 			Device->Draw(6, 0);
 			Output = System->GetRT(TargetType::Main);
@@ -5540,26 +5581,10 @@ namespace Vitex
 		void EffectRenderer::RenderEffect(Core::Timer* Time)
 		{
 		}
-		void EffectRenderer::SampleWrap()
-		{
-			Graphics::GraphicsDevice* Device = System->GetDevice();
-			Device->SetSamplerState(SamplerWrap, 1, MaxSlot, VI_PS);
-		}
-		void EffectRenderer::SampleClamp()
-		{
-			Graphics::GraphicsDevice* Device = System->GetDevice();
-			Device->SetSamplerState(SamplerClamp, 1, MaxSlot, VI_PS);
-		}
-		void EffectRenderer::SampleMirror()
-		{
-			Graphics::GraphicsDevice* Device = System->GetDevice();
-			Device->SetSamplerState(SamplerMirror, 1, MaxSlot, VI_PS);
-		}
 		void EffectRenderer::GenerateMips()
 		{
 			Graphics::GraphicsDevice* Device = System->GetDevice();
 			Graphics::Texture2D** Merger = System->GetMerger();
-
 			if (Swap != nullptr && Output != Swap)
 				Device->GenerateMips(Swap->GetTarget());
 			else if (Merger != nullptr)
@@ -5574,7 +5599,7 @@ namespace Vitex
 			if (!System->State.Is(RenderState::Geometric) || System->State.IsSubpass())
 				return 0;
 
-			MaxSlot = 5;
+			MaxSlot = 0;
 			if (Effects.empty())
 				return 0;
 
@@ -5590,25 +5615,30 @@ namespace Vitex
 			Device->SetRasterizerState(Rasterizer);
 			Device->SetInputLayout(Layout);
 			Device->SetTarget(Output, 0, 0, 0, 0);
-			Device->SetSamplerState(SamplerWrap, 1, MaxSlot, VI_PS);
-			Device->SetTexture2D(Input->GetTarget(0), 1, VI_PS);
-			Device->SetTexture2D(Input->GetTarget(1), 2, VI_PS);
-			Device->SetTexture2D(Input->GetTarget(2), 3, VI_PS);
-			Device->SetTexture2D(Input->GetTarget(3), 4, VI_PS);
 			Device->SetVertexBuffer(Cache->GetQuad());
 
 			RenderEffect(Time);
 
-			Device->FlushTexture(1, MaxSlot, VI_PS);
+			Device->FlushTexture(0, MaxSlot, VI_PS);
 			Device->CopyTarget(Output, 0, Input, 0);
 			System->RestoreOutput();
 			return 1;
 		}
-		Graphics::Shader* EffectRenderer::GetEffect(const std::string_view& Name)
+		EffectRenderer::ShaderData* EffectRenderer::GetEffectByFilename(const std::string_view& Name)
 		{
-			auto It = Effects.find(Core::KeyLookupCast(Name));
+			for (auto& Effect : Effects)
+			{
+				if (Effect.second.Filename == Name)
+					return &Effect.second;
+			}
+
+			return nullptr;
+		}
+		EffectRenderer::ShaderData* EffectRenderer::GetEffectByShader(Graphics::Shader* Shader)
+		{
+			auto It = Effects.find(Shader);
 			if (It != Effects.end())
-				return It->second;
+				return &It->second;
 
 			return nullptr;
 		}
@@ -5619,15 +5649,36 @@ namespace Vitex
 			if (!Shader)
 				return Shader.Error();
 
-			auto It = Effects.find(Desc.Filename);
-			if (It != Effects.end())
-			{
-				Core::Memory::Release(It->second);
-				It->second = *Shader;
-			}
-			else
-				Effects[Desc.Filename] = *Shader;
+			ShaderData Data;
+			Data.Effect = *Shader;
+			Data.Filename = Desc.Filename;
+			Data.Slots.DiffuseBuffer = System->GetDevice()->GetShaderSlot(Data.Effect, "DiffuseBuffer").Or((uint32_t)-1);
+			Data.Slots.NormalBuffer = System->GetDevice()->GetShaderSlot(Data.Effect, "NormalBuffer").Or((uint32_t)-1);
+			Data.Slots.DepthBuffer = System->GetDevice()->GetShaderSlot(Data.Effect, "DepthBuffer").Or((uint32_t)-1);
+			Data.Slots.SurfaceBuffer = System->GetDevice()->GetShaderSlot(Data.Effect, "SurfaceBuffer").Or((uint32_t)-1);
+			Data.Slots.ImageBuffer = System->GetDevice()->GetShaderSlot(Data.Effect, "ImageBuffer").Or((uint32_t)-1);
+			Data.Slots.Constant = System->GetDevice()->GetShaderSlot(Data.Effect, "RenderConstant").Or((uint32_t)-1);
+			
+			if (Data.Slots.DiffuseBuffer != (uint32_t)-1)
+				Data.Slots.Sampler = System->GetDevice()->GetShaderSamplerSlot(Data.Effect, "DiffuseBuffer", "Sampler").Or((uint32_t)-1);
+			else if (Data.Slots.NormalBuffer != (uint32_t)-1)
+				Data.Slots.Sampler = System->GetDevice()->GetShaderSamplerSlot(Data.Effect, "NormalBuffer", "Sampler").Or((uint32_t)-1);
+			else if (Data.Slots.DepthBuffer != (uint32_t)-1)
+				Data.Slots.Sampler = System->GetDevice()->GetShaderSamplerSlot(Data.Effect, "DepthBuffer", "Sampler").Or((uint32_t)-1);
+			else if (Data.Slots.SurfaceBuffer != (uint32_t)-1)
+				Data.Slots.Sampler = System->GetDevice()->GetShaderSamplerSlot(Data.Effect, "SurfaceBuffer", "Sampler").Or((uint32_t)-1);
+			else if (Data.Slots.ImageBuffer != (uint32_t)-1)
+				Data.Slots.Sampler = System->GetDevice()->GetShaderSamplerSlot(Data.Effect, "ImageBuffer", "Sampler").Or((uint32_t)-1);
 
+			auto* Effect = GetEffectByFilename(Desc.Filename);
+			if (Effect != nullptr)
+			{
+				auto* Target = Effect->Effect;
+				Core::Memory::Release(Target);
+				Effects.erase(Target);
+			}
+
+			Effects[*Shader] = std::move(Data);
 			return Shader;
 		}
 		Graphics::ExpectsGraphics<Graphics::Shader*> EffectRenderer::CompileEffect(const std::string_view& SectionName, size_t BufferSize)

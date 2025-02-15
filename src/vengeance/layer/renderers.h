@@ -26,6 +26,53 @@ namespace Vitex
 					Graphics::Shader* Voxelizer = nullptr;
 				} Shaders;
 
+				struct
+				{
+					struct
+					{
+						struct
+						{
+							uint32_t Object = (uint32_t)-1;
+						} Culling;
+						struct
+						{
+							Material::Slots Slotdata;
+							uint32_t Sampler = (uint32_t)-1;
+							uint32_t Materials = (uint32_t)-1;
+							uint32_t Object = (uint32_t)-1;
+						} Linear;
+						struct
+						{
+							Material::Slots Slotdata;
+							uint32_t Sampler = (uint32_t)-1;
+							uint32_t Materials = (uint32_t)-1;
+							uint32_t Object = (uint32_t)-1;
+							uint32_t Viewer = (uint32_t)-1;
+							uint32_t Cubic = (uint32_t)-1;
+						} Cubic;
+					} Depth;
+					struct
+					{
+						Material::Slots Slotdata;
+						uint32_t Sampler = (uint32_t)-1;
+						uint32_t Materials = (uint32_t)-1;
+						uint32_t Object = (uint32_t)-1;
+						uint32_t Viewer = (uint32_t)-1;
+					} Geometry;
+					struct
+					{
+						Material::Slots Slotdata;
+						uint32_t Sampler = (uint32_t)-1;
+						uint32_t Materials = (uint32_t)-1;
+						uint32_t DiffuseBuffer = (uint32_t)-1;
+						uint32_t NormalBuffer = (uint32_t)-1;
+						uint32_t SurfaceBuffer = (uint32_t)-1;
+						uint32_t Object = (uint32_t)-1;
+						uint32_t Viewer = (uint32_t)-1;
+						uint32_t Voxelizer = (uint32_t)-1;
+					} Voxelizer;
+				} Slots;
+
 			private:
 				Graphics::DepthStencilState* DepthStencil = nullptr;
 				Graphics::RasterizerState* Rasterizer = nullptr;

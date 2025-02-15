@@ -642,6 +642,7 @@ namespace Vitex
 				glDeleteProgram(Immediate.Program);
 				glDeleteVertexArrays(1, &Immediate.VertexArray);
 				glDeleteBuffers(1, &Immediate.VertexBuffer);
+				glDeleteBuffers(1, &Immediate.ConstantBuffer);
 				Video::GLEW::DestroyContext(Context);
 			}
 			void OGLDevice::SetAsCurrentDevice()
@@ -1727,25 +1728,25 @@ namespace Vitex
 				if (Elements.size() > MaxElements && !CreateDirectBuffer(Elements.size()))
 					return false;
 
-				GLint LastVAO = GL_NONE, LastVBO = GL_NONE, LastSampler = GL_NONE;
+				GLint LastVAO = GL_NONE, LastVBO = GL_NONE, LastUBO = GL_NONE, LastSampler = GL_NONE;
 				glGetIntegerv(GL_VERTEX_ARRAY_BINDING, &LastVAO);
 				glGetIntegerv(GL_ARRAY_BUFFER_BINDING, &LastVBO);
+				glGetIntegerv(GL_UNIFORM_BUFFER_BINDING, &LastUBO);
 
 				GLint LastProgram = GL_NONE, LastTexture = GL_NONE;
 				glGetIntegerv(GL_CURRENT_PROGRAM, &LastProgram);
 				
+				glBindBuffer(GL_UNIFORM_BUFFER, Immediate.ConstantBuffer);
+				glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(Direct), &Direct);
 				glBindBuffer(GL_ARRAY_BUFFER, Immediate.VertexBuffer);
 				GLvoid* Data = glMapBuffer(GL_ARRAY_BUFFER, GL_WRITE_ONLY);
 				memcpy(Data, Elements.data(), (size_t)Elements.size() * sizeof(Vertex));
 				glUnmapBuffer(GL_ARRAY_BUFFER);
 
-				const GLuint TransformSlot = glGetUniformLocation(Immediate.Program, "Transform");
+				const GLuint ConstantSlot = glGetUniformBlockIndex(Immediate.Program, "Object");
 				const GLuint ImageSlot = glGetUniformLocation(Immediate.Program, "Diffuse");
-				const GLuint PaddingSlot = glGetUniformLocation(Immediate.Program, "Padding");
-				glBindBuffer(GL_ARRAY_BUFFER, LastVBO);
 				glUseProgram(Immediate.Program);
-				glUniformMatrix4fv(TransformSlot, 1, GL_FALSE, (const GLfloat*)&Direct.Transform.Row);
-				glUniform4fARB(PaddingSlot, Direct.Padding.X, Direct.Padding.Y, Direct.Padding.Z, Direct.Padding.W);
+				glBindBufferBase(GL_UNIFORM_BUFFER, ConstantSlot, Immediate.ConstantBuffer);
 				glActiveTexture(GL_TEXTURE0 + ImageSlot);
 				glGetIntegerv(GL_SAMPLER_BINDING, &LastSampler);
 				glGetIntegerv(GL_TEXTURE_BINDING_2D, &LastTexture);
@@ -1754,11 +1755,38 @@ namespace Vitex
 				glBindVertexArray(Immediate.VertexArray);
 				glDrawArrays(GetPrimitiveTopologyDraw(Primitives), 0, (GLsizei)Elements.size());
 				glBindVertexArray(LastVAO);
+				glBindBuffer(GL_ARRAY_BUFFER, LastVBO);
+				glBindBuffer(GL_UNIFORM_BUFFER, LastUBO);
 				glUseProgram(LastProgram);
 				glBindSampler(ImageSlot, LastSampler);
 				glBindTexture(GL_TEXTURE_2D, LastTexture);
-
+				
 				return true;
+			}
+			bool OGLDevice::HasExplicitSlots() const
+			{
+				return (uint32_t)ShaderGen > (uint32_t)ShaderModel::GLSL_4_2_0;
+			}
+			ExpectsGraphics<uint32_t> OGLDevice::GetShaderSlot(Shader* Resource, const std::string_view& Name) const
+			{
+				VI_ASSERT(Core::Stringify::IsCString(Name), "name should be set");
+				VI_ASSERT(Resource != nullptr, "resource should be set");
+				OGLShader* IResource = (OGLShader*)Resource;
+				for (auto& Program : IResource->Programs)
+				{
+					GLuint Index = glGetUniformBlockIndex(Program.first, Name.data());
+					if (Index != GL_INVALID_INDEX)
+						return (uint32_t)Index;
+				
+					GLint Location = glGetUniformLocation(Program.first, Name.data());
+					if (Location != -1)
+						return (uint32_t)Location;
+				}
+				return GraphicsException(GL_INVALID_INDEX, Stringify::Text("shader slot for variable %s not found", Name.data()));
+			}
+			ExpectsGraphics<uint32_t> OGLDevice::GetShaderSamplerSlot(Shader* Resource, const std::string_view& ResourceName, const std::string_view& SamplerName) const
+			{
+				return GetShaderSlot(Resource, ResourceName);
 			}
 			ExpectsGraphics<void> OGLDevice::Submit()
 			{
@@ -3833,7 +3861,11 @@ namespace Vitex
 				if (Immediate.VertexShader == GL_NONE)
 				{
 					static const char* VertexShaderCode = OGL_INLINE(
-						uniform mat4 Transform;
+						uniform Object
+						{
+							mat4 Transform;
+							vec4 Padding;
+						};
 																	 
                         layout(location = 0) in vec3 iPosition;
 						layout(location = 1) in vec2 iTexCoord;
@@ -3872,8 +3904,12 @@ namespace Vitex
 				if (Immediate.PixelShader == GL_NONE)
 				{
 					static const char* PixelShaderCode = OGL_INLINE(
+						uniform Object
+						{
+							mat4 Transform;
+							vec4 Padding;
+						};
 						uniform sampler2D Diffuse;
-						uniform vec4 Padding;
 
                         in vec2 oTexCoord;
                         in vec4 oColor;
@@ -3938,6 +3974,9 @@ namespace Vitex
 				if (Immediate.VertexBuffer != GL_NONE)
 					glDeleteBuffers(1, &Immediate.VertexBuffer);
 
+				if (Immediate.ConstantBuffer != GL_NONE)
+					glDeleteBuffers(1, &Immediate.ConstantBuffer);
+				
 				glGenBuffers(1, &Immediate.VertexBuffer);
 				glGenVertexArrays(1, &Immediate.VertexArray);
 				glBindVertexArray(Immediate.VertexArray);
@@ -3950,7 +3989,11 @@ namespace Vitex
 				glVertexAttribPointer(2, 4, GL_FLOAT, GL_FALSE, sizeof(Vertex), OGL_OFFSET(sizeof(float) * 5));
 				glEnableVertexAttribArray(2);
 				glBindVertexArray(0);
-
+				
+				auto Status = CreateConstantBuffer(&Immediate.ConstantBuffer, sizeof(DirectBuffer));
+				if (!Status)
+					return Status;
+				
 				SetVertexBuffers(nullptr, 0);
 				return Core::Expectation::Met;
 			}

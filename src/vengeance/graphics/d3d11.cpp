@@ -591,9 +591,8 @@ namespace Vitex
 				return (void*)Async;
 			}
 
-			D3D11Device::D3D11Device(const Desc& I) : GraphicsDevice(I), ImmediateContext(nullptr), Context(nullptr), SwapChain(nullptr), FeatureLevel(D3D_FEATURE_LEVEL_11_0), DriverType(D3D_DRIVER_TYPE_HARDWARE)
+			D3D11Device::D3D11Device(const Desc& I) : GraphicsDevice(I), ImmediateContext(nullptr), Context(nullptr), SwapChain(nullptr), FeatureLevel(D3D_FEATURE_LEVEL_11_0), DriverType(D3D_DRIVER_TYPE_HARDWARE), Window(I.Window)
 			{
-				Activity* Window = I.Window;
 				if (!Window)
 				{
 					VI_ASSERT(VirtualWindow != nullptr, "cannot initialize virtual activity for device");
@@ -1721,6 +1720,57 @@ namespace Vitex
 				ImmediateContext->IASetVertexBuffers(0, 1, LastVertexBuffer.In(), &LastStride, &LastOffset);
 				return true;
 			}
+			bool D3D11Device::HasExplicitSlots() const
+			{
+				return true;
+			}
+			ExpectsGraphics<uint32_t> D3D11Device::GetShaderSlot(Shader* Resource, const std::string_view& Name) const
+			{
+				VI_ASSERT(Core::Stringify::IsCString(Name), "name should be set");
+				VI_ASSERT(Resource != nullptr, "resource should be set");
+				D3D11Shader* IResource = (D3D11Shader*)Resource;
+				static auto ResolveSlot = [](ID3D11ShaderReflection* Reflection, const std::string_view& Name) -> Core::Option<uint32_t>
+				{
+					if (!Reflection || Name.empty())
+						return Core::Optional::None;
+
+					auto* Variable = Reflection->GetVariableByName(Name.data());
+					if (Variable != nullptr)
+						return (uint32_t)Variable->GetInterfaceSlot(0);
+
+					return Core::Optional::None;
+				};
+
+				auto Result = ResolveSlot(IResource->Reflection.VertexShader, Name);
+				if (Result)
+					return *Result;
+
+				auto Result = ResolveSlot(IResource->Reflection.PixelShader, Name);
+				if (Result)
+					return *Result;
+
+				auto Result = ResolveSlot(IResource->Reflection.GeometryShader, Name);
+				if (Result)
+					return *Result;
+
+				auto Result = ResolveSlot(IResource->Reflection.DomainShader, Name);
+				if (Result)
+					return *Result;
+
+				auto Result = ResolveSlot(IResource->Reflection.HullShader, Name);
+				if (Result)
+					return *Result;
+
+				auto Result = ResolveSlot(IResource->Reflection.ComputeShader, Name);
+				if (Result)
+					return *Result;
+
+				return GraphicsException(-1, Core::Stringify::Text("shader slot for variable %s not found", Name.data()));
+			}
+			ExpectsGraphics<uint32_t> D3D11Device::GetShaderSamplerSlot(Shader* Resource, const std::string_view& ResourceName, const std::string_view& SamplerName) const
+			{
+				return GetShaderSlot(Resource, SamplerName);
+			}
 			ExpectsGraphics<void> D3D11Device::Submit()
 			{
 				HRESULT ResultCode = SwapChain->Present((uint32_t)VSyncMode, PresentFlags);
@@ -2611,6 +2661,10 @@ namespace Vitex
 					HRESULT ResultCode = Context->CreateVertexShader(Data, Size, nullptr, &Result->VertexShader);
 					if (ResultCode != S_OK)
 						return GetException(ResultCode, "compile vertex shader");
+
+					ResultCode = D3DReflect(Data, Size, IID_ID3D11ShaderReflection, (void**)&Result->Reflection.VertexShader);
+					if (ResultCode != S_OK)
+						return GetException(ResultCode, "disassemble vertex shader");
 				}
 
 				Core::String PixelEntry = GetShaderMain(ShaderType::Pixel);
@@ -2643,6 +2697,10 @@ namespace Vitex
 					Core::Memory::Release(ShaderBlob);
 					if (ResultCode != S_OK)
 						return GetException(ResultCode, "compile pixel shader");
+
+					ResultCode = D3DReflect(Data, Size, IID_ID3D11ShaderReflection, (void**)&Result->Reflection.PixelShader);
+					if (ResultCode != S_OK)
+						return GetException(ResultCode, "disassemble pixel shader");
 				}
 
 				Core::String GeometryEntry = GetShaderMain(ShaderType::Geometry);
@@ -2675,6 +2733,10 @@ namespace Vitex
 					Core::Memory::Release(ShaderBlob);
 					if (ResultCode != S_OK)
 						return GetException(ResultCode, "compile geometry shader");
+
+					ResultCode = D3DReflect(Data, Size, IID_ID3D11ShaderReflection, (void**)&Result->Reflection.GeometryShader);
+					if (ResultCode != S_OK)
+						return GetException(ResultCode, "disassemble geometry shader");
 				}
 
 				Core::String ComputeEntry = GetShaderMain(ShaderType::Compute);
@@ -2707,6 +2769,10 @@ namespace Vitex
 					Core::Memory::Release(ShaderBlob);
 					if (ResultCode != S_OK)
 						return GetException(ResultCode, "compile compute shader");
+
+					ResultCode = D3DReflect(Data, Size, IID_ID3D11ShaderReflection, (void**)&Result->Reflection.ComputeShader);
+					if (ResultCode != S_OK)
+						return GetException(ResultCode, "disassemble compute shader");
 				}
 
 				Core::String HullEntry = GetShaderMain(ShaderType::Hull);
@@ -2739,6 +2805,10 @@ namespace Vitex
 					Core::Memory::Release(ShaderBlob);
 					if (ResultCode != S_OK)
 						return GetException(ResultCode, "compile hull shader");
+
+					ResultCode = D3DReflect(Data, Size, IID_ID3D11ShaderReflection, (void**)&Result->Reflection.HullShader);
+					if (ResultCode != S_OK)
+						return GetException(ResultCode, "disassemble hull shader");
 				}
 
 				Core::String DomainEntry = GetShaderMain(ShaderType::Domain);
@@ -2771,6 +2841,10 @@ namespace Vitex
 					Core::Memory::Release(ShaderBlob);
 					if (ResultCode != S_OK)
 						return GetException(ResultCode, "compile domain shader");
+
+					ResultCode = D3DReflect(Data, Size, IID_ID3D11ShaderReflection, (void**)&Result->Reflection.DomainShader);
+					if (ResultCode != S_OK)
+						return GetException(ResultCode, "disassemble domain shader");
 				}
 
 				Result->Compiled = true;

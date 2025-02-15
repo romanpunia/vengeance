@@ -4,6 +4,7 @@
 #include <array>
 #ifdef VI_MICROSOFT
 #include <d3d11.h>
+#include <d3d11shader.h>
 #include <d3dcompiler.h>
 
 namespace Vitex
@@ -82,6 +83,17 @@ namespace Vitex
 
 			private:
 				bool Compiled;
+
+			public:
+				struct
+				{
+					ID3D11ShaderReflection* VertexShader = nullptr;
+					ID3D11ShaderReflection* PixelShader = nullptr;
+					ID3D11ShaderReflection* GeometryShader = nullptr;
+					ID3D11ShaderReflection* DomainShader = nullptr;
+					ID3D11ShaderReflection* HullShader = nullptr;
+					ID3D11ShaderReflection* ComputeShader = nullptr;
+				} Reflection;
 
 			public:
 				ID3D11VertexShader* VertexShader;
@@ -374,6 +386,7 @@ namespace Vitex
 				DXGI_SWAP_CHAIN_DESC SwapChainResource;
 				D3D_FEATURE_LEVEL FeatureLevel;
 				D3D_DRIVER_TYPE DriverType;
+				Activity* Window;
 
 			public:
 				D3D11Device(const Desc& I);
@@ -454,6 +467,9 @@ namespace Vitex
 				void ImTexCoordOffset(float X, float Y) override;
 				void ImPosition(float X, float Y, float Z) override;
 				bool ImEnd() override;
+				bool HasExplicitSlots() const override;
+				ExpectsGraphics<uint32_t> GetShaderSlot(Shader* Resource, const std::string_view& Name) const override;
+				ExpectsGraphics<uint32_t> GetShaderSamplerSlot(Shader* Resource, const std::string_view& ResourceName, const std::string_view& SamplerName) const override;
 				ExpectsGraphics<void> Submit() override;
 				ExpectsGraphics<void> Map(ElementBuffer* Resource, ResourceMap Mode, MappedSubresource* Map) override;
 				ExpectsGraphics<void> Map(Texture2D* Resource, ResourceMap Mode, MappedSubresource* Map) override;

@@ -426,9 +426,6 @@ namespace Vitex
 			static bool Unpack(Core::Schema* V, Core::Vector<Trigonometry::Vertex>* O);
 			static bool Unpack(Core::Schema* V, Core::Vector<Trigonometry::SkinVertex>* O);
 			static bool Unpack(Core::Schema* V, Core::Vector<Ticker>* O);
-
-		public:
-
 		};
 
 		class VI_OUT Model final : public Core::Reference<Model>
@@ -485,6 +482,18 @@ namespace Vitex
 			friend HeavySeries;
 			friend RenderSystem;
 			friend SceneGraph;
+
+		public:
+			struct VI_OUT Slots
+			{
+				uint32_t DiffuseMap = (uint32_t)-1;
+				uint32_t NormalMap = (uint32_t)-1;
+				uint32_t MetallicMap = (uint32_t)-1;
+				uint32_t RoughnessMap = (uint32_t)-1;
+				uint32_t HeightMap = (uint32_t)-1;
+				uint32_t OcclusionMap = (uint32_t)-1;
+				uint32_t EmissionMap = (uint32_t)-1;
+			};
 
 		private:
 			Graphics::Texture2D* DiffuseMap;
@@ -744,7 +753,8 @@ namespace Vitex
 		public:
 			RenderConstants(Graphics::GraphicsDevice* NewDevice) noexcept;
 			~RenderConstants() noexcept;
-			void SetConstantBuffers();
+			void SetConstantBuffer(RenderBufferType Buffer, uint32_t Slot, uint32_t Type);
+			void SetUpdatedConstantBuffer(RenderBufferType Buffer, uint32_t Slot, uint32_t Type);
 			void UpdateConstantBuffer(RenderBufferType Buffer);
 			Graphics::Shader* GetBasicEffect() const;
 			Graphics::GraphicsDevice* GetDevice() const;
@@ -838,12 +848,14 @@ namespace Vitex
 			void FreeShader(Graphics::Shader* Shader);
 			void FreeBuffers(const std::string_view& Name, Graphics::ElementBuffer** Buffers);
 			void FreeBuffers(Graphics::ElementBuffer** Buffers);
+			void SetConstantBuffer(RenderBufferType Buffer, uint32_t Slot, uint32_t Type);
+			void SetUpdatedConstantBuffer(RenderBufferType Buffer, uint32_t Slot, uint32_t Type);
 			void UpdateConstantBuffer(RenderBufferType Buffer);
 			void ClearMaterials();
 			void FetchVisibility(Component* Base, VisibilityQuery& Data);
 			size_t Render(Core::Timer* Time, RenderState Stage, RenderOpt Options);
 			bool TryInstance(Material* Next, RenderBuffer::Instance& Target);
-			bool TryGeometry(Material* Next, bool WithTextures);
+			bool TryGeometry(Material* Next, Material::Slots* Slotdata);
 			bool HasCategory(GeoCategory Category);
 			Graphics::ExpectsGraphics<Graphics::Shader*> CompileShader(Graphics::Shader::Desc& Desc, size_t BufferSize = 0);
 			Graphics::ExpectsGraphics<Graphics::Shader*> CompileShader(const std::string_view& SectionName, size_t BufferSize = 0);
@@ -854,6 +866,7 @@ namespace Vitex
 			Core::Vector<Renderer*>& GetRenderers();
 			Graphics::MultiRenderTarget2D* GetMRT(TargetType Type) const;
 			Graphics::RenderTarget2D* GetRT(TargetType Type) const;
+			Graphics::ElementBuffer* GetMaterialBuffer() const;
 			Graphics::Texture2D** GetMerger();
 			Graphics::GraphicsDevice* GetDevice() const;
 			Graphics::Shader* GetBasicEffect() const;
@@ -1189,6 +1202,13 @@ namespace Vitex
 
 			struct
 			{
+				uint32_t DiffuseMap = (uint32_t)-1;
+				uint32_t Sampler = (uint32_t)-1;
+				uint32_t Object = (uint32_t)-1;
+			} Slots;
+
+			struct
+			{
 				std::atomic<Material*> Default;
 				float Progress = 1.0f;
 			} Loading;
@@ -1321,7 +1341,7 @@ namespace Vitex
 			Graphics::MultiRenderTarget2D* GetMRT(TargetType Type) const;
 			Graphics::RenderTarget2D* GetRT(TargetType Type) const;
 			Graphics::Texture2D** GetMerger();
-			Graphics::ElementBuffer* GetStructure() const;
+			Graphics::ElementBuffer* GetMaterialBuffer() const;
 			Graphics::GraphicsDevice* GetDevice() const;
 			Physics::Simulator* GetSimulator() const;
 			Graphics::Activity* GetActivity() const;
@@ -2367,7 +2387,31 @@ namespace Vitex
 		class VI_OUT EffectRenderer : public Renderer
 		{
 		protected:
-			Core::UnorderedMap<Core::String, Graphics::Shader*> Effects;
+			struct ShaderData
+			{
+				struct
+				{
+					uint32_t DiffuseBuffer = (uint32_t)-1;
+					uint32_t NormalBuffer = (uint32_t)-1;
+					uint32_t DepthBuffer = (uint32_t)-1;
+					uint32_t SurfaceBuffer = (uint32_t)-1;
+					uint32_t ImageBuffer = (uint32_t)-1;
+					uint32_t Constant = (uint32_t)-1;
+					uint32_t Sampler = (uint32_t)-1;
+				} Slots;
+				Graphics::Shader* Effect = nullptr;
+				Core::String Filename;
+			};
+
+			struct
+			{
+				uint32_t DiffuseMap = (uint32_t)-1;
+				uint32_t Sampler = (uint32_t)-1;
+				uint32_t Object = (uint32_t)-1;
+			} Slots;
+
+		protected:
+			Core::UnorderedMap<Graphics::Shader*, ShaderData> Effects;
 			Graphics::DepthStencilState* DepthStencil;
 			Graphics::RasterizerState* Rasterizer;
 			Graphics::BlendState* Blend;
@@ -2394,17 +2438,15 @@ namespace Vitex
 			void RenderCopyMain(uint32_t Slot, Graphics::Texture2D* Target);
 			void RenderCopyLast(Graphics::Texture2D* Target);
 			void RenderOutput(Graphics::RenderTarget2D* Resource = nullptr);
-			void RenderTexture(uint32_t Slot6, Graphics::Texture2D* Resource = nullptr);
-			void RenderTexture(uint32_t Slot6, Graphics::Texture3D* Resource = nullptr);
-			void RenderTexture(uint32_t Slot6, Graphics::TextureCube* Resource = nullptr);
-			void RenderMerge(Graphics::Shader* Effect, void* Buffer = nullptr, size_t Count = 1);
-			void RenderResult(Graphics::Shader* Effect, void* Buffer = nullptr);
-			void RenderResult();
-			void SampleWrap();
-			void SampleClamp();
-			void SampleMirror();
+			void RenderTexture(uint32_t Slot, Graphics::Texture2D* Resource = nullptr);
+			void RenderTexture(uint32_t Slot, Graphics::Texture3D* Resource = nullptr);
+			void RenderTexture(uint32_t Slot, Graphics::TextureCube* Resource = nullptr);
+			void RenderMerge(Graphics::Shader* Effect, Graphics::SamplerState* Sampler, void* Buffer = nullptr, size_t Count = 1);
+			void RenderResult(Graphics::Shader* Effect, Graphics::SamplerState* Sampler, void* Buffer = nullptr);
+			void RenderResult(Graphics::SamplerState* Sampler);
 			void GenerateMips();
-			Graphics::Shader* GetEffect(const std::string_view& Name);
+			ShaderData* GetEffectByFilename(const std::string_view& Name);
+			ShaderData* GetEffectByShader(Graphics::Shader* Shader);
 			Graphics::ExpectsGraphics<Graphics::Shader*> CompileEffect(Graphics::Shader::Desc& Desc, size_t BufferSize = 0);
 			Graphics::ExpectsGraphics<Graphics::Shader*> CompileEffect(const std::string_view& SectionName, size_t BufferSize = 0);
 
