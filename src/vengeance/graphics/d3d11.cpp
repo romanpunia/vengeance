@@ -2308,8 +2308,8 @@ namespace Vitex
 			}
 			ExpectsGraphics<void> D3D11Device::RescaleBuffers(uint32_t Width, uint32_t Height)
 			{
-				VI_ASSERT(Window != nullptr, "window should be set");
-				auto Size = Window->GetDrawableSize(Width, Height);
+				VI_ASSERT(VirtualWindow != nullptr, "window should be set");
+				auto Size = VirtualWindow->GetDrawableSize(Width, Height);
 				return ResizeBuffers((uint32_t)Size.X, (uint32_t)Size.Y);
 			}
 			ExpectsGraphics<void> D3D11Device::ResizeBuffers(uint32_t Width, uint32_t Height)
