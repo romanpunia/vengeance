@@ -95,7 +95,7 @@ namespace Vitex
 				Core::UnorderedMap<float, Trigonometry::Quaternion> Rotations;
 			};
 
-			class VI_OUT MaterialProcessor final : public Processor
+			class MaterialProcessor final : public Processor
 			{
 			public:
 				MaterialProcessor(ContentManager * Manager);
@@ -105,7 +105,7 @@ namespace Vitex
 				void Free(AssetCache* Asset) override;
 			};
 
-			class VI_OUT SceneGraphProcessor final : public Processor
+			class SceneGraphProcessor final : public Processor
 			{
 			public:
 				std::function<void(SceneGraph*)> SetupCallback;
@@ -116,7 +116,7 @@ namespace Vitex
 				ExpectsContent<void> Serialize(Core::Stream* Stream, void* Object, const Core::VariantArgs& Args) override;
 			};
 
-			class VI_OUT AudioClipProcessor final : public Processor
+			class AudioClipProcessor final : public Processor
 			{
 			public:
 				AudioClipProcessor(ContentManager * Manager);
@@ -128,7 +128,7 @@ namespace Vitex
 				void Free(AssetCache* Asset) override;
 			};
 
-			class VI_OUT Texture2DProcessor final : public Processor
+			class Texture2DProcessor final : public Processor
 			{
 			public:
 				Texture2DProcessor(ContentManager * Manager);
@@ -138,7 +138,7 @@ namespace Vitex
 				void Free(AssetCache* Asset) override;
 			};
 
-			class VI_OUT ShaderProcessor final : public Processor
+			class ShaderProcessor final : public Processor
 			{
 			public:
 				ShaderProcessor(ContentManager * Manager);
@@ -148,7 +148,7 @@ namespace Vitex
 				void Free(AssetCache* Asset) override;
 			};
 
-			class VI_OUT ModelProcessor final : public Processor
+			class ModelProcessor final : public Processor
 			{
 			public:
 				Graphics::MeshBuffer::Desc Options;
@@ -165,7 +165,7 @@ namespace Vitex
 				static ExpectsContent<ModelInfo> ImportForImmediateUse(Core::Stream* Stream, uint64_t Opts = (uint64_t)MeshPreset::Default);
 			};
 
-			class VI_OUT SkinModelProcessor final : public Processor
+			class SkinModelProcessor final : public Processor
 			{
 			public:
 				Graphics::SkinMeshBuffer::Desc Options;
@@ -178,7 +178,7 @@ namespace Vitex
 				void Free(AssetCache* Asset) override;
 			};
 
-			class VI_OUT SkinAnimationProcessor final : public Processor
+			class SkinAnimationProcessor final : public Processor
 			{
 			public:
 				SkinAnimationProcessor(ContentManager* Manager);
@@ -192,7 +192,7 @@ namespace Vitex
 				static ExpectsContent<Core::Vector<Trigonometry::SkinAnimatorClip>> ImportForImmediateUse(Core::Stream* Stream, uint64_t Opts = (uint64_t)MeshPreset::Default);
 			};
 
-			class VI_OUT HullShapeProcessor final : public Processor
+			class HullShapeProcessor final : public Processor
 			{
 			public:
 				HullShapeProcessor(ContentManager * Manager);

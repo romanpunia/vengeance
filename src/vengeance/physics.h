@@ -132,7 +132,7 @@ namespace Vitex
 
 		typedef std::function<void(const struct CollisionBody&)> CollisionCallback;
 
-		struct VI_OUT ShapeContact
+		struct ShapeContact
 		{
 			Trigonometry::Vector3 LocalPoint1;
 			Trigonometry::Vector3 LocalPoint2;
@@ -164,7 +164,7 @@ namespace Vitex
 			int LifeTime = 0;
 		};
 
-		struct VI_OUT RayContact
+		struct RayContact
 		{
 			Trigonometry::Vector3 HitNormalLocal;
 			Trigonometry::Vector3 HitNormalWorld;
@@ -176,7 +176,7 @@ namespace Vitex
 			bool NormalInWorldSpace = false;
 		};
 
-		struct VI_OUT CollisionBody
+		struct CollisionBody
 		{
 			RigidBody* Rigid = nullptr;
 			SoftBody* Soft = nullptr;
@@ -184,7 +184,7 @@ namespace Vitex
 			CollisionBody(btCollisionObject* Object) noexcept;
 		};
 
-		class VI_OUT HullShape final : public Core::Reference<HullShape>
+		class HullShape final : public Core::Reference<HullShape>
 		{
 		private:
 			Core::Vector<Trigonometry::Vertex> Vertices;
@@ -201,7 +201,7 @@ namespace Vitex
 			btCollisionShape* GetShape() const;
 		};
 
-		class VI_OUT RigidBody final : public Core::Reference<RigidBody>
+		class RigidBody final : public Core::Reference<RigidBody>
 		{
 			friend Simulator;
 
@@ -309,7 +309,7 @@ namespace Vitex
 			static RigidBody* Get(btRigidBody* From);
 		};
 
-		class VI_OUT SoftBody final : public Core::Reference<SoftBody>
+		class SoftBody final : public Core::Reference<SoftBody>
 		{
 			friend Simulator;
 
@@ -515,7 +515,7 @@ namespace Vitex
 			static SoftBody* Get(btSoftBody* From);
 		};
 
-		class VI_OUT Constraint : public Core::Reference<Constraint>
+		class Constraint : public Core::Reference<Constraint>
 		{
 		protected:
 			btRigidBody* First, * Second;
@@ -542,7 +542,7 @@ namespace Vitex
 			Simulator* GetSimulator() const;
 		};
 
-		class VI_OUT PConstraint : public Constraint
+		class PConstraint : public Constraint
 		{
 			friend RigidBody;
 			friend Simulator;
@@ -576,7 +576,7 @@ namespace Vitex
 			Desc& GetState();
 		};
 
-		class VI_OUT HConstraint : public Constraint
+		class HConstraint : public Constraint
 		{
 			friend RigidBody;
 			friend Simulator;
@@ -633,7 +633,7 @@ namespace Vitex
 			Desc& GetState();
 		};
 
-		class VI_OUT SConstraint : public Constraint
+		class SConstraint : public Constraint
 		{
 			friend RigidBody;
 			friend Simulator;
@@ -718,7 +718,7 @@ namespace Vitex
 			Desc& GetState();
 		};
 
-		class VI_OUT CTConstraint : public Constraint
+		class CTConstraint : public Constraint
 		{
 			friend RigidBody;
 			friend Simulator;
@@ -777,7 +777,7 @@ namespace Vitex
 			Desc& GetState();
 		};
 
-		class VI_OUT DF6Constraint : public Constraint
+		class DF6Constraint : public Constraint
 		{
 			friend RigidBody;
 			friend Simulator;
@@ -838,7 +838,7 @@ namespace Vitex
 			Desc& GetState();
 		};
 
-		class VI_OUT Simulator final : public Core::Reference<Simulator>
+		class Simulator final : public Core::Reference<Simulator>
 		{
 		public:
 			struct Desc

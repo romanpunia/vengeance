@@ -166,7 +166,7 @@ namespace Vitex
 			return static_cast<RenderOpt>(static_cast<size_t>(A) | static_cast<size_t>(B));
 		}
 
-		struct VI_OUT Ticker
+		struct Ticker
 		{
 		private:
 			float Time;
@@ -180,7 +180,7 @@ namespace Vitex
 			float GetTime();
 		};
 
-		struct VI_OUT Event
+		struct Event
 		{
 			Core::String Name;
 			Core::VariantArgs Args;
@@ -194,7 +194,7 @@ namespace Vitex
 			Event& operator= (Event&& Other) noexcept;
 		};
 
-		struct VI_OUT BatchData
+		struct BatchData
 		{
 			Graphics::ElementBuffer* InstanceBuffer;
 			void* GeometryBuffer;
@@ -202,20 +202,20 @@ namespace Vitex
 			size_t InstancesCount;
 		};
 
-		struct VI_OUT IdxSnapshot
+		struct IdxSnapshot
 		{
 			Core::UnorderedMap<Entity*, size_t> To;
 			Core::UnorderedMap<size_t, Entity*> From;
 		};
 
-		struct VI_OUT VisibilityQuery
+		struct VisibilityQuery
 		{
 			GeoCategory Category = GeoCategory::Opaque;
 			bool BoundaryVisible = false;
 			bool QueryPixels = false;
 		};
 
-		struct VI_OUT AnimatorState
+		struct AnimatorState
 		{
 			bool Paused = false;
 			bool Looped = false;
@@ -233,7 +233,7 @@ namespace Vitex
 			bool IsPlaying() const;
 		};
 
-		struct VI_OUT SpawnerProperties
+		struct SpawnerProperties
 		{
 			Trigonometry::RandomVector4 Diffusion;
 			Trigonometry::RandomVector3 Position;
@@ -245,7 +245,7 @@ namespace Vitex
 			int Iterations = 1;
 		};
 
-		struct VI_OUT Viewer
+		struct Viewer
 		{
 			RenderSystem* Renderer = nullptr;
 			RenderCulling Culling = RenderCulling::Linear;
@@ -266,14 +266,14 @@ namespace Vitex
 			void Set(const Trigonometry::Matrix4x4& View, const Trigonometry::Matrix4x4& Projection, const Trigonometry::Vector3& Position, const Trigonometry::Vector3& Rotation, float Fov, float Ratio, float Near, float Far, RenderCulling Type);
 		};
 
-		struct VI_OUT Attenuation
+		struct Attenuation
 		{
 			float Radius = 10.0f;
 			float C1 = 0.6f;
 			float C2 = 0.6f;
 		};
 
-		struct VI_OUT Subsurface
+		struct Subsurface
 		{
 			Trigonometry::Vector4 Emission = { 0.0f, 0.0f, 0.0f, 0.0f };
 			Trigonometry::Vector4 Metallic = { 0.0f, 0.0f, 0.0f, 0.0f };
@@ -292,20 +292,20 @@ namespace Vitex
 			float Height = 0.0f;
 		};
 
-		struct VI_OUT SparseIndex
+		struct SparseIndex
 		{
 			Core::Pool<Component*> Data;
 			Trigonometry::Cosmos Index;
 		};
 
-		struct VI_OUT AnimationBuffer
+		struct AnimationBuffer
 		{
 			Trigonometry::Matrix4x4 Offsets[Graphics::JOINTS_SIZE];
 			Trigonometry::Vector3 Padding;
 			float Animated = 0.0f;
 		};
 
-		struct VI_OUT RenderBuffer
+		struct RenderBuffer
 		{
 			struct Instance
 			{
@@ -327,7 +327,7 @@ namespace Vitex
 			float MaterialId = 0.0f;
 		};
 
-		struct VI_OUT ViewBuffer
+		struct ViewBuffer
 		{
 			Trigonometry::Matrix4x4 InvViewProj;
 			Trigonometry::Matrix4x4 ViewProj;
@@ -339,26 +339,26 @@ namespace Vitex
 			float Near = 0.1f;
 		};
 
-		struct VI_OUT PoseNode
+		struct PoseNode
 		{
 			Trigonometry::Vector3 Position;
 			Trigonometry::Vector3 Scale = Trigonometry::Vector3::One();
 			Trigonometry::Quaternion Rotation;
 		};
 
-		struct VI_OUT PoseData
+		struct PoseData
 		{
 			PoseNode Frame;
 			PoseNode Offset;
 			PoseNode Default;
 		};
 
-		struct VI_OUT PoseMatrices
+		struct PoseMatrices
 		{
 			Trigonometry::Matrix4x4 Data[Graphics::JOINTS_SIZE];
 		};
 
-		struct VI_OUT PoseBuffer
+		struct PoseBuffer
 		{
 			Core::UnorderedMap<Graphics::SkinMeshBuffer*, PoseMatrices> Matrices;
 			Core::UnorderedMap<size_t, PoseData> Offsets;
@@ -367,7 +367,7 @@ namespace Vitex
 			void Fill(Trigonometry::Joint& Next);
 		};
 
-		class VI_OUT_TS HeavySeries
+		class HeavySeries
 		{
 		public:
 			static void Pack(Core::Schema* V, const Trigonometry::Vector2& Value);
@@ -433,7 +433,7 @@ namespace Vitex
 
 		};
 
-		class VI_OUT Model final : public Core::Reference<Model>
+		class Model final : public Core::Reference<Model>
 		{
 		public:
 			Core::Vector<Graphics::MeshBuffer*> Meshes;
@@ -447,7 +447,7 @@ namespace Vitex
 			Graphics::MeshBuffer* FindMesh(const std::string_view& Name);
 		};
 
-		class VI_OUT SkinModel final : public Core::Reference<SkinModel>
+		class SkinModel final : public Core::Reference<SkinModel>
 		{
 		public:
 			Core::Vector<Graphics::SkinMeshBuffer*> Meshes;
@@ -470,7 +470,7 @@ namespace Vitex
 			void Synchronize(PoseBuffer* Map, Trigonometry::Joint& Next, const Trigonometry::Matrix4x4& ParentOffset);
 		};
 
-		class VI_OUT SkinAnimation final : public Core::Reference<SkinAnimation>
+		class SkinAnimation final : public Core::Reference<SkinAnimation>
 		{
 		private:
 			Core::Vector<Trigonometry::SkinAnimatorClip> Clips;
@@ -482,7 +482,7 @@ namespace Vitex
 			bool IsValid();
 		};
 
-		class VI_OUT Material final : public Core::Reference<Material>
+		class Material final : public Core::Reference<Material>
 		{
 			friend HeavySeries;
 			friend RenderSystem;
@@ -526,7 +526,7 @@ namespace Vitex
 			SceneGraph* GetScene() const;
 		};
 
-		class VI_OUT Component : public Core::Reference<Component>
+		class Component : public Core::Reference<Component>
 		{
 			friend Core::Reference<Component>;
 			friend SceneGraph;
@@ -568,7 +568,7 @@ namespace Vitex
 			VI_COMPONENT_ROOT("base_component");
 		};
 
-		class VI_OUT Entity final : public Core::Reference<Entity>
+		class Entity final : public Core::Reference<Entity>
 		{
 			friend Core::Reference<Entity>;
 			friend SceneGraph;
@@ -657,7 +657,7 @@ namespace Vitex
 			}
 		};
 
-		class VI_OUT Drawable : public Component
+		class Drawable : public Component
 		{
 			friend SceneGraph;
 
@@ -693,7 +693,7 @@ namespace Vitex
 			VI_COMPONENT("drawable_component");
 		};
 
-		class VI_OUT Renderer : public Core::Reference<Renderer>
+		class Renderer : public Core::Reference<Renderer>
 		{
 			friend SceneGraph;
 
@@ -724,7 +724,7 @@ namespace Vitex
 			VI_COMPONENT_ROOT("base_renderer");
 		};
 
-		class VI_OUT RenderConstants final : public Core::Reference<RenderConstants>
+		class RenderConstants final : public Core::Reference<RenderConstants>
 		{
 		private:
 			struct
@@ -753,7 +753,7 @@ namespace Vitex
 			Graphics::ElementBuffer* GetConstantBuffer(RenderBufferType Buffer) const;
 		};
 
-		class VI_OUT RenderSystem final : public Core::Reference<RenderSystem>
+		class RenderSystem final : public Core::Reference<RenderSystem>
 		{
 		public:
 			struct RsIndex
@@ -1053,7 +1053,7 @@ namespace Vitex
 			}
 		};
 
-		class VI_OUT_TS ShaderCache final : public Core::Reference<ShaderCache>
+		class ShaderCache final : public Core::Reference<ShaderCache>
 		{
 		public:
 			struct SCache
@@ -1079,7 +1079,7 @@ namespace Vitex
 			void ClearCache();
 		};
 
-		class VI_OUT_TS PrimitiveCache final : public Core::Reference<PrimitiveCache>
+		class PrimitiveCache final : public Core::Reference<PrimitiveCache>
 		{
 		public:
 			struct SCache
@@ -1123,7 +1123,7 @@ namespace Vitex
 			void ClearCache();
 		};
 
-		class VI_OUT SceneGraph final : public Core::Reference<SceneGraph>
+		class SceneGraph final : public Core::Reference<SceneGraph>
 		{
 			friend RenderSystem;
 			friend Renderer;
@@ -1132,7 +1132,7 @@ namespace Vitex
 			friend Drawable;
 
 		public:
-			struct VI_OUT Desc
+			struct Desc
 			{
 				struct Dependencies
 				{
@@ -1430,7 +1430,7 @@ namespace Vitex
 			}
 		};
 
-		class VI_OUT_TS HeavyContentManager final : public ContentManager
+		class HeavyContentManager final : public ContentManager
 		{
 		private:
 			Graphics::GraphicsDevice* Device;
@@ -1441,7 +1441,7 @@ namespace Vitex
 			Graphics::GraphicsDevice* GetDevice() const;
 		};
 
-		class VI_OUT HeavyApplication : public Core::Singleton<HeavyApplication>
+		class HeavyApplication : public Core::Singleton<HeavyApplication>
 		{
 		public:
 			struct Desc : Application::Desc
@@ -1984,7 +1984,7 @@ namespace Vitex
 		};
 
 		template <typename T, typename Geometry = char, typename Instance = char>
-		class VI_OUT GeometryRenderer : public Renderer
+		class GeometryRenderer : public Renderer
 		{
 			static_assert(std::is_base_of<Drawable, T>::value, "component must be drawable to work within geometry renderer");
 
@@ -2366,7 +2366,7 @@ namespace Vitex
 			VI_COMPONENT("geometry_renderer");
 		};
 
-		class VI_OUT EffectRenderer : public Renderer
+		class EffectRenderer : public Renderer
 		{
 		protected:
 			Core::UnorderedMap<Core::String, Graphics::Shader*> Effects;

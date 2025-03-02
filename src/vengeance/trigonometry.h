@@ -44,7 +44,7 @@ namespace Vitex
 			NegativeZ
 		};
 
-		struct VI_OUT Vertex
+		struct Vertex
 		{
 			float PositionX;
 			float PositionY;
@@ -62,7 +62,7 @@ namespace Vitex
 			float BitangentZ;
 		};
 
-		struct VI_OUT SkinVertex
+		struct SkinVertex
 		{
 			float PositionX;
 			float PositionY;
@@ -88,7 +88,7 @@ namespace Vitex
 			float JointBias3;
 		};
 
-		struct VI_OUT ShapeVertex
+		struct ShapeVertex
 		{
 			float PositionX;
 			float PositionY;
@@ -97,7 +97,7 @@ namespace Vitex
 			float TexCoordY;
 		};
 
-		struct VI_OUT ElementVertex
+		struct ElementVertex
 		{
 			float PositionX;
 			float PositionY;
@@ -117,7 +117,7 @@ namespace Vitex
 			float ColorW;
 		};
 
-		struct VI_OUT Vector2
+		struct Vector2
 		{
 			float X;
 			float Y;
@@ -217,7 +217,7 @@ namespace Vitex
 			}
 		};
 
-		struct VI_OUT Vector3
+		struct Vector3
 		{
 			float X;
 			float Y;
@@ -333,7 +333,7 @@ namespace Vitex
 			}
 		};
 
-		struct VI_OUT Vector4
+		struct Vector4
 		{
 			float X;
 			float Y;
@@ -456,7 +456,7 @@ namespace Vitex
 			};
 		};
 
-		struct VI_OUT Matrix4x4
+		struct Matrix4x4
 		{
 		public:
 			float Row[16];
@@ -528,7 +528,7 @@ namespace Vitex
 			};
 		};
 
-		struct VI_OUT Quaternion
+		struct Quaternion
 		{
 			float X, Y, Z, W;
 
@@ -572,7 +572,7 @@ namespace Vitex
 			static Quaternion CreateRotation(const Matrix4x4& Transform);
 		};
 
-		struct VI_OUT Rectangle
+		struct Rectangle
 		{
 			int64_t Left;
 			int64_t Top;
@@ -585,7 +585,7 @@ namespace Vitex
 			int64_t GetHeight() const;
 		};
 
-		struct VI_OUT Bounding
+		struct Bounding
 		{
 		public:
 			Vector3 Lower;
@@ -602,7 +602,7 @@ namespace Vitex
 			bool Overlaps(const Bounding&) const;
 		};
 
-		struct VI_OUT Ray
+		struct Ray
 		{
 			Vector3 Origin;
 			Vector3 Direction;
@@ -618,7 +618,7 @@ namespace Vitex
 			bool IntersectsOBB(const Matrix4x4& World, Vector3* Hit) const;
 		};
 
-		struct VI_OUT Frustum8C
+		struct Frustum8C
 		{
 			Vector4 Corners[8];
 
@@ -628,7 +628,7 @@ namespace Vitex
 			void GetBoundingBox(Vector2* X, Vector2* Y, Vector2* Z);
 		};
 
-		struct VI_OUT Frustum6P
+		struct Frustum6P
 		{
 			enum class Side : size_t
 			{
@@ -651,7 +651,7 @@ namespace Vitex
 			void NormalizePlane(Vector4& Plane);
 		};
 
-		struct VI_OUT Joint
+		struct Joint
 		{
 			Core::Vector<Joint> Childs;
 			Core::String Name;
@@ -660,7 +660,7 @@ namespace Vitex
 			size_t Index;
 		};
 
-		struct VI_OUT AnimatorKey
+		struct AnimatorKey
 		{
 			Vector3 Position = 0.0f;
 			Quaternion Rotation;
@@ -668,13 +668,13 @@ namespace Vitex
 			float Time = 1.0f;
 		};
 
-		struct VI_OUT SkinAnimatorKey
+		struct SkinAnimatorKey
 		{
 			Core::Vector<AnimatorKey> Pose;
 			float Time;
 		};
 
-		struct VI_OUT SkinAnimatorClip
+		struct SkinAnimatorClip
 		{
 			Core::Vector<SkinAnimatorKey> Keys;
 			Core::String Name;
@@ -682,7 +682,7 @@ namespace Vitex
 			float Rate = 1.0f;
 		};
 
-		struct VI_OUT KeyAnimatorClip
+		struct KeyAnimatorClip
 		{
 			Core::Vector<AnimatorKey> Keys;
 			Core::String Name;
@@ -690,7 +690,7 @@ namespace Vitex
 			float Rate = 1.0f;
 		};
 
-		struct VI_OUT RandomVector2
+		struct RandomVector2
 		{
 			Vector2 Min, Max;
 			bool Intensity;
@@ -701,7 +701,7 @@ namespace Vitex
 			Vector2 Generate();
 		};
 
-		struct VI_OUT RandomVector3
+		struct RandomVector3
 		{
 			Vector3 Min, Max;
 			bool Intensity;
@@ -712,7 +712,7 @@ namespace Vitex
 			Vector3 Generate();
 		};
 
-		struct VI_OUT RandomVector4
+		struct RandomVector4
 		{
 			Vector4 Min, Max;
 			bool Intensity;
@@ -723,7 +723,7 @@ namespace Vitex
 			Vector4 Generate();
 		};
 
-		struct VI_OUT RandomFloat
+		struct RandomFloat
 		{
 			float Min, Max;
 			bool Intensity;
@@ -734,7 +734,7 @@ namespace Vitex
 			float Generate();
 		};
 
-		struct VI_OUT AdjTriangle
+		struct AdjTriangle
 		{
 			uint32_t VRef[3];
 			uint32_t ATri[3];
@@ -743,14 +743,14 @@ namespace Vitex
 			uint32_t OppositeVertex(uint32_t VRef0, uint32_t VRef1);
 		};
 
-		struct VI_OUT AdjEdge
+		struct AdjEdge
 		{
 			uint32_t Ref0;
 			uint32_t Ref1;
 			uint32_t FaceNb;
 		};
 
-		class VI_OUT Adjacencies
+		class Adjacencies
 		{
 		public:
 			struct Desc
@@ -780,7 +780,7 @@ namespace Vitex
 			bool UpdateLink(uint32_t FirstTri, uint32_t SecondTri, uint32_t Ref0, uint32_t Ref1);
 		};
 
-		class VI_OUT TriangleStrip
+		class TriangleStrip
 		{
 		public:
 			struct Desc
@@ -826,7 +826,7 @@ namespace Vitex
 			bool ConnectStrips(TriangleStrip::Result& Result);
 		};
 
-		class VI_OUT RadixSorter
+		class RadixSorter
 		{
 		private:
 			uint32_t* Histogram;
@@ -848,7 +848,7 @@ namespace Vitex
 			uint32_t* GetIndices();
 		};
 
-		class VI_OUT_TS Geometric
+		class Geometric
 		{
 		private:
 			static bool LeftHanded;
@@ -893,7 +893,7 @@ namespace Vitex
 			}
 		};
 
-		class VI_OUT Transform final : public Core::Reference<Transform>
+		class Transform final : public Core::Reference<Transform>
 		{
 			friend Geometric;
 
@@ -967,13 +967,13 @@ namespace Vitex
 			bool CanRootBeApplied(Transform* Root) const;
 		};
 
-		class VI_OUT Cosmos
+		class Cosmos
 		{
 		public:
 			typedef Core::Vector<size_t> Iterator;
 
 		public:
-			struct VI_OUT Node
+			struct Node
 			{
 				Bounding Bounds;
 				size_t Parent = 0;

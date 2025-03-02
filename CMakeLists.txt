@@ -28,7 +28,7 @@ include(deps/vitex/deps/sources.cmake)
 include(deps/sources.cmake)
 
 #Project's library target and properties
-add_library(vitex SHARED ${SOURCE})
+add_library(vitex ${SOURCE})
 set_target_properties(vitex PROPERTIES
 		CXX_STANDARD ${VI_CXX}
         CXX_STANDARD_REQUIRED ON

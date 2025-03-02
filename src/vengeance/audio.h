@@ -210,7 +210,7 @@ namespace Vitex
 			Effect_Slot_Null = 0x0000
 		};
 
-		struct VI_OUT AudioSync
+		struct AudioSync
 		{
 			Trigonometry::Vector3 Direction;
 			Trigonometry::Vector3 Velocity;
@@ -236,17 +236,17 @@ namespace Vitex
 			int AlcErrorCode;
 
 		public:
-			VI_OUT AudioException(void* Device = nullptr);
-			VI_OUT const char* type() const noexcept override;
-			VI_OUT int al_error_code() const noexcept;
-			VI_OUT int alc_error_code() const noexcept;
-			VI_OUT bool has_error() const noexcept;
+			AudioException(void* Device = nullptr);
+			const char* type() const noexcept override;
+			int al_error_code() const noexcept;
+			int alc_error_code() const noexcept;
+			bool has_error() const noexcept;
 		};
 
 		template <typename V>
 		using ExpectsAudio = Core::Expects<V, AudioException>;
 
-		class VI_OUT AudioContext final : public Core::Singletonish
+		class AudioContext final : public Core::Singletonish
 		{
 		public:
 			static ExpectsAudio<void> Initialize();
@@ -284,7 +284,7 @@ namespace Vitex
 			static uint32_t GetEnumValue(const char* Name);
 		};
 
-		class VI_OUT AudioFilter : public Core::Reference<AudioFilter>
+		class AudioFilter : public Core::Reference<AudioFilter>
 		{
 			friend AudioEffect;
 			friend AudioSource;
@@ -309,7 +309,7 @@ namespace Vitex
 			VI_COMPONENT_ROOT("base_audio_filter");
 		};
 
-		class VI_OUT AudioEffect : public Core::Reference<AudioEffect>
+		class AudioEffect : public Core::Reference<AudioEffect>
 		{
 			friend AudioSource;
 
@@ -344,7 +344,7 @@ namespace Vitex
 			VI_COMPONENT_ROOT("base_audio_effect");
 		};
 
-		class VI_OUT AudioClip final : public Core::Reference<AudioClip>
+		class AudioClip final : public Core::Reference<AudioClip>
 		{
 		private:
 			uint32_t Buffer = 0;
@@ -359,7 +359,7 @@ namespace Vitex
 			int GetFormat() const;
 		};
 
-		class VI_OUT AudioSource final : public Core::Reference<AudioSource>
+		class AudioSource final : public Core::Reference<AudioSource>
 		{
 			friend class AudioDevice;
 
@@ -396,7 +396,7 @@ namespace Vitex
 			}
 		};
 
-		class VI_OUT AudioDevice final : public Core::Reference<AudioDevice>
+		class AudioDevice final : public Core::Reference<AudioDevice>
 		{
 		public:
 			void* Context = nullptr;

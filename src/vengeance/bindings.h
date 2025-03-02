@@ -10,7 +10,7 @@ namespace Vitex
 		namespace Bindings
 		{
 #ifdef VI_BINDINGS
-			class VI_OUT ModelListener : public Core::Reference<ModelListener>
+			class ModelListener : public Core::Reference<ModelListener>
 			{
 			private:
 				FunctionDelegate Delegate;
@@ -26,7 +26,7 @@ namespace Vitex
 				Layer::GUI::EventCallback Bind(asIScriptFunction* Callback);
 			};
 
-			class VI_OUT HeavyApplication final : public Layer::HeavyApplication
+			class HeavyApplication final : public Layer::HeavyApplication
 			{
 			public:
 				FunctionDelegate OnKeyEvent;
@@ -80,7 +80,7 @@ namespace Vitex
 				static bool WantsRestart(int ExitCode);
 			};
 #endif
-			class VI_OUT_TS HeavyRegistry final : public Registry
+			class HeavyRegistry final : public Registry
 			{
 			public:
 				HeavyRegistry() = default;

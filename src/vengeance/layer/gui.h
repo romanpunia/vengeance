@@ -219,20 +219,20 @@ namespace Vitex
 			class GuiException final : public Core::BasicException
 			{
 			public:
-				VI_OUT GuiException(Core::String&& Message);
-				VI_OUT const char* type() const noexcept override;
+				GuiException(Core::String&& Message);
+				const char* type() const noexcept override;
 			};
 
 			template <typename V>
 			using ExpectsGuiException = Core::Expects<V, GuiException>;
 
-			struct VI_OUT FontInfo
+			struct FontInfo
 			{
 				FontWeight Weight;
 				bool Fallback;
 			};
 
-			class VI_OUT IVariant
+			class IVariant
 			{
 			public:
 				static void Convert(Rml::Variant* From, Core::Variant* To);
@@ -250,7 +250,7 @@ namespace Vitex
 				static Core::String FromVector2(const Trigonometry::Vector2& Base);
 			};
 
-			class VI_OUT IEvent
+			class IEvent
 			{
 				friend EventSubsystem;
 				friend DataModel;
@@ -287,7 +287,7 @@ namespace Vitex
 				bool IsValid() const;
 			};
 
-			class VI_OUT IElement
+			class IElement
 			{
 			protected:
 				Rml::Element* Base;
@@ -410,7 +410,7 @@ namespace Vitex
 				static void* ToPointer(const std::string_view& Value);
 			};
 
-			class VI_OUT IElementDocument : public IElement
+			class IElementDocument : public IElement
 			{
 			public:
 				IElementDocument();
@@ -429,14 +429,14 @@ namespace Vitex
 				Rml::ElementDocument* GetElementDocument() const;
 			};
 
-			class VI_OUT Utils
+			class Utils
 			{
 			public:
 				static Trigonometry::Matrix4x4 ToMatrix(const void* Matrix) noexcept;
 				static Core::String EscapeHTML(const std::string_view& Text) noexcept;
 			};
 
-			class VI_OUT Subsystem final : public Core::Singleton<Subsystem>
+			class Subsystem final : public Core::Singleton<Subsystem>
 			{
 				friend RenderSubsystem;
 				friend DocumentSubsystem;
@@ -506,7 +506,7 @@ namespace Vitex
 				void ReleaseElements() noexcept;
 			};
 
-			class VI_OUT DataModel final : public Core::Reference<DataModel>
+			class DataModel final : public Core::Reference<DataModel>
 			{
 				friend Context;
 
@@ -547,7 +547,7 @@ namespace Vitex
 				Rml::DataModelConstructor* Get();
 			};
 
-			class VI_OUT DataNode
+			class DataNode
 			{
 				friend Context;
 				friend DataModel;
@@ -615,7 +615,7 @@ namespace Vitex
 				int64_t GetValueSize();
 			};
 
-			class VI_OUT Listener final : public Core::Reference<Listener>
+			class Listener final : public Core::Reference<Listener>
 			{
 				friend IElement;
 				friend Context;
@@ -629,7 +629,7 @@ namespace Vitex
 				~Listener() noexcept;
 			};
 
-			class VI_OUT Context final : public Core::Reference<Context>
+			class Context final : public Core::Reference<Context>
 			{
 				friend DocumentSubsystem;
 				friend ListenerSubsystem;

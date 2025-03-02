@@ -11,7 +11,7 @@ namespace Vitex
 		LOAD_GRAPHICS = 1 << 6
 	};
 
-	class VI_OUT_TS HeavyRuntime final : public Runtime
+	class HeavyRuntime final : public Runtime
 	{
 	public:
 		HeavyRuntime(size_t Modules = LOAD_NETWORKING | LOAD_CRYPTOGRAPHY | LOAD_PROVIDERS | LOAD_LOCALE | LOAD_PLATFORM | LOAD_AUDIO | LOAD_GRAPHICS, Core::GlobalAllocator* Allocator = nullptr) noexcept;

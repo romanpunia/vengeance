@@ -8,7 +8,7 @@ namespace Vitex
 	{
 		namespace Effects
 		{
-			class VI_OUT Reverb final : public AudioEffect
+			class Reverb final : public AudioEffect
 			{
 			private:
 				bool EAX = false;
@@ -50,7 +50,7 @@ namespace Vitex
 				VI_COMPONENT("reverb_effect");
 			};
 
-			class VI_OUT Chorus final : public AudioEffect
+			class Chorus final : public AudioEffect
 			{
 			public:
 				float Rate = 1.1f;
@@ -72,7 +72,7 @@ namespace Vitex
 				VI_COMPONENT("chorus_effect");
 			};
 
-			class VI_OUT Distortion final : public AudioEffect
+			class Distortion final : public AudioEffect
 			{
 			public:
 				float Edge = 0.2f;
@@ -93,7 +93,7 @@ namespace Vitex
 				VI_COMPONENT("distortion_effect");
 			};
 
-			class VI_OUT Echo final : public AudioEffect
+			class Echo final : public AudioEffect
 			{
 			public:
 				float Delay = 0.1f;
@@ -114,7 +114,7 @@ namespace Vitex
 				VI_COMPONENT("echo_effect");
 			};
 
-			class VI_OUT Flanger final : public AudioEffect
+			class Flanger final : public AudioEffect
 			{
 			public:
 				float Rate = 0.27f;
@@ -136,7 +136,7 @@ namespace Vitex
 				VI_COMPONENT("flanger_effect");
 			};
 
-			class VI_OUT FrequencyShifter final : public AudioEffect
+			class FrequencyShifter final : public AudioEffect
 			{
 			public:
 				float Frequency = 0.0f;
@@ -155,7 +155,7 @@ namespace Vitex
 				VI_COMPONENT("frequency_shifter_effect");
 			};
 
-			class VI_OUT VocalMorpher final : public AudioEffect
+			class VocalMorpher final : public AudioEffect
 			{
 			public:
 				float Rate = 1.41f;
@@ -177,7 +177,7 @@ namespace Vitex
 				VI_COMPONENT("vocal_morpher_effect");
 			};
 
-			class VI_OUT PitchShifter final : public AudioEffect
+			class PitchShifter final : public AudioEffect
 			{
 			public:
 				int CoarseTune = 12;
@@ -195,7 +195,7 @@ namespace Vitex
 				VI_COMPONENT("pitch_shifter_effect");
 			};
 
-			class VI_OUT RingModulator final : public AudioEffect
+			class RingModulator final : public AudioEffect
 			{
 			public:
 				float Frequency = 440.0f;
@@ -214,7 +214,7 @@ namespace Vitex
 				VI_COMPONENT("ring_modulator_effect");
 			};
 
-			class VI_OUT Autowah final : public AudioEffect
+			class Autowah final : public AudioEffect
 			{
 			public:
 				float AttackTime = 0.06f;
@@ -234,7 +234,7 @@ namespace Vitex
 				VI_COMPONENT("autowah_effect");
 			};
 
-			class VI_OUT Compressor final : public AudioEffect
+			class Compressor final : public AudioEffect
 			{
 			public:
 				Compressor();
@@ -248,7 +248,7 @@ namespace Vitex
 				VI_COMPONENT("compressor_effect");
 			};
 
-			class VI_OUT Equalizer final : public AudioEffect
+			class Equalizer final : public AudioEffect
 			{
 			public:
 				float LowGain = 1.0f;

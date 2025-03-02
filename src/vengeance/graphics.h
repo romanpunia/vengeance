@@ -789,7 +789,7 @@ namespace Vitex
 		typedef std::function<void(const std::string_view&)> DropTextCallback;
 		typedef std::function<void(GraphicsDevice*)> RenderThreadCallback;
 
-		struct VI_OUT Alert
+		struct Alert
 		{
 			friend Activity;
 
@@ -819,7 +819,7 @@ namespace Vitex
 			void Dispatch();
 		};
 
-		struct VI_OUT DisplayInfo
+		struct DisplayInfo
 		{
 			Core::String Name;
 			OrientationType Orientation;
@@ -836,7 +836,7 @@ namespace Vitex
 			int32_t Y = 0;
 		};
 
-		struct VI_OUT EventConsumers
+		struct EventConsumers
 		{
 			friend Activity;
 
@@ -849,7 +849,7 @@ namespace Vitex
 			Activity* Find(uint32_t Id) const;
 		};
 
-		struct VI_OUT KeyMap
+		struct KeyMap
 		{
 			KeyCode Key;
 			KeyMod Mod;
@@ -861,14 +861,14 @@ namespace Vitex
 			KeyMap(const KeyCode& Value, const KeyMod& Control) noexcept;
 		};
 
-		struct VI_OUT MappedSubresource
+		struct MappedSubresource
 		{
 			void* Pointer = nullptr;
 			uint32_t RowPitch = 0;
 			uint32_t DepthPitch = 0;
 		};
 
-		struct VI_OUT Viewport
+		struct Viewport
 		{
 			float TopLeftX;
 			float TopLeftY;
@@ -878,7 +878,7 @@ namespace Vitex
 			float MaxDepth;
 		};
 
-		struct VI_OUT RenderTargetBlendState
+		struct RenderTargetBlendState
 		{
 			Blend SrcBlend;
 			Blend DestBlend;
@@ -890,7 +890,7 @@ namespace Vitex
 			bool BlendEnable;
 		};
 
-		struct VI_OUT BasicEffectBuffer
+		struct BasicEffectBuffer
 		{
 
 		};
@@ -901,18 +901,18 @@ namespace Vitex
 			int ErrorCode;
 
 		public:
-			VI_OUT GraphicsException(Core::String&& Message);
-			VI_OUT GraphicsException(int ErrorCode, Core::String&& Message);
-			VI_OUT const char* type() const noexcept override;
-			VI_OUT int error_code() const noexcept;
+			GraphicsException(Core::String&& Message);
+			GraphicsException(int ErrorCode, Core::String&& Message);
+			const char* type() const noexcept override;
+			int error_code() const noexcept;
 		};
 
 		class VideoException final : public Core::BasicException
 		{
 		public:
-			VI_OUT VideoException();
-			VI_OUT VideoException(GraphicsException&& Other);
-			VI_OUT const char* type() const noexcept override;
+			VideoException();
+			VideoException(GraphicsException&& Other);
+			const char* type() const noexcept override;
 		};
 
 		template <typename V>
@@ -921,7 +921,7 @@ namespace Vitex
 		template <typename V>
 		using ExpectsVideo = Core::Expects<V, VideoException>;
 
-		class VI_OUT Surface : public Core::Reference<Surface>
+		class Surface : public Core::Reference<Surface>
 		{
 		private:
 			SDL_Surface* Handle;
@@ -940,7 +940,7 @@ namespace Vitex
 			void* GetResource() const;
 		};
 
-		class VI_OUT DepthStencilState : public Core::Reference<DepthStencilState>
+		class DepthStencilState : public Core::Reference<DepthStencilState>
 		{
 		public:
 			struct Desc
@@ -973,7 +973,7 @@ namespace Vitex
 			Desc GetState() const;
 		};
 
-		class VI_OUT RasterizerState : public Core::Reference<RasterizerState>
+		class RasterizerState : public Core::Reference<RasterizerState>
 		{
 		public:
 			struct Desc
@@ -1002,7 +1002,7 @@ namespace Vitex
 			Desc GetState() const;
 		};
 
-		class VI_OUT BlendState : public Core::Reference<BlendState>
+		class BlendState : public Core::Reference<BlendState>
 		{
 		public:
 			struct Desc
@@ -1024,7 +1024,7 @@ namespace Vitex
 			Desc GetState() const;
 		};
 
-		class VI_OUT SamplerState : public Core::Reference<SamplerState>
+		class SamplerState : public Core::Reference<SamplerState>
 		{
 		public:
 			struct Desc
@@ -1053,7 +1053,7 @@ namespace Vitex
 			Desc GetState() const;
 		};
 
-		class VI_OUT InputLayout : public Core::Reference<InputLayout>
+		class InputLayout : public Core::Reference<InputLayout>
 		{
 		public:
 			struct Attribute
@@ -1086,7 +1086,7 @@ namespace Vitex
 			const Core::Vector<Attribute>& GetAttributes() const;
 		};
 
-		class VI_OUT Shader : public Core::Reference<Shader>
+		class Shader : public Core::Reference<Shader>
 		{
 		public:
 			struct Desc
@@ -1107,7 +1107,7 @@ namespace Vitex
 			virtual bool IsValid() const = 0;
 		};
 
-		class VI_OUT ElementBuffer : public Core::Reference<ElementBuffer>
+		class ElementBuffer : public Core::Reference<ElementBuffer>
 		{
 		public:
 			struct Desc
@@ -1137,7 +1137,7 @@ namespace Vitex
 			size_t GetStride() const;
 		};
 
-		class VI_OUT MeshBuffer : public Core::Reference<MeshBuffer>
+		class MeshBuffer : public Core::Reference<MeshBuffer>
 		{
 		public:
 			struct Desc
@@ -1166,7 +1166,7 @@ namespace Vitex
 			ElementBuffer* GetIndexBuffer() const;
 		};
 
-		class VI_OUT SkinMeshBuffer : public Core::Reference<SkinMeshBuffer>
+		class SkinMeshBuffer : public Core::Reference<SkinMeshBuffer>
 		{
 		public:
 			struct Desc
@@ -1196,7 +1196,7 @@ namespace Vitex
 			ElementBuffer* GetIndexBuffer() const;
 		};
 
-		class VI_OUT InstanceBuffer : public Core::Reference<InstanceBuffer>
+		class InstanceBuffer : public Core::Reference<InstanceBuffer>
 		{
 		public:
 			struct Desc
@@ -1225,7 +1225,7 @@ namespace Vitex
 			size_t GetElementLimit() const;
 		};
 
-		class VI_OUT Texture2D : public Core::Reference<Texture2D>
+		class Texture2D : public Core::Reference<Texture2D>
 		{
 		public:
 			struct Desc
@@ -1268,7 +1268,7 @@ namespace Vitex
 			uint32_t GetMipLevels() const;
 		};
 
-		class VI_OUT Texture3D : public Core::Reference<Texture3D>
+		class Texture3D : public Core::Reference<Texture3D>
 		{
 		public:
 			struct Desc
@@ -1310,7 +1310,7 @@ namespace Vitex
 			uint32_t GetMipLevels() const;
 		};
 
-		class VI_OUT TextureCube : public Core::Reference<TextureCube>
+		class TextureCube : public Core::Reference<TextureCube>
 		{
 		public:
 			struct Desc
@@ -1350,7 +1350,7 @@ namespace Vitex
 			uint32_t GetMipLevels() const;
 		};
 
-		class VI_OUT DepthTarget2D : public Core::Reference<DepthTarget2D>
+		class DepthTarget2D : public Core::Reference<DepthTarget2D>
 		{
 		public:
 			struct Desc
@@ -1378,7 +1378,7 @@ namespace Vitex
 			const Graphics::Viewport& GetViewport() const;
 		};
 
-		class VI_OUT DepthTargetCube : public Core::Reference<DepthTargetCube>
+		class DepthTargetCube : public Core::Reference<DepthTargetCube>
 		{
 		public:
 			struct Desc
@@ -1405,7 +1405,7 @@ namespace Vitex
 			const Graphics::Viewport& GetViewport() const;
 		};
 
-		class VI_OUT RenderTarget : public Core::Reference<RenderTarget>
+		class RenderTarget : public Core::Reference<RenderTarget>
 		{
 		protected:
 			Texture2D* DepthStencil;
@@ -1427,7 +1427,7 @@ namespace Vitex
 			const Graphics::Viewport& GetViewport() const;
 		};
 
-		class VI_OUT RenderTarget2D : public RenderTarget
+		class RenderTarget2D : public RenderTarget
 		{
 		public:
 			struct Desc
@@ -1462,7 +1462,7 @@ namespace Vitex
 			Texture2D* GetTarget();
 		};
 
-		class VI_OUT MultiRenderTarget2D : public RenderTarget
+		class MultiRenderTarget2D : public RenderTarget
 		{
 		public:
 			struct Desc
@@ -1498,7 +1498,7 @@ namespace Vitex
 			Texture2D* GetTarget(uint32_t Index);
 		};
 
-		class VI_OUT RenderTargetCube : public RenderTarget
+		class RenderTargetCube : public RenderTarget
 		{
 		public:
 			struct Desc
@@ -1531,7 +1531,7 @@ namespace Vitex
 			TextureCube* GetTarget();
 		};
 
-		class VI_OUT MultiRenderTargetCube : public RenderTarget
+		class MultiRenderTargetCube : public RenderTarget
 		{
 		public:
 			struct Desc
@@ -1566,7 +1566,7 @@ namespace Vitex
 			TextureCube* GetTarget(uint32_t Index);
 		};
 
-		class VI_OUT Cubemap : public Core::Reference<Cubemap>
+		class Cubemap : public Core::Reference<Cubemap>
 		{
 		public:
 			struct Desc
@@ -1589,7 +1589,7 @@ namespace Vitex
 			bool IsValid() const;
 		};
 
-		class VI_OUT Query : public Core::Reference<Query>
+		class Query : public Core::Reference<Query>
 		{
 		public:
 			struct Desc
@@ -1606,7 +1606,7 @@ namespace Vitex
 			virtual void* GetResource() const = 0;
 		};
 
-		class VI_OUT GraphicsDevice : public Core::Reference<GraphicsDevice>
+		class GraphicsDevice : public Core::Reference<GraphicsDevice>
 		{
 		protected:
 			struct DirectBuffer
@@ -1875,7 +1875,7 @@ namespace Vitex
 			static ExpectsGraphics<void> CompileBuiltinShaders(const Core::Vector<GraphicsDevice*>& Devices, const std::function<bool(GraphicsDevice*, const std::string_view&, const ExpectsGraphics<Shader*>&)>& Callback);
 		};
 
-		class VI_OUT Activity final : public Core::Reference<Activity>
+		class Activity final : public Core::Reference<Activity>
 		{
 		public:
 			struct Desc
@@ -2011,7 +2011,7 @@ namespace Vitex
 			bool* GetInputState();
 		};
 
-		class VI_OUT Alerts
+		class Alerts
 		{
 		public:
 			static bool Text(const std::string_view& Title, const std::string_view& Message, const std::string_view& DefaultInput, Core::String* Result);
@@ -2022,10 +2022,10 @@ namespace Vitex
 			static bool Color(const std::string_view& Title, const std::string_view& DefaultHexRGB, Core::String* Result);
 		};
 
-		class VI_OUT_TS Video : public Core::Singletonish
+		class Video : public Core::Singletonish
 		{
 		public:
-			class VI_OUT Windows
+			class Windows
 			{
 			public:
 				static void* GetHDC(Activity* Target);
@@ -2033,20 +2033,20 @@ namespace Vitex
 				static void* GetHWND(Activity* Target);
 			};
 
-			class VI_OUT WinRT
+			class WinRT
 			{
 			public:
 				static void* GetIInspectable(Activity* Target);
 			};
 
-			class VI_OUT X11
+			class X11
 			{
 			public:
 				static void* GetDisplay(Activity* Target);
 				static size_t GetWindow(Activity* Target);
 			};
 
-			class VI_OUT DirectFB
+			class DirectFB
 			{
 			public:
 				static void* GetIDirectFB(Activity* Target);
@@ -2054,19 +2054,19 @@ namespace Vitex
 				static void* GetIDirectFBSurface(Activity* Target);
 			};
 
-			class VI_OUT Cocoa
+			class Cocoa
 			{
 			public:
 				static void* GetNSWindow(Activity* Target);
 			};
 
-			class VI_OUT UIKit
+			class UIKit
 			{
 			public:
 				static void* GetUIWindow(Activity* Target);
 			};
 
-			class VI_OUT Wayland
+			class Wayland
 			{
 			public:
 				static void* GetWlDisplay(Activity* Target);
@@ -2078,20 +2078,20 @@ namespace Vitex
 				static void* GetXdgPositioner(Activity* Target);
 			};
 
-			class VI_OUT Android
+			class Android
 			{
 			public:
 				static void* GetANativeWindow(Activity* Target);
 			};
 
-			class VI_OUT OS2
+			class OS2
 			{
 			public:
 				static void* GetHWND(Activity* Target);
 				static void* GetHWNDFrame(Activity* Target);
 			};
 
-			class VI_OUT GLEW
+			class GLEW
 			{
 			public:
 				static bool SetSwapInterval(int32_t Interval);

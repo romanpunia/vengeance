@@ -8,7 +8,7 @@ namespace Vitex
 	{
 		namespace Components
 		{
-			class VI_OUT SoftBody final : public Drawable
+			class SoftBody final : public Drawable
 			{
 			protected:
 				Physics::HullShape* Hull = nullptr;
@@ -52,7 +52,7 @@ namespace Vitex
 				VI_COMPONENT("soft_body_component");
 			};
 
-			class VI_OUT RigidBody final : public Component
+			class RigidBody final : public Component
 			{
 			private:
 				Physics::HullShape* Hull = nullptr;
@@ -85,7 +85,7 @@ namespace Vitex
 				VI_COMPONENT("rigid_body_component");
 			};
 
-			class VI_OUT SliderConstraint final : public Component
+			class SliderConstraint final : public Component
 			{
 			private:
 				Physics::SConstraint* Instance;
@@ -106,7 +106,7 @@ namespace Vitex
 				VI_COMPONENT("slider_constraint_component");
 			};
 
-			class VI_OUT Acceleration final : public Component
+			class Acceleration final : public Component
 			{
 			private:
 				Physics::RigidBody* RigidBody = nullptr;
@@ -132,7 +132,7 @@ namespace Vitex
 				VI_COMPONENT("acceleration_component");
 			};
 
-			class VI_OUT Model final : public Drawable
+			class Model final : public Drawable
 			{
 			protected:
 				Layer::Model* Instance = nullptr;
@@ -157,7 +157,7 @@ namespace Vitex
 				VI_COMPONENT("model_component");
 			};
 
-			class VI_OUT Skin final : public Drawable
+			class Skin final : public Drawable
 			{
 			protected:
 				Layer::SkinModel* Instance = nullptr;
@@ -184,7 +184,7 @@ namespace Vitex
 				VI_COMPONENT("skin_component");
 			};
 
-			class VI_OUT Emitter final : public Drawable
+			class Emitter final : public Drawable
 			{
 			protected:
 				Graphics::InstanceBuffer * Instance = nullptr;
@@ -209,7 +209,7 @@ namespace Vitex
 				VI_COMPONENT("emitter_component");
 			};
 
-			class VI_OUT Decal final : public Drawable
+			class Decal final : public Drawable
 			{
 			public:
 				Trigonometry::Vector2 TexCoord = 1.0f;
@@ -225,7 +225,7 @@ namespace Vitex
 				VI_COMPONENT("decal_component");
 			};
 
-			class VI_OUT SkinAnimator final : public Component
+			class SkinAnimator final : public Component
 			{
 			private:
 				Skin* Instance = nullptr;
@@ -264,7 +264,7 @@ namespace Vitex
 				VI_COMPONENT("skin_animator_component");
 			};
 
-			class VI_OUT KeyAnimator final : public Component
+			class KeyAnimator final : public Component
 			{
 			private:
 				Core::String Reference;
@@ -301,7 +301,7 @@ namespace Vitex
 				VI_COMPONENT("key_animator_component");
 			};
 
-			class VI_OUT EmitterAnimator final : public Component
+			class EmitterAnimator final : public Component
 			{
 			private:
 				Emitter * Base = nullptr;
@@ -333,7 +333,7 @@ namespace Vitex
 				VI_COMPONENT("emitter_animator_component");
 			};
 
-			class VI_OUT FreeLook final : public Component
+			class FreeLook final : public Component
 			{
 			private:
 				Trigonometry::Vector2 Position;
@@ -352,7 +352,7 @@ namespace Vitex
 				VI_COMPONENT("free_look_component");
 			};
 
-			class VI_OUT Fly final : public Component
+			class Fly final : public Component
 			{
 			private:
 				Trigonometry::Vector3 Velocity;
@@ -389,7 +389,7 @@ namespace Vitex
 				VI_COMPONENT("fly_component");
 			};
 
-			class VI_OUT AudioSource final : public Component
+			class AudioSource final : public Component
 			{
 			private:
 				Trigonometry::Vector3 LastPosition;
@@ -411,7 +411,7 @@ namespace Vitex
 				VI_COMPONENT("audio_source_component");
 			};
 
-			class VI_OUT AudioListener final : public Component
+			class AudioListener final : public Component
 			{
 			private:
 				Trigonometry::Vector3 LastPosition;
@@ -432,7 +432,7 @@ namespace Vitex
 				VI_COMPONENT("audio_listener_component");
 			};
 
-			class VI_OUT PointLight final : public Component
+			class PointLight final : public Component
 			{
 			public:
 				struct ShadowInfo
@@ -471,7 +471,7 @@ namespace Vitex
 				VI_COMPONENT("point_light_component");
 			};
 
-			class VI_OUT SpotLight final : public Component
+			class SpotLight final : public Component
 			{
 			public:
 				struct ShadowInfo
@@ -512,7 +512,7 @@ namespace Vitex
 				VI_COMPONENT("spot_light_component");
 			};
 
-			class VI_OUT LineLight final : public Component
+			class LineLight final : public Component
 			{
 			public:
 				struct SkyInfo
@@ -559,7 +559,7 @@ namespace Vitex
 				VI_COMPONENT("line_light_component");
 			};
 
-			class VI_OUT SurfaceLight final : public Component
+			class SurfaceLight final : public Component
 			{
 			private:
 				Graphics::Texture2D * DiffuseMapX[2] = { nullptr };
@@ -610,7 +610,7 @@ namespace Vitex
 				VI_COMPONENT("surface_light_component");
 			};
 
-			class VI_OUT Illuminator final : public Component
+			class Illuminator final : public Component
 			{
 			public:
 				Graphics::Texture3D* VoxelMap;
@@ -640,7 +640,7 @@ namespace Vitex
 				VI_COMPONENT("illuminator_component");
 			};
 
-			class VI_OUT Camera final : public Component
+			class Camera final : public Component
 			{
 			public:
 				enum class ProjectionMode
@@ -693,7 +693,7 @@ namespace Vitex
 				VI_COMPONENT("camera_component");
 			};
 
-			class VI_OUT Scriptable final : public Component
+			class Scriptable final : public Component
 			{
 			public:
 				enum class SourceType

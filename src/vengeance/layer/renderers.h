@@ -10,7 +10,7 @@ namespace Vitex
 	{
 		namespace Renderers
 		{
-			class VI_OUT SoftBody final : public GeometryRenderer<Components::SoftBody>
+			class SoftBody final : public GeometryRenderer<Components::SoftBody>
 			{
 			private:
 				struct
@@ -48,7 +48,7 @@ namespace Vitex
 				VI_COMPONENT("soft_body_renderer");
 			};
 
-			class VI_OUT Model final : public GeometryRenderer<Components::Model, Graphics::MeshBuffer, RenderBuffer::Instance>
+			class Model final : public GeometryRenderer<Components::Model, Graphics::MeshBuffer, RenderBuffer::Instance>
 			{
 			private:
 				struct
@@ -89,7 +89,7 @@ namespace Vitex
 				VI_COMPONENT("model_renderer");
 			};
 
-			class VI_OUT Skin final : public GeometryRenderer<Components::Skin>
+			class Skin final : public GeometryRenderer<Components::Skin>
 			{
 			private:
 				struct
@@ -129,7 +129,7 @@ namespace Vitex
 				VI_COMPONENT("skin_renderer");
 			};
 
-			class VI_OUT Emitter final : public GeometryRenderer<Components::Emitter>
+			class Emitter final : public GeometryRenderer<Components::Emitter>
 			{
 			private:
 				struct
@@ -173,7 +173,7 @@ namespace Vitex
 				VI_COMPONENT("emitter_renderer");
 			};
 
-			class VI_OUT Decal final : public GeometryRenderer<Components::Decal>
+			class Decal final : public GeometryRenderer<Components::Decal>
 			{
 			private:
 				Graphics::DepthStencilState* DepthStencil = nullptr;
@@ -192,7 +192,7 @@ namespace Vitex
 				VI_COMPONENT("decal_renderer");
 			};
 
-			class VI_OUT Lighting final : public Renderer
+			class Lighting final : public Renderer
 			{
 			public:
 				struct ISurfaceLight
@@ -430,7 +430,7 @@ namespace Vitex
 				VI_COMPONENT("lighting_renderer");
 			};
 
-			class VI_OUT Transparency final : public Renderer
+			class Transparency final : public Renderer
 			{
 			private:
 				Graphics::MultiRenderTarget2D * Merger = nullptr;
@@ -460,7 +460,7 @@ namespace Vitex
 				VI_COMPONENT("transparency_renderer");
 			};
 
-			class VI_OUT SSR final : public EffectRenderer
+			class SSR final : public EffectRenderer
 			{
 			private:
 				struct
@@ -500,7 +500,7 @@ namespace Vitex
 				VI_COMPONENT("ssr_renderer");
 			};
 
-			class VI_OUT SSGI final : public EffectRenderer
+			class SSGI final : public EffectRenderer
 			{
 			private:
 				struct
@@ -559,7 +559,7 @@ namespace Vitex
 				VI_COMPONENT("ssgi_renderer");
 			};
 
-			class VI_OUT SSAO final : public EffectRenderer
+			class SSAO final : public EffectRenderer
 			{
 			private:
 				struct
@@ -601,7 +601,7 @@ namespace Vitex
 				VI_COMPONENT("ssao_renderer");
 			};
 
-			class VI_OUT DoF final : public EffectRenderer
+			class DoF final : public EffectRenderer
 			{
 			private:
 				struct
@@ -642,7 +642,7 @@ namespace Vitex
 				VI_COMPONENT("dof_renderer");
 			};
 
-			class VI_OUT MotionBlur final : public EffectRenderer
+			class MotionBlur final : public EffectRenderer
 			{
 			private:
 				struct
@@ -675,7 +675,7 @@ namespace Vitex
 				VI_COMPONENT("motion_blur_renderer");
 			};
 
-			class VI_OUT Bloom final : public EffectRenderer
+			class Bloom final : public EffectRenderer
 			{
 			private:
 				struct
@@ -712,7 +712,7 @@ namespace Vitex
 				VI_COMPONENT("bloom_renderer");
 			};
 
-			class VI_OUT Tone final : public EffectRenderer
+			class Tone final : public EffectRenderer
 			{
 			private:
 				struct
@@ -775,7 +775,7 @@ namespace Vitex
 				VI_COMPONENT("tone_renderer");
 			};
 
-			class VI_OUT Glitch final : public EffectRenderer
+			class Glitch final : public EffectRenderer
 			{
 			public:
 				struct DistortionBuffer
@@ -806,7 +806,7 @@ namespace Vitex
 				VI_COMPONENT("glitch_renderer");
 			};
 
-			class VI_OUT UserInterface final : public Renderer
+			class UserInterface final : public Renderer
 			{
 			private:
 				Graphics::Activity* Activity;

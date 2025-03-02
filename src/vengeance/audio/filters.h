@@ -8,7 +8,7 @@ namespace Vitex
 	{
 		namespace Filters
 		{
-			class VI_OUT Lowpass final : public AudioFilter
+			class Lowpass final : public AudioFilter
 			{
 			public:
 				float GainHF = 1.0f;
@@ -26,7 +26,7 @@ namespace Vitex
 				VI_COMPONENT("lowpass_filter");
 			};
 
-			class VI_OUT Highpass final : public AudioFilter
+			class Highpass final : public AudioFilter
 			{
 			public:
 				float GainLF = 1.0f;
@@ -44,7 +44,7 @@ namespace Vitex
 				VI_COMPONENT("highpass_filter");
 			};
 
-			class VI_OUT Bandpass final : public AudioFilter
+			class Bandpass final : public AudioFilter
 			{
 			public:
 				float GainHF = 1.0f;
