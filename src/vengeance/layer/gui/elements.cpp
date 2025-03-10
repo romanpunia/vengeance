@@ -1,7 +1,7 @@
 #include "../gui.h"
 #ifdef VI_RMLUI
-#include <RmlUi/core.h>
-#include <source/core/ElementStyle.h>
+#include <RmlUi/Core.h>
+#include <Source/Core/ElementStyle.h>
 
 namespace vitex
 {

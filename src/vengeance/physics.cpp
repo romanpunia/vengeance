@@ -3569,7 +3569,7 @@ namespace vitex
 			VI_ASSERT(instance != nullptr, "6-dof constraint should be initialized");
 			return (trigonometry::rotator)instance->getRotationOrder();
 #else
-			return trigonometry::rotator::XYZ;
+			return trigonometry::rotator::xyz;
 #endif
 		}
 		float df6_constraint::get_angle(int value) const

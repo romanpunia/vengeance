@@ -1,11 +1,11 @@
 #include "gui.h"
 #include <vitex/network.h>
 #ifdef VI_RMLUI
-#include <RmlUi/core.h>
-#include <RmlUi/core/stream.h>
-#include <RmlUi/core/RenderInterfaceCompatibility.h>
-#include <source/core/StyleSheetFactory.h>
-#include <source/core/ElementStyle.h>
+#include <RmlUi/Core.h>
+#include <RmlUi/Core/Stream.h>
+#include <RmlUi/Core/RenderInterfaceCompatibility.h>
+#include <Source/Core/StyleSheetFactory.h>
+#include <Source/Core/ElementStyle.h>
 #endif
 #define RENDERS_FOR_DATA_EVENT 1
 #define RENDERS_FOR_SIZE_EVENT 30

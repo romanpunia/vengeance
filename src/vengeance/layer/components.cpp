@@ -2752,7 +2752,7 @@ namespace vitex
 			void spot_light::message(const std::string_view& name, core::variant_args& args)
 			{
 				if (name == "depth-flush")
-					depth_map = nullptr;
+					depth_map_view = nullptr;
 			}
 			void spot_light::synchronize(core::timer* time)
 			{
@@ -2868,7 +2868,7 @@ namespace vitex
 			void line_light::message(const std::string_view& name, core::variant_args& args)
 			{
 				if (name == "depth-flush")
-					depth_map = nullptr;
+					depth_map_view = nullptr;
 			}
 			component* line_light::copy(entity* init) const
 			{

@@ -1,7 +1,7 @@
 #include "../gui.h"
 #ifdef VI_RMLUI
-#include <RmlUi/core.h>
-#include <source/core/TransformState.h>
+#include <RmlUi/Core.h>
+#include <Source/Core/TransformState.h>
 
 namespace vitex
 {

@@ -1277,13 +1277,13 @@ namespace vitex
 					if (counter >= buffers.size())
 						break;
 
-					light->depth_map = nullptr;
+					light->depth_map_view = nullptr;
 					if (!light->shadow.enabled)
 						continue;
 
 					depth_map* target = buffers[counter++];
 					light->generate_origin();
-					light->depth_map = target;
+					light->depth_map_view = target;
 
 					state.device->set_target(target);
 					state.device->clear_depth(target);
@@ -1300,7 +1300,7 @@ namespace vitex
 					if (counter >= buffers.size())
 						break;
 
-					light->depth_map = nullptr;
+					light->depth_map_view = nullptr;
 					if (!light->shadow.enabled || light->shadow.cascades < 1 || light->shadow.cascades > 6)
 						continue;
 
@@ -1309,7 +1309,7 @@ namespace vitex
 						state.scene->generate_depth_cascades(&target, light->shadow.cascades);
 
 					light->generate_origin();
-					light->depth_map = target;
+					light->depth_map_view = target;
 
 					for (size_t i = 0; i < target->size(); i++)
 					{
@@ -1428,7 +1428,7 @@ namespace vitex
 					apply_light_culling(light, base->get_radius(), &position, &scale);
 					if (load_spot_buffer(&spot_buffer, light, position, scale, false))
 					{
-						graphics::texture_2d* depth_map = light->depth_map->get_target();
+						graphics::texture_2d* depth_map = light->depth_map_view->get_target();
 						state.device->set_texture_2d(depth_map, pipelines.spot.depth_map_less, VI_PS);
 						state.device->set_shader(pipelines.spot.shader_shadowed, VI_VS | VI_PS);
 					}
@@ -1467,9 +1467,9 @@ namespace vitex
 					{
 						uint32_t size = (uint32_t)line_buffer.cascades;
 						for (uint32_t i = 0; i < size; i++)
-							state.device->set_texture_2d((*light->depth_map)[i]->get_target(), pipelines.line.depth_map + i, VI_PS);
+							state.device->set_texture_2d((*light->depth_map_view)[i]->get_target(), pipelines.line.depth_map + i, VI_PS);
 						for (uint32_t i = size; i < 6; i++)
-							state.device->set_texture_2d((*light->depth_map)[size - 1]->get_target(), pipelines.line.depth_map + i, VI_PS);
+							state.device->set_texture_2d((*light->depth_map_view)[size - 1]->get_target(), pipelines.line.depth_map + i, VI_PS);
 						state.device->set_shader(pipelines.line.shader_shadowed, VI_VS | VI_PS);
 					}
 					else
@@ -1654,7 +1654,7 @@ namespace vitex
 				dest->attenuation.y = size.C2;
 				dest->range = size.radius;
 
-				if (!light->shadow.enabled || !light->depth_map)
+				if (!light->shadow.enabled || !light->depth_map_view)
 				{
 					dest->softness = 0.0f;
 					return false;
@@ -1681,7 +1681,7 @@ namespace vitex
 				dest->mie_direction = light->sky.mie_direction;
 				dest->sky_offset = ambient_buffer.sky_offset;
 
-				if (!light->shadow.enabled || !light->depth_map)
+				if (!light->shadow.enabled || !light->depth_map_view)
 				{
 					dest->softness = 0.0f;
 					return false;
@@ -1691,7 +1691,7 @@ namespace vitex
 				dest->iterations = (float)light->shadow.iterations;
 				dest->umbra = light->disperse;
 				dest->bias = light->shadow.bias;
-				dest->cascades = (float)std::min(light->shadow.cascades, (uint32_t)light->depth_map->size());
+				dest->cascades = (float)std::min(light->shadow.cascades, (uint32_t)light->depth_map_view->size());
 
 				size_t size = (size_t)dest->cascades;
 				for (size_t i = 0; i < size; i++)

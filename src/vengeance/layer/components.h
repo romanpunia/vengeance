@@ -487,7 +487,7 @@ namespace vitex
 				attenuation size;
 
 			public:
-				depth_map* depth_map = nullptr;
+				depth_map* depth_map_view = nullptr;
 				trigonometry::matrix4x4 projection;
 				trigonometry::matrix4x4 view;
 				trigonometry::vector3 diffuse = 1.0f;
@@ -540,7 +540,7 @@ namespace vitex
 				} shadow;
 
 			public:
-				depth_cascade_map* depth_map = nullptr;
+				depth_cascade_map* depth_map_view = nullptr;
 				trigonometry::matrix4x4 projection[6];
 				trigonometry::matrix4x4 view[6];
 				trigonometry::vector3 diffuse = 1.0f;
