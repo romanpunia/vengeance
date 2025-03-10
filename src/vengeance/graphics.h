@@ -1631,7 +1631,7 @@ namespace vitex
 				vsync vsync_mode = vsync::frequency_x1;
 				core::string cache_directory = "./shaders";
 				int is_windowed = 1;
-				bool shader_cache = false;
+				bool shader_cache = true;
 				bool debug = false;
 				bool blit_rendering = false;
 				uint32_t presentation_flags = 0;
