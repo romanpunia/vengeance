@@ -2,62 +2,62 @@
 #define VI_AUDIO_FILTERS_H
 #include "../audio.h"
 
-namespace Vitex
+namespace vitex
 {
-	namespace Audio
+	namespace audio
 	{
-		namespace Filters
+		namespace filters
 		{
-			class VI_OUT Lowpass final : public AudioFilter
+			class lowpass final : public audio_filter
 			{
 			public:
-				float GainHF = 1.0f;
-				float Gain = 1.0f;
+				float gain_hf = 1.0f;
+				float gain = 1.0f;
 
 			public:
-				Lowpass();
-				~Lowpass() override;
-				ExpectsAudio<void> Synchronize() override;
-				void Deserialize(Core::Schema* Node) override;
-				void Serialize(Core::Schema* Node) const override;
-				Core::Unique<AudioFilter> Copy() const override;
+				lowpass();
+				~lowpass() override;
+				expects_audio<void> synchronize() override;
+				void deserialize(core::schema* node) override;
+				void serialize(core::schema* node) const override;
+				core::unique<audio_filter> copy() const override;
 
 			public:
 				VI_COMPONENT("lowpass_filter");
 			};
 
-			class VI_OUT Highpass final : public AudioFilter
+			class highpass final : public audio_filter
 			{
 			public:
-				float GainLF = 1.0f;
-				float Gain = 1.0f;
+				float gain_lf = 1.0f;
+				float gain = 1.0f;
 
 			public:
-				Highpass();
-				~Highpass() override;
-				ExpectsAudio<void> Synchronize() override;
-				void Deserialize(Core::Schema* Node) override;
-				void Serialize(Core::Schema* Node) const override;
-				Core::Unique<AudioFilter> Copy() const override;
+				highpass();
+				~highpass() override;
+				expects_audio<void> synchronize() override;
+				void deserialize(core::schema* node) override;
+				void serialize(core::schema* node) const override;
+				core::unique<audio_filter> copy() const override;
 
 			public:
 				VI_COMPONENT("highpass_filter");
 			};
 
-			class VI_OUT Bandpass final : public AudioFilter
+			class bandpass final : public audio_filter
 			{
 			public:
-				float GainHF = 1.0f;
-				float GainLF = 1.0f;
-				float Gain = 1.0f;
+				float gain_hf = 1.0f;
+				float gain_lf = 1.0f;
+				float gain = 1.0f;
 
 			public:
-				Bandpass();
-				~Bandpass() override;
-				ExpectsAudio<void> Synchronize() override;
-				void Deserialize(Core::Schema* Node) override;
-				void Serialize(Core::Schema* Node) const override;
-				Core::Unique<AudioFilter> Copy() const override;
+				bandpass();
+				~bandpass() override;
+				expects_audio<void> synchronize() override;
+				void deserialize(core::schema* node) override;
+				void serialize(core::schema* node) const override;
+				core::unique<audio_filter> copy() const override;
 
 			public:
 				VI_COMPONENT("bandpass_filter");

@@ -5,7 +5,7 @@
 #include "internal/utils_raymarching.hlsl"
 #include "internal/utils_position.hlsl"
 
-cbuffer RenderConstant : register(b3)
+cbuffer RenderBuffer : register(b3)
 {
 	float Samples;
 	float Padding;
@@ -17,14 +17,14 @@ VOutput vs_main(VInput V)
 {
 	VOutput Result = (VOutput)0;
 	Result.Position = float4(V.Position, 1.0);
-	Result.TexCoord = Result.Position;
+	Result.Texcoord = Result.Position;
 
 	return Result;
 }
 
 float4 ps_main(VOutput V) : SV_TARGET0
 {
-	Fragment Frag = GetFragment(GetTexCoord(V.TexCoord));
+	Fragment Frag = GetFragment(GetTexcoord(V.Texcoord));
 	[branch] if (Frag.Depth >= 1.0)
 		return float4(0.0, 0.0, 0.0, 1.0);
 
@@ -41,13 +41,13 @@ float4 ps_main(VOutput V) : SV_TARGET0
 	[branch] if (Fading <= 0.0)
 		return float4(0.0, 0.0, 0.0, 1.0);
 
-	float3 TexCoord = Raymarch(Frag.Position, Direction, Samples, Step);
-	[branch] if (TexCoord.z < 0.0)
+	float3 Texcoord = Raymarch(Frag.Position, Direction, Samples, Step);
+	[branch] if (Texcoord.z < 0.0)
 		return float4(0.0, 0.0, 0.0, 1.0);
 
 	float3 Metallic = GetMetallic(Frag, Mat);
-	float3 Color = GetDiffuse(TexCoord.xy, 0).xyz * Intensity;
-	Fix *= Raypostfix(TexCoord.xy, Direction);
+	float3 Color = GetDiffuse(Texcoord.xy, 0).xyz * Intensity;
+	Fix *= Raypostfix(Texcoord.xy, Direction);
 
 	return float4(Metallic * Color * Fix, 1.0);
 };

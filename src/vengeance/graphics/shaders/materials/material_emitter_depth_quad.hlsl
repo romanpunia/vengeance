@@ -3,32 +3,32 @@
 #include "internal/buffers_object.hlsl"
 #include "internal/buffers_viewer.hlsl"
 
-cbuffer RenderConstant : register(b3)
+cbuffer Quad : register(b3)
 {
 	matrix FaceView[6];
 };
 
-VOutputCubic Make(VOutputLinear V, float2 Offset, float2 Coord, uint Face)
+VOutputCube Make(VOutputLinear V, float2 Offset, float2 Coord, uint Face)
 {
 	float Sin = sin(V.Rotation), Cos = cos(V.Rotation);
 	V.Position = mul(V.Position, FaceView[Face]);
 	V.Position += float4(Offset.x * Cos - Offset.y * Sin, Offset.x * Sin + Offset.y * Cos, 0, 0);
 	V.Position = mul(V.Position, vb_Proj);
 
-	VOutputCubic Result = (VOutputCubic)0;
+	VOutputCube Result = (VOutputCube)0;
 	Result.Position = V.Position;
 	Result.UV = V.UV;
 	Result.Rotation = V.Rotation;
 	Result.Scale = V.Scale;
 	Result.Alpha = V.Alpha;
 	Result.RenderTarget = Face;
-	Result.TexCoord = Coord;
+	Result.Texcoord = Coord;
 
 	return Result;
 }
 
 [maxvertexcount(24)]
-void gs_main(point VOutputLinear V[1], inout TriangleStream<VOutputCubic> Stream)
+void gs_main(point VOutputLinear V[1], inout TriangleStream<VOutputCube> Stream)
 {
 	VOutputLinear Next = V[0];
 	[unroll] for (uint Face = 0; Face < 6; Face++)
@@ -55,7 +55,7 @@ VOutputLinear vs_main(VInput V)
 
 float ps_main(VOutputLinear V) : SV_DEPTH
 {
-	float Threshold = (1.0 - V.Alpha) * (ob_Diffuse ? 1.0 - GetDiffuse(V.TexCoord).w : 1.0) * Materials[ob_MaterialId].Transparency;
+	float Threshold = (1.0 - V.Alpha) * (ob_Diffuse ? 1.0 - GetDiffuse(V.Texcoord).w : 1.0) * Materials[ob_MaterialId].Transparency;
 	[branch] if (Threshold > 0.5)
 		discard;
 	

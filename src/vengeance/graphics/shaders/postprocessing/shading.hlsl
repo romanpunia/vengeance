@@ -4,7 +4,7 @@
 #include "internal/utils_position.hlsl"
 #include "internal/utils_material.hlsl"
 
-cbuffer RenderConstant : register(b3)
+cbuffer RenderBuffer : register(b3)
 {
 	float Samples;
 	float Intensity;
@@ -16,9 +16,9 @@ cbuffer RenderConstant : register(b3)
 	float Padding;
 }
 
-float GetFactor(float2 TexCoord, float3 Position, float3 Normal, float Power) 
+float GetFactor(float2 Texcoord, float3 Position, float3 Normal, float Power) 
 {
-	float3 D = GetPosition(TexCoord, GetDepth(TexCoord)) - Position; 
+	float3 D = GetPosition(Texcoord, GetDepth(Texcoord)) - Position; 
 	float3 V = normalize(D); 
 	float T = length(D) * Scale; 
 
@@ -29,7 +29,7 @@ VOutput vs_main(VInput V)
 {
 	VOutput Result = (VOutput)0;
 	Result.Position = float4(V.Position, 1.0);
-	Result.TexCoord = Result.Position;
+	Result.Texcoord = Result.Position;
 
 	return Result;
 }
@@ -37,14 +37,14 @@ VOutput vs_main(VInput V)
 float4 ps_main(VOutput V) : SV_TARGET0
 {
 	const float2 Disk[4] = { float2(1, 0), float2(-1, 0), float2(0, 1), float2(0, -1) };
-	float2 TexCoord = GetTexCoord(V.TexCoord);
-	Fragment Frag = GetFragment(TexCoord);
+	float2 Texcoord = GetTexcoord(V.Texcoord);
+	Fragment Frag = GetFragment(Texcoord);
 
 	[branch] if (Frag.Depth >= 1.0)
 		return float4(1.0, 1.0, 1.0, 1.0);
 
 	Material Mat = Materials[Frag.Material];
-	float2 Random = RandomFloat2(TexCoord);
+	float2 Random = RandomFloat2(Texcoord);
 	float Vision = saturate(pow(abs(distance(vb_Position, Frag.Position) / Distance), Fade));
 	float Power = Intensity * GetOcclusion(Frag, Mat);
 	float Size = (Radius + Mat.Radius) / Frag.Depth;
@@ -55,10 +55,10 @@ float4 ps_main(VOutput V) : SV_TARGET0
 		float2 C1 = reflect(Disk[j], Random) * Size; 
 		float2 C2 = float2(C1.x * 0.707 - C1.y * 0.707, C1.x * 0.707 + C1.y * 0.707); 
 
-		Factor += GetFactor(TexCoord + C1 * 0.25, Frag.Position, Frag.Normal, Power); 
-		Factor += GetFactor(TexCoord + C2 * 0.5, Frag.Position, Frag.Normal, Power);
-		Factor += GetFactor(TexCoord + C1 * 0.75, Frag.Position, Frag.Normal, Power);
-		Factor += GetFactor(TexCoord + C2, Frag.Position, Frag.Normal, Power);
+		Factor += GetFactor(Texcoord + C1 * 0.25, Frag.Position, Frag.Normal, Power); 
+		Factor += GetFactor(Texcoord + C2 * 0.5, Frag.Position, Frag.Normal, Power);
+		Factor += GetFactor(Texcoord + C1 * 0.75, Frag.Position, Frag.Normal, Power);
+		Factor += GetFactor(Texcoord + C2, Frag.Position, Frag.Normal, Power);
 	}
 
 	Factor /= Samples * Samples; 

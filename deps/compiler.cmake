@@ -11,7 +11,8 @@ endif()
 if (WIN32)
     target_link_libraries(vitex PRIVATE
         d3d11.lib
-        d3dcompiler.lib)
+        d3dcompiler.lib
+		dxguid.lib)
 endif()
 
 # Include main headers and sources as well as installation targets

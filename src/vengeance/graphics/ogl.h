@@ -3,7 +3,7 @@
 #include "../graphics.h"
 #include <array>
 #ifdef VI_MICROSOFT
-#include <Windows.h>
+#include <windows.h>
 #endif
 #ifdef VI_OPENGL
 #ifdef VI_GLEW
@@ -13,558 +13,558 @@
 #define APIENTRY
 #endif
 
-namespace Vitex
+namespace vitex
 {
-	namespace Graphics
+	namespace graphics
 	{
-		namespace OGL
+		namespace ogl
 		{
-			class OGLElementBuffer;
+			class ogl_element_buffer;
 
-			class OGLDevice;
+			class ogl_device;
 
-			struct OGLFrameBuffer
+			struct ogl_frame_buffer
 			{
-				GLenum Format[8] = { GL_COLOR_ATTACHMENT0, GL_NONE, GL_NONE, GL_NONE, GL_NONE, GL_NONE, GL_NONE, GL_NONE };
-				GLuint Texture[8] = { GL_NONE };
-				GLuint Buffer = GL_NONE;
-				GLuint Count = 1;
-				bool Backbuffer = false;
+				GLenum format[8] = { GL_COLOR_ATTACHMENT0, GL_NONE, GL_NONE, GL_NONE, GL_NONE, GL_NONE, GL_NONE, GL_NONE };
+				GLuint texture[8] = { GL_NONE };
+				GLuint buffer = GL_NONE;
+				GLuint count = 1;
+				bool backbuffer = false;
 
-				OGLFrameBuffer(GLuint Targets);
-				void Cleanup();
+				ogl_frame_buffer(GLuint targets);
+				void cleanup();
 			};
 
-			class OGLDepthStencilState final : public DepthStencilState
+			class ogl_depth_stencil_state final : public depth_stencil_state
 			{
-				friend OGLDevice;
+				friend ogl_device;
 
 			public:
-				OGLDepthStencilState(const Desc& I);
-				~OGLDepthStencilState() override;
-				void* GetResource() const override;
+				ogl_depth_stencil_state(const desc& i);
+				~ogl_depth_stencil_state() override;
+				void* get_resource() const override;
 			};
 
-			class OGLRasterizerState final : public RasterizerState
+			class ogl_rasterizer_state final : public rasterizer_state
 			{
-				friend OGLDevice;
+				friend ogl_device;
 
 			public:
-				OGLRasterizerState(const Desc& I);
-				~OGLRasterizerState() override;
-				void* GetResource() const override;
+				ogl_rasterizer_state(const desc& i);
+				~ogl_rasterizer_state() override;
+				void* get_resource() const override;
 			};
 
-			class OGLBlendState final : public BlendState
+			class ogl_blend_state final : public blend_state
 			{
-				friend OGLDevice;
+				friend ogl_device;
 
 			public:
-				OGLBlendState(const Desc& I);
-				~OGLBlendState() override;
-				void* GetResource() const override;
+				ogl_blend_state(const desc& i);
+				~ogl_blend_state() override;
+				void* get_resource() const override;
 			};
 
-			class OGLSamplerState final : public SamplerState
+			class ogl_sampler_state final : public sampler_state
 			{
-				friend OGLDevice;
+				friend ogl_device;
 
 			private:
-				GLenum Resource = GL_NONE;
+				GLenum resource = GL_NONE;
 
 			public:
-				OGLSamplerState(const Desc& I);
-				~OGLSamplerState() override;
-				void* GetResource() const override;
+				ogl_sampler_state(const desc& i);
+				~ogl_sampler_state() override;
+				void* get_resource() const override;
 			};
 
-			class OGLInputLayout final : public InputLayout
+			class ogl_input_layout final : public input_layout
 			{
-				friend OGLDevice;
-				friend OGLElementBuffer;
+				friend ogl_device;
+				friend ogl_element_buffer;
 
 			public:
-				Core::UnorderedMap<size_t, Core::Vector<std::function<void(size_t)>>> VertexLayout;
-				Core::UnorderedMap<Core::String, GLuint> Layouts;
-				GLuint DynamicResource = GL_NONE;
+				core::unordered_map<size_t, core::vector<std::function<void(size_t)>>> vertex_layout;
+				core::unordered_map<core::string, GLuint> layouts;
+				GLuint dynamic_resource = GL_NONE;
 
 			public:
-				OGLInputLayout(const Desc& I);
-				~OGLInputLayout() override;
-				void* GetResource() const override;
+				ogl_input_layout(const desc& i);
+				~ogl_input_layout() override;
+				void* get_resource() const override;
 
 			public:
-				static Core::String GetLayoutHash(OGLElementBuffer** Buffers, uint32_t Count);
+				static core::string get_layout_hash(ogl_element_buffer** buffers, uint32_t count);
 			};
 
-			class OGLShader final : public Shader
+			class ogl_shader final : public shader
 			{
-				friend OGLDevice;
+				friend ogl_device;
 
 			private:
-				bool Compiled;
+				bool compiled;
 
 			public:
-				Core::UnorderedMap<GLuint, OGLDevice*> Programs;
-				GLuint VertexShader = GL_NONE;
-				GLuint PixelShader = GL_NONE;
-				GLuint GeometryShader = GL_NONE;
-				GLuint DomainShader = GL_NONE;
-				GLuint HullShader = GL_NONE;
-				GLuint ComputeShader = GL_NONE;
-				GLuint ConstantBuffer = GL_NONE;
-				size_t ConstantSize = 0;
+				core::unordered_map<GLuint, ogl_device*> programs;
+				GLuint vertex_shader = GL_NONE;
+				GLuint pixel_shader = GL_NONE;
+				GLuint geometry_shader = GL_NONE;
+				GLuint domain_shader = GL_NONE;
+				GLuint hull_shader = GL_NONE;
+				GLuint compute_shader = GL_NONE;
+				GLuint constant_buffer = GL_NONE;
+				size_t constant_size = 0;
 
 			public:
-				OGLShader(const Desc& I);
-				~OGLShader() override;
-				bool IsValid() const override;
+				ogl_shader(const desc& i);
+				~ogl_shader() override;
+				bool is_valid() const override;
 			};
 
-			class OGLElementBuffer final : public ElementBuffer
+			class ogl_element_buffer final : public element_buffer
 			{
-				friend OGLDevice;
+				friend ogl_device;
 
 			private:
-				Core::UnorderedMap<GLuint, OGLInputLayout*> Bindings;
-				GLuint Resource = GL_NONE;
-				GLenum Flags = GL_NONE;
+				core::unordered_map<GLuint, ogl_input_layout*> bindings;
+				GLuint resource = GL_NONE;
+				GLenum flags = GL_NONE;
 
 			public:
-				OGLElementBuffer(const Desc& I);
-				~OGLElementBuffer() override;
-				void* GetResource() const override;
+				ogl_element_buffer(const desc& i);
+				~ogl_element_buffer() override;
+				void* get_resource() const override;
 			};
 
-			class OGLMeshBuffer final : public MeshBuffer
+			class ogl_mesh_buffer final : public mesh_buffer
 			{
-				friend OGLDevice;
+				friend ogl_device;
 
 			public:
-				OGLMeshBuffer(const Desc& I);
-				Core::Unique<Trigonometry::Vertex> GetElements(GraphicsDevice* Device) const override;
+				ogl_mesh_buffer(const desc& i);
+				core::unique<trigonometry::vertex> get_elements(graphics_device* device) const override;
 			};
 
-			class OGLSkinMeshBuffer final : public SkinMeshBuffer
+			class ogl_skin_mesh_buffer final : public skin_mesh_buffer
 			{
-				friend OGLDevice;
+				friend ogl_device;
 
 			public:
-				OGLSkinMeshBuffer(const Desc& I);
-				Core::Unique<Trigonometry::SkinVertex> GetElements(GraphicsDevice* Device) const override;
+				ogl_skin_mesh_buffer(const desc& i);
+				core::unique<trigonometry::skin_vertex> get_elements(graphics_device* device) const override;
 			};
 
-			class OGLInstanceBuffer final : public InstanceBuffer
+			class ogl_instance_buffer final : public instance_buffer
 			{
-				friend OGLDevice;
+				friend ogl_device;
 
 			public:
-				OGLInstanceBuffer(const Desc& I);
-				~OGLInstanceBuffer() override;
+				ogl_instance_buffer(const desc& i);
+				~ogl_instance_buffer() override;
 			};
 
-			class OGLTexture2D final : public Texture2D
+			class ogl_texture_2d final : public texture_2d
 			{
-				friend OGLDevice;
+				friend ogl_device;
 
 			public:
-				GLenum Format = GL_NONE;
-				GLuint Resource = GL_NONE;
-				bool Backbuffer = false;
+				GLenum format = GL_NONE;
+				GLuint resource = GL_NONE;
+				bool backbuffer = false;
 
 			public:
-				OGLTexture2D();
-				OGLTexture2D(const Desc& I);
-				~OGLTexture2D() override;
-				void* GetResource() const override;
+				ogl_texture_2d();
+				ogl_texture_2d(const desc& i);
+				~ogl_texture_2d() override;
+				void* get_resource() const override;
 			};
 
-			class OGLTexture3D final : public Texture3D
+			class ogl_texture_3d final : public texture_3d
 			{
-				friend OGLDevice;
+				friend ogl_device;
 
 			public:
-				GLenum Format = GL_NONE;
-				GLuint Resource = GL_NONE;
+				GLenum format = GL_NONE;
+				GLuint resource = GL_NONE;
 
 			public:
-				OGLTexture3D();
-				~OGLTexture3D() override;
-				void* GetResource() override;
+				ogl_texture_3d();
+				~ogl_texture_3d() override;
+				void* get_resource() override;
 			};
 
-			class OGLTextureCube final : public TextureCube
+			class ogl_texture_cube final : public texture_cube
 			{
-				friend OGLDevice;
+				friend ogl_device;
 
 			public:
-				GLenum Format = GL_NONE;
-				GLuint Resource = GL_NONE;
+				GLenum format = GL_NONE;
+				GLuint resource = GL_NONE;
 
 			public:
-				OGLTextureCube();
-				OGLTextureCube(const Desc& I);
-				~OGLTextureCube() override;
-				void* GetResource() const override;
+				ogl_texture_cube();
+				ogl_texture_cube(const desc& i);
+				~ogl_texture_cube() override;
+				void* get_resource() const override;
 			};
 
-			class OGLDepthTarget2D final : public DepthTarget2D
+			class ogl_depth_target_2d final : public depth_target_2d
 			{
-				friend OGLDevice;
+				friend ogl_device;
 
 			public:
-				GLuint FrameBuffer = GL_NONE;
-				GLuint DepthTexture = GL_NONE;
-				bool HasStencilBuffer = false;
+				GLuint frame_buffer = GL_NONE;
+				GLuint depth_texture = GL_NONE;
+				bool has_stencil_buffer = false;
 
 			public:
-				OGLDepthTarget2D(const Desc& I);
-				~OGLDepthTarget2D() override;
-				void* GetResource() const override;
-				uint32_t GetWidth() const override;
-				uint32_t GetHeight() const override;
+				ogl_depth_target_2d(const desc& i);
+				~ogl_depth_target_2d() override;
+				void* get_resource() const override;
+				uint32_t get_width() const override;
+				uint32_t get_height() const override;
 			};
 
-			class OGLDepthTargetCube final : public DepthTargetCube
+			class ogl_depth_target_cube final : public depth_target_cube
 			{
-				friend OGLDevice;
+				friend ogl_device;
 
 			public:
-				GLuint FrameBuffer = GL_NONE;
-				GLuint DepthTexture = GL_NONE;
-				bool HasStencilBuffer = false;
+				GLuint frame_buffer = GL_NONE;
+				GLuint depth_texture = GL_NONE;
+				bool has_stencil_buffer = false;
 
 			public:
-				OGLDepthTargetCube(const Desc& I);
-				~OGLDepthTargetCube() override;
-				void* GetResource() const override;
-				uint32_t GetWidth() const override;
-				uint32_t GetHeight() const override;
+				ogl_depth_target_cube(const desc& i);
+				~ogl_depth_target_cube() override;
+				void* get_resource() const override;
+				uint32_t get_width() const override;
+				uint32_t get_height() const override;
 			};
 
-			class OGLRenderTarget2D final : public RenderTarget2D
+			class ogl_render_target_2d final : public render_target_2d
 			{
-				friend OGLDevice;
+				friend ogl_device;
 
 			public:
-				OGLFrameBuffer FrameBuffer;
-				GLuint DepthTexture = GL_NONE;
-				bool HasStencilBuffer = false;
+				ogl_frame_buffer frame_buffer;
+				GLuint depth_texture = GL_NONE;
+				bool has_stencil_buffer = false;
 
 			public:
-				OGLRenderTarget2D(const Desc& I);
-				~OGLRenderTarget2D() override;
-				void* GetTargetBuffer() const override;
-				void* GetDepthBuffer() const override;
-				uint32_t GetWidth() const override;
-				uint32_t GetHeight() const override;
+				ogl_render_target_2d(const desc& i);
+				~ogl_render_target_2d() override;
+				void* get_target_buffer() const override;
+				void* get_depth_buffer() const override;
+				uint32_t get_width() const override;
+				uint32_t get_height() const override;
 			};
 
-			class OGLMultiRenderTarget2D final : public MultiRenderTarget2D
+			class ogl_multi_render_target_2d final : public multi_render_target_2d
 			{
-				friend OGLDevice;
+				friend ogl_device;
 
 			public:
-				OGLFrameBuffer FrameBuffer;
-				GLuint DepthTexture = GL_NONE;
+				ogl_frame_buffer frame_buffer;
+				GLuint depth_texture = GL_NONE;
 
 			public:
-				OGLMultiRenderTarget2D(const Desc& I);
-				~OGLMultiRenderTarget2D() override;
-				void* GetTargetBuffer() const override;
-				void* GetDepthBuffer() const override;
-				uint32_t GetWidth() const override;
-				uint32_t GetHeight() const override;
+				ogl_multi_render_target_2d(const desc& i);
+				~ogl_multi_render_target_2d() override;
+				void* get_target_buffer() const override;
+				void* get_depth_buffer() const override;
+				uint32_t get_width() const override;
+				uint32_t get_height() const override;
 			};
 
-			class OGLRenderTargetCube final : public RenderTargetCube
+			class ogl_render_target_cube final : public render_target_cube
 			{
-				friend OGLDevice;
+				friend ogl_device;
 
 			public:
-				OGLFrameBuffer FrameBuffer;
-				GLuint DepthTexture = GL_NONE;
-				bool HasStencilBuffer = false;
+				ogl_frame_buffer frame_buffer;
+				GLuint depth_texture = GL_NONE;
+				bool has_stencil_buffer = false;
 
 			public:
-				OGLRenderTargetCube(const Desc& I);
-				~OGLRenderTargetCube() override;
-				void* GetTargetBuffer() const override;
-				void* GetDepthBuffer() const override;
-				uint32_t GetWidth() const override;
-				uint32_t GetHeight() const override;
+				ogl_render_target_cube(const desc& i);
+				~ogl_render_target_cube() override;
+				void* get_target_buffer() const override;
+				void* get_depth_buffer() const override;
+				uint32_t get_width() const override;
+				uint32_t get_height() const override;
 			};
 
-			class OGLMultiRenderTargetCube final : public MultiRenderTargetCube
+			class ogl_multi_render_target_cube final : public multi_render_target_cube
 			{
-				friend OGLDevice;
+				friend ogl_device;
 
 			public:
-				OGLFrameBuffer FrameBuffer;
-				GLuint DepthTexture = GL_NONE;
+				ogl_frame_buffer frame_buffer;
+				GLuint depth_texture = GL_NONE;
 
 			public:
-				OGLMultiRenderTargetCube(const Desc& I);
-				~OGLMultiRenderTargetCube() override;
-				void* GetTargetBuffer() const override;
-				void* GetDepthBuffer() const override;
-				uint32_t GetWidth() const override;
-				uint32_t GetHeight() const override;
+				ogl_multi_render_target_cube(const desc& i);
+				~ogl_multi_render_target_cube() override;
+				void* get_target_buffer() const override;
+				void* get_depth_buffer() const override;
+				uint32_t get_width() const override;
+				uint32_t get_height() const override;
 			};
 
-			class OGLCubemap final : public Cubemap
+			class ogl_cubemap final : public cubemap
 			{
-				friend OGLDevice;
+				friend ogl_device;
 
 			public:
 				struct
 				{
-					Format FormatMode;
-					GLenum SizeFormat;
-				} Options;
+					format format_mode;
+					GLenum size_format;
+				} options;
 
 			public:
-				GLuint FrameBuffer = GL_NONE;
-				GLuint Source = GL_NONE;
+				GLuint frame_buffer = GL_NONE;
+				GLuint source = GL_NONE;
 
 			public:
-				OGLCubemap(const Desc& I);
-				~OGLCubemap() override;
+				ogl_cubemap(const desc& i);
+				~ogl_cubemap() override;
 			};
 
-			class OGLQuery final : public Query
+			class ogl_query final : public query
 			{
 			public:
-				GLuint Async = GL_NONE;
-				bool Predicate = false;
+				GLuint async = GL_NONE;
+				bool predicate = false;
 
 			public:
-				OGLQuery();
-				~OGLQuery() override;
-				void* GetResource() const override;
+				ogl_query();
+				~ogl_query() override;
+				void* get_resource() const override;
 			};
 
-			class OGLDevice final : public GraphicsDevice
+			class ogl_device final : public graphics_device
 			{
-				friend OGLShader;
+				friend ogl_shader;
 
 			private:
 				struct
 				{
-					GLuint VertexShader = GL_NONE;
-					GLuint PixelShader = GL_NONE;
-					GLuint Program = GL_NONE;
-					GLuint VertexBuffer = GL_NONE;
-					GLuint VertexArray = GL_NONE;
-					GLuint ConstantBuffer = GL_NONE;
-					GLuint Sampler = GL_NONE;
-				} Immediate;
+					GLuint vertex_shader = GL_NONE;
+					GLuint pixel_shader = GL_NONE;
+					GLuint program = GL_NONE;
+					GLuint vertex_buffer = GL_NONE;
+					GLuint vertex_array = GL_NONE;
+					GLuint constant_buffer = GL_NONE;
+					GLuint sampler = GL_NONE;
+				} immediate;
 
 				struct
 				{
-					std::tuple<OGLElementBuffer*, Format> IndexBuffer = { nullptr, Format::Unknown };
-					Core::UnorderedMap<uint64_t, GLuint> Programs;
-					std::array<OGLElementBuffer*, UNITS_SIZE> VertexBuffers = { };
-					std::array<GLuint, UNITS_SIZE> Bindings = { };
-					std::array<GLuint, UNITS_SIZE> Textures = { };
-					std::array<GLuint, UNITS_SIZE> Samplers = { };
-					std::array<OGLShader*, 6> Shaders = { };
-					OGLBlendState* Blend = nullptr;
-					OGLRasterizerState* Rasterizer = nullptr;
-					OGLDepthStencilState* DepthStencil = nullptr;
-					OGLInputLayout* Layout = nullptr;
-					PrimitiveTopology Primitive = PrimitiveTopology::Triangle_List;
-					GLenum IndexFormat = GL_UNSIGNED_INT;
-					GLenum DrawTopology = GL_TRIANGLES;
-				} Register;
+					std::tuple<ogl_element_buffer*, format> index_buffer = { nullptr, format::unknown };
+					core::unordered_map<uint64_t, GLuint> programs;
+					std::array<ogl_element_buffer*, units_size> vertex_buffers = { };
+					std::array<GLuint, units_size> bindings = { };
+					std::array<GLuint, units_size> textures = { };
+					std::array<GLuint, units_size> samplers = { };
+					std::array<ogl_shader*, 6> shaders = { };
+					ogl_blend_state* blend = nullptr;
+					ogl_rasterizer_state* rasterizer = nullptr;
+					ogl_depth_stencil_state* depth_stencil = nullptr;
+					ogl_input_layout* layout = nullptr;
+					primitive_topology primitive = primitive_topology::triangle_list;
+					GLenum index_format = GL_UNSIGNED_INT;
+					GLenum draw_topology = GL_TRIANGLES;
+				} regs;
 
 			private:
-				std::string_view ShaderVersion;
+				std::string_view shader_version;
 
 			public:
-				Activity* Window;
-				void* Context;
+				activity* window;
+				void* context;
 
 			public:
-				OGLDevice(const Desc& I);
-				~OGLDevice() override;
-				void SetAsCurrentDevice() override;
-				void SetShaderModel(ShaderModel Model) override;
-				void SetBlendState(BlendState* State) override;
-				void SetRasterizerState(RasterizerState* State) override;
-				void SetDepthStencilState(DepthStencilState* State) override;
-				void SetInputLayout(InputLayout* State) override;
-				ExpectsGraphics<void> SetShader(Shader* Resource, uint32_t Type) override;
-				void SetSamplerState(SamplerState* State, uint32_t Slot, uint32_t Count, uint32_t Type) override;
-				void SetBuffer(Shader* Resource, uint32_t Slot, uint32_t Type) override;
-				void SetBuffer(InstanceBuffer* Resource, uint32_t Slot, uint32_t Type) override;
-				void SetConstantBuffer(ElementBuffer* Resource, uint32_t Slot, uint32_t Type) override;
-				void SetStructureBuffer(ElementBuffer* Resource, uint32_t Slot, uint32_t Type) override;
-				void SetIndexBuffer(ElementBuffer* Resource, Format FormatMode) override;
-				void SetVertexBuffers(ElementBuffer** Resources, uint32_t Count, bool DynamicLinkage = false) override;
-				void SetTexture2D(Texture2D* Resource, uint32_t Slot, uint32_t Type) override;
-				void SetTexture3D(Texture3D* Resource, uint32_t Slot, uint32_t Type) override;
-				void SetTextureCube(TextureCube* Resource, uint32_t Slot, uint32_t Type) override;
-				void SetWriteable(ElementBuffer** Resource, uint32_t Slot, uint32_t Count, bool Computable) override;
-				void SetWriteable(Texture2D** Resource, uint32_t Slot, uint32_t Count, bool Computable) override;
-				void SetWriteable(Texture3D** Resource, uint32_t Slot, uint32_t Count, bool Computable) override;
-				void SetWriteable(TextureCube** Resource, uint32_t Slot, uint32_t Count, bool Computable) override;
-				void SetTarget(float R, float G, float B) override;
-				void SetTarget() override;
-				void SetTarget(DepthTarget2D* Resource) override;
-				void SetTarget(DepthTargetCube* Resource) override;
-				void SetTarget(Graphics::RenderTarget* Resource, uint32_t Target, float R, float G, float B) override;
-				void SetTarget(Graphics::RenderTarget* Resource, uint32_t Target) override;
-				void SetTarget(Graphics::RenderTarget* Resource, float R, float G, float B) override;
-				void SetTarget(Graphics::RenderTarget* Resource) override;
-				void SetTargetMap(Graphics::RenderTarget* Resource, bool Enabled[8]) override;
-				void SetTargetRect(uint32_t Width, uint32_t Height) override;
-				void SetViewports(uint32_t Count, Viewport* Viewports) override;
-				void SetScissorRects(uint32_t Count, Trigonometry::Rectangle* Value) override;
-				void SetPrimitiveTopology(PrimitiveTopology Topology) override;
-				void FlushTexture(uint32_t Slot, uint32_t Count, uint32_t Type) override;
-				void FlushState() override;
-				void ClearBuffer(InstanceBuffer* Resource) override;
-				void ClearWritable(Texture2D* Resource) override;
-				void ClearWritable(Texture2D* Resource, float R, float G, float B) override;
-				void ClearWritable(Texture3D* Resource) override;
-				void ClearWritable(Texture3D* Resource, float R, float G, float B) override;
-				void ClearWritable(TextureCube* Resource) override;
-				void ClearWritable(TextureCube* Resource, float R, float G, float B) override;
-				void Clear(float R, float G, float B) override;
-				void Clear(Graphics::RenderTarget* Resource, uint32_t Target, float R, float G, float B) override;
-				void ClearDepth() override;
-				void ClearDepth(DepthTarget2D* Resource) override;
-				void ClearDepth(DepthTargetCube* Resource) override;
-				void ClearDepth(Graphics::RenderTarget* Resource) override;
-				void DrawIndexed(uint32_t Count, uint32_t IndexLocation, uint32_t BaseLocation) override;
-				void DrawIndexed(MeshBuffer* Resource) override;
-				void DrawIndexed(SkinMeshBuffer* Resource) override;
-				void DrawIndexedInstanced(uint32_t IndexCountPerInstance, uint32_t InstanceCount, uint32_t IndexLocation, uint32_t VertexLocation, uint32_t InstanceLocation) override;
-				void DrawIndexedInstanced(ElementBuffer* Instances, MeshBuffer* Resource, uint32_t InstanceCount) override;
-				void DrawIndexedInstanced(ElementBuffer* Instances, SkinMeshBuffer* Resource, uint32_t InstanceCount) override;
-				void Draw(uint32_t Count, uint32_t Location) override;
-				void DrawInstanced(uint32_t VertexCountPerInstance, uint32_t InstanceCount, uint32_t VertexLocation, uint32_t InstanceLocation) override;
-				void Dispatch(uint32_t GroupX, uint32_t GroupY, uint32_t GroupZ) override;
-				void GetViewports(uint32_t* Count, Viewport* Out) override;
-				void GetScissorRects(uint32_t* Count, Trigonometry::Rectangle* Out) override;
-				void QueryBegin(Query* Resource) override;
-				void QueryEnd(Query* Resource) override;
-				void GenerateMips(Texture2D* Resource) override;
-				void GenerateMips(Texture3D* Resource) override;
-				void GenerateMips(TextureCube* Resource) override;
-				bool ImBegin() override;
-				void ImTransform(const Trigonometry::Matrix4x4& Transform) override;
-				void ImTopology(PrimitiveTopology Topology) override;
-				void ImEmit() override;
-				void ImTexture(Texture2D* In) override;
-				void ImColor(float X, float Y, float Z, float W) override;
-				void ImIntensity(float Intensity) override;
-				void ImTexCoord(float X, float Y) override;
-				void ImTexCoordOffset(float X, float Y) override;
-				void ImPosition(float X, float Y, float Z) override;
-				bool ImEnd() override;
-				bool HasExplicitSlots() const override;
-				ExpectsGraphics<uint32_t> GetShaderSlot(Shader* Resource, const std::string_view& Name) const override;
-				ExpectsGraphics<uint32_t> GetShaderSamplerSlot(Shader* Resource, const std::string_view& ResourceName, const std::string_view& SamplerName) const override;
-				ExpectsGraphics<void> Submit() override;
-				ExpectsGraphics<void> Map(ElementBuffer* Resource, ResourceMap Mode, MappedSubresource* Map) override;
-				ExpectsGraphics<void> Map(Texture2D* Resource, ResourceMap Mode, MappedSubresource* Map) override;
-				ExpectsGraphics<void> Map(Texture3D* Resource, ResourceMap Mode, MappedSubresource* Map) override;
-				ExpectsGraphics<void> Map(TextureCube* Resource, ResourceMap Mode, MappedSubresource* Map) override;
-				ExpectsGraphics<void> Unmap(Texture2D* Resource, MappedSubresource* Map) override;
-				ExpectsGraphics<void> Unmap(Texture3D* Resource, MappedSubresource* Map) override;
-				ExpectsGraphics<void> Unmap(TextureCube* Resource, MappedSubresource* Map) override;
-				ExpectsGraphics<void> Unmap(ElementBuffer* Resource, MappedSubresource* Map) override;
-				ExpectsGraphics<void> UpdateConstantBuffer(ElementBuffer* Resource, void* Data, size_t Size) override;
-				ExpectsGraphics<void> UpdateBuffer(ElementBuffer* Resource, void* Data, size_t Size) override;
-				ExpectsGraphics<void> UpdateBuffer(Shader* Resource, const void* Data) override;
-				ExpectsGraphics<void> UpdateBuffer(MeshBuffer* Resource, Trigonometry::Vertex* Data) override;
-				ExpectsGraphics<void> UpdateBuffer(SkinMeshBuffer* Resource, Trigonometry::SkinVertex* Data) override;
-				ExpectsGraphics<void> UpdateBuffer(InstanceBuffer* Resource) override;
-				ExpectsGraphics<void> UpdateBufferSize(Shader* Resource, size_t Size) override;
-				ExpectsGraphics<void> UpdateBufferSize(InstanceBuffer* Resource, size_t Size) override;
-				ExpectsGraphics<void> CopyTexture2D(Texture2D* Resource, Texture2D** Result) override;
-				ExpectsGraphics<void> CopyTexture2D(Graphics::RenderTarget* Resource, uint32_t Target, Texture2D** Result) override;
-				ExpectsGraphics<void> CopyTexture2D(RenderTargetCube* Resource, Trigonometry::CubeFace Face, Texture2D** Result) override;
-				ExpectsGraphics<void> CopyTexture2D(MultiRenderTargetCube* Resource, uint32_t Cube, Trigonometry::CubeFace Face, Texture2D** Result) override;
-				ExpectsGraphics<void> CopyTextureCube(RenderTargetCube* Resource, TextureCube** Result) override;
-				ExpectsGraphics<void> CopyTextureCube(MultiRenderTargetCube* Resource, uint32_t Cube, TextureCube** Result) override;
-				ExpectsGraphics<void> CopyTarget(Graphics::RenderTarget* From, uint32_t FromTarget, Graphics::RenderTarget* To, uint32_t ToTarget) override;
-				ExpectsGraphics<void> CubemapPush(Cubemap* Resource, TextureCube* Result) override;
-				ExpectsGraphics<void> CubemapFace(Cubemap* Resource, Trigonometry::CubeFace Face) override;
-				ExpectsGraphics<void> CubemapPop(Cubemap* Resource) override;
-				ExpectsGraphics<void> CopyBackBuffer(Texture2D** Result) override;
-				ExpectsGraphics<void> RescaleBuffers(uint32_t Width, uint32_t Height) override;
-				ExpectsGraphics<void> ResizeBuffers(uint32_t Width, uint32_t Height) override;
-				ExpectsGraphics<void> GenerateTexture(Texture2D* Resource) override;
-				ExpectsGraphics<void> GenerateTexture(Texture3D* Resource) override;
-				ExpectsGraphics<void> GenerateTexture(TextureCube* Resource) override;
-				ExpectsGraphics<void> GetQueryData(Query* Resource, size_t* Result, bool Flush) override;
-				ExpectsGraphics<void> GetQueryData(Query* Resource, bool* Result, bool Flush) override;
-				ExpectsGraphics<Core::Unique<DepthStencilState>> CreateDepthStencilState(const DepthStencilState::Desc& I) override;
-				ExpectsGraphics<Core::Unique<BlendState>> CreateBlendState(const BlendState::Desc& I) override;
-				ExpectsGraphics<Core::Unique<RasterizerState>> CreateRasterizerState(const RasterizerState::Desc& I) override;
-				ExpectsGraphics<Core::Unique<SamplerState>> CreateSamplerState(const SamplerState::Desc& I) override;
-				ExpectsGraphics<Core::Unique<InputLayout>> CreateInputLayout(const InputLayout::Desc& I) override;
-				ExpectsGraphics<Core::Unique<Shader>> CreateShader(const Shader::Desc& I) override;
-				ExpectsGraphics<Core::Unique<ElementBuffer>> CreateElementBuffer(const ElementBuffer::Desc& I) override;
-				ExpectsGraphics<Core::Unique<MeshBuffer>> CreateMeshBuffer(const MeshBuffer::Desc& I) override;
-				ExpectsGraphics<Core::Unique<MeshBuffer>> CreateMeshBuffer(ElementBuffer* VertexBuffer, ElementBuffer* IndexBuffer) override;
-				ExpectsGraphics<Core::Unique<SkinMeshBuffer>> CreateSkinMeshBuffer(const SkinMeshBuffer::Desc& I) override;
-				ExpectsGraphics<Core::Unique<SkinMeshBuffer>> CreateSkinMeshBuffer(ElementBuffer* VertexBuffer, ElementBuffer* IndexBuffer) override;
-				ExpectsGraphics<Core::Unique<InstanceBuffer>> CreateInstanceBuffer(const InstanceBuffer::Desc& I) override;
-				ExpectsGraphics<Core::Unique<Texture2D>> CreateTexture2D() override;
-				ExpectsGraphics<Core::Unique<Texture2D>> CreateTexture2D(const Texture2D::Desc& I) override;
-				ExpectsGraphics<Core::Unique<Texture3D>> CreateTexture3D() override;
-				ExpectsGraphics<Core::Unique<Texture3D>> CreateTexture3D(const Texture3D::Desc& I) override;
-				ExpectsGraphics<Core::Unique<TextureCube>> CreateTextureCube() override;
-				ExpectsGraphics<Core::Unique<TextureCube>> CreateTextureCube(const TextureCube::Desc& I) override;
-				ExpectsGraphics<Core::Unique<TextureCube>> CreateTextureCube(Texture2D* Resource[6]) override;
-				ExpectsGraphics<Core::Unique<TextureCube>> CreateTextureCube(Texture2D* Resource) override;
-				ExpectsGraphics<Core::Unique<DepthTarget2D>> CreateDepthTarget2D(const DepthTarget2D::Desc& I) override;
-				ExpectsGraphics<Core::Unique<DepthTargetCube>> CreateDepthTargetCube(const DepthTargetCube::Desc& I) override;
-				ExpectsGraphics<Core::Unique<RenderTarget2D>> CreateRenderTarget2D(const RenderTarget2D::Desc& I) override;
-				ExpectsGraphics<Core::Unique<MultiRenderTarget2D>> CreateMultiRenderTarget2D(const MultiRenderTarget2D::Desc& I) override;
-				ExpectsGraphics<Core::Unique<RenderTargetCube>> CreateRenderTargetCube(const RenderTargetCube::Desc& I) override;
-				ExpectsGraphics<Core::Unique<MultiRenderTargetCube>> CreateMultiRenderTargetCube(const MultiRenderTargetCube::Desc& I) override;
-				ExpectsGraphics<Core::Unique<Cubemap>> CreateCubemap(const Cubemap::Desc& I) override;
-				ExpectsGraphics<Core::Unique<Query>> CreateQuery(const Query::Desc& I) override;
-				PrimitiveTopology GetPrimitiveTopology() const override;
-				ShaderModel GetSupportedShaderModel() const override;
-				void* GetDevice() const override;
-				void* GetContext() const override;
-				bool IsValid() const override;
-				void SetVSyncMode(VSync Mode) override;
-				const std::string_view& GetShaderVersion();
-				ExpectsGraphics<void> CopyConstantBuffer(GLuint Buffer, void* Data, size_t Size);
-				ExpectsGraphics<void> CreateConstantBuffer(GLuint* Buffer, size_t Size);
-				ExpectsGraphics<void> CreateDirectBuffer(size_t Size);
-				Core::String CompileState(GLuint Handle);
+				ogl_device(const desc& i);
+				~ogl_device() override;
+				void set_as_current_device() override;
+				void set_shader_model(shader_model model) override;
+				void set_blend_state(blend_state* state) override;
+				void set_rasterizer_state(rasterizer_state* state) override;
+				void set_depth_stencil_state(depth_stencil_state* state) override;
+				void set_input_layout(input_layout* state) override;
+				expects_graphics<void> set_shader(shader* resource, uint32_t type) override;
+				void set_sampler_state(sampler_state* state, uint32_t slot, uint32_t count, uint32_t type) override;
+				void set_buffer(shader* resource, uint32_t slot, uint32_t type) override;
+				void set_buffer(instance_buffer* resource, uint32_t slot, uint32_t type) override;
+				void set_constant_buffer(element_buffer* resource, uint32_t slot, uint32_t type) override;
+				void set_structure_buffer(element_buffer* resource, uint32_t slot, uint32_t type) override;
+				void set_index_buffer(element_buffer* resource, format format_mode) override;
+				void set_vertex_buffers(element_buffer** resources, uint32_t count, bool dynamic_linkage = false) override;
+				void set_texture_2d(texture_2d* resource, uint32_t slot, uint32_t type) override;
+				void set_texture_3d(texture_3d* resource, uint32_t slot, uint32_t type) override;
+				void set_texture_cube(texture_cube* resource, uint32_t slot, uint32_t type) override;
+				void set_writeable(element_buffer** resource, uint32_t slot, uint32_t count, bool computable) override;
+				void set_writeable(texture_2d** resource, uint32_t slot, uint32_t count, bool computable) override;
+				void set_writeable(texture_3d** resource, uint32_t slot, uint32_t count, bool computable) override;
+				void set_writeable(texture_cube** resource, uint32_t slot, uint32_t count, bool computable) override;
+				void set_target(float r, float g, float b) override;
+				void set_target() override;
+				void set_target(depth_target_2d* resource) override;
+				void set_target(depth_target_cube* resource) override;
+				void set_target(graphics::render_target* resource, uint32_t target, float r, float g, float b) override;
+				void set_target(graphics::render_target* resource, uint32_t target) override;
+				void set_target(graphics::render_target* resource, float r, float g, float b) override;
+				void set_target(graphics::render_target* resource) override;
+				void set_target_map(graphics::render_target* resource, bool enabled[8]) override;
+				void set_target_rect(uint32_t width, uint32_t height) override;
+				void set_viewports(uint32_t count, viewport* viewports) override;
+				void set_scissor_rects(uint32_t count, trigonometry::rectangle* value) override;
+				void set_primitive_topology(primitive_topology topology) override;
+				void flush_texture(uint32_t slot, uint32_t count, uint32_t type) override;
+				void flush_state() override;
+				void clear_buffer(instance_buffer* resource) override;
+				void clear_writable(texture_2d* resource) override;
+				void clear_writable(texture_2d* resource, float r, float g, float b) override;
+				void clear_writable(texture_3d* resource) override;
+				void clear_writable(texture_3d* resource, float r, float g, float b) override;
+				void clear_writable(texture_cube* resource) override;
+				void clear_writable(texture_cube* resource, float r, float g, float b) override;
+				void clear(float r, float g, float b) override;
+				void clear(graphics::render_target* resource, uint32_t target, float r, float g, float b) override;
+				void clear_depth() override;
+				void clear_depth(depth_target_2d* resource) override;
+				void clear_depth(depth_target_cube* resource) override;
+				void clear_depth(graphics::render_target* resource) override;
+				void draw_indexed(uint32_t count, uint32_t index_location, uint32_t base_location) override;
+				void draw_indexed(mesh_buffer* resource) override;
+				void draw_indexed(skin_mesh_buffer* resource) override;
+				void draw_indexed_instanced(uint32_t index_count_per_instance, uint32_t instance_count, uint32_t index_location, uint32_t vertex_location, uint32_t instance_location) override;
+				void draw_indexed_instanced(element_buffer* instances, mesh_buffer* resource, uint32_t instance_count) override;
+				void draw_indexed_instanced(element_buffer* instances, skin_mesh_buffer* resource, uint32_t instance_count) override;
+				void draw(uint32_t count, uint32_t location) override;
+				void draw_instanced(uint32_t vertex_count_per_instance, uint32_t instance_count, uint32_t vertex_location, uint32_t instance_location) override;
+				void dispatch(uint32_t group_x, uint32_t group_y, uint32_t group_z) override;
+				void get_viewports(uint32_t* count, viewport* out) override;
+				void get_scissor_rects(uint32_t* count, trigonometry::rectangle* out) override;
+				void query_begin(query* resource) override;
+				void query_end(query* resource) override;
+				void generate_mips(texture_2d* resource) override;
+				void generate_mips(texture_3d* resource) override;
+				void generate_mips(texture_cube* resource) override;
+				bool im_begin() override;
+				void im_transform(const trigonometry::matrix4x4& transform) override;
+				void im_topology(primitive_topology topology) override;
+				void im_emit() override;
+				void im_texture(texture_2d* in) override;
+				void im_color(float x, float y, float z, float w) override;
+				void im_intensity(float intensity) override;
+				void im_texcoord(float x, float y) override;
+				void im_texcoord_offset(float x, float y) override;
+				void im_position(float x, float y, float z) override;
+				bool im_end() override;
+				bool has_explicit_slots() const override;
+				expects_graphics<uint32_t> get_shader_slot(shader* resource, const std::string_view& name) const override;
+				expects_graphics<uint32_t> get_shader_sampler_slot(shader* resource, const std::string_view& resource_name, const std::string_view& sampler_name) const override;
+				expects_graphics<void> submit() override;
+				expects_graphics<void> map(element_buffer* resource, resource_map mode, mapped_subresource* map) override;
+				expects_graphics<void> map(texture_2d* resource, resource_map mode, mapped_subresource* map) override;
+				expects_graphics<void> map(texture_3d* resource, resource_map mode, mapped_subresource* map) override;
+				expects_graphics<void> map(texture_cube* resource, resource_map mode, mapped_subresource* map) override;
+				expects_graphics<void> unmap(texture_2d* resource, mapped_subresource* map) override;
+				expects_graphics<void> unmap(texture_3d* resource, mapped_subresource* map) override;
+				expects_graphics<void> unmap(texture_cube* resource, mapped_subresource* map) override;
+				expects_graphics<void> unmap(element_buffer* resource, mapped_subresource* map) override;
+				expects_graphics<void> update_constant_buffer(element_buffer* resource, void* data, size_t size) override;
+				expects_graphics<void> update_buffer(element_buffer* resource, void* data, size_t size) override;
+				expects_graphics<void> update_buffer(shader* resource, const void* data) override;
+				expects_graphics<void> update_buffer(mesh_buffer* resource, trigonometry::vertex* data) override;
+				expects_graphics<void> update_buffer(skin_mesh_buffer* resource, trigonometry::skin_vertex* data) override;
+				expects_graphics<void> update_buffer(instance_buffer* resource) override;
+				expects_graphics<void> update_buffer_size(shader* resource, size_t size) override;
+				expects_graphics<void> update_buffer_size(instance_buffer* resource, size_t size) override;
+				expects_graphics<void> copy_texture_2d(texture_2d* resource, texture_2d** result) override;
+				expects_graphics<void> copy_texture_2d(graphics::render_target* resource, uint32_t target, texture_2d** result) override;
+				expects_graphics<void> copy_texture_2d(render_target_cube* resource, trigonometry::cube_face face, texture_2d** result) override;
+				expects_graphics<void> copy_texture_2d(multi_render_target_cube* resource, uint32_t cube, trigonometry::cube_face face, texture_2d** result) override;
+				expects_graphics<void> copy_texture_cube(render_target_cube* resource, texture_cube** result) override;
+				expects_graphics<void> copy_texture_cube(multi_render_target_cube* resource, uint32_t cube, texture_cube** result) override;
+				expects_graphics<void> copy_target(graphics::render_target* from, uint32_t from_target, graphics::render_target* to, uint32_t to_target) override;
+				expects_graphics<void> cubemap_push(cubemap* resource, texture_cube* result) override;
+				expects_graphics<void> cubemap_face(cubemap* resource, trigonometry::cube_face face) override;
+				expects_graphics<void> cubemap_pop(cubemap* resource) override;
+				expects_graphics<void> copy_back_buffer(texture_2d** result) override;
+				expects_graphics<void> rescale_buffers(uint32_t width, uint32_t height) override;
+				expects_graphics<void> resize_buffers(uint32_t width, uint32_t height) override;
+				expects_graphics<void> generate_texture(texture_2d* resource) override;
+				expects_graphics<void> generate_texture(texture_3d* resource) override;
+				expects_graphics<void> generate_texture(texture_cube* resource) override;
+				expects_graphics<void> get_query_data(query* resource, size_t* result, bool flush) override;
+				expects_graphics<void> get_query_data(query* resource, bool* result, bool flush) override;
+				expects_graphics<core::unique<depth_stencil_state>> create_depth_stencil_state(const depth_stencil_state::desc& i) override;
+				expects_graphics<core::unique<blend_state>> create_blend_state(const blend_state::desc& i) override;
+				expects_graphics<core::unique<rasterizer_state>> create_rasterizer_state(const rasterizer_state::desc& i) override;
+				expects_graphics<core::unique<sampler_state>> create_sampler_state(const sampler_state::desc& i) override;
+				expects_graphics<core::unique<input_layout>> create_input_layout(const input_layout::desc& i) override;
+				expects_graphics<core::unique<shader>> create_shader(const shader::desc& i) override;
+				expects_graphics<core::unique<element_buffer>> create_element_buffer(const element_buffer::desc& i) override;
+				expects_graphics<core::unique<mesh_buffer>> create_mesh_buffer(const mesh_buffer::desc& i) override;
+				expects_graphics<core::unique<mesh_buffer>> create_mesh_buffer(element_buffer* vertex_buffer, element_buffer* index_buffer) override;
+				expects_graphics<core::unique<skin_mesh_buffer>> create_skin_mesh_buffer(const skin_mesh_buffer::desc& i) override;
+				expects_graphics<core::unique<skin_mesh_buffer>> create_skin_mesh_buffer(element_buffer* vertex_buffer, element_buffer* index_buffer) override;
+				expects_graphics<core::unique<instance_buffer>> create_instance_buffer(const instance_buffer::desc& i) override;
+				expects_graphics<core::unique<texture_2d>> create_texture_2d() override;
+				expects_graphics<core::unique<texture_2d>> create_texture_2d(const texture_2d::desc& i) override;
+				expects_graphics<core::unique<texture_3d>> create_texture_3d() override;
+				expects_graphics<core::unique<texture_3d>> create_texture_3d(const texture_3d::desc& i) override;
+				expects_graphics<core::unique<texture_cube>> create_texture_cube() override;
+				expects_graphics<core::unique<texture_cube>> create_texture_cube(const texture_cube::desc& i) override;
+				expects_graphics<core::unique<texture_cube>> create_texture_cube(texture_2d* resource[6]) override;
+				expects_graphics<core::unique<texture_cube>> create_texture_cube(texture_2d* resource) override;
+				expects_graphics<core::unique<depth_target_2d>> create_depth_target_2d(const depth_target_2d::desc& i) override;
+				expects_graphics<core::unique<depth_target_cube>> create_depth_target_cube(const depth_target_cube::desc& i) override;
+				expects_graphics<core::unique<render_target_2d>> create_render_target_2d(const render_target_2d::desc& i) override;
+				expects_graphics<core::unique<multi_render_target_2d>> create_multi_render_target_2d(const multi_render_target_2d::desc& i) override;
+				expects_graphics<core::unique<render_target_cube>> create_render_target_cube(const render_target_cube::desc& i) override;
+				expects_graphics<core::unique<multi_render_target_cube>> create_multi_render_target_cube(const multi_render_target_cube::desc& i) override;
+				expects_graphics<core::unique<cubemap>> create_cubemap(const cubemap::desc& i) override;
+				expects_graphics<core::unique<query>> create_query(const query::desc& i) override;
+				primitive_topology get_primitive_topology() const override;
+				shader_model get_supported_shader_model() const override;
+				void* get_device() const override;
+				void* get_context() const override;
+				bool is_valid() const override;
+				void set_vsync_mode(vsync mode) override;
+				const std::string_view& get_shader_version();
+				expects_graphics<void> copy_constant_buffer(GLuint buffer, void* data, size_t size);
+				expects_graphics<void> create_constant_buffer(GLuint* buffer, size_t size);
+				expects_graphics<void> create_direct_buffer(size_t size);
+				core::string compile_state(GLuint handle);
 
 			private:
-				uint64_t GetProgramHash();
+				uint64_t get_program_hash();
 
 			protected:
-				ExpectsGraphics<TextureCube*> CreateTextureCubeInternal(void* Resources[6]) override;
+				expects_graphics<texture_cube*> create_texture_cube_internal(void* resources[6]) override;
 
 			public:
-				static bool IsComparator(PixelFilter Value);
-				static GLenum GetAccessControl(CPUAccess Access, ResourceUsage Usage);
-				static GLenum GetBaseFormat(Format Value);
-				static GLenum GetSizedFormat(Format Value);
-				static GLenum GetTextureAddress(TextureAddress Value);
-				static GLenum GetComparison(Comparison Value);
-				static GLenum GetPixelFilter(PixelFilter Value, bool Mag);
-				static GLenum GetBlendOperation(BlendOperation Value);
-				static GLenum GetBlend(Blend Value);
-				static GLenum GetStencilOperation(StencilOperation Value);
-				static GLenum GetPrimitiveTopology(PrimitiveTopology Value);
-				static GLenum GetPrimitiveTopologyDraw(PrimitiveTopology Value);
-				static GLenum GetResourceBind(ResourceBind Value);
-				static GLenum GetResourceMap(ResourceMap Value);
-				static void GetBackBufferSize(Format Value, int* X, int* Y, int* Z, int* W);
-				static void APIENTRY DebugMessage(GLenum Source, GLenum Type, GLuint Id, GLenum Severity, GLsizei Length, const GLchar* Message, const void* Data);
+				static bool is_comparator(pixel_filter value);
+				static GLenum get_access_control(cpu_access access, resource_usage usage);
+				static GLenum get_base_format(format value);
+				static GLenum get_sized_format(format value);
+				static GLenum get_texture_address(texture_address value);
+				static GLenum get_comparison(comparison value);
+				static GLenum get_pixel_filter(pixel_filter value, bool mag);
+				static GLenum get_blend_operation(blend_operation value);
+				static GLenum get_blend(blend value);
+				static GLenum get_stencil_operation(stencil_operation value);
+				static GLenum get_primitive_topology(primitive_topology value);
+				static GLenum get_primitive_topology_draw(primitive_topology value);
+				static GLenum get_resource_bind(resource_bind value);
+				static GLenum get_resource_map(resource_map value);
+				static void get_back_buffer_size(format value, int* x, int* y, int* z, int* w);
+				static void APIENTRY debug_message(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar* message, const void* data);
 			};
 		}
 	}

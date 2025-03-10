@@ -1,6 +1,6 @@
 #include "internal/buffers_viewer.hlsl"
 
-float2 GetTexCoord(float4 UV)
+float2 GetTexcoord(float4 UV)
 {
 #ifdef TARGET_D3D
 	return float2(0.5f + 0.5f * UV.x / UV.w, 0.5f - 0.5f * UV.y / UV.w);
@@ -8,12 +8,12 @@ float2 GetTexCoord(float4 UV)
 	return float2(0.5f + 0.5f * UV.x / UV.w, 0.5f + 0.5f * UV.y / UV.w);
 #endif
 }
-float3 GetPosition(float2 TexCoord, float Depth)
+float3 GetPosition(float2 Texcoord, float Depth)
 {
 #ifdef TARGET_D3D
-	float4 Position = float4(TexCoord.x * 2.0 - 1.0, 1.0 - TexCoord.y * 2.0, Depth, 1.0);
+	float4 Position = float4(Texcoord.x * 2.0 - 1.0, 1.0 - Texcoord.y * 2.0, Depth, 1.0);
 #else
-	float4 Position = float4(TexCoord * 2.0 - 1.0, Depth, 1.0);
+	float4 Position = float4(Texcoord * 2.0 - 1.0, Depth, 1.0);
 #endif
 	Position = mul(Position, vb_InvViewProj);
 	return Position.xyz / Position.w;

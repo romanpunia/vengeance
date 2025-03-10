@@ -25,922 +25,922 @@ class btConeShape;
 class btCylinderShape;
 class btCollisionShape;
 class btVector3;
-typedef bool(*ContactDestroyedCallback)(void*);
-typedef bool(*ContactProcessedCallback)(class btManifoldPoint&, void*, void*);
-typedef void(*ContactStartedCallback)(class btPersistentManifold* const&);
-typedef void(*ContactEndedCallback)(class btPersistentManifold* const&);
+typedef bool(*contact_destroyed_callback)(void*);
+typedef bool(*contact_processed_callback)(class btManifoldPoint&, void*, void*);
+typedef void(*contact_started_callback)(class btPersistentManifold* const&);
+typedef void(*contact_ended_callback)(class btPersistentManifold* const&);
 
-namespace Vitex
+namespace vitex
 {
-	namespace Physics
+	namespace physics
 	{
-		class RigidBody;
+		class rigid_body;
 
-		class SoftBody;
+		class soft_body;
 
-		class Simulator;
+		class simulator;
 
-		enum class Shape
+		enum class shape
 		{
-			Box,
-			Triangle,
-			Tetrahedral,
-			Convex_Triangle_Mesh,
-			Convex_Hull,
-			Convex_Point_Cloud,
-			Convex_Polyhedral,
-			Implicit_Convex_Start,
-			Sphere,
-			Multi_Sphere,
-			Capsule,
-			Cone,
-			Convex,
-			Cylinder,
-			Uniform_Scaling,
-			Minkowski_Sum,
-			Minkowski_Difference,
-			Box_2D,
-			Convex_2D,
-			Custom_Convex,
-			Concaves_Start,
-			Triangle_Mesh,
-			Triangle_Mesh_Scaled,
-			Fast_Concave_Mesh,
-			Terrain,
-			Gimpact,
-			Triangle_Mesh_Multimaterial,
-			Empty,
-			Static_Plane,
-			Custom_Concave,
-			Concaves_End,
-			Compound,
-			Softbody,
-			HF_Fluid,
-			HF_Fluid_Bouyant_Convex,
-			Invalid,
-			Count
+			box,
+			triangle,
+			tetrahedral,
+			convex_triangle_mesh,
+			convex_hull,
+			convex_point_cloud,
+			convex_polyhedral,
+			implicit_convex_start,
+			sphere,
+			multi_sphere,
+			capsule,
+			cone,
+			convex,
+			cylinder,
+			uniform_scaling,
+			minkowski_sum,
+			minkowski_difference,
+			box_2d,
+			convex_2d,
+			custom_convex,
+			concaves_start,
+			triangle_mesh,
+			triangle_mesh_scaled,
+			fast_concave_mesh,
+			terrain,
+			gimpact,
+			triangle_mesh_multimaterial,
+			empty,
+			static_plane,
+			custom_concave,
+			concaves_end,
+			compound,
+			softbody,
+			hf_fluid,
+			hf_fluid_bouyant_convex,
+			invalid,
+			count
 		};
 
-		enum class MotionState
+		enum class motion_state
 		{
-			Active = 1,
-			Island_Sleeping = 2,
-			Deactivation_Needed = 3,
-			Disable_Deactivation = 4,
-			Disable_Simulation = 5,
+			active = 1,
+			island_sleeping = 2,
+			deactivation_needed = 3,
+			disable_deactivation = 4,
+			disable_simulation = 5,
 		};
 
-		enum class SoftFeature
+		enum class soft_feature
 		{
-			None,
-			Node,
-			Link,
-			Face,
-			Tetra
+			none,
+			node,
+			link,
+			face,
+			tetra
 		};
 
-		enum class SoftAeroModel
+		enum class soft_aero_model
 		{
-			VPoint,
-			VTwoSided,
-			VTwoSidedLiftDrag,
-			VOneSided,
-			FTwoSided,
-			FTwoSidedLiftDrag,
-			FOneSided
+			vpoint,
+			vtwo_sided,
+			vtwo_sided_lift_drag,
+			vone_sided,
+			ftwo_sided,
+			ftwo_sided_lift_drag,
+			fone_sided
 		};
 
-		enum class SoftCollision
+		enum class soft_collision
 		{
-			RVS_Mask = 0x000f,
-			SDF_RS = 0x0001,
-			CL_RS = 0x0002,
-			SDF_RD = 0x0003,
-			SDF_RDF = 0x0004,
-			SVS_Mask = 0x00F0,
-			VF_SS = 0x0010,
-			CL_SS = 0x0020,
-			CL_Self = 0x0040,
-			VF_DD = 0x0050,
-			Default = SDF_RS | CL_SS
+			rvs_mask = 0x000f,
+			sdf_rs = 0x0001,
+			cl_rs = 0x0002,
+			sdf_rd = 0x0003,
+			sdf_rdf = 0x0004,
+			svs_mask = 0x00F0,
+			vf_ss = 0x0010,
+			cl_ss = 0x0020,
+			cl_self = 0x0040,
+			vf_dd = 0x0050,
+			defaults = sdf_rs | cl_ss
 		};
 
-		inline SoftCollision operator |(SoftCollision A, SoftCollision B)
+		inline soft_collision operator |(soft_collision a, soft_collision b)
 		{
-			return static_cast<SoftCollision>(static_cast<uint64_t>(A) | static_cast<uint64_t>(B));
+			return static_cast<soft_collision>(static_cast<uint64_t>(a) | static_cast<uint64_t>(b));
 		}
 
-		typedef std::function<void(const struct CollisionBody&)> CollisionCallback;
+		typedef std::function<void(const struct collision_body&)> collision_callback;
 
-		struct VI_OUT ShapeContact
+		struct shape_contact
 		{
-			Trigonometry::Vector3 LocalPoint1;
-			Trigonometry::Vector3 LocalPoint2;
-			Trigonometry::Vector3 PositionWorld1;
-			Trigonometry::Vector3 PositionWorld2;
-			Trigonometry::Vector3 NormalWorld;
-			Trigonometry::Vector3 LateralFrictionDirection1;
-			Trigonometry::Vector3 LateralFrictionDirection2;
-			float Distance = 0.0f;
-			float CombinedFriction = 0.0f;
-			float CombinedRollingFriction = 0.0f;
-			float CombinedSpinningFriction = 0.0f;
-			float CombinedRestitution = 0.0f;
-			float AppliedImpulse = 0.0f;
-			float AppliedImpulseLateral1 = 0.0f;
-			float AppliedImpulseLateral2 = 0.0f;
-			float ContactMotion1 = 0.0f;
-			float ContactMotion2 = 0.0f;
-			float ContactCFM = 0.0f;
-			float CombinedContactStiffness = 0.0f;
-			float ContactERP = 0.0f;
-			float CombinedContactDamping = 0.0f;
-			float FrictionCFM = 0.0f;
-			int PartId1 = 0;
-			int PartId2 = 0;
-			int Index1 = 0;
-			int Index2 = 0;
-			int ContactPointFlags = 0;
-			int LifeTime = 0;
+			trigonometry::vector3 local_point1;
+			trigonometry::vector3 local_point2;
+			trigonometry::vector3 position_world1;
+			trigonometry::vector3 position_world2;
+			trigonometry::vector3 normal_world;
+			trigonometry::vector3 lateral_friction_direction1;
+			trigonometry::vector3 lateral_friction_direction2;
+			float distance = 0.0f;
+			float combined_friction = 0.0f;
+			float combined_rolling_friction = 0.0f;
+			float combined_spinning_friction = 0.0f;
+			float combined_restitution = 0.0f;
+			float applied_impulse = 0.0f;
+			float applied_impulse_lateral1 = 0.0f;
+			float applied_impulse_lateral2 = 0.0f;
+			float contact_motion1 = 0.0f;
+			float contact_motion2 = 0.0f;
+			float contact_cfm = 0.0f;
+			float combined_contact_stiffness = 0.0f;
+			float contact_erp = 0.0f;
+			float combined_contact_damping = 0.0f;
+			float friction_cfm = 0.0f;
+			int part_id1 = 0;
+			int part_id2 = 0;
+			int index1 = 0;
+			int index2 = 0;
+			int contact_point_flags = 0;
+			int life_time = 0;
 		};
 
-		struct VI_OUT RayContact
+		struct ray_contact
 		{
-			Trigonometry::Vector3 HitNormalLocal;
-			Trigonometry::Vector3 HitNormalWorld;
-			Trigonometry::Vector3 HitPointWorld;
-			Trigonometry::Vector3 RayFromWorld;
-			Trigonometry::Vector3 RayToWorld;
-			float HitFraction = 0.0f;
-			float ClosestHitFraction = 0.0f;
-			bool NormalInWorldSpace = false;
+			trigonometry::vector3 hit_normal_local;
+			trigonometry::vector3 hit_normal_world;
+			trigonometry::vector3 hit_point_world;
+			trigonometry::vector3 ray_from_world;
+			trigonometry::vector3 ray_to_world;
+			float hit_fraction = 0.0f;
+			float closest_hit_fraction = 0.0f;
+			bool normal_in_world_space = false;
 		};
 
-		struct VI_OUT CollisionBody
+		struct collision_body
 		{
-			RigidBody* Rigid = nullptr;
-			SoftBody* Soft = nullptr;
+			rigid_body* rigid = nullptr;
+			soft_body* soft = nullptr;
 
-			CollisionBody(btCollisionObject* Object) noexcept;
+			collision_body(btCollisionObject* object) noexcept;
 		};
 
-		class VI_OUT HullShape final : public Core::Reference<HullShape>
+		class hull_shape final : public core::reference<hull_shape>
 		{
 		private:
-			Core::Vector<Trigonometry::Vertex> Vertices;
-			Core::Vector<int> Indices;
-			btCollisionShape* Shape;
+			core::vector<trigonometry::vertex> vertices;
+			core::vector<int> indices;
+			btCollisionShape* shape;
 
 		public:
-			HullShape(Core::Vector<Trigonometry::Vertex>&& NewVertices, Core::Vector<int>&& Indices) noexcept;
-			HullShape(Core::Vector<Trigonometry::Vertex>&& NewVertices) noexcept;
-			HullShape(btCollisionShape* From) noexcept;
-			~HullShape() noexcept;
-			const Core::Vector<Trigonometry::Vertex>& GetVertices() const;
-			const Core::Vector<int>& GetIndices() const;
-			btCollisionShape* GetShape() const;
+			hull_shape(core::vector<trigonometry::vertex>&& new_vertices, core::vector<int>&& indices) noexcept;
+			hull_shape(core::vector<trigonometry::vertex>&& new_vertices) noexcept;
+			hull_shape(btCollisionShape* from) noexcept;
+			~hull_shape() noexcept;
+			const core::vector<trigonometry::vertex>& get_vertices() const;
+			const core::vector<int>& get_indices() const;
+			btCollisionShape* get_shape() const;
 		};
 
-		class VI_OUT RigidBody final : public Core::Reference<RigidBody>
+		class rigid_body final : public core::reference<rigid_body>
 		{
-			friend Simulator;
+			friend simulator;
 
 		public:
-			struct Desc
+			struct desc
 			{
-				btCollisionShape* Shape = nullptr;
-				float Anticipation = 0, Mass = 0;
-				Trigonometry::Vector3 Position;
-				Trigonometry::Vector3 Rotation;
-				Trigonometry::Vector3 Scale;
+				btCollisionShape* shape = nullptr;
+				float anticipation = 0, mass = 0;
+				trigonometry::vector3 position;
+				trigonometry::vector3 rotation;
+				trigonometry::vector3 scale;
 			};
 
 		private:
-			btRigidBody* Instance;
-			Simulator* Engine;
-			Desc Initial;
+			btRigidBody* instance;
+			simulator* engine;
+			desc initial;
 
 		public:
-			CollisionCallback OnCollisionEnter;
-			CollisionCallback OnCollisionExit;
-			void* UserPointer;
+			collision_callback on_collision_enter;
+			collision_callback on_collision_exit;
+			void* user_pointer;
 
 		private:
-			RigidBody(Simulator* Refer, const Desc& I) noexcept;
+			rigid_body(simulator* refer, const desc& i) noexcept;
 
 		public:
-			~RigidBody() noexcept;
-			Core::Unique<RigidBody> Copy();
-			void Push(const Trigonometry::Vector3& Velocity);
-			void Push(const Trigonometry::Vector3& Velocity, const Trigonometry::Vector3& Torque);
-			void Push(const Trigonometry::Vector3& Velocity, const Trigonometry::Vector3& Torque, const Trigonometry::Vector3& Center);
-			void PushKinematic(const Trigonometry::Vector3& Velocity);
-			void PushKinematic(const Trigonometry::Vector3& Velocity, const Trigonometry::Vector3& Torque);
-			void Synchronize(Trigonometry::Transform* Transform, bool Kinematic);
-			void SetCollisionFlags(size_t Flags);
-			void SetActivity(bool Active);
-			void SetAsGhost();
-			void SetAsNormal();
-			void SetSelfPointer();
-			void SetWorldTransform(btTransform* Value);
-			void SetCollisionShape(btCollisionShape* Shape, Trigonometry::Transform* Transform);
-			void SetMass(float Mass);
-			void SetActivationState(MotionState Value);
-			void SetAngularDamping(float Value);
-			void SetAngularSleepingThreshold(float Value);
-			void SetSpinningFriction(float Value);
-			void SetContactStiffness(float Value);
-			void SetContactDamping(float Value);
-			void SetFriction(float Value);
-			void SetRestitution(float Value);
-			void SetHitFraction(float Value);
-			void SetLinearDamping(float Value);
-			void SetLinearSleepingThreshold(float Value);
-			void SetCcdMotionThreshold(float Value);
-			void SetCcdSweptSphereRadius(float Value);
-			void SetContactProcessingThreshold(float Value);
-			void SetDeactivationTime(float Value);
-			void SetRollingFriction(float Value);
-			void SetAngularFactor(const Trigonometry::Vector3& Value);
-			void SetAnisotropicFriction(const Trigonometry::Vector3& Value);
-			void SetGravity(const Trigonometry::Vector3& Value);
-			void SetLinearFactor(const Trigonometry::Vector3& Value);
-			void SetLinearVelocity(const Trigonometry::Vector3& Value);
-			void SetAngularVelocity(const Trigonometry::Vector3& Value);
-			MotionState GetActivationState() const;
-			Shape GetCollisionShapeType() const;
-			Trigonometry::Vector3 GetAngularFactor() const;
-			Trigonometry::Vector3 GetAnisotropicFriction() const;
-			Trigonometry::Vector3 GetGravity() const;
-			Trigonometry::Vector3 GetLinearFactor() const;
-			Trigonometry::Vector3 GetLinearVelocity() const;
-			Trigonometry::Vector3 GetAngularVelocity() const;
-			Trigonometry::Vector3 GetScale() const;
-			Trigonometry::Vector3 GetPosition() const;
-			Trigonometry::Vector3 GetRotation() const;
-			btTransform* GetWorldTransform() const;
-			btCollisionShape* GetCollisionShape() const;
-			btRigidBody* Get() const;
-			bool IsActive() const;
-			bool IsStatic() const;
-			bool IsGhost() const;
-			bool IsColliding() const;
-			float GetSpinningFriction() const;
-			float GetContactStiffness() const;
-			float GetContactDamping() const;
-			float GetAngularDamping() const;
-			float GetAngularSleepingThreshold() const;
-			float GetFriction() const;
-			float GetRestitution() const;
-			float GetHitFraction() const;
-			float GetLinearDamping() const;
-			float GetLinearSleepingThreshold() const;
-			float GetCcdMotionThreshold() const;
-			float GetCcdSweptSphereRadius() const;
-			float GetContactProcessingThreshold() const;
-			float GetDeactivationTime() const;
-			float GetRollingFriction() const;
-			float GetMass() const;
-			size_t GetCollisionFlags() const;
-			Desc& GetInitialState();
-			Simulator* GetSimulator() const;
+			~rigid_body() noexcept;
+			core::unique<rigid_body> copy();
+			void push(const trigonometry::vector3& velocity);
+			void push(const trigonometry::vector3& velocity, const trigonometry::vector3& torque);
+			void push(const trigonometry::vector3& velocity, const trigonometry::vector3& torque, const trigonometry::vector3& center);
+			void push_kinematic(const trigonometry::vector3& velocity);
+			void push_kinematic(const trigonometry::vector3& velocity, const trigonometry::vector3& torque);
+			void synchronize(trigonometry::transform* transform, bool kinematic);
+			void set_collision_flags(size_t flags);
+			void set_activity(bool active);
+			void set_as_ghost();
+			void set_as_normal();
+			void set_self_pointer();
+			void set_world_transform(btTransform* value);
+			void set_collision_shape(btCollisionShape* shape, trigonometry::transform* transform);
+			void set_mass(float mass);
+			void set_activation_state(motion_state value);
+			void set_angular_damping(float value);
+			void set_angular_sleeping_threshold(float value);
+			void set_spinning_friction(float value);
+			void set_contact_stiffness(float value);
+			void set_contact_damping(float value);
+			void set_friction(float value);
+			void set_restitution(float value);
+			void set_hit_fraction(float value);
+			void set_linear_damping(float value);
+			void set_linear_sleeping_threshold(float value);
+			void set_ccd_motion_threshold(float value);
+			void set_ccd_swept_sphere_radius(float value);
+			void set_contact_processing_threshold(float value);
+			void set_deactivation_time(float value);
+			void set_rolling_friction(float value);
+			void set_angular_factor(const trigonometry::vector3& value);
+			void set_anisotropic_friction(const trigonometry::vector3& value);
+			void set_gravity(const trigonometry::vector3& value);
+			void set_linear_factor(const trigonometry::vector3& value);
+			void set_linear_velocity(const trigonometry::vector3& value);
+			void set_angular_velocity(const trigonometry::vector3& value);
+			motion_state get_activation_state() const;
+			shape get_collision_shape_type() const;
+			trigonometry::vector3 get_angular_factor() const;
+			trigonometry::vector3 get_anisotropic_friction() const;
+			trigonometry::vector3 get_gravity() const;
+			trigonometry::vector3 get_linear_factor() const;
+			trigonometry::vector3 get_linear_velocity() const;
+			trigonometry::vector3 get_angular_velocity() const;
+			trigonometry::vector3 get_scale() const;
+			trigonometry::vector3 get_position() const;
+			trigonometry::vector3 get_rotation() const;
+			btTransform* get_world_transform() const;
+			btCollisionShape* get_collision_shape() const;
+			btRigidBody* get() const;
+			bool is_active() const;
+			bool is_static() const;
+			bool is_ghost() const;
+			bool is_colliding() const;
+			float get_spinning_friction() const;
+			float get_contact_stiffness() const;
+			float get_contact_damping() const;
+			float get_angular_damping() const;
+			float get_angular_sleeping_threshold() const;
+			float get_friction() const;
+			float get_restitution() const;
+			float get_hit_fraction() const;
+			float get_linear_damping() const;
+			float get_linear_sleeping_threshold() const;
+			float get_ccd_motion_threshold() const;
+			float get_ccd_swept_sphere_radius() const;
+			float get_contact_processing_threshold() const;
+			float get_deactivation_time() const;
+			float get_rolling_friction() const;
+			float get_mass() const;
+			size_t get_collision_flags() const;
+			desc& get_initial_state();
+			simulator* get_simulator() const;
 
 		public:
-			static RigidBody* Get(btRigidBody* From);
+			static rigid_body* get(btRigidBody* from);
 		};
 
-		class VI_OUT SoftBody final : public Core::Reference<SoftBody>
+		class soft_body final : public core::reference<soft_body>
 		{
-			friend Simulator;
+			friend simulator;
 
 		public:
-			struct Desc
+			struct desc
 			{
-				struct CV
+				struct cv
 				{
-					struct SConvex
+					struct sconvex
 					{
-						HullShape* Hull = nullptr;
-						bool Enabled = false;
-					} Convex;
+						hull_shape* hull = nullptr;
+						bool enabled = false;
+					} convex;
 
-					struct SRope
+					struct srope
 					{
-						bool StartFixed = false;
-						bool EndFixed = false;
-						bool Enabled = false;
-						int Count = 0;
-						Trigonometry::Vector3 Start = 0;
-						Trigonometry::Vector3 End = 1;
-					} Rope;
+						bool start_fixed = false;
+						bool end_fixed = false;
+						bool enabled = false;
+						int count = 0;
+						trigonometry::vector3 start = 0;
+						trigonometry::vector3 end = 1;
+					} rope;
 
-					struct SPatch
+					struct spatch
 					{
-						bool GenerateDiagonals = false;
-						bool Corner00Fixed = false;
-						bool Corner10Fixed = false;
-						bool Corner01Fixed = false;
-						bool Corner11Fixed = false;
-						bool Enabled = false;
-						int CountX = 2;
-						int CountY = 2;
-						Trigonometry::Vector3 Corner00 = Trigonometry::Vector3(0, 0);
-						Trigonometry::Vector3 Corner10 = Trigonometry::Vector3(1, 0);
-						Trigonometry::Vector3 Corner01 = Trigonometry::Vector3(0, 1);
-						Trigonometry::Vector3 Corner11 = Trigonometry::Vector3(1, 1);
-					} Patch;
+						bool generate_diagonals = false;
+						bool corner00_fixed = false;
+						bool corner10_fixed = false;
+						bool corner01_fixed = false;
+						bool corner11_fixed = false;
+						bool enabled = false;
+						int count_x = 2;
+						int count_y = 2;
+						trigonometry::vector3 corner00 = trigonometry::vector3(0, 0);
+						trigonometry::vector3 corner10 = trigonometry::vector3(1, 0);
+						trigonometry::vector3 corner01 = trigonometry::vector3(0, 1);
+						trigonometry::vector3 corner11 = trigonometry::vector3(1, 1);
+					} patch;
 
-					struct SEllipsoid
+					struct sellipsoid
 					{
-						Trigonometry::Vector3 Center;
-						Trigonometry::Vector3 Radius = 1;
-						int Count = 3;
-						bool Enabled = false;
-					} Ellipsoid;
-				} Shape;
+						trigonometry::vector3 center;
+						trigonometry::vector3 radius = 1;
+						int count = 3;
+						bool enabled = false;
+					} ellipsoid;
+				} shape;
 
-				struct SConfig
+				struct sconfig
 				{
-					SoftAeroModel AeroModel = SoftAeroModel::VPoint;
-					float VCF = 1;
-					float DP = 0;
-					float DG = 0;
-					float LF = 0;
-					float PR = 1.0f;
-					float VC = 0.1f;
-					float DF = 0.5f;
-					float MT = 0.1f;
-					float CHR = 1;
-					float KHR = 0.1f;
-					float SHR = 1;
-					float AHR = 0.7f;
-					float SRHR_CL = 0.1f;
-					float SKHR_CL = 1;
-					float SSHR_CL = 0.5f;
-					float SR_SPLT_CL = 0.5f;
-					float SK_SPLT_CL = 0.5f;
-					float SS_SPLT_CL = 0.5f;
-					float MaxVolume = 1;
-					float TimeScale = 1;
-					float Drag = 0;
-					float MaxStress = 0;
-					int Clusters = 0;
-					int Constraints = 2;
-					int VIterations = 10;
-					int PIterations = 2;
-					int DIterations = 0;
-					int CIterations = 4;
-					int Collisions = (int)(SoftCollision::Default | SoftCollision::VF_SS);
-				} Config;
+					soft_aero_model aero_model = soft_aero_model::vpoint;
+					float vcf = 1;
+					float dp = 0;
+					float dg = 0;
+					float lf = 0;
+					float pr = 1.0f;
+					float vc = 0.1f;
+					float df = 0.5f;
+					float mt = 0.1f;
+					float chr = 1;
+					float khr = 0.1f;
+					float shr = 1;
+					float ahr = 0.7f;
+					float srhr_cl = 0.1f;
+					float skhr_cl = 1;
+					float sshr_cl = 0.5f;
+					float sr_splt_cl = 0.5f;
+					float sk_splt_cl = 0.5f;
+					float ss_splt_cl = 0.5f;
+					float max_volume = 1;
+					float time_scale = 1;
+					float drag = 0;
+					float max_stress = 0;
+					int clusters = 0;
+					int constraints = 2;
+					int viterations = 10;
+					int piterations = 2;
+					int diterations = 0;
+					int citerations = 4;
+					int collisions = (int)(soft_collision::defaults | soft_collision::vf_ss);
+				} config;
 
-				float Anticipation = 0;
-				Trigonometry::Vector3 Position;
-				Trigonometry::Vector3 Rotation;
-				Trigonometry::Vector3 Scale;
+				float anticipation = 0;
+				trigonometry::vector3 position;
+				trigonometry::vector3 rotation;
+				trigonometry::vector3 scale;
 			};
 
-			struct RayCast
+			struct ray_cast
 			{
-				SoftBody* Body = nullptr;
-				SoftFeature Feature = SoftFeature::None;
-				float Fraction = 0;
-				int Index = 0;
+				soft_body* body = nullptr;
+				soft_feature feature = soft_feature::none;
+				float fraction = 0;
+				int index = 0;
 			};
 
 		private:
-			btSoftBody* Instance;
-			Simulator* Engine;
-			Trigonometry::Vector3 Center;
-			Desc Initial;
+			btSoftBody* instance;
+			simulator* engine;
+			trigonometry::vector3 center;
+			desc initial;
 
 		public:
-			CollisionCallback OnCollisionEnter;
-			CollisionCallback OnCollisionExit;
-			void* UserPointer;
+			collision_callback on_collision_enter;
+			collision_callback on_collision_exit;
+			void* user_pointer;
 
 		private:
-			SoftBody(Simulator* Refer, const Desc& I) noexcept;
+			soft_body(simulator* refer, const desc& i) noexcept;
 
 		public:
-			~SoftBody() noexcept;
-			Core::Unique<SoftBody> Copy();
-			void Activate(bool Force);
-			void Synchronize(Trigonometry::Transform* Transform, bool Kinematic);
-			void GetIndices(Core::Vector<int>* Indices) const;
-			void GetVertices(Core::Vector<Trigonometry::Vertex>* Vertices) const;
-			void GetBoundingBox(Trigonometry::Vector3* Min, Trigonometry::Vector3* Max) const;
-			void SetContactStiffnessAndDamping(float Stiffness, float Damping);
-			void AddAnchor(int Node, RigidBody* Body, bool DisableCollisionBetweenLinkedBodies = false, float Influence = 1);
-			void AddAnchor(int Node, RigidBody* Body, const Trigonometry::Vector3& LocalPivot, bool DisableCollisionBetweenLinkedBodies = false, float Influence = 1);
-			void AddForce(const Trigonometry::Vector3& Force);
-			void AddForce(const Trigonometry::Vector3& Force, int Node);
-			void AddAeroForceToNode(const Trigonometry::Vector3& WindVelocity, int NodeIndex);
-			void AddAeroForceToFace(const Trigonometry::Vector3& WindVelocity, int FaceIndex);
-			void AddVelocity(const Trigonometry::Vector3& Velocity);
-			void SetVelocity(const Trigonometry::Vector3& Velocity);
-			void AddVelocity(const Trigonometry::Vector3& Velocity, int Node);
-			void SetMass(int Node, float Mass);
-			void SetTotalMass(float Mass, bool FromFaces = false);
-			void SetTotalDensity(float Density);
-			void SetVolumeMass(float Mass);
-			void SetVolumeDensity(float Density);
-			void Translate(const Trigonometry::Vector3& Position);
-			void Rotate(const Trigonometry::Vector3& Rotation);
-			void Scale(const Trigonometry::Vector3& Scale);
-			void SetRestLengthScale(float RestLength);
-			void SetPose(bool Volume, bool Frame);
-			float GetMass(int Node) const;
-			float GetTotalMass() const;
-			float GetRestLengthScale() const;
-			float GetVolume() const;
-			int GenerateBendingConstraints(int Distance);
-			void RandomizeConstraints();
-			bool CutLink(int Node0, int Node1, float Position);
-			bool RayTest(const Trigonometry::Vector3& From, const Trigonometry::Vector3& To, RayCast& Result);
-			void SetWindVelocity(const Trigonometry::Vector3& Velocity);
-			Trigonometry::Vector3 GetWindVelocity() const;
-			void GetAabb(Trigonometry::Vector3& Min, Trigonometry::Vector3& Max) const;
-			void IndicesToPointers(const int* Map = 0);
-			void SetSpinningFriction(float Value);
-			Trigonometry::Vector3 GetLinearVelocity() const;
-			Trigonometry::Vector3 GetAngularVelocity() const;
-			Trigonometry::Vector3 GetCenterPosition() const;
-			void SetActivity(bool Active);
-			void SetAsGhost();
-			void SetAsNormal();
-			void SetSelfPointer();
-			void SetWorldTransform(btTransform* Value);
-			void SetActivationState(MotionState Value);
-			void SetContactStiffness(float Value);
-			void SetContactDamping(float Value);
-			void SetFriction(float Value);
-			void SetRestitution(float Value);
-			void SetHitFraction(float Value);
-			void SetCcdMotionThreshold(float Value);
-			void SetCcdSweptSphereRadius(float Value);
-			void SetContactProcessingThreshold(float Value);
-			void SetDeactivationTime(float Value);
-			void SetRollingFriction(float Value);
-			void SetAnisotropicFriction(const Trigonometry::Vector3& Value);
-			void SetConfig(const Desc::SConfig& Conf);
-			Shape GetCollisionShapeType() const;
-			MotionState GetActivationState() const;
-			Trigonometry::Vector3 GetAnisotropicFriction() const;
-			Trigonometry::Vector3 GetScale() const;
-			Trigonometry::Vector3 GetPosition() const;
-			Trigonometry::Vector3 GetRotation() const;
-			btTransform* GetWorldTransform() const;
-			btSoftBody* Get() const;
-			bool IsActive() const;
-			bool IsStatic() const;
-			bool IsGhost() const;
-			bool IsColliding() const;
-			float GetSpinningFriction() const;
-			float GetContactStiffness() const;
-			float GetContactDamping() const;
-			float GetFriction() const;
-			float GetRestitution() const;
-			float GetHitFraction() const;
-			float GetCcdMotionThreshold() const;
-			float GetCcdSweptSphereRadius() const;
-			float GetContactProcessingThreshold() const;
-			float GetDeactivationTime() const;
-			float GetRollingFriction() const;
-			size_t GetCollisionFlags() const;
-			size_t GetVerticesCount() const;
-			Desc& GetInitialState();
-			Simulator* GetSimulator() const;
+			~soft_body() noexcept;
+			core::unique<soft_body> copy();
+			void activate(bool force);
+			void synchronize(trigonometry::transform* transform, bool kinematic);
+			void get_indices(core::vector<int>* indices) const;
+			void get_vertices(core::vector<trigonometry::vertex>* vertices) const;
+			void get_bounding_box(trigonometry::vector3* min, trigonometry::vector3* max) const;
+			void set_contact_stiffness_and_damping(float stiffness, float damping);
+			void add_anchor(int node, rigid_body* body, bool disable_collision_between_linked_bodies = false, float influence = 1);
+			void add_anchor(int node, rigid_body* body, const trigonometry::vector3& local_pivot, bool disable_collision_between_linked_bodies = false, float influence = 1);
+			void add_force(const trigonometry::vector3& force);
+			void add_force(const trigonometry::vector3& force, int node);
+			void add_aero_force_to_node(const trigonometry::vector3& wind_velocity, int node_index);
+			void add_aero_force_to_face(const trigonometry::vector3& wind_velocity, int face_index);
+			void add_velocity(const trigonometry::vector3& velocity);
+			void set_velocity(const trigonometry::vector3& velocity);
+			void add_velocity(const trigonometry::vector3& velocity, int node);
+			void set_mass(int node, float mass);
+			void set_total_mass(float mass, bool from_faces = false);
+			void set_total_density(float density);
+			void set_volume_mass(float mass);
+			void set_volume_density(float density);
+			void translate(const trigonometry::vector3& position);
+			void rotate(const trigonometry::vector3& rotation);
+			void scale(const trigonometry::vector3& scale);
+			void set_rest_length_scale(float rest_length);
+			void set_pose(bool volume, bool frame);
+			float get_mass(int node) const;
+			float get_total_mass() const;
+			float get_rest_length_scale() const;
+			float get_volume() const;
+			int generate_bending_constraints(int distance);
+			void randomize_constraints();
+			bool cut_link(int node0, int node1, float position);
+			bool ray_test(const trigonometry::vector3& from, const trigonometry::vector3& to, ray_cast& result);
+			void set_wind_velocity(const trigonometry::vector3& velocity);
+			trigonometry::vector3 get_wind_velocity() const;
+			void get_aabb(trigonometry::vector3& min, trigonometry::vector3& max) const;
+			void indices_to_pointers(const int* map = 0);
+			void set_spinning_friction(float value);
+			trigonometry::vector3 get_linear_velocity() const;
+			trigonometry::vector3 get_angular_velocity() const;
+			trigonometry::vector3 get_center_position() const;
+			void set_activity(bool active);
+			void set_as_ghost();
+			void set_as_normal();
+			void set_self_pointer();
+			void set_world_transform(btTransform* value);
+			void set_activation_state(motion_state value);
+			void set_contact_stiffness(float value);
+			void set_contact_damping(float value);
+			void set_friction(float value);
+			void set_restitution(float value);
+			void set_hit_fraction(float value);
+			void set_ccd_motion_threshold(float value);
+			void set_ccd_swept_sphere_radius(float value);
+			void set_contact_processing_threshold(float value);
+			void set_deactivation_time(float value);
+			void set_rolling_friction(float value);
+			void set_anisotropic_friction(const trigonometry::vector3& value);
+			void set_config(const desc::sconfig& conf);
+			shape get_collision_shape_type() const;
+			motion_state get_activation_state() const;
+			trigonometry::vector3 get_anisotropic_friction() const;
+			trigonometry::vector3 get_scale() const;
+			trigonometry::vector3 get_position() const;
+			trigonometry::vector3 get_rotation() const;
+			btTransform* get_world_transform() const;
+			btSoftBody* get() const;
+			bool is_active() const;
+			bool is_static() const;
+			bool is_ghost() const;
+			bool is_colliding() const;
+			float get_spinning_friction() const;
+			float get_contact_stiffness() const;
+			float get_contact_damping() const;
+			float get_friction() const;
+			float get_restitution() const;
+			float get_hit_fraction() const;
+			float get_ccd_motion_threshold() const;
+			float get_ccd_swept_sphere_radius() const;
+			float get_contact_processing_threshold() const;
+			float get_deactivation_time() const;
+			float get_rolling_friction() const;
+			size_t get_collision_flags() const;
+			size_t get_vertices_count() const;
+			desc& get_initial_state();
+			simulator* get_simulator() const;
 
 		public:
-			static SoftBody* Get(btSoftBody* From);
+			static soft_body* get(btSoftBody* from);
 		};
 
-		class VI_OUT Constraint : public Core::Reference<Constraint>
+		class constraint : public core::reference<constraint>
 		{
 		protected:
-			btRigidBody* First, * Second;
-			Simulator* Engine;
+			btRigidBody* first, * second;
+			simulator* engine;
 
 		public:
-			void* UserPointer;
+			void* user_pointer;
 
 		protected:
-			Constraint(Simulator* Refer) noexcept;
+			constraint(simulator* refer) noexcept;
 
 		public:
-			virtual ~Constraint() noexcept = default;
-			virtual Core::Unique<Constraint> Copy() const = 0;
-			virtual btTypedConstraint* Get() const = 0;
-			virtual bool HasCollisions() const = 0;
-			void SetBreakingImpulseThreshold(float Value);
-			void SetEnabled(bool Value);
-			bool IsEnabled() const;
-			bool IsActive() const;
-			float GetBreakingImpulseThreshold() const;
-			btRigidBody* GetFirst() const;
-			btRigidBody* GetSecond() const;
-			Simulator* GetSimulator() const;
+			virtual ~constraint() noexcept = default;
+			virtual core::unique<constraint> copy() const = 0;
+			virtual btTypedConstraint* get() const = 0;
+			virtual bool has_collisions() const = 0;
+			void set_breaking_impulse_threshold(float value);
+			void set_enabled(bool value);
+			bool is_enabled() const;
+			bool is_active() const;
+			float get_breaking_impulse_threshold() const;
+			btRigidBody* get_first() const;
+			btRigidBody* get_second() const;
+			simulator* get_simulator() const;
 		};
 
-		class VI_OUT PConstraint : public Constraint
+		class pconstraint : public constraint
 		{
-			friend RigidBody;
-			friend Simulator;
+			friend rigid_body;
+			friend simulator;
 
 		public:
-			struct Desc
+			struct desc
 			{
-				RigidBody* TargetA = nullptr;
-				RigidBody* TargetB = nullptr;
-				Trigonometry::Vector3 PivotA;
-				Trigonometry::Vector3 PivotB;
-				bool Collisions = true;
+				rigid_body* target_a = nullptr;
+				rigid_body* target_b = nullptr;
+				trigonometry::vector3 pivot_a;
+				trigonometry::vector3 pivot_b;
+				bool collisions = true;
 			};
 
 		private:
-			btPoint2PointConstraint* Instance;
-			Desc State;
+			btPoint2PointConstraint* instance;
+			desc state;
 
 		private:
-			PConstraint(Simulator* Refer, const Desc& I) noexcept;
+			pconstraint(simulator* refer, const desc& i) noexcept;
 
 		public:
-			~PConstraint() noexcept override;
-			Core::Unique<Constraint> Copy() const override;
-			btTypedConstraint* Get() const override;
-			bool HasCollisions() const override;
-			void SetPivotA(const Trigonometry::Vector3& Value);
-			void SetPivotB(const Trigonometry::Vector3& Value);
-			Trigonometry::Vector3 GetPivotA() const;
-			Trigonometry::Vector3 GetPivotB() const;
-			Desc& GetState();
+			~pconstraint() noexcept override;
+			core::unique<constraint> copy() const override;
+			btTypedConstraint* get() const override;
+			bool has_collisions() const override;
+			void set_pivot_a(const trigonometry::vector3& value);
+			void set_pivot_b(const trigonometry::vector3& value);
+			trigonometry::vector3 get_pivot_a() const;
+			trigonometry::vector3 get_pivot_b() const;
+			desc& get_state();
 		};
 
-		class VI_OUT HConstraint : public Constraint
+		class hconstraint : public constraint
 		{
-			friend RigidBody;
-			friend Simulator;
+			friend rigid_body;
+			friend simulator;
 
 		public:
-			struct Desc
+			struct desc
 			{
-				RigidBody* TargetA = nullptr;
-				RigidBody* TargetB = nullptr;
-				bool References = false;
-				bool Collisions = true;
+				rigid_body* target_a = nullptr;
+				rigid_body* target_b = nullptr;
+				bool references = false;
+				bool collisions = true;
 			};
 
 		private:
-			btHingeConstraint* Instance;
-			Desc State;
+			btHingeConstraint* instance;
+			desc state;
 
 		private:
-			HConstraint(Simulator* Refer, const Desc& I) noexcept;
+			hconstraint(simulator* refer, const desc& i) noexcept;
 
 		public:
-			~HConstraint() noexcept override;
-			Core::Unique<Constraint> Copy() const override;
-			btTypedConstraint* Get() const override;
-			bool HasCollisions() const override;
-			void EnableAngularMotor(bool Enable, float TargetVelocity, float MaxMotorImpulse);
-			void EnableMotor(bool Enable);
-			void TestLimit(const Trigonometry::Matrix4x4& A, const Trigonometry::Matrix4x4& B);
-			void SetFrames(const Trigonometry::Matrix4x4& A, const Trigonometry::Matrix4x4& B);
-			void SetAngularOnly(bool Value);
-			void SetMaxMotorImpulse(float Value);
-			void SetMotorTargetVelocity(float Value);
-			void SetMotorTarget(float TargetAngle, float Delta);
-			void SetLimit(float Low, float High, float Softness = 0.9f, float BiasFactor = 0.3f, float RelaxationFactor = 1.0f);
-			void SetOffset(bool Value);
-			void SetReferenceToA(bool Value);
-			void SetAxis(const Trigonometry::Vector3& Value);
-			int GetSolveLimit() const;
-			float GetMotorTargetVelocity() const;
-			float GetMaxMotorImpulse() const;
-			float GetLimitSign() const;
-			float GetHingeAngle() const;
-			float GetHingeAngle(const Trigonometry::Matrix4x4& A, const Trigonometry::Matrix4x4& B) const;
-			float GetLowerLimit() const;
-			float GetUpperLimit() const;
-			float GetLimitSoftness() const;
-			float GetLimitBiasFactor() const;
-			float GetLimitRelaxationFactor() const;
-			bool HasLimit() const;
-			bool IsOffset() const;
-			bool IsReferenceToA() const;
-			bool IsAngularOnly() const;
-			bool IsAngularMotorEnabled() const;
-			Desc& GetState();
+			~hconstraint() noexcept override;
+			core::unique<constraint> copy() const override;
+			btTypedConstraint* get() const override;
+			bool has_collisions() const override;
+			void enable_angular_motor(bool enable, float target_velocity, float max_motor_impulse);
+			void enable_motor(bool enable);
+			void test_limit(const trigonometry::matrix4x4& a, const trigonometry::matrix4x4& b);
+			void set_frames(const trigonometry::matrix4x4& a, const trigonometry::matrix4x4& b);
+			void set_angular_only(bool value);
+			void set_max_motor_impulse(float value);
+			void set_motor_target_velocity(float value);
+			void set_motor_target(float target_angle, float delta);
+			void set_limit(float low, float high, float softness = 0.9f, float bias_factor = 0.3f, float relaxation_factor = 1.0f);
+			void set_offset(bool value);
+			void set_reference_to_a(bool value);
+			void set_axis(const trigonometry::vector3& value);
+			int get_solve_limit() const;
+			float get_motor_target_velocity() const;
+			float get_max_motor_impulse() const;
+			float get_limit_sign() const;
+			float get_hinge_angle() const;
+			float get_hinge_angle(const trigonometry::matrix4x4& a, const trigonometry::matrix4x4& b) const;
+			float get_lower_limit() const;
+			float get_upper_limit() const;
+			float get_limit_softness() const;
+			float get_limit_bias_factor() const;
+			float get_limit_relaxation_factor() const;
+			bool has_limit() const;
+			bool is_offset() const;
+			bool is_reference_to_a() const;
+			bool is_angular_only() const;
+			bool is_angular_motor_enabled() const;
+			desc& get_state();
 		};
 
-		class VI_OUT SConstraint : public Constraint
+		class sconstraint : public constraint
 		{
-			friend RigidBody;
-			friend Simulator;
+			friend rigid_body;
+			friend simulator;
 
 		public:
-			struct Desc
+			struct desc
 			{
-				RigidBody* TargetA = nullptr;
-				RigidBody* TargetB = nullptr;
-				bool Collisions = true;
-				bool Linear = true;
+				rigid_body* target_a = nullptr;
+				rigid_body* target_b = nullptr;
+				bool collisions = true;
+				bool linear = true;
 			};
 
 		private:
-			btSliderConstraint* Instance;
-			Desc State;
+			btSliderConstraint* instance;
+			desc state;
 
 		private:
-			SConstraint(Simulator* Refer, const Desc& I) noexcept;
+			sconstraint(simulator* refer, const desc& i) noexcept;
 
 		public:
-			~SConstraint() noexcept override;
-			Core::Unique<Constraint> Copy() const override;
-			btTypedConstraint* Get() const override;
-			bool HasCollisions() const override;
-			void SetAngularMotorVelocity(float Value);
-			void SetLinearMotorVelocity(float Value);
-			void SetUpperLinearLimit(float Value);
-			void SetLowerLinearLimit(float Value);
-			void SetAngularDampingDirection(float Value);
-			void SetLinearDampingDirection(float Value);
-			void SetAngularDampingLimit(float Value);
-			void SetLinearDampingLimit(float Value);
-			void SetAngularDampingOrtho(float Value);
-			void SetLinearDampingOrtho(float Value);
-			void SetUpperAngularLimit(float Value);
-			void SetLowerAngularLimit(float Value);
-			void SetMaxAngularMotorForce(float Value);
-			void SetMaxLinearMotorForce(float Value);
-			void SetAngularRestitutionDirection(float Value);
-			void SetLinearRestitutionDirection(float Value);
-			void SetAngularRestitutionLimit(float Value);
-			void SetLinearRestitutionLimit(float Value);
-			void SetAngularRestitutionOrtho(float Value);
-			void SetLinearRestitutionOrtho(float Value);
-			void SetAngularSoftnessDirection(float Value);
-			void SetLinearSoftnessDirection(float Value);
-			void SetAngularSoftnessLimit(float Value);
-			void SetLinearSoftnessLimit(float Value);
-			void SetAngularSoftnessOrtho(float Value);
-			void SetLinearSoftnessOrtho(float Value);
-			void SetPoweredAngularMotor(bool Value);
-			void SetPoweredLinearMotor(bool Value);
-			float GetAngularMotorVelocity() const;
-			float GetLinearMotorVelocity() const;
-			float GetUpperLinearLimit() const;
-			float GetLowerLinearLimit() const;
-			float GetAngularDampingDirection() const;
-			float GetLinearDampingDirection() const;
-			float GetAngularDampingLimit() const;
-			float GetLinearDampingLimit() const;
-			float GetAngularDampingOrtho() const;
-			float GetLinearDampingOrtho() const;
-			float GetUpperAngularLimit() const;
-			float GetLowerAngularLimit() const;
-			float GetMaxAngularMotorForce() const;
-			float GetMaxLinearMotorForce() const;
-			float GetAngularRestitutionDirection() const;
-			float GetLinearRestitutionDirection() const;
-			float GetAngularRestitutionLimit() const;
-			float GetLinearRestitutionLimit() const;
-			float GetAngularRestitutionOrtho() const;
-			float GetLinearRestitutionOrtho() const;
-			float GetAngularSoftnessDirection() const;
-			float GetLinearSoftnessDirection() const;
-			float GetAngularSoftnessLimit() const;
-			float GetLinearSoftnessLimit() const;
-			float GetAngularSoftnessOrtho() const;
-			float GetLinearSoftnessOrtho() const;
-			bool GetPoweredAngularMotor() const;
-			bool GetPoweredLinearMotor() const;
-			Desc& GetState();
+			~sconstraint() noexcept override;
+			core::unique<constraint> copy() const override;
+			btTypedConstraint* get() const override;
+			bool has_collisions() const override;
+			void set_angular_motor_velocity(float value);
+			void set_linear_motor_velocity(float value);
+			void set_upper_linear_limit(float value);
+			void set_lower_linear_limit(float value);
+			void set_angular_damping_direction(float value);
+			void set_linear_damping_direction(float value);
+			void set_angular_damping_limit(float value);
+			void set_linear_damping_limit(float value);
+			void set_angular_damping_ortho(float value);
+			void set_linear_damping_ortho(float value);
+			void set_upper_angular_limit(float value);
+			void set_lower_angular_limit(float value);
+			void set_max_angular_motor_force(float value);
+			void set_max_linear_motor_force(float value);
+			void set_angular_restitution_direction(float value);
+			void set_linear_restitution_direction(float value);
+			void set_angular_restitution_limit(float value);
+			void set_linear_restitution_limit(float value);
+			void set_angular_restitution_ortho(float value);
+			void set_linear_restitution_ortho(float value);
+			void set_angular_softness_direction(float value);
+			void set_linear_softness_direction(float value);
+			void set_angular_softness_limit(float value);
+			void set_linear_softness_limit(float value);
+			void set_angular_softness_ortho(float value);
+			void set_linear_softness_ortho(float value);
+			void set_powered_angular_motor(bool value);
+			void set_powered_linear_motor(bool value);
+			float get_angular_motor_velocity() const;
+			float get_linear_motor_velocity() const;
+			float get_upper_linear_limit() const;
+			float get_lower_linear_limit() const;
+			float get_angular_damping_direction() const;
+			float get_linear_damping_direction() const;
+			float get_angular_damping_limit() const;
+			float get_linear_damping_limit() const;
+			float get_angular_damping_ortho() const;
+			float get_linear_damping_ortho() const;
+			float get_upper_angular_limit() const;
+			float get_lower_angular_limit() const;
+			float get_max_angular_motor_force() const;
+			float get_max_linear_motor_force() const;
+			float get_angular_restitution_direction() const;
+			float get_linear_restitution_direction() const;
+			float get_angular_restitution_limit() const;
+			float get_linear_restitution_limit() const;
+			float get_angular_restitution_ortho() const;
+			float get_linear_restitution_ortho() const;
+			float get_angular_softness_direction() const;
+			float get_linear_softness_direction() const;
+			float get_angular_softness_limit() const;
+			float get_linear_softness_limit() const;
+			float get_angular_softness_ortho() const;
+			float get_linear_softness_ortho() const;
+			bool get_powered_angular_motor() const;
+			bool get_powered_linear_motor() const;
+			desc& get_state();
 		};
 
-		class VI_OUT CTConstraint : public Constraint
+		class ct_constraint : public constraint
 		{
-			friend RigidBody;
-			friend Simulator;
+			friend rigid_body;
+			friend simulator;
 
 		public:
-			struct Desc
+			struct desc
 			{
-				RigidBody* TargetA = nullptr;
-				RigidBody* TargetB = nullptr;
-				bool Collisions = true;
+				rigid_body* target_a = nullptr;
+				rigid_body* target_b = nullptr;
+				bool collisions = true;
 			};
 
 		private:
-			btConeTwistConstraint* Instance;
-			Desc State;
+			btConeTwistConstraint* instance;
+			desc state;
 
 		private:
-			CTConstraint(Simulator* Refer, const Desc& I) noexcept;
+			ct_constraint(simulator* refer, const desc& i) noexcept;
 
 		public:
-			~CTConstraint() noexcept override;
-			Core::Unique<Constraint> Copy() const override;
-			btTypedConstraint* Get() const override;
-			bool HasCollisions() const override;
-			void EnableMotor(bool Value);
-			void SetFrames(const Trigonometry::Matrix4x4& A, const Trigonometry::Matrix4x4& B);
-			void SetAngularOnly(bool Value);
-			void SetLimit(int LimitIndex, float LimitValue);
-			void SetLimit(float SwingSpan1, float SwingSpan2, float TwistSpan, float Softness = 1.f, float BiasFactor = 0.3f, float RelaxationFactor = 1.0f);
-			void SetDamping(float Value);
-			void SetMaxMotorImpulse(float Value);
-			void SetMaxMotorImpulseNormalized(float Value);
-			void SetFixThresh(float Value);
-			void SetMotorTarget(const Trigonometry::Quaternion& Value);
-			void SetMotorTargetInConstraintSpace(const Trigonometry::Quaternion& Value);
-			Trigonometry::Vector3 GetPointForAngle(float AngleInRadians, float Length) const;
-			Trigonometry::Quaternion GetMotorTarget() const;
-			int GetSolveTwistLimit() const;
-			int GetSolveSwingLimit() const;
-			float GetTwistLimitSign() const;
-			float GetSwingSpan1() const;
-			float GetSwingSpan2() const;
-			float GetTwistSpan() const;
-			float GetLimitSoftness() const;
-			float GetBiasFactor() const;
-			float GetRelaxationFactor() const;
-			float GetTwistAngle() const;
-			float GetLimit(int Value) const;
-			float GetDamping() const;
-			float GetMaxMotorImpulse() const;
-			float GetFixThresh() const;
-			bool IsMotorEnabled() const;
-			bool IsMaxMotorImpulseNormalized() const;
-			bool IsPastSwingLimit() const;
-			bool IsAngularOnly() const;
-			Desc& GetState();
+			~ct_constraint() noexcept override;
+			core::unique<constraint> copy() const override;
+			btTypedConstraint* get() const override;
+			bool has_collisions() const override;
+			void enable_motor(bool value);
+			void set_frames(const trigonometry::matrix4x4& a, const trigonometry::matrix4x4& b);
+			void set_angular_only(bool value);
+			void set_limit(int limit_index, float limit_value);
+			void set_limit(float swing_span1, float swing_span2, float twist_span, float softness = 1.f, float bias_factor = 0.3f, float relaxation_factor = 1.0f);
+			void set_damping(float value);
+			void set_max_motor_impulse(float value);
+			void set_max_motor_impulse_normalized(float value);
+			void set_fix_thresh(float value);
+			void set_motor_target(const trigonometry::quaternion& value);
+			void set_motor_target_in_constraint_space(const trigonometry::quaternion& value);
+			trigonometry::vector3 get_point_for_angle(float angle_in_radians, float length) const;
+			trigonometry::quaternion get_motor_target() const;
+			int get_solve_twist_limit() const;
+			int get_solve_swing_limit() const;
+			float get_twist_limit_sign() const;
+			float get_swing_span1() const;
+			float get_swing_span2() const;
+			float get_twist_span() const;
+			float get_limit_softness() const;
+			float get_bias_factor() const;
+			float get_relaxation_factor() const;
+			float get_twist_angle() const;
+			float get_limit(int value) const;
+			float get_damping() const;
+			float get_max_motor_impulse() const;
+			float get_fix_thresh() const;
+			bool is_motor_enabled() const;
+			bool is_max_motor_impulse_normalized() const;
+			bool is_past_swing_limit() const;
+			bool is_angular_only() const;
+			desc& get_state();
 		};
 
-		class VI_OUT DF6Constraint : public Constraint
+		class df6_constraint : public constraint
 		{
-			friend RigidBody;
-			friend Simulator;
+			friend rigid_body;
+			friend simulator;
 
 		public:
-			struct Desc
+			struct desc
 			{
-				RigidBody* TargetA = nullptr;
-				RigidBody* TargetB = nullptr;
-				bool Collisions = true;
+				rigid_body* target_a = nullptr;
+				rigid_body* target_b = nullptr;
+				bool collisions = true;
 			};
 
 		private:
-			btGeneric6DofSpring2Constraint* Instance;
-			Desc State;
+			btGeneric6DofSpring2Constraint* instance;
+			desc state;
 
 		private:
-			DF6Constraint(Simulator* Refer, const Desc& I) noexcept;
+			df6_constraint(simulator* refer, const desc& i) noexcept;
 
 		public:
-			~DF6Constraint() noexcept override;
-			Core::Unique<Constraint> Copy() const override;
-			btTypedConstraint* Get() const override;
-			bool HasCollisions() const override;
-			void EnableMotor(int Index, bool OnOff);
-			void EnableSpring(int Index, bool OnOff);
-			void SetFrames(const Trigonometry::Matrix4x4& A, const Trigonometry::Matrix4x4& B);
-			void SetLinearLowerLimit(const Trigonometry::Vector3& Value);
-			void SetLinearUpperLimit(const Trigonometry::Vector3& Value);
-			void SetAngularLowerLimit(const Trigonometry::Vector3& Value);
-			void SetAngularLowerLimitReversed(const Trigonometry::Vector3& Value);
-			void SetAngularUpperLimit(const Trigonometry::Vector3& Value);
-			void SetAngularUpperLimitReversed(const Trigonometry::Vector3& Value);
-			void SetLimit(int Axis, float Low, float High);
-			void SetLimitReversed(int Axis, float Low, float High);
-			void SetRotationOrder(Trigonometry::Rotator Order);
-			void SetAxis(const Trigonometry::Vector3& A, const Trigonometry::Vector3& B);
-			void SetBounce(int Index, float Bounce);
-			void SetServo(int Index, bool OnOff);
-			void SetTargetVelocity(int Index, float Velocity);
-			void SetServoTarget(int Index, float Target);
-			void SetMaxMotorForce(int Index, float Force);
-			void SetStiffness(int Index, float Stiffness, bool LimitIfNeeded = true);
-			void SetEquilibriumPoint();
-			void SetEquilibriumPoint(int Index);
-			void SetEquilibriumPoint(int Index, float Value);
-			Trigonometry::Vector3 GetAngularUpperLimit() const;
-			Trigonometry::Vector3 GetAngularUpperLimitReversed() const;
-			Trigonometry::Vector3 GetAngularLowerLimit() const;
-			Trigonometry::Vector3 GetAngularLowerLimitReversed() const;
-			Trigonometry::Vector3 GetLinearUpperLimit() const;
-			Trigonometry::Vector3 GetLinearLowerLimit() const;
-			Trigonometry::Vector3 GetAxis(int Value) const;
-			Trigonometry::Rotator GetRotationOrder() const;
-			float GetAngle(int Value) const;
-			float GetRelativePivotPosition(int Value) const;
-			bool IsLimited(int LimitIndex) const;
-			Desc& GetState();
+			~df6_constraint() noexcept override;
+			core::unique<constraint> copy() const override;
+			btTypedConstraint* get() const override;
+			bool has_collisions() const override;
+			void enable_motor(int index, bool on_off);
+			void enable_spring(int index, bool on_off);
+			void set_frames(const trigonometry::matrix4x4& a, const trigonometry::matrix4x4& b);
+			void set_linear_lower_limit(const trigonometry::vector3& value);
+			void set_linear_upper_limit(const trigonometry::vector3& value);
+			void set_angular_lower_limit(const trigonometry::vector3& value);
+			void set_angular_lower_limit_reversed(const trigonometry::vector3& value);
+			void set_angular_upper_limit(const trigonometry::vector3& value);
+			void set_angular_upper_limit_reversed(const trigonometry::vector3& value);
+			void set_limit(int axis, float low, float high);
+			void set_limit_reversed(int axis, float low, float high);
+			void set_rotation_order(trigonometry::rotator order);
+			void set_axis(const trigonometry::vector3& a, const trigonometry::vector3& b);
+			void set_bounce(int index, float bounce);
+			void set_servo(int index, bool on_off);
+			void set_target_velocity(int index, float velocity);
+			void set_servo_target(int index, float target);
+			void set_max_motor_force(int index, float force);
+			void set_stiffness(int index, float stiffness, bool limit_if_needed = true);
+			void set_equilibrium_point();
+			void set_equilibrium_point(int index);
+			void set_equilibrium_point(int index, float value);
+			trigonometry::vector3 get_angular_upper_limit() const;
+			trigonometry::vector3 get_angular_upper_limit_reversed() const;
+			trigonometry::vector3 get_angular_lower_limit() const;
+			trigonometry::vector3 get_angular_lower_limit_reversed() const;
+			trigonometry::vector3 get_linear_upper_limit() const;
+			trigonometry::vector3 get_linear_lower_limit() const;
+			trigonometry::vector3 get_axis(int value) const;
+			trigonometry::rotator get_rotation_order() const;
+			float get_angle(int value) const;
+			float get_relative_pivot_position(int value) const;
+			bool is_limited(int limit_index) const;
+			desc& get_state();
 		};
 
-		class VI_OUT Simulator final : public Core::Reference<Simulator>
+		class simulator final : public core::reference<simulator>
 		{
 		public:
-			struct Desc
+			struct desc
 			{
-				Trigonometry::Vector3 WaterNormal;
-				Trigonometry::Vector3 Gravity = Trigonometry::Vector3(0, -10, 0);
-				float AirDensity = 1.2f;
-				float WaterDensity = 0;
-				float WaterOffset = 0;
-				float MaxDisplacement = 1000;
-				bool EnableSoftBody = false;
+				trigonometry::vector3 water_normal;
+				trigonometry::vector3 gravity = trigonometry::vector3(0, -10, 0);
+				float air_density = 1.2f;
+				float water_density = 0;
+				float water_offset = 0;
+				float max_displacement = 1000;
+				bool enable_soft_body = false;
 			};
 
 		private:
 			struct
 			{
-				float LastElapsedTime = 0.0f;
-			} Timing;
+				float last_elapsed_time = 0.0f;
+			} timing;
 
 		private:
-			Core::UnorderedMap<void*, size_t> Shapes;
-			btCollisionConfiguration* Collision;
-			btBroadphaseInterface* Broadphase;
-			btConstraintSolver* Solver;
-			btDiscreteDynamicsWorld* World;
-			btCollisionDispatcher* Dispatcher;
-			btSoftBodySolver* SoftSolver;
-			std::mutex Exclusive;
+			core::unordered_map<void*, size_t> shapes;
+			btCollisionConfiguration* collision;
+			btBroadphaseInterface* broadphase;
+			btConstraintSolver* solver;
+			btDiscreteDynamicsWorld* world;
+			btCollisionDispatcher* dispatcher;
+			btSoftBodySolver* soft_solver;
+			std::mutex exclusive;
 
 		public:
-			float Speedup;
-			bool Active;
+			float speedup;
+			bool active;
 
 		public:
-			Simulator(const Desc& I) noexcept;
-			~Simulator() noexcept;
-			void SetGravity(const Trigonometry::Vector3& Gravity);
-			void SetLinearImpulse(const Trigonometry::Vector3& Impulse, bool RandomFactor = false);
-			void SetLinearImpulse(const Trigonometry::Vector3& Impulse, int Start, int End, bool RandomFactor = false);
-			void SetAngularImpulse(const Trigonometry::Vector3& Impulse, bool RandomFactor = false);
-			void SetAngularImpulse(const Trigonometry::Vector3& Impulse, int Start, int End, bool RandomFactor = false);
-			void SetOnCollisionEnter(ContactStartedCallback Callback);
-			void SetOnCollisionExit(ContactEndedCallback Callback);
-			void CreateLinearImpulse(const Trigonometry::Vector3& Impulse, bool RandomFactor = false);
-			void CreateLinearImpulse(const Trigonometry::Vector3& Impulse, int Start, int End, bool RandomFactor = false);
-			void CreateAngularImpulse(const Trigonometry::Vector3& Impulse, bool RandomFactor = false);
-			void CreateAngularImpulse(const Trigonometry::Vector3& Impulse, int Start, int End, bool RandomFactor = false);
-			void AddSoftBody(SoftBody* Body);
-			void RemoveSoftBody(SoftBody* Body);
-			void AddRigidBody(RigidBody* Body);
-			void RemoveRigidBody(RigidBody* Body);
-			void AddConstraint(Constraint* Constraint);
-			void RemoveConstraint(Constraint* Constraint);
-			void RemoveAll();
-			void SimulateStep(float ElapsedTimeSeconds);
-			void FindContacts(RigidBody* Body, int(*Callback)(ShapeContact*, const CollisionBody&, const CollisionBody&));
-			bool FindRayContacts(const Trigonometry::Vector3& Start, const Trigonometry::Vector3& End, int(*Callback)(RayContact*, const CollisionBody&));
-			Core::Unique<RigidBody> CreateRigidBody(const RigidBody::Desc& I);
-			Core::Unique<RigidBody> CreateRigidBody(const RigidBody::Desc& I, Trigonometry::Transform* Transform);
-			Core::Unique<SoftBody> CreateSoftBody(const SoftBody::Desc& I);
-			Core::Unique<SoftBody> CreateSoftBody(const SoftBody::Desc& I, Trigonometry::Transform* Transform);
-			Core::Unique<PConstraint> CreatePoint2PointConstraint(const PConstraint::Desc& I);
-			Core::Unique<HConstraint> CreateHingeConstraint(const HConstraint::Desc& I);
-			Core::Unique<SConstraint> CreateSliderConstraint(const SConstraint::Desc& I);
-			Core::Unique<CTConstraint> CreateConeTwistConstraint(const CTConstraint::Desc& I);
-			Core::Unique<DF6Constraint> Create6DoFConstraint(const DF6Constraint::Desc& I);
-			btCollisionShape* CreateShape(Shape Type);
-			btCollisionShape* CreateCube(const Trigonometry::Vector3& Scale = Trigonometry::Vector3(1, 1, 1));
-			btCollisionShape* CreateSphere(float Radius = 1);
-			btCollisionShape* CreateCapsule(float Radius = 1, float Height = 1);
-			btCollisionShape* CreateCone(float Radius = 1, float Height = 1);
-			btCollisionShape* CreateCylinder(const Trigonometry::Vector3& Scale = Trigonometry::Vector3(1, 1, 1));
-			btCollisionShape* CreateConvexHull(Core::Vector<Trigonometry::SkinVertex>& Mesh);
-			btCollisionShape* CreateConvexHull(Core::Vector<Trigonometry::Vertex>& Mesh);
-			btCollisionShape* CreateConvexHull(Core::Vector<Trigonometry::Vector2>& Mesh);
-			btCollisionShape* CreateConvexHull(Core::Vector<Trigonometry::Vector3>& Mesh);
-			btCollisionShape* CreateConvexHull(Core::Vector<Trigonometry::Vector4>& Mesh);
-			btCollisionShape* CreateConvexHull(btCollisionShape* From);
-			btCollisionShape* TryCloneShape(btCollisionShape* Shape);
-			btCollisionShape* ReuseShape(btCollisionShape* Shape);
-			void FreeShape(Core::Unique<btCollisionShape*> Value);
-			Core::Vector<Trigonometry::Vector3> GetShapeVertices(btCollisionShape* Shape) const;
-			size_t GetShapeVerticesCount(btCollisionShape* Shape) const;
-			float GetMaxDisplacement() const;
-			float GetAirDensity() const;
-			float GetWaterOffset() const;
-			float GetWaterDensity() const;
-			Trigonometry::Vector3 GetWaterNormal() const;
-			Trigonometry::Vector3 GetGravity() const;
-			ContactStartedCallback GetOnCollisionEnter() const;
-			ContactEndedCallback GetOnCollisionExit() const;
-			btCollisionConfiguration* GetCollision() const;
-			btBroadphaseInterface* GetBroadphase() const;
-			btConstraintSolver* GetSolver() const;
-			btDiscreteDynamicsWorld* GetWorld() const;
-			btCollisionDispatcher* GetDispatcher() const;
-			btSoftBodySolver* GetSoftSolver() const;
-			bool HasSoftBodySupport() const;
-			int GetContactManifoldCount() const;
+			simulator(const desc& i) noexcept;
+			~simulator() noexcept;
+			void set_gravity(const trigonometry::vector3& gravity);
+			void set_linear_impulse(const trigonometry::vector3& impulse, bool random_factor = false);
+			void set_linear_impulse(const trigonometry::vector3& impulse, int start, int end, bool random_factor = false);
+			void set_angular_impulse(const trigonometry::vector3& impulse, bool random_factor = false);
+			void set_angular_impulse(const trigonometry::vector3& impulse, int start, int end, bool random_factor = false);
+			void set_on_collision_enter(contact_started_callback callback);
+			void set_on_collision_exit(contact_ended_callback callback);
+			void create_linear_impulse(const trigonometry::vector3& impulse, bool random_factor = false);
+			void create_linear_impulse(const trigonometry::vector3& impulse, int start, int end, bool random_factor = false);
+			void create_angular_impulse(const trigonometry::vector3& impulse, bool random_factor = false);
+			void create_angular_impulse(const trigonometry::vector3& impulse, int start, int end, bool random_factor = false);
+			void add_soft_body(soft_body* body);
+			void remove_soft_body(soft_body* body);
+			void add_rigid_body(rigid_body* body);
+			void remove_rigid_body(rigid_body* body);
+			void add_constraint(constraint* constraint);
+			void remove_constraint(constraint* constraint);
+			void remove_all();
+			void simulate_step(float elapsed_time_seconds);
+			void find_contacts(rigid_body* body, int(*callback)(shape_contact*, const collision_body&, const collision_body&));
+			bool find_ray_contacts(const trigonometry::vector3& start, const trigonometry::vector3& end, int(*callback)(ray_contact*, const collision_body&));
+			core::unique<rigid_body> create_rigid_body(const rigid_body::desc& i);
+			core::unique<rigid_body> create_rigid_body(const rigid_body::desc& i, trigonometry::transform* transform);
+			core::unique<soft_body> create_soft_body(const soft_body::desc& i);
+			core::unique<soft_body> create_soft_body(const soft_body::desc& i, trigonometry::transform* transform);
+			core::unique<pconstraint> create_point2_point_constraint(const pconstraint::desc& i);
+			core::unique<hconstraint> create_hinge_constraint(const hconstraint::desc& i);
+			core::unique<sconstraint> create_slider_constraint(const sconstraint::desc& i);
+			core::unique<ct_constraint> create_cone_twist_constraint(const ct_constraint::desc& i);
+			core::unique<df6_constraint> create_6dof_constraint(const df6_constraint::desc& i);
+			btCollisionShape* create_shape(shape type);
+			btCollisionShape* create_cube(const trigonometry::vector3& scale = trigonometry::vector3(1, 1, 1));
+			btCollisionShape* create_sphere(float radius = 1);
+			btCollisionShape* create_capsule(float radius = 1, float height = 1);
+			btCollisionShape* create_cone(float radius = 1, float height = 1);
+			btCollisionShape* create_cylinder(const trigonometry::vector3& scale = trigonometry::vector3(1, 1, 1));
+			btCollisionShape* create_convex_hull(core::vector<trigonometry::skin_vertex>& mesh);
+			btCollisionShape* create_convex_hull(core::vector<trigonometry::vertex>& mesh);
+			btCollisionShape* create_convex_hull(core::vector<trigonometry::vector2>& mesh);
+			btCollisionShape* create_convex_hull(core::vector<trigonometry::vector3>& mesh);
+			btCollisionShape* create_convex_hull(core::vector<trigonometry::vector4>& mesh);
+			btCollisionShape* create_convex_hull(btCollisionShape* from);
+			btCollisionShape* try_clone_shape(btCollisionShape* shape);
+			btCollisionShape* reuse_shape(btCollisionShape* shape);
+			void free_shape(core::unique<btCollisionShape*> value);
+			core::vector<trigonometry::vector3> get_shape_vertices(btCollisionShape* shape) const;
+			size_t get_shape_vertices_count(btCollisionShape* shape) const;
+			float get_max_displacement() const;
+			float get_air_density() const;
+			float get_water_offset() const;
+			float get_water_density() const;
+			trigonometry::vector3 get_water_normal() const;
+			trigonometry::vector3 get_gravity() const;
+			contact_started_callback get_on_collision_enter() const;
+			contact_ended_callback get_on_collision_exit() const;
+			btCollisionConfiguration* get_collision() const;
+			btBroadphaseInterface* get_broadphase() const;
+			btConstraintSolver* get_solver() const;
+			btDiscreteDynamicsWorld* get_world() const;
+			btCollisionDispatcher* get_dispatcher() const;
+			btSoftBodySolver* get_soft_solver() const;
+			bool has_soft_body_support() const;
+			int get_contact_manifold_count() const;
 
 		public:
-			static Simulator* Get(btDiscreteDynamicsWorld* From);
+			static simulator* get(btDiscreteDynamicsWorld* from);
 		};
 	}
 }

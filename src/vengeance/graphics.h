@@ -4,2114 +4,2113 @@
 #include <iostream>
 #include <functional>
 #include <limits>
-#define VI_VS (uint32_t)Vitex::Graphics::ShaderType::Vertex
-#define VI_PS (uint32_t)Vitex::Graphics::ShaderType::Pixel
-#define VI_GS (uint32_t)Vitex::Graphics::ShaderType::Geometry
-#define VI_CS (uint32_t)Vitex::Graphics::ShaderType::Compute
-#define VI_HS (uint32_t)Vitex::Graphics::ShaderType::Hull
-#define VI_DS (uint32_t)Vitex::Graphics::ShaderType::Domain
+#define VI_VS (uint32_t)vitex::graphics::shader_type::vertex
+#define VI_PS (uint32_t)vitex::graphics::shader_type::pixel
+#define VI_GS (uint32_t)vitex::graphics::shader_type::geometry
+#define VI_CS (uint32_t)vitex::graphics::shader_type::compute
+#define VI_HS (uint32_t)vitex::graphics::shader_type::hull
+#define VI_DS (uint32_t)vitex::graphics::shader_type::domain
 
 struct SDL_SysWMinfo;
 struct SDL_Cursor;
 struct SDL_Window;
 struct SDL_Surface;
 
-namespace Vitex
+namespace vitex
 {
-	namespace Graphics
+	namespace graphics
 	{
 		enum
 		{
-			WINDOW_SIZE = 128,
-			JOINTS_SIZE = 96,
-			UNITS_SIZE = 32
+			window_size = 128,
+			joints_size = 96,
+			units_size = 32
 		};
 
-		enum class AppState
+		enum class app_state
 		{
-			Close,
-			Terminating,
-			Low_Memory,
-			Enter_Background_Start,
-			Enter_Background_End,
-			Enter_Foreground_Start,
-			Enter_Foreground_End
+			close,
+			terminating,
+			low_memory,
+			enter_background_start,
+			enter_background_end,
+			enter_foreground_start,
+			enter_foreground_end
 		};
 
-		enum class WindowState
+		enum class window_state
 		{
-			Show,
-			Hide,
-			Expose,
-			Move,
-			Resize,
-			Size_Change,
-			Minimize,
-			Maximize,
-			Restore,
-			Enter,
-			Leave,
-			Focus,
-			Blur,
-			Close
+			show,
+			hide,
+			expose,
+			move,
+			resize,
+			size_change,
+			minimize,
+			maximize,
+			restore,
+			enter,
+			leave,
+			focus,
+			blur,
+			close
 		};
 
-		enum class KeyCode
+		enum class key_code
 		{
-			A = 4,
-			B = 5,
-			C = 6,
-			D = 7,
-			E = 8,
-			F = 9,
-			G = 10,
-			H = 11,
-			I = 12,
-			J = 13,
-			K = 14,
-			L = 15,
-			M = 16,
-			N = 17,
-			O = 18,
-			P = 19,
-			Q = 20,
-			R = 21,
-			S = 22,
-			T = 23,
-			U = 24,
-			V = 25,
-			W = 26,
-			X = 27,
-			Y = 28,
-			Z = 29,
-			D1 = 30,
-			D2 = 31,
-			D3 = 32,
-			D4 = 33,
-			D5 = 34,
-			D6 = 35,
-			D7 = 36,
-			D8 = 37,
-			D9 = 38,
-			D0 = 39,
-			Return = 40,
-			Escape = 41,
-			Backspace = 42,
-			Tab = 43,
-			Space = 44,
-			Minus = 45,
-			Equals = 46,
-			LeftBracket = 47,
-			RightBracket = 48,
-			Backslash = 49,
-			NonUsHash = 50,
-			Semicolon = 51,
-			Apostrophe = 52,
-			Grave = 53,
-			Comma = 54,
-			Period = 55,
-			Slash = 56,
-			Capslock = 57,
-			F1 = 58,
-			F2 = 59,
-			F3 = 60,
-			F4 = 61,
-			F5 = 62,
-			F6 = 63,
-			F7 = 64,
-			F8 = 65,
-			F9 = 66,
-			F10 = 67,
-			F11 = 68,
-			F12 = 69,
-			PrintScreen = 70,
-			ScrollLock = 71,
-			Pause = 72,
-			Insert = 73,
-			Home = 74,
-			PageUp = 75,
-			Delete = 76,
-			End = 77,
-			PageDown = 78,
-			Right = 79,
-			Left = 80,
-			Down = 81,
-			Up = 82,
-			NumLockClear = 83,
-			KpDivide = 84,
-			KpMultiply = 85,
-			KpMinus = 86,
-			KpPlus = 87,
-			KpEnter = 88,
-			Kp1 = 89,
-			Kp2 = 90,
-			Kp3 = 91,
-			Kp4 = 92,
-			Kp5 = 93,
-			Kp6 = 94,
-			Kp7 = 95,
-			Kp8 = 96,
-			Kp9 = 97,
-			Kp0 = 98,
-			KpPeriod = 99,
-			NonUsBackslash = 100,
-			App0 = 101,
-			Power = 102,
-			KpEquals = 103,
-			F13 = 104,
-			F14 = 105,
-			F15 = 106,
-			F16 = 107,
-			F17 = 108,
-			F18 = 109,
-			F19 = 110,
-			F20 = 111,
-			F21 = 112,
-			F22 = 113,
-			F23 = 114,
-			F24 = 115,
-			Execute = 116,
-			Help = 117,
-			Menu = 118,
-			Select = 119,
-			Stop = 120,
-			Again = 121,
-			Undo = 122,
-			Cut = 123,
-			Copy = 124,
-			Paste = 125,
-			Find = 126,
-			Mute = 127,
-			VolumeUp = 128,
-			VolumeDown = 129,
-			KpComma = 133,
-			KpEqualsAs400 = 134,
-			International1 = 135,
-			International2 = 136,
-			International3 = 137,
-			International4 = 138,
-			International5 = 139,
-			International6 = 140,
-			International7 = 141,
-			International8 = 142,
-			International9 = 143,
-			Lang1 = 144,
-			Lang2 = 145,
-			Lang3 = 146,
-			Lang4 = 147,
-			Lang5 = 148,
-			Lang6 = 149,
-			Lang7 = 150,
-			Lang8 = 151,
-			Lang9 = 152,
-			Alterase = 153,
-			SysReq = 154,
-			Cancel = 155,
-			Clear = 156,
-			Prior = 157,
-			Return2 = 158,
-			Separator = 159,
-			Output = 160,
-			Operation = 161,
-			ClearAgain = 162,
-			CrSelect = 163,
-			ExSelect = 164,
-			Kp00 = 176,
-			Kp000 = 177,
-			ThousandsSeparator = 178,
-			DecimalsSeparator = 179,
-			CurrencyUnit = 180,
-			CurrencySubunit = 181,
-			KpLeftParen = 182,
-			KpRightParen = 183,
-			KpLeftBrace = 184,
-			KpRightBrace = 185,
-			KpTab = 186,
-			KpBackspace = 187,
-			KpA = 188,
-			KpB = 189,
-			KpC = 190,
-			KpD = 191,
-			KpE = 192,
-			KpF = 193,
-			KpXOR = 194,
-			KpPower = 195,
-			KpPercent = 196,
-			KpLess = 197,
-			KpGreater = 198,
-			KpAmpersand = 199,
-			KpDBLAmpersand = 200,
-			KpVerticalBar = 201,
-			KpDBLVerticalBar = 202,
-			KpColon = 203,
-			KpHash = 204,
-			KpSpace = 205,
-			KpAt = 206,
-			KpExclaim = 207,
-			KpMemStore = 208,
-			KpMemRecall = 209,
-			KpMemClear = 210,
-			KpMemAdd = 211,
-			KpMemSubtract = 212,
-			KpMemMultiply = 213,
-			KpMemDivide = 214,
-			KpPlusMinus = 215,
-			KpClear = 216,
-			KpClearEntry = 217,
-			KpBinary = 218,
-			KpOctal = 219,
-			KpDecimal = 220,
-			KpHexadecimal = 221,
-			LeftControl = 224,
-			LeftShift = 225,
-			LeftAlt = 226,
-			LeftGUI = 227,
-			RightControl = 228,
-			RightShift = 229,
-			RightAlt = 230,
-			RightGUI = 231,
-			Mode = 257,
-			AudioNext = 258,
-			AudioPrev = 259,
-			AudioStop = 260,
-			AudioPlay = 261,
-			AudioMute = 262,
-			MediaSelect = 263,
-			WWW = 264,
-			Mail = 265,
-			Calculator = 266,
-			Computer = 267,
-			AcSearch = 268,
-			AcHome = 269,
-			AcBack = 270,
-			AcForward = 271,
-			AcStop = 272,
-			AcRefresh = 273,
-			AcBookmarks = 274,
-			BrightnessDown = 275,
-			BrightnessUp = 276,
-			DisplaySwitch = 277,
-			KbIllumToggle = 278,
-			KbIllumDown = 279,
-			KbIllumUp = 280,
-			Eject = 281,
-			Sleep = 282,
-			App1 = 283,
-			App2 = 284,
-			AudioRewind = 285,
-			AudioFastForward = 286,
-			CursorLeft = 287,
-			CursorMiddle = 288,
-			CursorRight = 289,
-			CursorX1 = 290,
-			CursorX2 = 291,
-			None = 292
+			a = 4,
+			b = 5,
+			c = 6,
+			d = 7,
+			e = 8,
+			f = 9,
+			g = 10,
+			h = 11,
+			i = 12,
+			j = 13,
+			k = 14,
+			l = 15,
+			m = 16,
+			n = 17,
+			o = 18,
+			p = 19,
+			q = 20,
+			r = 21,
+			s = 22,
+			t = 23,
+			u = 24,
+			v = 25,
+			w = 26,
+			x = 27,
+			y = 28,
+			z = 29,
+			d1 = 30,
+			d2 = 31,
+			d3 = 32,
+			d4 = 33,
+			d5 = 34,
+			d6 = 35,
+			d7 = 36,
+			d8 = 37,
+			d9 = 38,
+			d0 = 39,
+			defer = 40,
+			escape = 41,
+			backspace = 42,
+			tab = 43,
+			space = 44,
+			minus = 45,
+			equals = 46,
+			left_bracket = 47,
+			right_bracket = 48,
+			backslash = 49,
+			non_us_hash = 50,
+			semicolon = 51,
+			apostrophe = 52,
+			grave = 53,
+			comma = 54,
+			period = 55,
+			slash = 56,
+			capslock = 57,
+			f1 = 58,
+			f2 = 59,
+			f3 = 60,
+			f4 = 61,
+			f5 = 62,
+			f6 = 63,
+			f7 = 64,
+			f8 = 65,
+			f9 = 66,
+			f10 = 67,
+			f11 = 68,
+			f12 = 69,
+			print_screen = 70,
+			scroll_lock = 71,
+			pause = 72,
+			insert = 73,
+			home = 74,
+			page_up = 75,
+			deinit = 76,
+			end = 77,
+			page_down = 78,
+			right = 79,
+			left = 80,
+			down = 81,
+			up = 82,
+			num_lock_clear = 83,
+			kp_divide = 84,
+			kp_multiply = 85,
+			kp_minus = 86,
+			kp_plus = 87,
+			kp_enter = 88,
+			kp1 = 89,
+			kp2 = 90,
+			kp3 = 91,
+			kp4 = 92,
+			kp5 = 93,
+			kp6 = 94,
+			kp7 = 95,
+			kp8 = 96,
+			kp9 = 97,
+			kp0 = 98,
+			kp_period = 99,
+			non_us_backslash = 100,
+			app0 = 101,
+			power = 102,
+			kp_equals = 103,
+			f13 = 104,
+			f14 = 105,
+			f15 = 106,
+			f16 = 107,
+			f17 = 108,
+			f18 = 109,
+			f19 = 110,
+			f20 = 111,
+			f21 = 112,
+			f22 = 113,
+			f23 = 114,
+			f24 = 115,
+			execute = 116,
+			help = 117,
+			menu = 118,
+			select = 119,
+			stop = 120,
+			again = 121,
+			undo = 122,
+			cut = 123,
+			copy = 124,
+			paste = 125,
+			find = 126,
+			mute = 127,
+			volume_up = 128,
+			volume_down = 129,
+			kp_comma = 133,
+			kp_equals_as400 = 134,
+			international1 = 135,
+			international2 = 136,
+			international3 = 137,
+			international4 = 138,
+			international5 = 139,
+			international6 = 140,
+			international7 = 141,
+			international8 = 142,
+			international9 = 143,
+			lang1 = 144,
+			lang2 = 145,
+			lang3 = 146,
+			lang4 = 147,
+			lang5 = 148,
+			lang6 = 149,
+			lang7 = 150,
+			lang8 = 151,
+			lang9 = 152,
+			alterase = 153,
+			sys_req = 154,
+			cancel = 155,
+			clear = 156,
+			prior = 157,
+			return2 = 158,
+			separator = 159,
+			output = 160,
+			operation = 161,
+			clear_again = 162,
+			cr_select = 163,
+			ex_select = 164,
+			kp00 = 176,
+			kp000 = 177,
+			thousands_separator = 178,
+			decimals_separator = 179,
+			currency_unit = 180,
+			currency_subunit = 181,
+			kp_left_paren = 182,
+			kp_right_paren = 183,
+			kp_left_brace = 184,
+			kp_right_brace = 185,
+			kp_tab = 186,
+			kp_backspace = 187,
+			kp_a = 188,
+			kp_b = 189,
+			kp_c = 190,
+			kp_d = 191,
+			kp_e = 192,
+			kp_f = 193,
+			kp_xor = 194,
+			kp_power = 195,
+			kp_percent = 196,
+			kp_less = 197,
+			kp_greater = 198,
+			kp_ampersand = 199,
+			kp_dbl_ampersand = 200,
+			kp_vertical_bar = 201,
+			kp_dbl_vertical_bar = 202,
+			kp_colon = 203,
+			kp_hash = 204,
+			kp_space = 205,
+			kp_at = 206,
+			kp_exclaim = 207,
+			kp_mem_store = 208,
+			kp_mem_recall = 209,
+			kp_mem_clear = 210,
+			kp_mem_add = 211,
+			kp_mem_subtract = 212,
+			kp_mem_multiply = 213,
+			kp_mem_divide = 214,
+			kp_plus_minus = 215,
+			kp_clear = 216,
+			kp_clear_entry = 217,
+			kp_binary = 218,
+			kp_octal = 219,
+			kp_decimal = 220,
+			kp_hexadecimal = 221,
+			left_control = 224,
+			left_shift = 225,
+			left_alt = 226,
+			left_gui = 227,
+			right_control = 228,
+			right_shift = 229,
+			right_alt = 230,
+			right_gui = 231,
+			mode = 257,
+			audio_next = 258,
+			audio_prev = 259,
+			audio_stop = 260,
+			audio_play = 261,
+			audio_mute = 262,
+			media_select = 263,
+			www = 264,
+			mail = 265,
+			calculator = 266,
+			computer = 267,
+			ac_search = 268,
+			ac_home = 269,
+			ac_back = 270,
+			ac_forward = 271,
+			ac_stop = 272,
+			ac_refresh = 273,
+			ac_bookmarks = 274,
+			brightness_down = 275,
+			brightness_up = 276,
+			display_switch = 277,
+			kb_illum_toggle = 278,
+			kb_illum_down = 279,
+			kb_illum_up = 280,
+			eject = 281,
+			sleep = 282,
+			app1 = 283,
+			app2 = 284,
+			audio_rewind = 285,
+			audio_fast_forward = 286,
+			cursor_left = 287,
+			cursor_middle = 288,
+			cursor_right = 289,
+			cursor_x1 = 290,
+			cursor_x2 = 291,
+			none = 292
 		};
 
-		enum class KeyMod
+		enum class key_mod
 		{
-			None = 0x0000,
-			LeftShift = 0x0001,
-			RightShift = 0x0002,
-			LeftControl = 0x0040,
-			RightControl = 0x0080,
-			LeftAlt = 0x0100,
-			RightAlt = 0x0200,
-			LeftGUI = 0x0400,
-			RightGUI = 0x0800,
-			Num = 0x1000,
-			Caps = 0x2000,
-			Mode = 0x4000,
-			Reserved = 0x8000,
-			Shift = LeftShift | RightShift,
-			Control = LeftControl | RightControl,
-			Alt = LeftAlt | RightAlt,
-			GUI = LeftGUI | RightGUI
+			none = 0x0000,
+			left_shift = 0x0001,
+			right_shift = 0x0002,
+			left_control = 0x0040,
+			right_control = 0x0080,
+			left_alt = 0x0100,
+			right_alt = 0x0200,
+			left_gui = 0x0400,
+			right_gui = 0x0800,
+			num = 0x1000,
+			caps = 0x2000,
+			mode = 0x4000,
+			reserved = 0x8000,
+			shift = left_shift | right_shift,
+			control = left_control | right_control,
+			alt = left_alt | right_alt,
+			gui = left_gui | right_gui
 		};
 
-		enum class AlertType
+		enum class alert_type
 		{
-			None = 0,
-			Error = 0x00000010,
-			Warning = 0x00000020,
-			Info = 0x00000040
+			none = 0,
+			error = 0x00000010,
+			warning = 0x00000020,
+			info = 0x00000040
 		};
 
-		enum class AlertConfirm
+		enum class alert_confirm
 		{
-			None = 0,
-			Return = 0x00000002,
-			Escape = 0x00000001
+			none = 0,
+			defer = 0x00000002,
+			escape = 0x00000001
 		};
 
-		enum class JoyStickHat
+		enum class joy_stick_hat
 		{
-			Center = 0x00,
-			Up = 0x01,
-			Right = 0x02,
-			Down = 0x04,
-			Left = 0x08,
-			Right_Up = 0x02 | 0x01,
-			Right_Down = 0x02 | 0x04,
-			Left_Up = 0x08 | 0x01,
-			Left_Down = 0x08 | 0x04
+			center = 0x00,
+			up = 0x01,
+			right = 0x02,
+			down = 0x04,
+			left = 0x08,
+			right_up = 0x02 | 0x01,
+			right_down = 0x02 | 0x04,
+			left_up = 0x08 | 0x01,
+			left_down = 0x08 | 0x04
 		};
 
-		enum class RenderBackend
+		enum class render_backend
 		{
-			None,
-			Automatic,
-			D3D11,
-			OGL
+			none,
+			automatic,
+			d3d11,
+			ogl
 		};
 
-		enum class VSync
+		enum class vsync
 		{
-			Off,
-			Frequency_X1,
-			Frequency_X2,
-			Frequency_X3,
-			Frequency_X4,
-			On = Frequency_X1
+			off,
+			frequency_x1,
+			frequency_x2,
+			frequency_x3,
+			frequency_x4,
+			on = frequency_x1
 		};
 
-		enum class SurfaceTarget
+		enum class surface_target
 		{
-			T0 = 1,
-			T1 = 2,
-			T2 = 3,
-			T3 = 4,
-			T4 = 5,
-			T5 = 6,
-			T6 = 7,
-			T7 = 8
+			t0 = 1,
+			t1 = 2,
+			t2 = 3,
+			t3 = 4,
+			t4 = 5,
+			t5 = 6,
+			t6 = 7,
+			t7 = 8
 		};
 
-		enum class PrimitiveTopology
+		enum class primitive_topology
 		{
-			Invalid,
-			Point_List,
-			Line_List,
-			Line_Strip,
-			Triangle_List,
-			Triangle_Strip,
-			Line_List_Adj,
-			Line_Strip_Adj,
-			Triangle_List_Adj,
-			Triangle_Strip_Adj
+			invalid,
+			point_list,
+			line_list,
+			line_strip,
+			triangle_list,
+			triangle_strip,
+			line_list_adj,
+			line_strip_adj,
+			triangle_list_adj,
+			triangle_strip_adj
 		};
 
-		enum class Format
+		enum class format
 		{
-			Unknown = 0,
-			A8_Unorm = 65,
-			D16_Unorm = 55,
-			D24_Unorm_S8_Uint = 45,
-			D32_Float = 40,
-			R10G10B10A2_Uint = 25,
-			R10G10B10A2_Unorm = 24,
-			R11G11B10_Float = 26,
-			R16G16B16A16_Float = 10,
-			R16G16B16A16_Sint = 14,
-			R16G16B16A16_Snorm = 13,
-			R16G16B16A16_Uint = 12,
-			R16G16B16A16_Unorm = 11,
-			R16G16_Float = 34,
-			R16G16_Sint = 38,
-			R16G16_Snorm = 37,
-			R16G16_Uint = 36,
-			R16G16_Unorm = 35,
-			R16_Float = 54,
-			R16_Sint = 59,
-			R16_Snorm = 58,
-			R16_Uint = 57,
-			R16_Unorm = 56,
-			R1_Unorm = 66,
-			R32G32B32A32_Float = 2,
-			R32G32B32A32_Sint = 4,
-			R32G32B32A32_Uint = 3,
-			R32G32B32_Float = 6,
-			R32G32B32_Sint = 8,
-			R32G32B32_Uint = 7,
-			R32G32_Float = 16,
-			R32G32_Sint = 18,
-			R32G32_Uint = 17,
-			R32_Float = 41,
-			R32_Sint = 43,
-			R32_Uint = 42,
-			R8G8B8A8_Sint = 32,
-			R8G8B8A8_Snorm = 31,
-			R8G8B8A8_Uint = 30,
-			R8G8B8A8_Unorm = 28,
-			R8G8B8A8_Unorm_SRGB = 29,
-			R8G8_B8G8_Unorm = 68,
-			R8G8_Sint = 52,
-			R8G8_Snorm = 51,
-			R8G8_Uint = 50,
-			R8G8_Unorm = 49,
-			R8_Sint = 64,
-			R8_Snorm = 63,
-			R8_Uint = 62,
-			R8_Unorm = 61,
-			R9G9B9E5_Share_Dexp = 67
+			unknown = 0,
+			a8_unorm = 65,
+			d16_unorm = 55,
+			d24_unorm_s8_uint = 45,
+			d32_float = 40,
+			r10g10b10a2_uint = 25,
+			r10g10b10a2_unorm = 24,
+			r11g11b10_float = 26,
+			r16g16b16a16_float = 10,
+			r16g16b16a16_sint = 14,
+			r16g16b16a16_snorm = 13,
+			r16g16b16a16_uint = 12,
+			r16g16b16a16_unorm = 11,
+			r16g16_float = 34,
+			r16g16_sint = 38,
+			r16g16_snorm = 37,
+			r16g16_uint = 36,
+			r16g16_unorm = 35,
+			r16_float = 54,
+			r16_sint = 59,
+			r16_snorm = 58,
+			r16_uint = 57,
+			r16_unorm = 56,
+			r1_unorm = 66,
+			r32g32b32a32_float = 2,
+			r32g32b32a32_sint = 4,
+			r32g32b32a32_uint = 3,
+			r32g32b32_float = 6,
+			r32g32b32_sint = 8,
+			r32g32b32_uint = 7,
+			r32g32_float = 16,
+			r32g32_sint = 18,
+			r32g32_uint = 17,
+			r32_float = 41,
+			r32_sint = 43,
+			r32_uint = 42,
+			r8g8b8a8_sint = 32,
+			r8g8b8a8_snorm = 31,
+			r8g8b8a8_uint = 30,
+			r8g8b8a8_unorm = 28,
+			r8g8b8a8_unorm_srgb = 29,
+			r8g8b8g8_unorm = 68,
+			r8g8_sint = 52,
+			r8g8_snorm = 51,
+			r8g8_uint = 50,
+			r8g8_unorm = 49,
+			r8_sint = 64,
+			r8_snorm = 63,
+			r8_uint = 62,
+			r8_unorm = 61,
+			r9g9b9e5_share_dexp = 67
 		};
 
-		enum class ResourceMap
+		enum class resource_map
 		{
-			Read = 1,
-			Write = 2,
-			Read_Write = 3,
-			Write_Discard = 4,
-			Write_No_Overwrite = 5
+			read = 1,
+			write = 2,
+			read_write = 3,
+			write_discard = 4,
+			write_no_overwrite = 5
 		};
 
-		enum class ResourceUsage
+		enum class resource_usage
 		{
-			Default = 0,
-			Immutable = 1,
-			Dynamic = 2,
-			Staging = 3
+			defaults = 0,
+			immutable = 1,
+			dynamic = 2,
+			staging = 3
 		};
 
-		enum class ShaderModel
+		enum class shader_model
 		{
-			Invalid,
-			Auto,
-			HLSL_1_0 = 100,
-			HLSL_2_0 = 200,
-			HLSL_3_0 = 300,
-			HLSL_4_0 = 400,
-			HLSL_4_1 = 410,
-			HLSL_5_0 = 500,
-			GLSL_1_1_0 = 110,
-			GLSL_1_2_0 = 120,
-			GLSL_1_3_0 = 130,
-			GLSL_1_4_0 = 140,
-			GLSL_1_5_0 = 150,
-			GLSL_3_3_0 = 330,
-			GLSL_4_0_0 = 400,
-			GLSL_4_1_0 = 410,
-			GLSL_4_2_0 = 420,
-			GLSL_4_3_0 = 430,
-			GLSL_4_4_0 = 440,
-			GLSL_4_5_0 = 450,
-			GLSL_4_6_0 = 460
+			invalid,
+			any,
+			hlsl_1_0 = 100,
+			hlsl_2_0 = 200,
+			hlsl_3_0 = 300,
+			hlsl_4_0 = 400,
+			hlsl_4_1 = 410,
+			hlsl_5_0 = 500,
+			glsl_1_1_0 = 110,
+			glsl_1_2_0 = 120,
+			glsl_1_3_0 = 130,
+			glsl_1_4_0 = 140,
+			glsl_1_5_0 = 150,
+			glsl_3_3_0 = 330,
+			glsl_4_0_0 = 400,
+			glsl_4_1_0 = 410,
+			glsl_4_2_0 = 420,
+			glsl_4_3_0 = 430,
+			glsl_4_4_0 = 440,
+			glsl_4_5_0 = 450,
+			glsl_4_6_0 = 460
 		};
 
-		enum class ResourceBind
+		enum class resource_bind
 		{
-			Vertex_Buffer = 0x1L,
-			Index_Buffer = 0x2L,
-			Constant_Buffer = 0x4L,
-			Shader_Input = 0x8L,
-			Stream_Output = 0x10L,
-			Render_Target = 0x20L,
-			Depth_Stencil = 0x40L,
-			Unordered_Access = 0x80L
+			vertex_buffer = 0x1L,
+			index_buffer = 0x2L,
+			constant_buffer = 0x4L,
+			shader_input = 0x8L,
+			stream_output = 0x10L,
+			render_target = 0x20L,
+			depth_stencil = 0x40L,
+			unordered_access = 0x80L
 		};
 
-		enum class CPUAccess
+		enum class cpu_access
 		{
-			None = 0,
-			Write = 0x10000L,
-			Read = 0x20000L
+			none = 0,
+			write = 0x10000L,
+			read = 0x20000L
 		};
 
-		enum class DepthWrite
+		enum class depth_write
 		{
-			Zero,
-			All
+			zero,
+			all
 		};
 
-		enum class Comparison
+		enum class comparison
 		{
-			Never = 1,
-			Less = 2,
-			Equal = 3,
-			Less_Equal = 4,
-			Greater = 5,
-			Not_Equal = 6,
-			Greater_Equal = 7,
-			Always = 8
+			never = 1,
+			less = 2,
+			equal = 3,
+			less_equal = 4,
+			greater = 5,
+			not_equal = 6,
+			greater_equal = 7,
+			always = 8
 		};
 
-		enum class StencilOperation
+		enum class stencil_operation
 		{
-			Keep = 1,
-			Zero = 2,
-			Replace = 3,
-			SAT_Add = 4,
-			SAT_Subtract = 5,
-			Invert = 6,
-			Add = 7,
-			Subtract = 8
+			keep = 1,
+			zero = 2,
+			replace = 3,
+			sat_add = 4,
+			sat_subtract = 5,
+			invert = 6,
+			add = 7,
+			subtract = 8
 		};
 
-		enum class Blend
+		enum class blend
 		{
-			Zero = 1,
-			One = 2,
-			Source_Color = 3,
-			Source_Color_Invert = 4,
-			Source_Alpha = 5,
-			Source_Alpha_Invert = 6,
-			Destination_Alpha = 7,
-			Destination_Alpha_Invert = 8,
-			Destination_Color = 9,
-			Destination_Color_Invert = 10,
-			Source_Alpha_SAT = 11,
-			Blend_Factor = 14,
-			Blend_Factor_Invert = 15,
-			Source1_Color = 16,
-			Source1_Color_Invert = 17,
-			Source1_Alpha = 18,
-			Source1_Alpha_Invert = 19
+			zero = 1,
+			one = 2,
+			source_color = 3,
+			source_color_invert = 4,
+			source_alpha = 5,
+			source_alpha_invert = 6,
+			destination_alpha = 7,
+			destination_alpha_invert = 8,
+			destination_color = 9,
+			destination_color_invert = 10,
+			source_alpha_sat = 11,
+			blend_factor = 14,
+			blend_factor_invert = 15,
+			source1_color = 16,
+			source1_color_invert = 17,
+			source1_alpha = 18,
+			source1_alpha_invert = 19
 		};
 
-		enum class SurfaceFill
+		enum class surface_fill
 		{
-			Wireframe = 2,
-			Solid = 3
+			wireframe = 2,
+			solid = 3
 		};
 
-		enum class PixelFilter
+		enum class pixel_filter
 		{
-			Min_Mag_Mip_Point = 0,
-			Min_Mag_Point_Mip_Linear = 0x1,
-			Min_Point_Mag_Linear_Mip_Point = 0x4,
-			Min_Point_Mag_Mip_Linear = 0x5,
-			Min_Linear_Mag_Mip_Point = 0x10,
-			Min_Linear_Mag_Point_Mip_Linear = 0x11,
-			Min_Mag_Linear_Mip_Point = 0x14,
-			Min_Mag_Mip_Linear = 0x15,
-			Anistropic = 0x55,
-			Compare_Min_Mag_Mip_Point = 0x80,
-			Compare_Min_Mag_Point_Mip_Linear = 0x81,
-			Compare_Min_Point_Mag_Linear_Mip_Point = 0x84,
-			Compare_Min_Point_Mag_Mip_Linear = 0x85,
-			Compare_Min_Linear_Mag_Mip_Point = 0x90,
-			Compare_Min_Linear_Mag_Point_Mip_Linear = 0x91,
-			Compare_Min_Mag_Linear_Mip_Point = 0x94,
-			Compare_Min_Mag_Mip_Linear = 0x95,
-			Compare_Anistropic = 0xd5
+			min_mag_mip_point = 0,
+			min_mag_point_mip_linear = 0x1,
+			min_point_mag_linear_mip_point = 0x4,
+			min_point_mag_mip_linear = 0x5,
+			min_linear_mag_mip_point = 0x10,
+			min_linear_mag_point_mip_linear = 0x11,
+			min_mag_linear_mip_point = 0x14,
+			min_mag_mip_linear = 0x15,
+			anistropic = 0x55,
+			compare_min_mag_mip_point = 0x80,
+			compare_min_mag_point_mip_linear = 0x81,
+			compare_min_point_mag_linear_mip_point = 0x84,
+			compare_min_point_mag_mip_linear = 0x85,
+			compare_min_linear_mag_mip_point = 0x90,
+			compare_min_linear_mag_point_mip_linear = 0x91,
+			compare_min_mag_linear_mip_point = 0x94,
+			compare_min_mag_mip_linear = 0x95,
+			compare_anistropic = 0xd5
 		};
 
-		enum class TextureAddress
+		enum class texture_address
 		{
-			Wrap = 1,
-			Mirror = 2,
-			Clamp = 3,
-			Border = 4,
-			Mirror_Once = 5
+			wrap = 1,
+			mirror = 2,
+			clamp = 3,
+			border = 4,
+			mirror_once = 5
 		};
 
-		enum class ColorWriteEnable
+		enum class color_write_enable
 		{
-			Red = 1,
-			Green = 2,
-			Blue = 4,
-			Alpha = 8,
-			All = (((Red | Green) | Blue) | Alpha)
+			red = 1,
+			green = 2,
+			blue = 4,
+			alpha = 8,
+			all = (((red | green) | blue) | alpha)
 		};
 
-		enum class BlendOperation
+		enum class blend_operation
 		{
-			Add = 1,
-			Subtract = 2,
-			Subtract_Reverse = 3,
-			Min = 4,
-			Max = 5
+			add = 1,
+			subtract = 2,
+			subtract_reverse = 3,
+			min = 4,
+			max = 5
 		};
 
-		enum class VertexCull
+		enum class vertex_cull
 		{
-			None = 1,
-			Front = 2,
-			Back = 3
+			none = 1,
+			front = 2,
+			back = 3
 		};
 
-		enum class ShaderCompile
+		enum class shader_compile
 		{
-			Debug = 1ll << 0,
-			Skip_Validation = 1ll << 1,
-			Skip_Optimization = 1ll << 2,
-			Matrix_Row_Major = 1ll << 3,
-			Matrix_Column_Major = 1ll << 4,
-			Partial_Precision = 1ll << 5,
-			FOE_VS_No_OPT = 1ll << 6,
-			FOE_PS_No_OPT = 1ll << 7,
-			No_Preshader = 1ll << 8,
-			Avoid_Flow_Control = 1ll << 9,
-			Prefer_Flow_Control = 1ll << 10,
-			Enable_Strictness = 1ll << 11,
-			Enable_Backwards_Compatibility = 1ll << 12,
-			IEEE_Strictness = 1ll << 13,
-			Optimization_Level0 = 1ll << 14,
-			Optimization_Level1 = 0,
-			Optimization_Level2 = (1ll << 14) | (1ll << 15),
-			Optimization_Level3 = 1ll << 15,
-			Reseed_X16 = 1ll << 16,
-			Reseed_X17 = 1ll << 17,
-			Picky = 1ll << 18
+			debug = 1ll << 0,
+			skip_validation = 1ll << 1,
+			skip_optimization = 1ll << 2,
+			matrix_row_major = 1ll << 3,
+			matrix_column_major = 1ll << 4,
+			partial_precision = 1ll << 5,
+			foevs_no_opt = 1ll << 6,
+			foeps_no_opt = 1ll << 7,
+			no_preshader = 1ll << 8,
+			avoid_flow_control = 1ll << 9,
+			prefer_flow_control = 1ll << 10,
+			enable_strictness = 1ll << 11,
+			enable_backwards_compatibility = 1ll << 12,
+			ieee_strictness = 1ll << 13,
+			optimization_level0 = 1ll << 14,
+			optimization_level1 = 0,
+			optimization_level2 = (1ll << 14) | (1ll << 15),
+			optimization_level3 = 1ll << 15,
+			reseed_x16 = 1ll << 16,
+			reseed_x17 = 1ll << 17,
+			picky = 1ll << 18
 		};
 
-		enum class ResourceMisc
+		enum class resource_misc
 		{
-			None = 0,
-			Generate_Mips = 0x1L,
-			Shared = 0x2L,
-			Texture_Cube = 0x4L,
-			Draw_Indirect_Args = 0x10L,
-			Buffer_Allow_Raw_Views = 0x20L,
-			Buffer_Structured = 0x40L,
-			Clamp = 0x80L,
-			Shared_Keyed_Mutex = 0x100L,
-			GDI_Compatible = 0x200L,
-			Shared_NT_Handle = 0x800L,
-			Restricted_Content = 0x1000L,
-			Restrict_Shared = 0x2000L,
-			Restrict_Shared_Driver = 0x4000L,
-			Guarded = 0x8000L,
-			Tile_Pool = 0x20000L,
-			Tiled = 0x40000L
+			none = 0,
+			generate_mips = 0x1L,
+			shared = 0x2L,
+			texture_cube = 0x4L,
+			draw_indirect_args = 0x10L,
+			buffer_allow_raw_views = 0x20L,
+			buffer_structured = 0x40L,
+			clamp = 0x80L,
+			shared_keyed_mutex = 0x100L,
+			gdi_compatible = 0x200L,
+			shared_nt_handle = 0x800L,
+			restricted_content = 0x1000L,
+			restrict_shared = 0x2000L,
+			restrict_shared_driver = 0x4000L,
+			guarded = 0x8000L,
+			tile_pool = 0x20000L,
+			tiled = 0x40000L
 		};
 
-		enum class DisplayCursor
+		enum class display_cursor
 		{
-			None = -1,
-			Arrow = 0,
-			TextInput,
-			ResizeAll,
-			ResizeNS,
-			ResizeEW,
-			ResizeNESW,
-			ResizeNWSE,
-			Hand,
-			Crosshair,
-			Wait,
-			Progress,
-			No,
-			Count
+			none = -1,
+			arrow = 0,
+			text_input,
+			resize_all,
+			resize_ns,
+			resize_ew,
+			resize_nesw,
+			resize_nwse,
+			hand,
+			crosshair,
+			wait,
+			progress,
+			no,
+			count
 		};
 
-		enum class ShaderType
+		enum class shader_type
 		{
-			Vertex = 1,
-			Pixel = 2,
-			Geometry = 4,
-			Hull = 8,
-			Domain = 16,
-			Compute = 32,
-			All = Vertex | Pixel | Geometry | Hull | Domain | Compute
+			vertex = 1,
+			pixel = 2,
+			geometry = 4,
+			hull = 8,
+			domain = 16,
+			compute = 32,
+			all = vertex | pixel | geometry | hull | domain | compute
 		};
 
-		enum class ShaderLang
+		enum class shader_lang
 		{
-			None,
-			SPV,
-			MSL,
-			HLSL,
-			GLSL,
-			GLSL_ES
+			none,
+			spv,
+			msl,
+			hlsl,
+			glsl,
+			glsl_es
 		};
 
-		enum class AttributeType
+		enum class attribute_type
 		{
-			Byte,
-			Ubyte,
-			Half,
-			Float,
-			Int,
-			Uint,
-			Matrix
+			byte,
+			ubyte,
+			half,
+			floatf,
+			intf,
+			uint,
+			matrix
 		};
 
-		enum class OrientationType
+		enum class orientation_type
 		{
-			Unknown,
-			Landscape,
-			LandscapeFlipped,
-			Portrait,
-			PortraitFlipped
+			unknown,
+			landscape,
+			landscape_flipped,
+			portrait,
+			portrait_flipped
 		};
 
-		inline ColorWriteEnable operator |(ColorWriteEnable A, ColorWriteEnable B)
+		inline color_write_enable operator |(color_write_enable a, color_write_enable b)
 		{
-			return static_cast<ColorWriteEnable>(static_cast<size_t>(A) | static_cast<size_t>(B));
+			return static_cast<color_write_enable>(static_cast<size_t>(a) | static_cast<size_t>(b));
 		}
-		inline ResourceMap operator |(ResourceMap A, ResourceMap B)
+		inline resource_map operator |(resource_map a, resource_map b)
 		{
-			return static_cast<ResourceMap>(static_cast<size_t>(A) | static_cast<size_t>(B));
+			return static_cast<resource_map>(static_cast<size_t>(a) | static_cast<size_t>(b));
 		}
-		inline ShaderCompile operator |(ShaderCompile A, ShaderCompile B)
+		inline shader_compile operator |(shader_compile a, shader_compile b)
 		{
-			return static_cast<ShaderCompile>(static_cast<size_t>(A) | static_cast<size_t>(B));
+			return static_cast<shader_compile>(static_cast<size_t>(a) | static_cast<size_t>(b));
 		}
-		inline ResourceMisc operator |(ResourceMisc A, ResourceMisc B)
+		inline resource_misc operator |(resource_misc a, resource_misc b)
 		{
-			return static_cast<ResourceMisc>(static_cast<size_t>(A) | static_cast<size_t>(B));
+			return static_cast<resource_misc>(static_cast<size_t>(a) | static_cast<size_t>(b));
 		}
-		inline ResourceBind operator |(ResourceBind A, ResourceBind B)
+		inline resource_bind operator |(resource_bind a, resource_bind b)
 		{
-			return static_cast<ResourceBind>(static_cast<size_t>(A) | static_cast<size_t>(B));
+			return static_cast<resource_bind>(static_cast<size_t>(a) | static_cast<size_t>(b));
 		}
 
-		class Shader;
+		class shader;
 
-		class Texture2D;
+		class texture_2d;
 
-		class SkinMeshBuffer;
+		class skin_mesh_buffer;
 
-		class GraphicsDevice;
+		class graphics_device;
 
-		class Activity;
+		class activity;
 
-		typedef std::function<void(AppState)> AppStateChangeCallback;
-		typedef std::function<void(WindowState, int, int)> WindowStateChangeCallback;
-		typedef std::function<void(KeyCode, KeyMod, int, int, bool)> KeyStateCallback;
-		typedef std::function<void(char*, int, int)> InputEditCallback;
-		typedef std::function<void(char*, int)> InputCallback;
-		typedef std::function<void(int, int, int, int)> CursorMoveCallback;
-		typedef std::function<void(int, int, bool)> CursorWheelStateCallback;
-		typedef std::function<void(int, int, int)> JoyStickAxisMoveCallback;
-		typedef std::function<void(int, int, int, int)> JoyStickBallMoveCallback;
-		typedef std::function<void(enum JoyStickHat, int, int)> JoyStickHatMoveCallback;
-		typedef std::function<void(int, int, bool)> JoyStickKeyStateCallback;
-		typedef std::function<void(int, bool)> JoyStickStateCallback;
-		typedef std::function<void(int, int, int)> ControllerAxisMoveCallback;
-		typedef std::function<void(int, int, bool)> ControllerKeyStateCallback;
-		typedef std::function<void(int, int)> ControllerStateCallback;
-		typedef std::function<void(int, int, float, float, float, float, float)> TouchMoveCallback;
-		typedef std::function<void(int, int, float, float, float, float, float, bool)> TouchStateCallback;
-		typedef std::function<void(int, int, int, float, float, float, bool)> GestureStateCallback;
-		typedef std::function<void(int, int, float, float, float, float)> MultiGestureStateCallback;
-		typedef std::function<void(const std::string_view&)> DropFileCallback;
-		typedef std::function<void(const std::string_view&)> DropTextCallback;
-		typedef std::function<void(GraphicsDevice*)> RenderThreadCallback;
+		typedef std::function<void(app_state)> app_state_change_callback;
+		typedef std::function<void(window_state, int, int)> window_state_change_callback;
+		typedef std::function<void(key_code, key_mod, int, int, bool)> key_state_callback;
+		typedef std::function<void(char*, int, int)> input_edit_callback;
+		typedef std::function<void(char*, int)> input_callback;
+		typedef std::function<void(int, int, int, int)> cursor_move_callback;
+		typedef std::function<void(int, int, bool)> cursor_wheel_state_callback;
+		typedef std::function<void(int, int, int)> joy_stick_axis_move_callback;
+		typedef std::function<void(int, int, int, int)> joy_stick_ball_move_callback;
+		typedef std::function<void(enum joy_stick_hat, int, int)> joy_stick_hat_move_callback;
+		typedef std::function<void(int, int, bool)> joy_stick_key_state_callback;
+		typedef std::function<void(int, bool)> joy_stick_state_callback;
+		typedef std::function<void(int, int, int)> controller_axis_move_callback;
+		typedef std::function<void(int, int, bool)> controller_key_state_callback;
+		typedef std::function<void(int, int)> controller_state_callback;
+		typedef std::function<void(int, int, float, float, float, float, float)> touch_move_callback;
+		typedef std::function<void(int, int, float, float, float, float, float, bool)> touch_state_callback;
+		typedef std::function<void(int, int, int, float, float, float, bool)> gesture_state_callback;
+		typedef std::function<void(int, int, float, float, float, float)> multi_gesture_state_callback;
+		typedef std::function<void(const std::string_view&)> drop_file_callback;
+		typedef std::function<void(const std::string_view&)> drop_text_callback;
+		typedef std::function<void(graphics_device*)> render_thread_callback;
 
-		struct VI_OUT Alert
+		struct alert
 		{
-			friend Activity;
+			friend activity;
 
 		private:
-			struct Element
+			struct element
 			{
-				Core::String Name;
-				int Id = -1, Flags = 0;
+				core::string name;
+				int id = -1, flags = 0;
 			};
 
 		private:
-			Core::String Name;
-			Core::String Data;
-			Core::Vector<Element> Buttons;
-			std::function<void(int)> Done;
-			AlertType View;
-			Activity* Base;
-			bool Waiting;
+			core::string name;
+			core::string data;
+			core::vector<element> buttons;
+			std::function<void(int)> done;
+			alert_type view;
+			activity* base;
+			bool waiting;
 
 		public:
-			Alert(Activity* From) noexcept;
-			void Setup(AlertType Type, const std::string_view& Title, const std::string_view& Text);
-			void Button(AlertConfirm Confirm, const std::string_view& Text, int Id);
-			void Result(std::function<void(int)>&& Callback);
+			alert(activity* from) noexcept;
+			void setup(alert_type type, const std::string_view& title, const std::string_view& text);
+			void button(alert_confirm confirm, const std::string_view& text, int id);
+			void result(std::function<void(int)>&& callback);
 
 		private:
-			void Dispatch();
+			void dispatch();
 		};
 
-		struct VI_OUT DisplayInfo
+		struct display_info
 		{
-			Core::String Name;
-			OrientationType Orientation;
-			float DiagonalDPI = 1.0f;
-			float HorizontalDPI = 1.0f;
-			float VerticalDPI = 1.0f;
-			uint32_t PixelFormat = 0;
-			uint32_t PhysicalWidth = 0;
-			uint32_t PhysicalHeight = 0;
-			uint32_t RefreshRate = 0;
-			int32_t Width = 0;
-			int32_t Height = 0;
-			int32_t X = 0;
-			int32_t Y = 0;
+			core::string name;
+			orientation_type orientation;
+			float diagonal_dpi = 1.0f;
+			float horizontal_dpi = 1.0f;
+			float vertical_dpi = 1.0f;
+			uint32_t pixel_format = 0;
+			uint32_t physical_width = 0;
+			uint32_t physical_height = 0;
+			uint32_t refresh_rate = 0;
+			int32_t width = 0;
+			int32_t height = 0;
+			int32_t x = 0;
+			int32_t y = 0;
 		};
 
-		struct VI_OUT EventConsumers
+		struct event_consumers
 		{
-			friend Activity;
+			friend activity;
 
 		private:
-			Core::UnorderedMap<uint32_t, Activity*> Consumers;
+			core::unordered_map<uint32_t, activity*> consumers;
 
 		public:
-			void Push(Activity* Value);
-			void Pop(Activity* Value);
-			Activity* Find(uint32_t Id) const;
+			void push(activity* value);
+			void pop(activity* value);
+			activity* find(uint32_t id) const;
 		};
 
-		struct VI_OUT KeyMap
+		struct key_map
 		{
-			KeyCode Key;
-			KeyMod Mod;
-			bool Normal;
+			key_code key;
+			key_mod mod;
+			bool normal;
 
-			KeyMap() noexcept;
-			KeyMap(const KeyCode& Value) noexcept;
-			KeyMap(const KeyMod& Value) noexcept;
-			KeyMap(const KeyCode& Value, const KeyMod& Control) noexcept;
+			key_map() noexcept;
+			key_map(const key_code& value) noexcept;
+			key_map(const key_mod& value) noexcept;
+			key_map(const key_code& value, const key_mod& control) noexcept;
 		};
 
-		struct VI_OUT MappedSubresource
+		struct mapped_subresource
 		{
-			void* Pointer = nullptr;
-			uint32_t RowPitch = 0;
-			uint32_t DepthPitch = 0;
+			void* pointer = nullptr;
+			uint32_t row_pitch = 0;
+			uint32_t depth_pitch = 0;
 		};
 
-		struct VI_OUT Viewport
+		struct viewport
 		{
-			float TopLeftX;
-			float TopLeftY;
-			float Width;
-			float Height;
-			float MinDepth;
-			float MaxDepth;
+			float top_left_x;
+			float top_left_y;
+			float width;
+			float height;
+			float min_depth;
+			float max_depth;
 		};
 
-		struct VI_OUT RenderTargetBlendState
+		struct render_target_blend_state
 		{
-			Blend SrcBlend;
-			Blend DestBlend;
-			BlendOperation BlendOperationMode;
-			Blend SrcBlendAlpha;
-			Blend DestBlendAlpha;
-			BlendOperation BlendOperationAlpha;
-			uint8_t RenderTargetWriteMask;
-			bool BlendEnable;
+			blend src_blend;
+			blend dest_blend;
+			blend_operation blend_operation_mode;
+			blend src_blend_alpha;
+			blend dest_blend_alpha;
+			blend_operation blend_operation_alpha;
+			uint8_t render_target_write_mask;
+			bool blend_enable;
 		};
 
-		struct VI_OUT BasicEffectBuffer
+		struct basic_effect_buffer
 		{
 
 		};
 
-		class GraphicsException final : public Core::BasicException
-		{
-		private:
-			int ErrorCode;
-
-		public:
-			VI_OUT GraphicsException(Core::String&& Message);
-			VI_OUT GraphicsException(int ErrorCode, Core::String&& Message);
-			VI_OUT const char* type() const noexcept override;
-			VI_OUT int error_code() const noexcept;
-		};
-
-		class VideoException final : public Core::BasicException
-		{
-		public:
-			VI_OUT VideoException();
-			VI_OUT VideoException(GraphicsException&& Other);
-			VI_OUT const char* type() const noexcept override;
-		};
-
-		template <typename V>
-		using ExpectsGraphics = Core::Expects<V, GraphicsException>;
-
-		template <typename V>
-		using ExpectsVideo = Core::Expects<V, VideoException>;
-
-		class VI_OUT Surface : public Core::Reference<Surface>
+		class graphics_exception final : public core::basic_exception
 		{
 		private:
-			SDL_Surface* Handle;
+			int error_code;
 
 		public:
-			Surface() noexcept;
-			Surface(SDL_Surface* From) noexcept;
-			~Surface() noexcept;
-			void SetHandle(SDL_Surface* From);
-			void Lock();
-			void Unlock();
-			int GetWidth() const;
-			int GetHeight() const;
-			int GetPitch() const;
-			void* GetPixels() const;
-			void* GetResource() const;
+			graphics_exception(core::string&& message);
+			graphics_exception(int error_code, core::string&& message);
+			const char* type() const noexcept override;
+			int code() const noexcept;
 		};
 
-		class VI_OUT DepthStencilState : public Core::Reference<DepthStencilState>
+		class video_exception final : public core::basic_exception
 		{
 		public:
-			struct Desc
-			{
-				StencilOperation FrontFaceStencilFailOperation;
-				StencilOperation FrontFaceStencilDepthFailOperation;
-				StencilOperation FrontFaceStencilPassOperation;
-				Comparison FrontFaceStencilFunction;
-				StencilOperation BackFaceStencilFailOperation;
-				StencilOperation BackFaceStencilDepthFailOperation;
-				StencilOperation BackFaceStencilPassOperation;
-				Comparison BackFaceStencilFunction;
-				DepthWrite DepthWriteMask;
-				Comparison DepthFunction;
-				uint8_t StencilReadMask;
-				uint8_t StencilWriteMask;
-				bool DepthEnable;
-				bool StencilEnable;
-			};
-
-		protected:
-			Desc State;
-
-		protected:
-			DepthStencilState(const Desc& I) noexcept;
-
-		public:
-			virtual ~DepthStencilState() noexcept;
-			virtual void* GetResource() const = 0;
-			Desc GetState() const;
+			video_exception();
+			video_exception(graphics_exception&& other);
+			const char* type() const noexcept override;
 		};
 
-		class VI_OUT RasterizerState : public Core::Reference<RasterizerState>
+		template <typename v>
+		using expects_graphics = core::expects<v, graphics_exception>;
+
+		template <typename v>
+		using expects_video = core::expects<v, video_exception>;
+
+		class surface : public core::reference<surface>
 		{
-		public:
-			struct Desc
-			{
-				SurfaceFill FillMode;
-				VertexCull CullMode;
-				float DepthBiasClamp;
-				float SlopeScaledDepthBias;
-				int DepthBias;
-				bool FrontCounterClockwise;
-				bool DepthClipEnable;
-				bool ScissorEnable;
-				bool MultisampleEnable;
-				bool AntialiasedLineEnable;
-			};
-
-		protected:
-			Desc State;
-
-		protected:
-			RasterizerState(const Desc& I) noexcept;
+		private:
+			SDL_Surface* handle;
 
 		public:
-			virtual ~RasterizerState() noexcept;
-			virtual void* GetResource() const = 0;
-			Desc GetState() const;
+			surface() noexcept;
+			surface(SDL_Surface* from) noexcept;
+			~surface() noexcept;
+			void set_handle(SDL_Surface* from);
+			void lock();
+			void unlock();
+			int get_width() const;
+			int get_height() const;
+			int get_pitch() const;
+			void* get_pixels() const;
+			void* get_resource() const;
 		};
 
-		class VI_OUT BlendState : public Core::Reference<BlendState>
+		class depth_stencil_state : public core::reference<depth_stencil_state>
 		{
 		public:
-			struct Desc
+			struct desc
 			{
-				RenderTargetBlendState RenderTarget[8];
-				bool AlphaToCoverageEnable;
-				bool IndependentBlendEnable;
+				stencil_operation front_face_stencil_fail_operation;
+				stencil_operation front_face_stencil_depth_fail_operation;
+				stencil_operation front_face_stencil_pass_operation;
+				comparison front_face_stencil_function;
+				stencil_operation back_face_stencil_fail_operation;
+				stencil_operation back_face_stencil_depth_fail_operation;
+				stencil_operation back_face_stencil_pass_operation;
+				comparison back_face_stencil_function;
+				depth_write depth_write_mask;
+				comparison depth_function;
+				uint8_t stencil_read_mask;
+				uint8_t stencil_write_mask;
+				bool depth_enable;
+				bool stencil_enable;
 			};
 
 		protected:
-			Desc State;
+			desc state;
 
 		protected:
-			BlendState(const Desc& I) noexcept;
+			depth_stencil_state(const desc& i) noexcept;
 
 		public:
-			virtual ~BlendState() noexcept;
-			virtual void* GetResource() const = 0;
-			Desc GetState() const;
+			virtual ~depth_stencil_state() noexcept;
+			virtual void* get_resource() const = 0;
+			desc get_state() const;
 		};
 
-		class VI_OUT SamplerState : public Core::Reference<SamplerState>
+		class rasterizer_state : public core::reference<rasterizer_state>
 		{
 		public:
-			struct Desc
+			struct desc
 			{
-				Comparison ComparisonFunction;
-				TextureAddress AddressU;
-				TextureAddress AddressV;
-				TextureAddress AddressW;
-				PixelFilter Filter;
-				float MipLODBias;
-				uint32_t MaxAnisotropy;
-				float BorderColor[4];
-				float MinLOD;
-				float MaxLOD;
+				surface_fill fill_mode;
+				vertex_cull cull_mode;
+				float depth_bias_clamp;
+				float slope_scaled_depth_bias;
+				int depth_bias;
+				bool front_counter_clockwise;
+				bool depth_clip_enable;
+				bool scissor_enable;
+				bool multisample_enable;
+				bool antialiased_line_enable;
 			};
 
 		protected:
-			Desc State;
+			desc state;
 
 		protected:
-			SamplerState(const Desc& I) noexcept;
+			rasterizer_state(const desc& i) noexcept;
 
 		public:
-			virtual ~SamplerState() noexcept;
-			virtual void* GetResource() const = 0;
-			Desc GetState() const;
+			virtual ~rasterizer_state() noexcept;
+			virtual void* get_resource() const = 0;
+			desc get_state() const;
 		};
 
-		class VI_OUT InputLayout : public Core::Reference<InputLayout>
+		class blend_state : public core::reference<blend_state>
 		{
 		public:
-			struct Attribute
+			struct desc
 			{
-				Core::String SemanticName;
-				uint32_t SemanticIndex;
-				AttributeType Format;
-				uint32_t Components;
-				uint32_t AlignedByteOffset;
-				uint32_t Slot = 0;
-				bool PerVertex = true;
-			};
-
-		public:
-			struct Desc
-			{
-				Core::Vector<Attribute> Attributes;
-				Shader* Source = nullptr;
+				render_target_blend_state render_target[8];
+				bool alpha_to_coverage_enable;
+				bool independent_blend_enable;
 			};
 
 		protected:
-			Core::Vector<Attribute> Layout;
+			desc state;
 
 		protected:
-			InputLayout(const Desc& I) noexcept;
+			blend_state(const desc& i) noexcept;
 
 		public:
-			virtual ~InputLayout() noexcept;
-			virtual void* GetResource() const = 0;
-			const Core::Vector<Attribute>& GetAttributes() const;
+			virtual ~blend_state() noexcept;
+			virtual void* get_resource() const = 0;
+			desc get_state() const;
 		};
 
-		class VI_OUT Shader : public Core::Reference<Shader>
+		class sampler_state : public core::reference<sampler_state>
 		{
 		public:
-			struct Desc
+			struct desc
 			{
-				Compute::ProcIncludeCallback Include = nullptr;
-				Compute::Preprocessor::Desc Features;
-				Core::Vector<Core::String> Defines;
-				Core::String Filename;
-				Core::String Data;
-				ShaderType Stage = ShaderType::All;
+				comparison comparison_function;
+				texture_address address_u;
+				texture_address address_v;
+				texture_address address_w;
+				pixel_filter filter;
+				float mip_lod_bias;
+				uint32_t max_anisotropy;
+				float border_color[4];
+				float min_lod;
+				float max_lod;
 			};
 
 		protected:
-			Shader(const Desc& I) noexcept;
+			desc state;
+
+		protected:
+			sampler_state(const desc& i) noexcept;
 
 		public:
-			virtual ~Shader() noexcept = default;
-			virtual bool IsValid() const = 0;
+			virtual ~sampler_state() noexcept;
+			virtual void* get_resource() const = 0;
+			desc get_state() const;
 		};
 
-		class VI_OUT ElementBuffer : public Core::Reference<ElementBuffer>
+		class input_layout : public core::reference<input_layout>
 		{
 		public:
-			struct Desc
+			struct attribute
 			{
-				void* Elements = nullptr;
-				uint32_t StructureByteStride = 0;
-				uint32_t ElementWidth = 0;
-				uint32_t ElementCount = 0;
-				CPUAccess AccessFlags = CPUAccess::None;
-				ResourceUsage Usage = ResourceUsage::Default;
-				ResourceBind BindFlags = ResourceBind::Vertex_Buffer;
-				ResourceMisc MiscFlags = ResourceMisc::None;
-				bool Writable = false;
+				core::string semantic_name;
+				uint32_t semantic_index;
+				attribute_type format;
+				uint32_t components;
+				uint32_t aligned_byte_offset;
+				uint32_t slot = 0;
+				bool per_vertex = true;
+			};
+
+		public:
+			struct desc
+			{
+				core::vector<attribute> attributes;
+				shader* source = nullptr;
 			};
 
 		protected:
-			size_t Elements;
-			size_t Stride;
+			core::vector<attribute> layout;
 
 		protected:
-			ElementBuffer(const Desc& I) noexcept;
+			input_layout(const desc& i) noexcept;
 
 		public:
-			virtual ~ElementBuffer() noexcept = default;
-			virtual void* GetResource() const = 0;
-			size_t GetElements() const;
-			size_t GetStride() const;
+			virtual ~input_layout() noexcept;
+			virtual void* get_resource() const = 0;
+			const core::vector<attribute>& get_attributes() const;
 		};
 
-		class VI_OUT MeshBuffer : public Core::Reference<MeshBuffer>
+		class shader : public core::reference<shader>
 		{
 		public:
-			struct Desc
+			struct desc
 			{
-				Core::Vector<Trigonometry::Vertex> Elements;
-				Core::Vector<int> Indices;
-				CPUAccess AccessFlags = CPUAccess::None;
-				ResourceUsage Usage = ResourceUsage::Default;
+				compute::proc_include_callback include = nullptr;
+				compute::preprocessor::desc features;
+				core::vector<core::string> defines;
+				core::string filename;
+				core::string data;
+				shader_type stage = shader_type::all;
 			};
 
 		protected:
-			ElementBuffer* VertexBuffer;
-			ElementBuffer* IndexBuffer;
+			shader(const desc& i) noexcept;
 
 		public:
-			Trigonometry::Matrix4x4 Transform;
-			Core::String Name;
-
-		protected:
-			MeshBuffer(const Desc& I) noexcept;
-
-		public:
-			virtual ~MeshBuffer() noexcept;
-			virtual Core::Unique<Trigonometry::Vertex> GetElements(GraphicsDevice* Device) const = 0;
-			ElementBuffer* GetVertexBuffer() const;
-			ElementBuffer* GetIndexBuffer() const;
+			virtual ~shader() noexcept = default;
+			virtual bool is_valid() const = 0;
 		};
 
-		class VI_OUT SkinMeshBuffer : public Core::Reference<SkinMeshBuffer>
+		class element_buffer : public core::reference<element_buffer>
 		{
 		public:
-			struct Desc
+			struct desc
 			{
-				Core::Vector<Trigonometry::SkinVertex> Elements;
-				Core::Vector<int> Indices;
-				CPUAccess AccessFlags = CPUAccess::None;
-				ResourceUsage Usage = ResourceUsage::Default;
+				void* elements = nullptr;
+				uint32_t structure_byte_stride = 0;
+				uint32_t element_width = 0;
+				uint32_t element_count = 0;
+				cpu_access access_flags = cpu_access::none;
+				resource_usage usage = resource_usage::defaults;
+				resource_bind bind_flags = resource_bind::vertex_buffer;
+				resource_misc misc_flags = resource_misc::none;
+				bool writable = false;
 			};
 
 		protected:
-			ElementBuffer* VertexBuffer;
-			ElementBuffer* IndexBuffer;
-
-		public:
-			Trigonometry::Matrix4x4 Transform;
-			Core::UnorderedMap<size_t, size_t> Joints;
-			Core::String Name;
+			size_t elements;
+			size_t stride;
 
 		protected:
-			SkinMeshBuffer(const Desc& I) noexcept;
+			element_buffer(const desc& i) noexcept;
 
 		public:
-			virtual ~SkinMeshBuffer() noexcept;
-			virtual Core::Unique<Trigonometry::SkinVertex> GetElements(GraphicsDevice* Device) const = 0;
-			ElementBuffer* GetVertexBuffer() const;
-			ElementBuffer* GetIndexBuffer() const;
+			virtual ~element_buffer() noexcept = default;
+			virtual void* get_resource() const = 0;
+			size_t get_elements() const;
+			size_t get_stride() const;
 		};
 
-		class VI_OUT InstanceBuffer : public Core::Reference<InstanceBuffer>
+		class mesh_buffer : public core::reference<mesh_buffer>
 		{
 		public:
-			struct Desc
+			struct desc
 			{
-				GraphicsDevice* Device = nullptr;
-				uint32_t ElementWidth = sizeof(Trigonometry::ElementVertex);
-				uint32_t ElementLimit = 100;
+				core::vector<trigonometry::vertex> elements;
+				core::vector<int> indices;
+				cpu_access access_flags = cpu_access::none;
+				resource_usage usage = resource_usage::defaults;
 			};
 
 		protected:
-			Core::Vector<Trigonometry::ElementVertex> Array;
-			ElementBuffer* Elements;
-			GraphicsDevice* Device;
-			size_t ElementLimit;
-			size_t ElementWidth;
-			bool Sync;
-
-		protected:
-			InstanceBuffer(const Desc& I) noexcept;
+			element_buffer* vertex_buffer;
+			element_buffer* index_buffer;
 
 		public:
-			virtual ~InstanceBuffer() noexcept;
-			Core::Vector<Trigonometry::ElementVertex>& GetArray();
-			ElementBuffer* GetElements() const;
-			GraphicsDevice* GetDevice() const;
-			size_t GetElementLimit() const;
+			trigonometry::matrix4x4 transform;
+			core::string name;
+
+		protected:
+			mesh_buffer(const desc& i) noexcept;
+
+		public:
+			virtual ~mesh_buffer() noexcept;
+			virtual core::unique<trigonometry::vertex> get_elements(graphics_device* device) const = 0;
+			element_buffer* get_vertex_buffer() const;
+			element_buffer* get_index_buffer() const;
 		};
 
-		class VI_OUT Texture2D : public Core::Reference<Texture2D>
+		class skin_mesh_buffer : public core::reference<skin_mesh_buffer>
 		{
 		public:
-			struct Desc
+			struct desc
 			{
-				CPUAccess AccessFlags = CPUAccess::None;
-				Format FormatMode = Format::R8G8B8A8_Unorm;
-				ResourceUsage Usage = ResourceUsage::Default;
-				ResourceBind BindFlags = ResourceBind::Shader_Input;
-				ResourceMisc MiscFlags = ResourceMisc::None;
-				void* Data = nullptr;
-				uint32_t RowPitch = 0;
-				uint32_t DepthPitch = 0;
-				uint32_t Width = WINDOW_SIZE;
-				uint32_t Height = WINDOW_SIZE;
-				int MipLevels = 1;
-				bool Writable = false;
+				core::vector<trigonometry::skin_vertex> elements;
+				core::vector<int> indices;
+				cpu_access access_flags = cpu_access::none;
+				resource_usage usage = resource_usage::defaults;
 			};
 
 		protected:
-			CPUAccess AccessFlags;
-			Format FormatMode;
-			ResourceUsage Usage;
-			ResourceBind Binding;
-			uint32_t Width, Height;
-			uint32_t MipLevels;
-
-		protected:
-			Texture2D() noexcept;
-			Texture2D(const Desc& I) noexcept;
+			element_buffer* vertex_buffer;
+			element_buffer* index_buffer;
 
 		public:
-			virtual ~Texture2D() = default;
-			virtual void* GetResource() const = 0;
-			CPUAccess GetAccessFlags() const;
-			Format GetFormatMode() const;
-			ResourceUsage GetUsage() const;
-			ResourceBind GetBinding() const;
-			uint32_t GetWidth() const;
-			uint32_t GetHeight() const;
-			uint32_t GetMipLevels() const;
+			trigonometry::matrix4x4 transform;
+			core::unordered_map<size_t, size_t> joints;
+			core::string name;
+
+		protected:
+			skin_mesh_buffer(const desc& i) noexcept;
+
+		public:
+			virtual ~skin_mesh_buffer() noexcept;
+			virtual core::unique<trigonometry::skin_vertex> get_elements(graphics_device* device) const = 0;
+			element_buffer* get_vertex_buffer() const;
+			element_buffer* get_index_buffer() const;
 		};
 
-		class VI_OUT Texture3D : public Core::Reference<Texture3D>
+		class instance_buffer : public core::reference<instance_buffer>
 		{
 		public:
-			struct Desc
+			struct desc
 			{
-				CPUAccess AccessFlags = CPUAccess::None;
-				Format FormatMode = Format::R8G8B8A8_Unorm;
-				ResourceUsage Usage = ResourceUsage::Default;
-				ResourceBind BindFlags = ResourceBind::Shader_Input;
-				ResourceMisc MiscFlags = ResourceMisc::None;
-				uint32_t Width = WINDOW_SIZE;
-				uint32_t Height = WINDOW_SIZE;
-				uint32_t Depth = 1;
-				int MipLevels = 1;
-				bool Writable = false;
+				graphics_device* device = nullptr;
+				uint32_t element_width = sizeof(trigonometry::element_vertex);
+				uint32_t element_limit = 100;
 			};
 
 		protected:
-			CPUAccess AccessFlags;
-			Format FormatMode;
-			ResourceUsage Usage;
-			ResourceBind Binding;
-			uint32_t Width, Height;
-			uint32_t MipLevels;
-			uint32_t Depth;
+			core::vector<trigonometry::element_vertex> array;
+			element_buffer* elements;
+			graphics_device* device;
+			size_t element_limit;
+			size_t element_width;
+			bool sync;
 
 		protected:
-			Texture3D();
+			instance_buffer(const desc& i) noexcept;
 
 		public:
-			virtual ~Texture3D() = default;
-			virtual void* GetResource() = 0;
-			CPUAccess GetAccessFlags() const;
-			Format GetFormatMode() const;
-			ResourceUsage GetUsage() const;
-			ResourceBind GetBinding() const;
-			uint32_t GetWidth() const;
-			uint32_t GetHeight() const;
-			uint32_t GetDepth() const;
-			uint32_t GetMipLevels() const;
+			virtual ~instance_buffer() noexcept;
+			core::vector<trigonometry::element_vertex>& get_array();
+			element_buffer* get_elements() const;
+			graphics_device* get_device() const;
+			size_t get_element_limit() const;
 		};
 
-		class VI_OUT TextureCube : public Core::Reference<TextureCube>
+		class texture_2d : public core::reference<texture_2d>
 		{
 		public:
-			struct Desc
+			struct desc
 			{
-				CPUAccess AccessFlags = CPUAccess::None;
-				Format FormatMode = Format::R8G8B8A8_Unorm;
-				ResourceUsage Usage = ResourceUsage::Default;
-				ResourceBind BindFlags = ResourceBind::Shader_Input;
-				ResourceMisc MiscFlags = ResourceMisc::Texture_Cube;
-				uint32_t Width = WINDOW_SIZE;
-				uint32_t Height = WINDOW_SIZE;
-				int MipLevels = 1;
-				bool Writable = false;
+				cpu_access access_flags = cpu_access::none;
+				format format_mode = format::r8g8b8a8_unorm;
+				resource_usage usage = resource_usage::defaults;
+				resource_bind bind_flags = resource_bind::shader_input;
+				resource_misc misc_flags = resource_misc::none;
+				void* data = nullptr;
+				uint32_t row_pitch = 0;
+				uint32_t depth_pitch = 0;
+				uint32_t width = window_size;
+				uint32_t height = window_size;
+				int mip_levels = 1;
+				bool writable = false;
 			};
 
 		protected:
-			CPUAccess AccessFlags;
-			Format FormatMode;
-			ResourceUsage Usage;
-			ResourceBind Binding;
-			uint32_t Width, Height;
-			uint32_t MipLevels;
+			cpu_access access_flags;
+			format format_mode;
+			resource_usage usage;
+			resource_bind binding;
+			uint32_t width, height;
+			uint32_t mip_levels;
 
 		protected:
-			TextureCube() noexcept;
-			TextureCube(const Desc& I) noexcept;
+			texture_2d() noexcept;
+			texture_2d(const desc& i) noexcept;
 
 		public:
-			virtual ~TextureCube() = default;
-			virtual void* GetResource() const = 0;
-			CPUAccess GetAccessFlags() const;
-			Format GetFormatMode() const;
-			ResourceUsage GetUsage() const;
-			ResourceBind GetBinding() const;
-			uint32_t GetWidth() const;
-			uint32_t GetHeight() const;
-			uint32_t GetMipLevels() const;
+			virtual ~texture_2d() = default;
+			virtual void* get_resource() const = 0;
+			cpu_access get_access_flags() const;
+			format get_format_mode() const;
+			resource_usage get_usage() const;
+			resource_bind get_binding() const;
+			uint32_t get_width() const;
+			uint32_t get_height() const;
+			uint32_t get_mip_levels() const;
 		};
 
-		class VI_OUT DepthTarget2D : public Core::Reference<DepthTarget2D>
+		class texture_3d : public core::reference<texture_3d>
 		{
 		public:
-			struct Desc
+			struct desc
 			{
-				CPUAccess AccessFlags = CPUAccess::None;
-				ResourceUsage Usage = ResourceUsage::Default;
-				Format FormatMode = Format::D24_Unorm_S8_Uint;
-				uint32_t Width = WINDOW_SIZE;
-				uint32_t Height = WINDOW_SIZE;
+				cpu_access access_flags = cpu_access::none;
+				format format_mode = format::r8g8b8a8_unorm;
+				resource_usage usage = resource_usage::defaults;
+				resource_bind bind_flags = resource_bind::shader_input;
+				resource_misc misc_flags = resource_misc::none;
+				uint32_t width = window_size;
+				uint32_t height = window_size;
+				uint32_t depth = 1;
+				int mip_levels = 1;
+				bool writable = false;
 			};
 
 		protected:
-			Texture2D* Resource;
-			Viewport Viewarea;
+			cpu_access access_flags;
+			format format_mode;
+			resource_usage usage;
+			resource_bind binding;
+			uint32_t width, height;
+			uint32_t mip_levels;
+			uint32_t depth;
 
 		protected:
-			DepthTarget2D(const Desc& I) noexcept;
+			texture_3d();
 
 		public:
-			virtual ~DepthTarget2D() noexcept;
-			virtual void* GetResource() const = 0;
-			virtual uint32_t GetWidth() const = 0;
-			virtual uint32_t GetHeight() const = 0;
-			Texture2D* GetTarget();
-			const Graphics::Viewport& GetViewport() const;
+			virtual ~texture_3d() = default;
+			virtual void* get_resource() = 0;
+			cpu_access get_access_flags() const;
+			format get_format_mode() const;
+			resource_usage get_usage() const;
+			resource_bind get_binding() const;
+			uint32_t get_width() const;
+			uint32_t get_height() const;
+			uint32_t get_depth() const;
+			uint32_t get_mip_levels() const;
 		};
 
-		class VI_OUT DepthTargetCube : public Core::Reference<DepthTargetCube>
+		class texture_cube : public core::reference<texture_cube>
 		{
 		public:
-			struct Desc
+			struct desc
 			{
-				CPUAccess AccessFlags = CPUAccess::None;
-				ResourceUsage Usage = ResourceUsage::Default;
-				Format FormatMode = Format::D24_Unorm_S8_Uint;
-				uint32_t Size = 512;
+				cpu_access access_flags = cpu_access::none;
+				format format_mode = format::r8g8b8a8_unorm;
+				resource_usage usage = resource_usage::defaults;
+				resource_bind bind_flags = resource_bind::shader_input;
+				resource_misc misc_flags = resource_misc::texture_cube;
+				uint32_t width = window_size;
+				uint32_t height = window_size;
+				int mip_levels = 1;
+				bool writable = false;
 			};
 
 		protected:
-			TextureCube* Resource;
-			Viewport Viewarea;
+			cpu_access access_flags;
+			format format_mode;
+			resource_usage usage;
+			resource_bind binding;
+			uint32_t width, height;
+			uint32_t mip_levels;
 
 		protected:
-			DepthTargetCube(const Desc& I) noexcept;
+			texture_cube() noexcept;
+			texture_cube(const desc& i) noexcept;
 
 		public:
-			virtual ~DepthTargetCube() noexcept;
-			virtual void* GetResource() const = 0;
-			virtual uint32_t GetWidth() const = 0;
-			virtual uint32_t GetHeight() const = 0;
-			TextureCube* GetTarget();
-			const Graphics::Viewport& GetViewport() const;
+			virtual ~texture_cube() = default;
+			virtual void* get_resource() const = 0;
+			cpu_access get_access_flags() const;
+			format get_format_mode() const;
+			resource_usage get_usage() const;
+			resource_bind get_binding() const;
+			uint32_t get_width() const;
+			uint32_t get_height() const;
+			uint32_t get_mip_levels() const;
 		};
 
-		class VI_OUT RenderTarget : public Core::Reference<RenderTarget>
+		class depth_target_2d : public core::reference<depth_target_2d>
 		{
-		protected:
-			Texture2D* DepthStencil;
-			Viewport Viewarea;
+		public:
+			struct desc
+			{
+				cpu_access access_flags = cpu_access::none;
+				resource_usage usage = resource_usage::defaults;
+				format format_mode = format::d24_unorm_s8_uint;
+				uint32_t width = window_size;
+				uint32_t height = window_size;
+			};
 
 		protected:
-			RenderTarget() noexcept;
+			texture_2d* resource;
+			viewport viewarea;
+
+		protected:
+			depth_target_2d(const desc& i) noexcept;
 
 		public:
-			virtual ~RenderTarget() noexcept;
-			virtual void* GetTargetBuffer() const = 0;
-			virtual void* GetDepthBuffer() const = 0;
-			virtual uint32_t GetWidth() const = 0;
-			virtual uint32_t GetHeight() const = 0;
-			virtual uint32_t GetTargetCount() const = 0;
-			virtual Texture2D* GetTarget2D(uint32_t Index) = 0;
-			virtual TextureCube* GetTargetCube(uint32_t Index) = 0;
-			Texture2D* GetDepthStencil();
-			const Graphics::Viewport& GetViewport() const;
+			virtual ~depth_target_2d() noexcept;
+			virtual void* get_resource() const = 0;
+			virtual uint32_t get_width() const = 0;
+			virtual uint32_t get_height() const = 0;
+			texture_2d* get_target();
+			const graphics::viewport& get_viewport() const;
 		};
 
-		class VI_OUT RenderTarget2D : public RenderTarget
+		class depth_target_cube : public core::reference<depth_target_cube>
 		{
 		public:
-			struct Desc
+			struct desc
 			{
-				CPUAccess AccessFlags = CPUAccess::None;
-				Format FormatMode = Format::R8G8B8A8_Unorm;
-				ResourceUsage Usage = ResourceUsage::Default;
-				ResourceBind BindFlags = (ResourceBind)(ResourceBind::Render_Target | ResourceBind::Shader_Input);
-				ResourceMisc MiscFlags = ResourceMisc::None;
-				void* RenderSurface = nullptr;
-				uint32_t Width = WINDOW_SIZE;
-				uint32_t Height = WINDOW_SIZE;
-				uint32_t MipLevels = 1;
-				bool DepthStencil = true;
+				cpu_access access_flags = cpu_access::none;
+				resource_usage usage = resource_usage::defaults;
+				format format_mode = format::d24_unorm_s8_uint;
+				uint32_t size = 512;
 			};
 
 		protected:
-			Texture2D* Resource;
+			texture_cube* resource;
+			viewport viewarea;
 
 		protected:
-			RenderTarget2D(const Desc& I) noexcept;
+			depth_target_cube(const desc& i) noexcept;
 
 		public:
-			virtual ~RenderTarget2D() noexcept;
-			virtual void* GetTargetBuffer() const = 0;
-			virtual void* GetDepthBuffer() const = 0;
-			virtual uint32_t GetWidth() const = 0;
-			virtual uint32_t GetHeight() const = 0;
-			uint32_t GetTargetCount() const;
-			Texture2D* GetTarget2D(uint32_t Index);
-			TextureCube* GetTargetCube(uint32_t Index);
-			Texture2D* GetTarget();
+			virtual ~depth_target_cube() noexcept;
+			virtual void* get_resource() const = 0;
+			virtual uint32_t get_width() const = 0;
+			virtual uint32_t get_height() const = 0;
+			texture_cube* get_target();
+			const graphics::viewport& get_viewport() const;
 		};
 
-		class VI_OUT MultiRenderTarget2D : public RenderTarget
+		class render_target : public core::reference<render_target>
 		{
-		public:
-			struct Desc
-			{
-				CPUAccess AccessFlags = CPUAccess::None;
-				SurfaceTarget Target = SurfaceTarget::T0;
-				Format FormatMode[8] = { Format::R8G8B8A8_Unorm, Format::Unknown, Format::Unknown, Format::Unknown, Format::Unknown, Format::Unknown, Format::Unknown, Format::Unknown };
-				ResourceUsage Usage = ResourceUsage::Default;
-				ResourceBind BindFlags = (ResourceBind)(ResourceBind::Render_Target | ResourceBind::Shader_Input);
-				ResourceMisc MiscFlags = ResourceMisc::None;
-				uint32_t Width = WINDOW_SIZE;
-				uint32_t Height = WINDOW_SIZE;
-				uint32_t MipLevels = 1;
-				bool DepthStencil = true;
-			};
+		protected:
+			texture_2d* depth_stencil;
+			viewport viewarea;
 
 		protected:
-			SurfaceTarget Target;
-			Texture2D* Resource[8];
-
-		protected:
-			MultiRenderTarget2D(const Desc& I) noexcept;
+			render_target() noexcept;
 
 		public:
-			virtual ~MultiRenderTarget2D() noexcept;
-			virtual void* GetTargetBuffer() const = 0;
-			virtual void* GetDepthBuffer() const = 0;
-			virtual uint32_t GetWidth() const = 0;
-			virtual uint32_t GetHeight() const = 0;
-			uint32_t GetTargetCount() const;
-			Texture2D* GetTarget2D(uint32_t Index);
-			TextureCube* GetTargetCube(uint32_t Index);
-			Texture2D* GetTarget(uint32_t Index);
+			virtual ~render_target() noexcept;
+			virtual void* get_target_buffer() const = 0;
+			virtual void* get_depth_buffer() const = 0;
+			virtual uint32_t get_width() const = 0;
+			virtual uint32_t get_height() const = 0;
+			virtual uint32_t get_target_count() const = 0;
+			virtual texture_2d* get_target_2d(uint32_t index) = 0;
+			virtual texture_cube* get_target_cube(uint32_t index) = 0;
+			texture_2d* get_depth_stencil();
+			const graphics::viewport& get_viewport() const;
 		};
 
-		class VI_OUT RenderTargetCube : public RenderTarget
+		class render_target_2d : public render_target
 		{
 		public:
-			struct Desc
+			struct desc
 			{
-				CPUAccess AccessFlags = CPUAccess::None;
-				Format FormatMode = Format::R8G8B8A8_Unorm;
-				ResourceUsage Usage = ResourceUsage::Default;
-				ResourceBind BindFlags = (ResourceBind)(ResourceBind::Render_Target | ResourceBind::Shader_Input);
-				ResourceMisc MiscFlags = (ResourceMisc)(ResourceMisc::Generate_Mips | ResourceMisc::Texture_Cube);
-				uint32_t Size = 512;
-				uint32_t MipLevels = 1;
-				bool DepthStencil = true;
+				cpu_access access_flags = cpu_access::none;
+				format format_mode = format::r8g8b8a8_unorm;
+				resource_usage usage = resource_usage::defaults;
+				resource_bind bind_flags = (resource_bind)(resource_bind::render_target | resource_bind::shader_input);
+				resource_misc misc_flags = resource_misc::none;
+				void* render_surface = nullptr;
+				uint32_t width = window_size;
+				uint32_t height = window_size;
+				uint32_t mip_levels = 1;
+				bool depth_stencil = true;
 			};
 
 		protected:
-			TextureCube* Resource;
+			texture_2d* resource;
 
 		protected:
-			RenderTargetCube(const Desc& I) noexcept;
+			render_target_2d(const desc& i) noexcept;
 
 		public:
-			virtual ~RenderTargetCube() noexcept;
-			virtual void* GetTargetBuffer() const = 0;
-			virtual void* GetDepthBuffer() const = 0;
-			virtual uint32_t GetWidth() const = 0;
-			virtual uint32_t GetHeight() const = 0;
-			uint32_t GetTargetCount() const;
-			Texture2D* GetTarget2D(uint32_t Index);
-			TextureCube* GetTargetCube(uint32_t Index);
-			TextureCube* GetTarget();
+			virtual ~render_target_2d() noexcept;
+			virtual void* get_target_buffer() const = 0;
+			virtual void* get_depth_buffer() const = 0;
+			virtual uint32_t get_width() const = 0;
+			virtual uint32_t get_height() const = 0;
+			uint32_t get_target_count() const;
+			texture_2d* get_target_2d(uint32_t index);
+			texture_cube* get_target_cube(uint32_t index);
+			texture_2d* get_target();
 		};
 
-		class VI_OUT MultiRenderTargetCube : public RenderTarget
+		class multi_render_target_2d : public render_target
 		{
 		public:
-			struct Desc
+			struct desc
 			{
-				CPUAccess AccessFlags = CPUAccess::None;
-				SurfaceTarget Target = SurfaceTarget::T0;
-				Format FormatMode[8] = { Format::R8G8B8A8_Unorm, Format::Unknown, Format::Unknown, Format::Unknown, Format::Unknown, Format::Unknown, Format::Unknown, Format::Unknown };
-				ResourceUsage Usage = ResourceUsage::Default;
-				ResourceBind BindFlags = (ResourceBind)(ResourceBind::Render_Target | ResourceBind::Shader_Input);
-				ResourceMisc MiscFlags = (ResourceMisc)(ResourceMisc::Generate_Mips | ResourceMisc::Texture_Cube);
-				uint32_t MipLevels = 1;
-				uint32_t Size = 512;
-				bool DepthStencil = true;
+				cpu_access access_flags = cpu_access::none;
+				surface_target target = surface_target::t0;
+				format format_mode[8] = { format::r8g8b8a8_unorm, format::unknown, format::unknown, format::unknown, format::unknown, format::unknown, format::unknown, format::unknown };
+				resource_usage usage = resource_usage::defaults;
+				resource_bind bind_flags = (resource_bind)(resource_bind::render_target | resource_bind::shader_input);
+				resource_misc misc_flags = resource_misc::none;
+				uint32_t width = window_size;
+				uint32_t height = window_size;
+				uint32_t mip_levels = 1;
+				bool depth_stencil = true;
 			};
 
 		protected:
-			SurfaceTarget Target;
-			TextureCube* Resource[8];
+			surface_target target;
+			texture_2d* resource[8];
 
 		protected:
-			MultiRenderTargetCube(const Desc& I) noexcept;
+			multi_render_target_2d(const desc& i) noexcept;
 
 		public:
-			virtual ~MultiRenderTargetCube() noexcept;
-			virtual void* GetTargetBuffer() const = 0;
-			virtual void* GetDepthBuffer() const = 0;
-			virtual uint32_t GetWidth() const = 0;
-			virtual uint32_t GetHeight() const = 0;
-			uint32_t GetTargetCount() const;
-			Texture2D* GetTarget2D(uint32_t Index);
-			TextureCube* GetTargetCube(uint32_t Index);
-			TextureCube* GetTarget(uint32_t Index);
+			virtual ~multi_render_target_2d() noexcept;
+			virtual void* get_target_buffer() const = 0;
+			virtual void* get_depth_buffer() const = 0;
+			virtual uint32_t get_width() const = 0;
+			virtual uint32_t get_height() const = 0;
+			uint32_t get_target_count() const;
+			texture_2d* get_target_2d(uint32_t index);
+			texture_cube* get_target_cube(uint32_t index);
+			texture_2d* get_target(uint32_t index);
 		};
 
-		class VI_OUT Cubemap : public Core::Reference<Cubemap>
+		class render_target_cube : public render_target
 		{
 		public:
-			struct Desc
+			struct desc
 			{
-				RenderTarget* Source = nullptr;
-				uint32_t Target = 0;
-				uint32_t MipLevels = 0;
-				uint32_t Size = 512;
+				cpu_access access_flags = cpu_access::none;
+				format format_mode = format::r8g8b8a8_unorm;
+				resource_usage usage = resource_usage::defaults;
+				resource_bind bind_flags = (resource_bind)(resource_bind::render_target | resource_bind::shader_input);
+				resource_misc misc_flags = (resource_misc)(resource_misc::generate_mips | resource_misc::texture_cube);
+				uint32_t size = 512;
+				uint32_t mip_levels = 1;
+				bool depth_stencil = true;
 			};
 
 		protected:
-			TextureCube* Dest;
-			Desc Meta;
+			texture_cube* resource;
 
 		protected:
-			Cubemap(const Desc& I) noexcept;
+			render_target_cube(const desc& i) noexcept;
 
 		public:
-			virtual ~Cubemap() noexcept = default;
-			bool IsValid() const;
+			virtual ~render_target_cube() noexcept;
+			virtual void* get_target_buffer() const = 0;
+			virtual void* get_depth_buffer() const = 0;
+			virtual uint32_t get_width() const = 0;
+			virtual uint32_t get_height() const = 0;
+			uint32_t get_target_count() const;
+			texture_2d* get_target_2d(uint32_t index);
+			texture_cube* get_target_cube(uint32_t index);
+			texture_cube* get_target();
 		};
 
-		class VI_OUT Query : public Core::Reference<Query>
+		class multi_render_target_cube : public render_target
 		{
 		public:
-			struct Desc
+			struct desc
 			{
-				bool Predicate = true;
-				bool AutoPass = false;
+				cpu_access access_flags = cpu_access::none;
+				surface_target target = surface_target::t0;
+				format format_mode[8] = { format::r8g8b8a8_unorm, format::unknown, format::unknown, format::unknown, format::unknown, format::unknown, format::unknown, format::unknown };
+				resource_usage usage = resource_usage::defaults;
+				resource_bind bind_flags = (resource_bind)(resource_bind::render_target | resource_bind::shader_input);
+				resource_misc misc_flags = (resource_misc)(resource_misc::generate_mips | resource_misc::texture_cube);
+				uint32_t mip_levels = 1;
+				uint32_t size = 512;
+				bool depth_stencil = true;
 			};
 
 		protected:
-			Query() noexcept;
+			surface_target target;
+			texture_cube* resource[8];
+
+		protected:
+			multi_render_target_cube(const desc& i) noexcept;
 
 		public:
-			virtual ~Query() noexcept = default;
-			virtual void* GetResource() const = 0;
+			virtual ~multi_render_target_cube() noexcept;
+			virtual void* get_target_buffer() const = 0;
+			virtual void* get_depth_buffer() const = 0;
+			virtual uint32_t get_width() const = 0;
+			virtual uint32_t get_height() const = 0;
+			uint32_t get_target_count() const;
+			texture_2d* get_target_2d(uint32_t index);
+			texture_cube* get_target_cube(uint32_t index);
+			texture_cube* get_target(uint32_t index);
 		};
 
-		class VI_OUT GraphicsDevice : public Core::Reference<GraphicsDevice>
+		class cubemap : public core::reference<cubemap>
 		{
-		protected:
-			struct DirectBuffer
+		public:
+			struct desc
 			{
-				Trigonometry::Matrix4x4 Transform;
-				Trigonometry::Vector4 Padding;
+				render_target* source = nullptr;
+				uint32_t target = 0;
+				uint32_t mip_levels = 0;
+				uint32_t size = 512;
 			};
 
-			struct Vertex
-			{
-				float PX, PY, PZ;
-				float TX, TY;
-				float CX, CY, CZ, CW;
-			};
+		protected:
+			texture_cube* dest;
+			desc meta;
+
+		protected:
+			cubemap(const desc& i) noexcept;
 
 		public:
-			struct Desc
-			{
-				RenderBackend Backend = RenderBackend::Automatic;
-				ShaderModel ShaderMode = ShaderModel::Auto;
-				Format BufferFormat = Format::R8G8B8A8_Unorm;
-				VSync VSyncMode = VSync::Frequency_X1;
-				Core::String CacheDirectory = "./shaders";
-				int IsWindowed = 1;
-				bool ShaderCache = true;
-				bool Debug = false;
-				bool BlitRendering = false;
-				uint32_t PresentationFlags = 0;
-				uint32_t CompilationFlags = (uint32_t)(ShaderCompile::Enable_Strictness | ShaderCompile::Optimization_Level3 | ShaderCompile::Matrix_Row_Major);
-				uint32_t CreationFlags = 0;
-				uint32_t BufferWidth = WINDOW_SIZE;
-				uint32_t BufferHeight = WINDOW_SIZE;
-				Activity* Window = nullptr;
-			};
-
-			struct Section
-			{
-				Core::String Name;
-				Core::String Code;
-			};
-
-		protected:
-			Core::UnorderedMap<Core::String, DepthStencilState*> DepthStencilStates;
-			Core::UnorderedMap<Core::String, RasterizerState*> RasterizerStates;
-			Core::UnorderedMap<Core::String, BlendState*> BlendStates;
-			Core::UnorderedMap<Core::String, SamplerState*> SamplerStates;
-			Core::UnorderedMap<Core::String, InputLayout*> InputLayouts;
-			Core::UnorderedMap<Core::String, Section*> Sections;
-			Core::SingleQueue<RenderThreadCallback> Queue;
-			std::thread::id RenderThread;
-			PrimitiveTopology Primitives;
-			ShaderModel ShaderGen;
-			Texture2D* ViewResource = nullptr;
-			RenderTarget2D* RenderTarget = nullptr;
-			Activity* VirtualWindow = nullptr;
-			uint32_t PresentFlags = 0;
-			uint32_t CompileFlags = 0;
-			VSync VSyncMode = VSync::Frequency_X1;
-			Core::Vector<Vertex> Elements;
-			Core::String Caches;
-			const void* Constants[4];
-			size_t MaxElements;
-			RenderBackend Backend;
-			DirectBuffer Direct;
-			std::recursive_mutex Exclusive;
-			bool ShaderCache;
-			bool Debug;
-
-		protected:
-			GraphicsDevice(const Desc& I) noexcept;
-
-		public:
-			virtual ~GraphicsDevice() noexcept;
-			virtual void SetAsCurrentDevice() = 0;
-			virtual void SetShaderModel(ShaderModel Model) = 0;
-			virtual void SetBlendState(BlendState* State) = 0;
-			virtual void SetRasterizerState(RasterizerState* State) = 0;
-			virtual void SetDepthStencilState(DepthStencilState* State) = 0;
-			virtual void SetInputLayout(InputLayout* State) = 0;
-			virtual ExpectsGraphics<void> SetShader(Shader* Resource, uint32_t Type) = 0;
-			virtual void SetSamplerState(SamplerState* State, uint32_t Slot, uint32_t Count, uint32_t Type) = 0;
-			virtual void SetBuffer(Shader* Resource, uint32_t Slot, uint32_t Type) = 0;
-			virtual void SetBuffer(InstanceBuffer* Resource, uint32_t Slot, uint32_t Type) = 0;
-			virtual void SetConstantBuffer(ElementBuffer* Resource, uint32_t Slot, uint32_t Type) = 0;
-			virtual void SetStructureBuffer(ElementBuffer* Resource, uint32_t Slot, uint32_t Type) = 0;
-			virtual void SetTexture2D(Texture2D* Resource, uint32_t Slot, uint32_t Type) = 0;
-			virtual void SetTexture3D(Texture3D* Resource, uint32_t Slot, uint32_t Type) = 0;
-			virtual void SetTextureCube(TextureCube* Resource, uint32_t Slot, uint32_t Type) = 0;
-			virtual void SetIndexBuffer(ElementBuffer* Resource, Format FormatMode) = 0;
-			virtual void SetVertexBuffers(ElementBuffer** Resources, uint32_t Count, bool DynamicLinkage = false) = 0;
-			virtual void SetWriteable(ElementBuffer** Resource, uint32_t Slot, uint32_t Count, bool Computable) = 0;
-			virtual void SetWriteable(Texture2D** Resource, uint32_t Slot, uint32_t Count, bool Computable) = 0;
-			virtual void SetWriteable(Texture3D** Resource, uint32_t Slot, uint32_t Count, bool Computable) = 0;
-			virtual void SetWriteable(TextureCube** Resource, uint32_t Slot, uint32_t Count, bool Computable) = 0;
-			virtual void SetTarget(float R, float G, float B) = 0;
-			virtual void SetTarget() = 0;
-			virtual void SetTarget(DepthTarget2D* Resource) = 0;
-			virtual void SetTarget(DepthTargetCube* Resource) = 0;
-			virtual void SetTarget(Graphics::RenderTarget* Resource, uint32_t Target, float R, float G, float B) = 0;
-			virtual void SetTarget(Graphics::RenderTarget* Resource, uint32_t Target) = 0;
-			virtual void SetTarget(Graphics::RenderTarget* Resource, float R, float G, float B) = 0;
-			virtual void SetTarget(Graphics::RenderTarget* Resource) = 0;
-			virtual void SetTargetMap(Graphics::RenderTarget* Resource, bool Enabled[8]) = 0;
-			virtual void SetTargetRect(uint32_t Width, uint32_t Height) = 0;
-			virtual void SetViewports(uint32_t Count, Viewport* Viewports) = 0;
-			virtual void SetScissorRects(uint32_t Count, Trigonometry::Rectangle* Value) = 0;
-			virtual void SetPrimitiveTopology(PrimitiveTopology Topology) = 0;
-			virtual void FlushTexture(uint32_t Slot, uint32_t Count, uint32_t Type) = 0;
-			virtual void FlushState() = 0;
-			virtual void ClearBuffer(InstanceBuffer* Resource) = 0;
-			virtual void ClearWritable(Texture2D* Resource) = 0;
-			virtual void ClearWritable(Texture2D* Resource, float R, float G, float B) = 0;
-			virtual void ClearWritable(Texture3D* Resource) = 0;
-			virtual void ClearWritable(Texture3D* Resource, float R, float G, float B) = 0;
-			virtual void ClearWritable(TextureCube* Resource) = 0;
-			virtual void ClearWritable(TextureCube* Resource, float R, float G, float B) = 0;
-			virtual void Clear(float R, float G, float B) = 0;
-			virtual void Clear(Graphics::RenderTarget* Resource, uint32_t Target, float R, float G, float B) = 0;
-			virtual void ClearDepth() = 0;
-			virtual void ClearDepth(DepthTarget2D* Resource) = 0;
-			virtual void ClearDepth(DepthTargetCube* Resource) = 0;
-			virtual void ClearDepth(Graphics::RenderTarget* Resource) = 0;
-			virtual void DrawIndexed(uint32_t Count, uint32_t IndexLocation, uint32_t BaseLocation) = 0;
-			virtual void DrawIndexed(MeshBuffer* Resource) = 0;
-			virtual void DrawIndexed(SkinMeshBuffer* Resource) = 0;
-			virtual void DrawIndexedInstanced(uint32_t IndexCountPerInstance, uint32_t InstanceCount, uint32_t IndexLocation, uint32_t VertexLocation, uint32_t InstanceLocation) = 0;
-			virtual void DrawIndexedInstanced(ElementBuffer* Instances, MeshBuffer* Resource, uint32_t InstanceCount) = 0;
-			virtual void DrawIndexedInstanced(ElementBuffer* Instances, SkinMeshBuffer* Resource, uint32_t InstanceCount) = 0;
-			virtual void Draw(uint32_t Count, uint32_t Location) = 0;
-			virtual void DrawInstanced(uint32_t VertexCountPerInstance, uint32_t InstanceCount, uint32_t VertexLocation, uint32_t InstanceLocation) = 0;
-			virtual void Dispatch(uint32_t GroupX, uint32_t GroupY, uint32_t GroupZ) = 0;
-			virtual void GetViewports(uint32_t* Count, Viewport* Out) = 0;
-			virtual void GetScissorRects(uint32_t* Count, Trigonometry::Rectangle* Out) = 0;
-			virtual void QueryBegin(Query* Resource) = 0;
-			virtual void QueryEnd(Query* Resource) = 0;
-			virtual void GenerateMips(Texture2D* Resource) = 0;
-			virtual void GenerateMips(Texture3D* Resource) = 0;
-			virtual void GenerateMips(TextureCube* Resource) = 0;
-			virtual bool ImBegin() = 0;
-			virtual void ImTransform(const Trigonometry::Matrix4x4& Transform) = 0;
-			virtual void ImTopology(PrimitiveTopology Topology) = 0;
-			virtual void ImEmit() = 0;
-			virtual void ImTexture(Texture2D* In) = 0;
-			virtual void ImColor(float X, float Y, float Z, float W) = 0;
-			virtual void ImIntensity(float Intensity) = 0;
-			virtual void ImTexCoord(float X, float Y) = 0;
-			virtual void ImTexCoordOffset(float X, float Y) = 0;
-			virtual void ImPosition(float X, float Y, float Z) = 0;
-			virtual bool ImEnd() = 0;
-			virtual bool HasExplicitSlots() const = 0;
-			virtual ExpectsGraphics<uint32_t> GetShaderSlot(Shader* Resource, const std::string_view& Name) const = 0;
-			virtual ExpectsGraphics<uint32_t> GetShaderSamplerSlot(Shader* Resource, const std::string_view& ResourceName, const std::string_view& SamplerName) const = 0;
-			virtual ExpectsGraphics<void> Submit() = 0;
-			virtual ExpectsGraphics<void> Map(ElementBuffer* Resource, ResourceMap Mode, MappedSubresource* Map) = 0;
-			virtual ExpectsGraphics<void> Map(Texture2D* Resource, ResourceMap Mode, MappedSubresource* Map) = 0;
-			virtual ExpectsGraphics<void> Map(Texture3D* Resource, ResourceMap Mode, MappedSubresource* Map) = 0;
-			virtual ExpectsGraphics<void> Map(TextureCube* Resource, ResourceMap Mode, MappedSubresource* Map) = 0;
-			virtual ExpectsGraphics<void> Unmap(Texture2D* Resource, MappedSubresource* Map) = 0;
-			virtual ExpectsGraphics<void> Unmap(Texture3D* Resource, MappedSubresource* Map) = 0;
-			virtual ExpectsGraphics<void> Unmap(TextureCube* Resource, MappedSubresource* Map) = 0;
-			virtual ExpectsGraphics<void> Unmap(ElementBuffer* Resource, MappedSubresource* Map) = 0;
-			virtual ExpectsGraphics<void> UpdateConstantBuffer(ElementBuffer* Resource, void* Data, size_t Size) = 0;
-			virtual ExpectsGraphics<void> UpdateBuffer(ElementBuffer* Resource, void* Data, size_t Size) = 0;
-			virtual ExpectsGraphics<void> UpdateBuffer(Shader* Resource, const void* Data) = 0;
-			virtual ExpectsGraphics<void> UpdateBuffer(MeshBuffer* Resource, Trigonometry::Vertex* Data) = 0;
-			virtual ExpectsGraphics<void> UpdateBuffer(SkinMeshBuffer* Resource, Trigonometry::SkinVertex* Data) = 0;
-			virtual ExpectsGraphics<void> UpdateBuffer(InstanceBuffer* Resource) = 0;
-			virtual ExpectsGraphics<void> UpdateBufferSize(Shader* Resource, size_t Size) = 0;
-			virtual ExpectsGraphics<void> UpdateBufferSize(InstanceBuffer* Resource, size_t Size) = 0;
-			virtual ExpectsGraphics<void> CopyTexture2D(Texture2D* Resource, Core::Unique<Texture2D>* Result) = 0;
-			virtual ExpectsGraphics<void> CopyTexture2D(Graphics::RenderTarget* Resource, uint32_t Target, Core::Unique<Texture2D>* Result) = 0;
-			virtual ExpectsGraphics<void> CopyTexture2D(RenderTargetCube* Resource, Trigonometry::CubeFace Face, Core::Unique<Texture2D>* Result) = 0;
-			virtual ExpectsGraphics<void> CopyTexture2D(MultiRenderTargetCube* Resource, uint32_t Cube, Trigonometry::CubeFace Face, Core::Unique<Texture2D>* Result) = 0;
-			virtual ExpectsGraphics<void> CopyTextureCube(RenderTargetCube* Resource, Core::Unique<TextureCube>* Result) = 0;
-			virtual ExpectsGraphics<void> CopyTextureCube(MultiRenderTargetCube* Resource, uint32_t Cube, Core::Unique<TextureCube>* Result) = 0;
-			virtual ExpectsGraphics<void> CopyTarget(Graphics::RenderTarget* From, uint32_t FromTarget, Graphics::RenderTarget* To, uint32_t ToTarget) = 0;
-			virtual ExpectsGraphics<void> CopyBackBuffer(Core::Unique<Texture2D>* Result) = 0;
-			virtual ExpectsGraphics<void> CubemapPush(Cubemap* Resource, TextureCube* Result) = 0;
-			virtual ExpectsGraphics<void> CubemapFace(Cubemap* Resource, Trigonometry::CubeFace Face) = 0;
-			virtual ExpectsGraphics<void> CubemapPop(Cubemap* Resource) = 0;
-			virtual ExpectsGraphics<void> RescaleBuffers(uint32_t Width, uint32_t Height) = 0;
-			virtual ExpectsGraphics<void> ResizeBuffers(uint32_t Width, uint32_t Height) = 0;
-			virtual ExpectsGraphics<void> GenerateTexture(Texture2D* Resource) = 0;
-			virtual ExpectsGraphics<void> GenerateTexture(Texture3D* Resource) = 0;
-			virtual ExpectsGraphics<void> GenerateTexture(TextureCube* Resource) = 0;
-			virtual ExpectsGraphics<void> GetQueryData(Query* Resource, size_t* Result, bool Flush = true) = 0;
-			virtual ExpectsGraphics<void> GetQueryData(Query* Resource, bool* Result, bool Flush = true) = 0;
-			virtual ExpectsGraphics<Core::Unique<DepthStencilState>> CreateDepthStencilState(const DepthStencilState::Desc& I) = 0;
-			virtual ExpectsGraphics<Core::Unique<BlendState>> CreateBlendState(const BlendState::Desc& I) = 0;
-			virtual ExpectsGraphics<Core::Unique<RasterizerState>> CreateRasterizerState(const RasterizerState::Desc& I) = 0;
-			virtual ExpectsGraphics<Core::Unique<SamplerState>> CreateSamplerState(const SamplerState::Desc& I) = 0;
-			virtual ExpectsGraphics<Core::Unique<InputLayout>> CreateInputLayout(const InputLayout::Desc& I) = 0;
-			virtual ExpectsGraphics<Core::Unique<Shader>> CreateShader(const Shader::Desc& I) = 0;
-			virtual ExpectsGraphics<Core::Unique<ElementBuffer>> CreateElementBuffer(const ElementBuffer::Desc& I) = 0;
-			virtual ExpectsGraphics<Core::Unique<MeshBuffer>> CreateMeshBuffer(const MeshBuffer::Desc& I) = 0;
-			virtual ExpectsGraphics<Core::Unique<MeshBuffer>> CreateMeshBuffer(ElementBuffer* VertexBuffer, ElementBuffer* IndexBuffer) = 0;
-			virtual ExpectsGraphics<Core::Unique<SkinMeshBuffer>> CreateSkinMeshBuffer(const SkinMeshBuffer::Desc& I) = 0;
-			virtual ExpectsGraphics<Core::Unique<SkinMeshBuffer>> CreateSkinMeshBuffer(ElementBuffer* VertexBuffer, ElementBuffer* IndexBuffer) = 0;
-			virtual ExpectsGraphics<Core::Unique<InstanceBuffer>> CreateInstanceBuffer(const InstanceBuffer::Desc& I) = 0;
-			virtual ExpectsGraphics<Core::Unique<Texture2D>> CreateTexture2D() = 0;
-			virtual ExpectsGraphics<Core::Unique<Texture2D>> CreateTexture2D(const Texture2D::Desc& I) = 0;
-			virtual ExpectsGraphics<Core::Unique<Texture3D>> CreateTexture3D() = 0;
-			virtual ExpectsGraphics<Core::Unique<Texture3D>> CreateTexture3D(const Texture3D::Desc& I) = 0;
-			virtual ExpectsGraphics<Core::Unique<TextureCube>> CreateTextureCube() = 0;
-			virtual ExpectsGraphics<Core::Unique<TextureCube>> CreateTextureCube(const TextureCube::Desc& I) = 0;
-			virtual ExpectsGraphics<Core::Unique<TextureCube>> CreateTextureCube(Texture2D* Resource[6]) = 0;
-			virtual ExpectsGraphics<Core::Unique<TextureCube>> CreateTextureCube(Texture2D* Resource) = 0;
-			virtual ExpectsGraphics<Core::Unique<DepthTarget2D>> CreateDepthTarget2D(const DepthTarget2D::Desc& I) = 0;
-			virtual ExpectsGraphics<Core::Unique<DepthTargetCube>> CreateDepthTargetCube(const DepthTargetCube::Desc& I) = 0;
-			virtual ExpectsGraphics<Core::Unique<RenderTarget2D>> CreateRenderTarget2D(const RenderTarget2D::Desc& I) = 0;
-			virtual ExpectsGraphics<Core::Unique<MultiRenderTarget2D>> CreateMultiRenderTarget2D(const MultiRenderTarget2D::Desc& I) = 0;
-			virtual ExpectsGraphics<Core::Unique<RenderTargetCube>> CreateRenderTargetCube(const RenderTargetCube::Desc& I) = 0;
-			virtual ExpectsGraphics<Core::Unique<MultiRenderTargetCube>> CreateMultiRenderTargetCube(const MultiRenderTargetCube::Desc& I) = 0;
-			virtual ExpectsGraphics<Core::Unique<Cubemap>> CreateCubemap(const Cubemap::Desc& I) = 0;
-			virtual ExpectsGraphics<Core::Unique<Query>> CreateQuery(const Query::Desc& I) = 0;
-			virtual PrimitiveTopology GetPrimitiveTopology() const = 0;
-			virtual ShaderModel GetSupportedShaderModel()  const = 0;
-			virtual void* GetDevice() const = 0;
-			virtual void* GetContext() const = 0;
-			virtual bool IsValid() const = 0;
-			virtual void SetVSyncMode(VSync Mode);
-			void SetVertexBuffer(ElementBuffer* Resource);
-			void SetShaderCache(bool Enabled);
-			void Lockup(RenderThreadCallback&& Callback);
-			void Enqueue(RenderThreadCallback&& Callback);
-			Compute::ExpectsPreprocessor<void> Preprocess(Shader::Desc& Subresult);
-			ExpectsGraphics<void> Transpile(Core::String* HLSL, ShaderType Stage, ShaderLang To);
-			ExpectsGraphics<void> GetSectionInfo(const std::string_view& Name, Section** Result);
-			ExpectsGraphics<void> GetSectionData(const std::string_view& Name, Shader::Desc* Result);
-			bool AddSection(const std::string_view& Name, const std::string_view& Code);
-			bool RemoveSection(const std::string_view& Name);
-			bool IsLeftHanded() const;
-			Core::String GetShaderMain(ShaderType Type) const;
-			const Core::UnorderedMap<Core::String, DepthStencilState*>& GetDepthStencilStates() const;
-			const Core::UnorderedMap<Core::String, RasterizerState*>& GetRasterizerStates() const;
-			const Core::UnorderedMap<Core::String, BlendState*>& GetBlendStates() const;
-			const Core::UnorderedMap<Core::String, SamplerState*>& GetSamplerStates() const;
-			const Core::UnorderedMap<Core::String, InputLayout*>& GetInputLayouts() const;
-			ExpectsVideo<Core::Unique<Surface>> CreateSurface(Texture2D* Base);
-			DepthStencilState* GetDepthStencilState(const std::string_view& Name);
-			BlendState* GetBlendState(const std::string_view& Name);
-			RasterizerState* GetRasterizerState(const std::string_view& Name);
-			SamplerState* GetSamplerState(const std::string_view& Name);
-			InputLayout* GetInputLayout(const std::string_view& Name);
-			ShaderModel GetShaderModel() const;
-			RenderTarget2D* GetRenderTarget();
-			RenderBackend GetBackend() const;
-			uint32_t GetFormatSize(Format Mode) const;
-			uint32_t GetPresentFlags() const;
-			uint32_t GetCompileFlags() const;
-			uint32_t GetRowPitch(uint32_t Width, uint32_t ElementSize = sizeof(uint8_t) * 4) const;
-			uint32_t GetDepthPitch(uint32_t RowPitch, uint32_t Height) const;
-			uint32_t GetMipLevel(uint32_t Width, uint32_t Height) const;
-			VSync GetVSyncMode() const;
-			bool IsDebug() const;
-
-		protected:
-			virtual ExpectsGraphics<TextureCube*> CreateTextureCubeInternal(void* Resource[6]) = 0;
-			Core::Option<Core::String> GetProgramName(const Shader::Desc& Desc);
-			bool GetProgramCache(const std::string_view& Name, Core::String* Data);
-			bool SetProgramCache(const std::string_view& Name, const std::string_view& Data);
-			void CreateStates();
-			void CreateSections();
-			void ReleaseProxy();
-			void DispatchQueue();
-
-		public:
-			static GraphicsDevice* Create(Desc& I);
-			static ExpectsGraphics<void> CompileBuiltinShaders(const Core::Vector<GraphicsDevice*>& Devices, const std::function<bool(GraphicsDevice*, const std::string_view&, const ExpectsGraphics<Shader*>&)>& Callback);
+			virtual ~cubemap() noexcept = default;
+			bool is_valid() const;
 		};
 
-		class VI_OUT Activity final : public Core::Reference<Activity>
+		class query : public core::reference<query>
 		{
 		public:
-			struct Desc
+			struct desc
 			{
-				Core::String Title = "Activity";
-				uint32_t InactiveSleepMs = 66;
-				uint32_t Width = 0;
-				uint32_t Height = 0;
-				int32_t X = 0, Y = 0;
-				bool Fullscreen = false;
-				bool Hidden = true;
-				bool Borderless = false;
-				bool Resizable = true;
-				bool Minimized = false;
-				bool Maximized = false;
-				bool Centered = false;
-				bool FreePosition = false;
-				bool Focused = false;
-				bool RenderEvenIfInactive = false;
-				bool GPUAsRenderer = true;
-				bool HighDPI = true;
+				bool predicate = true;
+				bool auto_pass = false;
+			};
+
+		protected:
+			query() noexcept;
+
+		public:
+			virtual ~query() noexcept = default;
+			virtual void* get_resource() const = 0;
+		};
+
+		class graphics_device : public core::reference<graphics_device>
+		{
+		protected:
+			struct direct_buffer
+			{
+				trigonometry::matrix4x4 transform;
+				trigonometry::vector4 padding;
+			};
+
+			struct vertex
+			{
+				float px, py, pz;
+				float tx, ty;
+				float cx, cy, cz, cw;
+			};
+
+		public:
+			struct desc
+			{
+				render_backend backend = render_backend::automatic;
+				shader_model shader_mode = shader_model::any;
+				format buffer_format = format::r8g8b8a8_unorm;
+				vsync vsync_mode = vsync::frequency_x1;
+				core::string cache_directory = "./shaders";
+				int is_windowed = 1;
+				bool shader_cache = false;
+				bool debug = false;
+				bool blit_rendering = false;
+				uint32_t presentation_flags = 0;
+				uint32_t compilation_flags = (uint32_t)(shader_compile::enable_strictness | shader_compile::optimization_level3 | shader_compile::matrix_row_major);
+				uint32_t creation_flags = 0;
+				uint32_t buffer_width = window_size;
+				uint32_t buffer_height = window_size;
+				activity* window = nullptr;
+			};
+
+			struct section
+			{
+				core::string name;
+				core::string code;
+			};
+
+		protected:
+			core::unordered_map<core::string, depth_stencil_state*> depth_stencil_states;
+			core::unordered_map<core::string, rasterizer_state*> rasterizer_states;
+			core::unordered_map<core::string, blend_state*> blend_states;
+			core::unordered_map<core::string, sampler_state*> sampler_states;
+			core::unordered_map<core::string, input_layout*> input_layouts;
+			core::unordered_map<core::string, section*> sections;
+			core::single_queue<render_thread_callback> queue;
+			std::thread::id render_thread;
+			primitive_topology primitives;
+			shader_model shader_gen;
+			texture_2d* view_resource = nullptr;
+			render_target_2d* render_target = nullptr;
+			activity* virtual_window = nullptr;
+			uint32_t present_flags = 0;
+			uint32_t compile_flags = 0;
+			vsync vsync_mode = vsync::frequency_x1;
+			core::vector<vertex> elements;
+			core::string caches;
+			size_t max_elements;
+			render_backend backend;
+			direct_buffer direct;
+			std::recursive_mutex exclusive;
+			bool shader_cache;
+			bool debug;
+
+		protected:
+			graphics_device(const desc& i) noexcept;
+
+		public:
+			virtual ~graphics_device() noexcept;
+			virtual void set_as_current_device() = 0;
+			virtual void set_shader_model(shader_model model) = 0;
+			virtual void set_blend_state(blend_state* state) = 0;
+			virtual void set_rasterizer_state(rasterizer_state* state) = 0;
+			virtual void set_depth_stencil_state(depth_stencil_state* state) = 0;
+			virtual void set_input_layout(input_layout* state) = 0;
+			virtual expects_graphics<void> set_shader(shader* resource, uint32_t type) = 0;
+			virtual void set_sampler_state(sampler_state* state, uint32_t slot, uint32_t count, uint32_t type) = 0;
+			virtual void set_buffer(shader* resource, uint32_t slot, uint32_t type) = 0;
+			virtual void set_buffer(instance_buffer* resource, uint32_t slot, uint32_t type) = 0;
+			virtual void set_constant_buffer(element_buffer* resource, uint32_t slot, uint32_t type) = 0;
+			virtual void set_structure_buffer(element_buffer* resource, uint32_t slot, uint32_t type) = 0;
+			virtual void set_texture_2d(texture_2d* resource, uint32_t slot, uint32_t type) = 0;
+			virtual void set_texture_3d(texture_3d* resource, uint32_t slot, uint32_t type) = 0;
+			virtual void set_texture_cube(texture_cube* resource, uint32_t slot, uint32_t type) = 0;
+			virtual void set_index_buffer(element_buffer* resource, format format_mode) = 0;
+			virtual void set_vertex_buffers(element_buffer** resources, uint32_t count, bool dynamic_linkage = false) = 0;
+			virtual void set_writeable(element_buffer** resource, uint32_t slot, uint32_t count, bool computable) = 0;
+			virtual void set_writeable(texture_2d** resource, uint32_t slot, uint32_t count, bool computable) = 0;
+			virtual void set_writeable(texture_3d** resource, uint32_t slot, uint32_t count, bool computable) = 0;
+			virtual void set_writeable(texture_cube** resource, uint32_t slot, uint32_t count, bool computable) = 0;
+			virtual void set_target(float r, float g, float b) = 0;
+			virtual void set_target() = 0;
+			virtual void set_target(depth_target_2d* resource) = 0;
+			virtual void set_target(depth_target_cube* resource) = 0;
+			virtual void set_target(graphics::render_target* resource, uint32_t target, float r, float g, float b) = 0;
+			virtual void set_target(graphics::render_target* resource, uint32_t target) = 0;
+			virtual void set_target(graphics::render_target* resource, float r, float g, float b) = 0;
+			virtual void set_target(graphics::render_target* resource) = 0;
+			virtual void set_target_map(graphics::render_target* resource, bool enabled[8]) = 0;
+			virtual void set_target_rect(uint32_t width, uint32_t height) = 0;
+			virtual void set_viewports(uint32_t count, viewport* viewports) = 0;
+			virtual void set_scissor_rects(uint32_t count, trigonometry::rectangle* value) = 0;
+			virtual void set_primitive_topology(primitive_topology topology) = 0;
+			virtual void flush_texture(uint32_t slot, uint32_t count, uint32_t type) = 0;
+			virtual void flush_state() = 0;
+			virtual void clear_buffer(instance_buffer* resource) = 0;
+			virtual void clear_writable(texture_2d* resource) = 0;
+			virtual void clear_writable(texture_2d* resource, float r, float g, float b) = 0;
+			virtual void clear_writable(texture_3d* resource) = 0;
+			virtual void clear_writable(texture_3d* resource, float r, float g, float b) = 0;
+			virtual void clear_writable(texture_cube* resource) = 0;
+			virtual void clear_writable(texture_cube* resource, float r, float g, float b) = 0;
+			virtual void clear(float r, float g, float b) = 0;
+			virtual void clear(graphics::render_target* resource, uint32_t target, float r, float g, float b) = 0;
+			virtual void clear_depth() = 0;
+			virtual void clear_depth(depth_target_2d* resource) = 0;
+			virtual void clear_depth(depth_target_cube* resource) = 0;
+			virtual void clear_depth(graphics::render_target* resource) = 0;
+			virtual void draw_indexed(uint32_t count, uint32_t index_location, uint32_t base_location) = 0;
+			virtual void draw_indexed(mesh_buffer* resource) = 0;
+			virtual void draw_indexed(skin_mesh_buffer* resource) = 0;
+			virtual void draw_indexed_instanced(uint32_t index_count_per_instance, uint32_t instance_count, uint32_t index_location, uint32_t vertex_location, uint32_t instance_location) = 0;
+			virtual void draw_indexed_instanced(element_buffer* instances, mesh_buffer* resource, uint32_t instance_count) = 0;
+			virtual void draw_indexed_instanced(element_buffer* instances, skin_mesh_buffer* resource, uint32_t instance_count) = 0;
+			virtual void draw(uint32_t count, uint32_t location) = 0;
+			virtual void draw_instanced(uint32_t vertex_count_per_instance, uint32_t instance_count, uint32_t vertex_location, uint32_t instance_location) = 0;
+			virtual void dispatch(uint32_t group_x, uint32_t group_y, uint32_t group_z) = 0;
+			virtual void get_viewports(uint32_t* count, viewport* out) = 0;
+			virtual void get_scissor_rects(uint32_t* count, trigonometry::rectangle* out) = 0;
+			virtual void query_begin(query* resource) = 0;
+			virtual void query_end(query* resource) = 0;
+			virtual void generate_mips(texture_2d* resource) = 0;
+			virtual void generate_mips(texture_3d* resource) = 0;
+			virtual void generate_mips(texture_cube* resource) = 0;
+			virtual bool im_begin() = 0;
+			virtual void im_transform(const trigonometry::matrix4x4& transform) = 0;
+			virtual void im_topology(primitive_topology topology) = 0;
+			virtual void im_emit() = 0;
+			virtual void im_texture(texture_2d* in) = 0;
+			virtual void im_color(float x, float y, float z, float w) = 0;
+			virtual void im_intensity(float intensity) = 0;
+			virtual void im_texcoord(float x, float y) = 0;
+			virtual void im_texcoord_offset(float x, float y) = 0;
+			virtual void im_position(float x, float y, float z) = 0;
+			virtual bool im_end() = 0;
+			virtual bool has_explicit_slots() const = 0;
+			virtual expects_graphics<uint32_t> get_shader_slot(shader* resource, const std::string_view& name) const = 0;
+			virtual expects_graphics<uint32_t> get_shader_sampler_slot(shader* resource, const std::string_view& resource_name, const std::string_view& sampler_name) const = 0;
+			virtual expects_graphics<void> submit() = 0;
+			virtual expects_graphics<void> map(element_buffer* resource, resource_map mode, mapped_subresource* map) = 0;
+			virtual expects_graphics<void> map(texture_2d* resource, resource_map mode, mapped_subresource* map) = 0;
+			virtual expects_graphics<void> map(texture_3d* resource, resource_map mode, mapped_subresource* map) = 0;
+			virtual expects_graphics<void> map(texture_cube* resource, resource_map mode, mapped_subresource* map) = 0;
+			virtual expects_graphics<void> unmap(texture_2d* resource, mapped_subresource* map) = 0;
+			virtual expects_graphics<void> unmap(texture_3d* resource, mapped_subresource* map) = 0;
+			virtual expects_graphics<void> unmap(texture_cube* resource, mapped_subresource* map) = 0;
+			virtual expects_graphics<void> unmap(element_buffer* resource, mapped_subresource* map) = 0;
+			virtual expects_graphics<void> update_constant_buffer(element_buffer* resource, void* data, size_t size) = 0;
+			virtual expects_graphics<void> update_buffer(element_buffer* resource, void* data, size_t size) = 0;
+			virtual expects_graphics<void> update_buffer(shader* resource, const void* data) = 0;
+			virtual expects_graphics<void> update_buffer(mesh_buffer* resource, trigonometry::vertex* data) = 0;
+			virtual expects_graphics<void> update_buffer(skin_mesh_buffer* resource, trigonometry::skin_vertex* data) = 0;
+			virtual expects_graphics<void> update_buffer(instance_buffer* resource) = 0;
+			virtual expects_graphics<void> update_buffer_size(shader* resource, size_t size) = 0;
+			virtual expects_graphics<void> update_buffer_size(instance_buffer* resource, size_t size) = 0;
+			virtual expects_graphics<void> copy_texture_2d(texture_2d* resource, core::unique<texture_2d>* result) = 0;
+			virtual expects_graphics<void> copy_texture_2d(graphics::render_target* resource, uint32_t target, core::unique<texture_2d>* result) = 0;
+			virtual expects_graphics<void> copy_texture_2d(render_target_cube* resource, trigonometry::cube_face face, core::unique<texture_2d>* result) = 0;
+			virtual expects_graphics<void> copy_texture_2d(multi_render_target_cube* resource, uint32_t cube, trigonometry::cube_face face, core::unique<texture_2d>* result) = 0;
+			virtual expects_graphics<void> copy_texture_cube(render_target_cube* resource, core::unique<texture_cube>* result) = 0;
+			virtual expects_graphics<void> copy_texture_cube(multi_render_target_cube* resource, uint32_t cube, core::unique<texture_cube>* result) = 0;
+			virtual expects_graphics<void> copy_target(graphics::render_target* from, uint32_t from_target, graphics::render_target* to, uint32_t to_target) = 0;
+			virtual expects_graphics<void> copy_back_buffer(core::unique<texture_2d>* result) = 0;
+			virtual expects_graphics<void> cubemap_push(cubemap* resource, texture_cube* result) = 0;
+			virtual expects_graphics<void> cubemap_face(cubemap* resource, trigonometry::cube_face face) = 0;
+			virtual expects_graphics<void> cubemap_pop(cubemap* resource) = 0;
+			virtual expects_graphics<void> rescale_buffers(uint32_t width, uint32_t height) = 0;
+			virtual expects_graphics<void> resize_buffers(uint32_t width, uint32_t height) = 0;
+			virtual expects_graphics<void> generate_texture(texture_2d* resource) = 0;
+			virtual expects_graphics<void> generate_texture(texture_3d* resource) = 0;
+			virtual expects_graphics<void> generate_texture(texture_cube* resource) = 0;
+			virtual expects_graphics<void> get_query_data(query* resource, size_t* result, bool flush = true) = 0;
+			virtual expects_graphics<void> get_query_data(query* resource, bool* result, bool flush = true) = 0;
+			virtual expects_graphics<core::unique<depth_stencil_state>> create_depth_stencil_state(const depth_stencil_state::desc& i) = 0;
+			virtual expects_graphics<core::unique<blend_state>> create_blend_state(const blend_state::desc& i) = 0;
+			virtual expects_graphics<core::unique<rasterizer_state>> create_rasterizer_state(const rasterizer_state::desc& i) = 0;
+			virtual expects_graphics<core::unique<sampler_state>> create_sampler_state(const sampler_state::desc& i) = 0;
+			virtual expects_graphics<core::unique<input_layout>> create_input_layout(const input_layout::desc& i) = 0;
+			virtual expects_graphics<core::unique<shader>> create_shader(const shader::desc& i) = 0;
+			virtual expects_graphics<core::unique<element_buffer>> create_element_buffer(const element_buffer::desc& i) = 0;
+			virtual expects_graphics<core::unique<mesh_buffer>> create_mesh_buffer(const mesh_buffer::desc& i) = 0;
+			virtual expects_graphics<core::unique<mesh_buffer>> create_mesh_buffer(element_buffer* vertex_buffer, element_buffer* index_buffer) = 0;
+			virtual expects_graphics<core::unique<skin_mesh_buffer>> create_skin_mesh_buffer(const skin_mesh_buffer::desc& i) = 0;
+			virtual expects_graphics<core::unique<skin_mesh_buffer>> create_skin_mesh_buffer(element_buffer* vertex_buffer, element_buffer* index_buffer) = 0;
+			virtual expects_graphics<core::unique<instance_buffer>> create_instance_buffer(const instance_buffer::desc& i) = 0;
+			virtual expects_graphics<core::unique<texture_2d>> create_texture_2d() = 0;
+			virtual expects_graphics<core::unique<texture_2d>> create_texture_2d(const texture_2d::desc& i) = 0;
+			virtual expects_graphics<core::unique<texture_3d>> create_texture_3d() = 0;
+			virtual expects_graphics<core::unique<texture_3d>> create_texture_3d(const texture_3d::desc& i) = 0;
+			virtual expects_graphics<core::unique<texture_cube>> create_texture_cube() = 0;
+			virtual expects_graphics<core::unique<texture_cube>> create_texture_cube(const texture_cube::desc& i) = 0;
+			virtual expects_graphics<core::unique<texture_cube>> create_texture_cube(texture_2d* resource[6]) = 0;
+			virtual expects_graphics<core::unique<texture_cube>> create_texture_cube(texture_2d* resource) = 0;
+			virtual expects_graphics<core::unique<depth_target_2d>> create_depth_target_2d(const depth_target_2d::desc& i) = 0;
+			virtual expects_graphics<core::unique<depth_target_cube>> create_depth_target_cube(const depth_target_cube::desc& i) = 0;
+			virtual expects_graphics<core::unique<render_target_2d>> create_render_target_2d(const render_target_2d::desc& i) = 0;
+			virtual expects_graphics<core::unique<multi_render_target_2d>> create_multi_render_target_2d(const multi_render_target_2d::desc& i) = 0;
+			virtual expects_graphics<core::unique<render_target_cube>> create_render_target_cube(const render_target_cube::desc& i) = 0;
+			virtual expects_graphics<core::unique<multi_render_target_cube>> create_multi_render_target_cube(const multi_render_target_cube::desc& i) = 0;
+			virtual expects_graphics<core::unique<cubemap>> create_cubemap(const cubemap::desc& i) = 0;
+			virtual expects_graphics<core::unique<query>> create_query(const query::desc& i) = 0;
+			virtual primitive_topology get_primitive_topology() const = 0;
+			virtual shader_model get_supported_shader_model()  const = 0;
+			virtual void* get_device() const = 0;
+			virtual void* get_context() const = 0;
+			virtual bool is_valid() const = 0;
+			virtual void set_vsync_mode(vsync mode);
+			void set_vertex_buffer(element_buffer* resource);
+			void set_shader_cache(bool enabled);
+			void lockup(render_thread_callback&& callback);
+			void enqueue(render_thread_callback&& callback);
+			compute::expects_preprocessor<void> preprocess(shader::desc& subresult);
+			expects_graphics<void> transpile(core::string* hlsl, shader_type stage, shader_lang to);
+			expects_graphics<void> get_section_info(const std::string_view& name, section** result);
+			expects_graphics<void> get_section_data(const std::string_view& name, shader::desc* result);
+			bool add_section(const std::string_view& name, const std::string_view& code);
+			bool remove_section(const std::string_view& name);
+			bool is_left_handed() const;
+			core::string get_shader_main(shader_type type) const;
+			const core::unordered_map<core::string, depth_stencil_state*>& get_depth_stencil_states() const;
+			const core::unordered_map<core::string, rasterizer_state*>& get_rasterizer_states() const;
+			const core::unordered_map<core::string, blend_state*>& get_blend_states() const;
+			const core::unordered_map<core::string, sampler_state*>& get_sampler_states() const;
+			const core::unordered_map<core::string, input_layout*>& get_input_layouts() const;
+			expects_video<core::unique<surface>> create_surface(texture_2d* base);
+			depth_stencil_state* get_depth_stencil_state(const std::string_view& name);
+			blend_state* get_blend_state(const std::string_view& name);
+			rasterizer_state* get_rasterizer_state(const std::string_view& name);
+			sampler_state* get_sampler_state(const std::string_view& name);
+			input_layout* get_input_layout(const std::string_view& name);
+			shader_model get_shader_model() const;
+			render_target_2d* get_render_target();
+			render_backend get_backend() const;
+			uint32_t get_format_size(format mode) const;
+			uint32_t get_present_flags() const;
+			uint32_t get_compile_flags() const;
+			uint32_t get_row_pitch(uint32_t width, uint32_t element_size = sizeof(uint8_t) * 4) const;
+			uint32_t get_depth_pitch(uint32_t row_pitch, uint32_t height) const;
+			uint32_t get_mip_level(uint32_t width, uint32_t height) const;
+			core::option<core::string> get_program_name(const shader::desc& desc);
+			vsync get_vsync_mode() const;
+			bool is_debug() const;
+
+		protected:
+			virtual expects_graphics<texture_cube*> create_texture_cube_internal(void* resource[6]) = 0;
+			bool get_program_cache(const std::string_view& name, core::string* data);
+			bool set_program_cache(const std::string_view& name, const std::string_view& data);
+			void create_states();
+			void create_sections();
+			void release_proxy();
+			void dispatch_queue();
+
+		public:
+			static graphics_device* create(desc& i);
+			static expects_graphics<void> compile_builtin_shaders(const core::vector<graphics_device*>& devices, const std::function<bool(graphics_device*, const std::string_view&, const expects_graphics<shader*>&)>& callback);
+		};
+
+		class activity final : public core::reference<activity>
+		{
+		public:
+			struct desc
+			{
+				core::string title = "Activity";
+				uint32_t inactive_sleep_ms = 66;
+				uint32_t width = 0;
+				uint32_t height = 0;
+				int32_t x = 0, y = 0;
+				bool fullscreen = false;
+				bool hidden = true;
+				bool borderless = false;
+				bool resizable = true;
+				bool minimized = false;
+				bool maximized = false;
+				bool centered = false;
+				bool free_position = false;
+				bool focused = false;
+				bool render_even_if_inactive = false;
+				bool gpu_as_renderer = true;
+				bool high_dpi = true;
 			};
 
 			struct
 			{
-				AppStateChangeCallback AppStateChange = nullptr;
-				WindowStateChangeCallback WindowStateChange = nullptr;
-				KeyStateCallback KeyState = nullptr;
-				InputEditCallback InputEdit = nullptr;
-				InputCallback Input = nullptr;
-				CursorMoveCallback CursorMove = nullptr;
-				CursorWheelStateCallback CursorWheelState = nullptr;
-				JoyStickAxisMoveCallback JoyStickAxisMove = nullptr;
-				JoyStickBallMoveCallback JoyStickBallMove = nullptr;
-				JoyStickHatMoveCallback JoyStickHatMove = nullptr;
-				JoyStickKeyStateCallback JoyStickKeyState = nullptr;
-				JoyStickStateCallback JoyStickState = nullptr;
-				ControllerAxisMoveCallback ControllerAxisMove = nullptr;
-				ControllerKeyStateCallback ControllerKeyState = nullptr;
-				ControllerStateCallback ControllerState = nullptr;
-				TouchMoveCallback TouchMove = nullptr;
-				TouchStateCallback TouchState = nullptr;
-				GestureStateCallback GestureState = nullptr;
-				MultiGestureStateCallback MultiGestureState = nullptr;
-				DropFileCallback DropFile = nullptr;
-				DropTextCallback DropText = nullptr;
-			} Callbacks;
+				app_state_change_callback app_state_change = nullptr;
+				window_state_change_callback window_state_change = nullptr;
+				key_state_callback key_state = nullptr;
+				input_edit_callback input_edit = nullptr;
+				input_callback input = nullptr;
+				cursor_move_callback cursor_move = nullptr;
+				cursor_wheel_state_callback cursor_wheel_state = nullptr;
+				joy_stick_axis_move_callback joy_stick_axis_move = nullptr;
+				joy_stick_ball_move_callback joy_stick_ball_move = nullptr;
+				joy_stick_hat_move_callback joy_stick_hat_move = nullptr;
+				joy_stick_key_state_callback joy_stick_key_state = nullptr;
+				joy_stick_state_callback joy_stick_state = nullptr;
+				controller_axis_move_callback controller_axis_move = nullptr;
+				controller_key_state_callback controller_key_state = nullptr;
+				controller_state_callback controller_state = nullptr;
+				touch_move_callback touch_move = nullptr;
+				touch_state_callback touch_state = nullptr;
+				gesture_state_callback gesture_state = nullptr;
+				multi_gesture_state_callback multi_gesture_state = nullptr;
+				drop_file_callback drop_file = nullptr;
+				drop_text_callback drop_text = nullptr;
+			} callbacks;
 
 		private:
 			struct
 			{
-				bool Captured = false;
-				bool Mapped = false;
-				bool Enabled = false;
-				KeyMap Key;
-			} Mapping;
+				bool captured = false;
+				bool mapped = false;
+				bool enabled = false;
+				key_map key;
+			} mapping;
 
 		private:
-			EventConsumers EventSource;
-			SDL_Cursor* Cursors[(size_t)DisplayCursor::Count];
-			SDL_Window* Handle;
-			SDL_Surface* Favicon;
-			Desc Options;
-			bool Keys[2][1024];
-			int Command, CX, CY;
+			event_consumers event_source;
+			SDL_Cursor* cursors[(size_t)display_cursor::count];
+			SDL_Window* handle;
+			SDL_Surface* favicon;
+			desc options;
+			bool keys[2][1024];
+			int command, cx, cy;
 
 		public:
-			void* UserPointer = nullptr;
-			Alert Message;
+			void* user_pointer = nullptr;
+			alert message;
 
 		public:
-			Activity(const Desc& I) noexcept;
-			virtual ~Activity() noexcept;
-			void SetClipboardText(const std::string_view& Text);
-			void SetCursorPosition(const Trigonometry::Vector2& Position);
-			void SetCursorPosition(float X, float Y);
-			void SetGlobalCursorPosition(const Trigonometry::Vector2& Position);
-			void SetGlobalCursorPosition(float X, float Y);
-			void SetKey(KeyCode KeyCode, bool Value);
-			void SetCursor(DisplayCursor Style);
-			void SetCursorVisibility(bool Enabled);
-			void SetGrabbing(bool Enabled);
-			void SetFullscreen(bool Enabled);
-			void SetBorderless(bool Enabled);
-			void SetIcon(Surface* Icon);
-			void SetTitle(const std::string_view& Value);
-			void SetScreenKeyboard(bool Enabled);
-			void ApplyConfiguration(RenderBackend Backend);
-			void Wakeup();
-			void Hide();
-			void Show();
-			void Maximize();
-			void Minimize();
-			void Focus();
-			void Move(int X, int Y);
-			void Resize(int Width, int Height);
-			void Load(SDL_SysWMinfo* Base);
-			bool CaptureKeyMap(KeyMap* Value);
-			bool Dispatch(uint64_t TimeoutMs = 0, bool DispatchAll = true);
-			bool IsFullscreen() const;
-			bool IsAnyKeyDown() const;
-			bool IsKeyDown(const KeyMap& Key) const;
-			bool IsKeyUp(const KeyMap& Key) const;
-			bool IsKeyDownHit(const KeyMap& Key) const;
-			bool IsKeyUpHit(const KeyMap& Key) const;
-			bool IsScreenKeyboardEnabled() const;
-			uint32_t GetX() const;
-			uint32_t GetY() const;
-			uint32_t GetWidth() const;
-			uint32_t GetHeight() const;
-			uint32_t GetId() const;
-			float GetAspectRatio() const;
-			KeyMod GetKeyModState() const;
-			Graphics::Viewport GetViewport() const;
-			Trigonometry::Vector2 GetOffset() const;
-			Trigonometry::Vector2 GetSize() const;
-			Trigonometry::Vector2 GetClientSize() const;
-			Trigonometry::Vector2 GetDrawableSize(uint32_t Width, uint32_t Height) const;
-			Trigonometry::Vector2 GetGlobalCursorPosition() const;
-			Trigonometry::Vector2 GetCursorPosition() const;
-			Trigonometry::Vector2 GetCursorPosition(float ScreenWidth, float ScreenHeight) const;
-			Trigonometry::Vector2 GetCursorPosition(const Trigonometry::Vector2& ScreenDimensions) const;
-			Core::String GetClipboardText() const;
-			SDL_Window* GetHandle() const;
-			Core::String GetError() const;
-			Desc& GetOptions();
+			activity(const desc& i) noexcept;
+			virtual ~activity() noexcept;
+			void set_clipboard_text(const std::string_view& text);
+			void set_cursor_position(const trigonometry::vector2& position);
+			void set_cursor_position(float x, float y);
+			void set_global_cursor_position(const trigonometry::vector2& position);
+			void set_global_cursor_position(float x, float y);
+			void set_key(key_code key_code, bool value);
+			void set_cursor(display_cursor style);
+			void set_cursor_visibility(bool enabled);
+			void set_grabbing(bool enabled);
+			void set_fullscreen(bool enabled);
+			void set_borderless(bool enabled);
+			void set_icon(surface* icon);
+			void set_title(const std::string_view& value);
+			void set_screen_keyboard(bool enabled);
+			void apply_configuration(render_backend backend);
+			void wakeup();
+			void hide();
+			void show();
+			void maximize();
+			void minimize();
+			void focus();
+			void move(int x, int y);
+			void resize(int width, int height);
+			void load(SDL_SysWMinfo* base);
+			bool capture_key_map(key_map* value);
+			bool dispatch(uint64_t timeout_ms = 0, bool dispatch_all = true);
+			bool is_fullscreen() const;
+			bool is_any_key_down() const;
+			bool is_key_down(const key_map& key) const;
+			bool is_key_up(const key_map& key) const;
+			bool is_key_down_hit(const key_map& key) const;
+			bool is_key_up_hit(const key_map& key) const;
+			bool is_screen_keyboard_enabled() const;
+			uint32_t get_x() const;
+			uint32_t get_y() const;
+			uint32_t get_width() const;
+			uint32_t get_height() const;
+			uint32_t get_id() const;
+			float get_aspect_ratio() const;
+			key_mod get_key_mod_state() const;
+			graphics::viewport get_viewport() const;
+			trigonometry::vector2 get_offset() const;
+			trigonometry::vector2 get_size() const;
+			trigonometry::vector2 get_client_size() const;
+			trigonometry::vector2 get_drawable_size(uint32_t width, uint32_t height) const;
+			trigonometry::vector2 get_global_cursor_position() const;
+			trigonometry::vector2 get_cursor_position() const;
+			trigonometry::vector2 get_cursor_position(float screen_width, float screen_height) const;
+			trigonometry::vector2 get_cursor_position(const trigonometry::vector2& screen_dimensions) const;
+			core::string get_clipboard_text() const;
+			SDL_Window* get_handle() const;
+			core::string get_error() const;
+			desc& get_options();
 
 		public:
-			static bool MultiDispatch(const EventConsumers& Sources, uint64_t TimeoutMs = 0, bool DispatchAll = true);
+			static bool multi_dispatch(const event_consumers& sources, uint64_t timeout_ms = 0, bool dispatch_all = true);
 
 		private:
-			bool ApplySystemTheme();
-			bool* GetInputState();
+			bool apply_system_theme();
+			bool* get_input_state();
 		};
 
-		class VI_OUT Alerts
+		class alerts
 		{
 		public:
-			static bool Text(const std::string_view& Title, const std::string_view& Message, const std::string_view& DefaultInput, Core::String* Result);
-			static bool Password(const std::string_view& Title, const std::string_view& Message, Core::String* Result);
-			static bool Save(const std::string_view& Title, const std::string_view& DefaultPath, const std::string_view& Filter, const std::string_view& FilterDescription, Core::String* Result);
-			static bool Open(const std::string_view& Title, const std::string_view& DefaultPath, const std::string_view& Filter, const std::string_view& FilterDescription, bool Multiple, Core::String* Result);
-			static bool Folder(const std::string_view& Title, const std::string_view& DefaultPath, Core::String* Result);
-			static bool Color(const std::string_view& Title, const std::string_view& DefaultHexRGB, Core::String* Result);
+			static bool text(const std::string_view& title, const std::string_view& message, const std::string_view& default_input, core::string* result);
+			static bool password(const std::string_view& title, const std::string_view& message, core::string* result);
+			static bool save(const std::string_view& title, const std::string_view& default_path, const std::string_view& filter, const std::string_view& filter_description, core::string* result);
+			static bool open(const std::string_view& title, const std::string_view& default_path, const std::string_view& filter, const std::string_view& filter_description, bool multiple, core::string* result);
+			static bool folder(const std::string_view& title, const std::string_view& default_path, core::string* result);
+			static bool color(const std::string_view& title, const std::string_view& default_hex_rgb, core::string* result);
 		};
 
-		class VI_OUT_TS Video : public Core::Singletonish
+		class video : public core::singletonish
 		{
 		public:
-			class VI_OUT Windows
+			class windows
 			{
 			public:
-				static void* GetHDC(Activity* Target);
-				static void* GetHINSTANCE(Activity* Target);
-				static void* GetHWND(Activity* Target);
+				static void* get_hdc(activity* target);
+				static void* get_hinstance(activity* target);
+				static void* get_hwnd(activity* target);
 			};
 
-			class VI_OUT WinRT
+			class win_rt
 			{
 			public:
-				static void* GetIInspectable(Activity* Target);
+				static void* get_iinspectable(activity* target);
 			};
 
-			class VI_OUT X11
+			class x11
 			{
 			public:
-				static void* GetDisplay(Activity* Target);
-				static size_t GetWindow(Activity* Target);
+				static void* get_display(activity* target);
+				static size_t get_window(activity* target);
 			};
 
-			class VI_OUT DirectFB
+			class direct_fb
 			{
 			public:
-				static void* GetIDirectFB(Activity* Target);
-				static void* GetIDirectFBWindow(Activity* Target);
-				static void* GetIDirectFBSurface(Activity* Target);
+				static void* get_idirect_fb(activity* target);
+				static void* get_idirect_fb_window(activity* target);
+				static void* get_idirect_fb_surface(activity* target);
 			};
 
-			class VI_OUT Cocoa
+			class cocoa
 			{
 			public:
-				static void* GetNSWindow(Activity* Target);
+				static void* get_ns_window(activity* target);
 			};
 
-			class VI_OUT UIKit
+			class ui_kit
 			{
 			public:
-				static void* GetUIWindow(Activity* Target);
+				static void* get_ui_window(activity* target);
 			};
 
-			class VI_OUT Wayland
+			class wayland
 			{
 			public:
-				static void* GetWlDisplay(Activity* Target);
-				static void* GetWlSurface(Activity* Target);
-				static void* GetWlEglWindow(Activity* Target);
-				static void* GetXdgSurface(Activity* Target);
-				static void* GetXdgTopLevel(Activity* Target);
-				static void* GetXdgPopup(Activity* Target);
-				static void* GetXdgPositioner(Activity* Target);
+				static void* get_wl_display(activity* target);
+				static void* get_wl_surface(activity* target);
+				static void* get_wl_egl_window(activity* target);
+				static void* get_xdg_surface(activity* target);
+				static void* get_xdg_top_level(activity* target);
+				static void* get_xdg_popup(activity* target);
+				static void* get_xdg_positioner(activity* target);
 			};
 
-			class VI_OUT Android
+			class android
 			{
 			public:
-				static void* GetANativeWindow(Activity* Target);
+				static void* get_anative_window(activity* target);
 			};
 
-			class VI_OUT OS2
+			class os2
 			{
 			public:
-				static void* GetHWND(Activity* Target);
-				static void* GetHWNDFrame(Activity* Target);
+				static void* get_hwnd(activity* target);
+				static void* get_hwnd_frame(activity* target);
 			};
 
-			class VI_OUT GLEW
+			class glew
 			{
 			public:
-				static bool SetSwapInterval(int32_t Interval);
-				static bool SetSwapParameters(int32_t R, int32_t G, int32_t B, int32_t A, bool Debugging);
-				static bool SetContext(Activity* Target, void* Context);
-				static bool PerformSwap(Activity* Target);
-				static void* CreateContext(Activity* Target);
-				static void DestroyContext(void* Context);
+				static bool set_swap_interval(int32_t interval);
+				static bool set_swap_parameters(int32_t r, int32_t g, int32_t b, int32_t a, bool debugging);
+				static bool set_context(activity* target, void* context);
+				static bool perform_swap(activity* target);
+				static void* create_context(activity* target);
+				static void destroy_context(void* context);
 			};
 
 		public:
-			static uint32_t GetDisplayCount();
-			static bool GetDisplayInfo(uint32_t DisplayIndex, DisplayInfo* Info);
-			static std::string_view GetKeyCodeAsLiteral(KeyCode Code);
-			static std::string_view GetKeyModAsLiteral(KeyMod Code);
-			static Core::String GetKeyCodeAsString(KeyCode Code);
-			static Core::String GetKeyModAsString(KeyMod Code);
+			static uint32_t get_display_count();
+			static bool get_display_info(uint32_t display_index, display_info* info);
+			static std::string_view get_key_code_as_literal(key_code code);
+			static std::string_view get_key_mod_as_literal(key_mod code);
+			static core::string get_key_code_as_string(key_code code);
+			static core::string get_key_mod_as_string(key_mod code);
 		};
 	}
 }

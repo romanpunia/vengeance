@@ -2,7 +2,7 @@
 #include "internal/channels_immediate.hlsl"
 #include "internal/buffers_object.hlsl"
 
-cbuffer RenderConstant : register(b3)
+cbuffer UiBuffer : register(b3)
 {
 	float4 Color;
 	float4 Radius;
@@ -26,7 +26,7 @@ VOutput vs_main(VInput V)
 	Result.Position = mul(float4(V.Position.xy, 0.0, 1.0), ob_Transform);
 	Result.UV = mul(Result.Position, ob_World);
 	Result.Color = float4(0.0, 0.0, 0.0, 0.0);
-	Result.TexCoord = V.TexCoord;
+	Result.Texcoord = V.Texcoord;
 
 	return Result;
 };

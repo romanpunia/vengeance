@@ -3,7 +3,7 @@
 #include "internal/utils_random.hlsl"
 #include "internal/utils_material.hlsl"
 
-cbuffer RenderConstant : register(b3)
+cbuffer RenderBuffer : register(b3)
 {
 	float Padding;
 	float Deadzone;
@@ -14,20 +14,20 @@ cbuffer RenderConstant : register(b3)
 	float Blur;
 }
 
-Texture2D Image : register(t5);
+Texture2D ImageBuffer : register(t5);
 
 VOutput vs_main(VInput V)
 {
 	VOutput Result = (VOutput)0;
 	Result.Position = float4(V.Position, 1.0);
-	Result.TexCoord = Result.Position;
+	Result.Texcoord = Result.Position;
 
 	return Result;
 }
 
 float4 ps_main(VOutput V) : SV_TARGET0
 {
-    float2 UV = GetTexCoord(V.TexCoord);
+    float2 UV = GetTexcoord(V.Texcoord);
 	Fragment Frag = GetFragment(UV);
 	Material Mat = Materials[Frag.Material];
 	float3 Normal = GetNormal(UV);
@@ -44,7 +44,7 @@ float4 ps_main(VOutput V) : SV_TARGET0
 		[branch] if (dot(GetNormal(T), Normal) < Cutoff)
 			continue;
 
-		Blurring += Image.SampleLevel(Sampler, T, 0).xyz;
+		Blurring += ImageBuffer.SampleLevel(Sampler, T, 0).xyz;
 		Iterations++;
 	}
 

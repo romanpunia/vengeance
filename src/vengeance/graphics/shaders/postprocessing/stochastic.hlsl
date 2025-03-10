@@ -1,7 +1,7 @@
 #include "internal/layouts_shape.hlsl"
 #include "internal/channels_effect.hlsl"
 
-cbuffer RenderConstant : register(b3)
+cbuffer RenderBuffer : register(b3)
 {
 	float2 Texel;
     float FrameId;
@@ -12,15 +12,15 @@ VOutput vs_main(VInput V)
 {
 	VOutput Result = (VOutput)0;
 	Result.Position = float4(V.Position, 1.0);
-	Result.TexCoord.xy = V.TexCoord;
+	Result.Texcoord.xy = V.Texcoord;
 
 	return Result;
 }
 
-float GetAnimatedInterlavedGradientNoise(float2 TexCoord)
+float GetAnimatedInterlavedGradientNoise(float2 Texcoord)
 {
     uint Frame = uint(FrameId);
-    float2 UV = TexCoord * Texel;
+    float2 UV = Texcoord * Texel;
     if ((Frame & 2) != 0)
         UV = float2(-UV.y, UV.x);
         
@@ -50,8 +50,8 @@ float3 GetCosHemisphereSample(float Random1, float Random2, float3 Normal)
 
 float4 ps_main(VOutput V) : SV_TARGET0
 {
-    float3 Normal = GetNormal(V.TexCoord.xy);
-    float Noise = GetAnimatedInterlavedGradientNoise(V.TexCoord.xy);
+    float3 Normal = GetNormal(V.Texcoord.xy);
+    float Noise = GetAnimatedInterlavedGradientNoise(V.Texcoord.xy);
     float3 StochasticNormal = GetCosHemisphereSample(Noise, Noise, Normal);
     return normalize(float4(StochasticNormal, 1.0));
 };

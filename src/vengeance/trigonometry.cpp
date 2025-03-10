@@ -4,1703 +4,1703 @@
 #endif
 #define MAKE_ADJ_TRI(x) ((x) & 0x3fffffff)
 #define IS_BOUNDARY(x) ((x) == 0xff)
-#define RH_TO_LH (Matrix4x4(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, -1, 0, 0, 0, 0, 1))
+#define RH_TO_LH (matrix4x4(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, -1, 0, 0, 0, 0, 1))
 #define NULL_NODE ((size_t)-1)
 
 namespace
 {
-	size_t OffsetOf64(const char* Source, char Dest)
+	size_t offset_of64(const char* source, char dest)
 	{
-		VI_ASSERT(Source != nullptr, "source should be set");
+		VI_ASSERT(source != nullptr, "source should be set");
 		for (size_t i = 0; i < 64; i++)
 		{
-			if (Source[i] == Dest)
+			if (source[i] == dest)
 				return i;
 		}
 
 		return 63;
 	}
-	Vitex::Core::String EscapeText(const Vitex::Core::String& Data)
+	vitex::core::string escape_text(const vitex::core::string& data)
 	{
-		Vitex::Core::String Result = "\"";
-		Result.append(Data).append("\"");
-		return Result;
+		vitex::core::string result = "\"";
+		result.append(data).append("\"");
+		return result;
 	}
 }
 
-namespace Vitex
+namespace vitex
 {
-	namespace Trigonometry
+	namespace trigonometry
 	{
-		int64_t Rectangle::GetX() const
+		int64_t rectangle::get_x() const
 		{
-			return Left;
+			return left;
 		}
-		int64_t Rectangle::GetY() const
+		int64_t rectangle::get_y() const
 		{
-			return Top;
+			return top;
 		}
-		int64_t Rectangle::GetWidth() const
+		int64_t rectangle::get_width() const
 		{
-			return Right - Left;
+			return right - left;
 		}
-		int64_t Rectangle::GetHeight() const
+		int64_t rectangle::get_height() const
 		{
-			return Bottom - Top;
+			return bottom - top;
 		}
 
-		Vector2::Vector2() noexcept : X(0.0f), Y(0.0f)
+		vector2::vector2() noexcept : x(0.0f), y(0.0f)
 		{
 		}
-		Vector2::Vector2(float x, float y) noexcept : X(x), Y(y)
+		vector2::vector2(float x, float y) noexcept : x(x), y(y)
 		{
 		}
-		Vector2::Vector2(float xy) noexcept : X(xy), Y(xy)
+		vector2::vector2(float xy) noexcept : x(xy), y(xy)
 		{
 		}
-		Vector2::Vector2(const Vector2& Value) noexcept : X(Value.X), Y(Value.Y)
+		vector2::vector2(const vector2& value) noexcept : x(value.x), y(value.y)
 		{
 		}
-		Vector2::Vector2(const Vector3& Value) noexcept : X(Value.X), Y(Value.Y)
+		vector2::vector2(const vector3& value) noexcept : x(value.x), y(value.y)
 		{
 		}
-		Vector2::Vector2(const Vector4& Value) noexcept : X(Value.X), Y(Value.Y)
+		vector2::vector2(const vector4& value) noexcept : x(value.x), y(value.y)
 		{
 		}
-		bool Vector2::IsEquals(const Vector2& Other, float MaxDisplacement) const
+		bool vector2::is_equals(const vector2& other, float max_displacement) const
 		{
-			return abs(X - Other.X) <= MaxDisplacement && abs(Y - Other.Y) <= MaxDisplacement;
+			return fabs(x - other.x) <= max_displacement && fabs(y - other.y) <= max_displacement;
 		}
-		float Vector2::Length() const
+		float vector2::length() const
 		{
 #ifdef VI_VECTORCLASS
 			LOAD_FV2(_r1);
 			return std::sqrt(horizontal_add(square(_r1)));
 #else
-			return std::sqrt(X * X + Y * Y);
+			return std::sqrt(x * x + y * y);
 #endif
 		}
-		float Vector2::Sum() const
+		float vector2::sum() const
 		{
 #ifdef VI_VECTORCLASS
 			LOAD_FV2(_r1);
 			return horizontal_add(_r1);
 #else
-			return X + Y;
+			return x + y;
 #endif
 		}
-		float Vector2::Dot(const Vector2& B) const
+		float vector2::dot(const vector2& b) const
 		{
 #ifdef VI_VECTORCLASS
-			LOAD_FV2(_r1); LOAD_V2(_r2, B);
+			LOAD_FV2(_r1); LOAD_V2(_r2, b);
 			return horizontal_add(_r1 * _r2);
 #else
-			return X * B.X + Y * B.Y;
+			return x * b.x + y * b.y;
 #endif
 		}
-		float Vector2::Distance(const Vector2& Point) const
+		float vector2::distance(const vector2& point) const
 		{
 #ifdef VI_VECTORCLASS
-			LOAD_FV2(_r1); LOAD_V2(_r2, Point);
-			return Geometric::FastSqrt(horizontal_add(square(_r1 - _r2)));
+			LOAD_FV2(_r1); LOAD_V2(_r2, point);
+			return geometric::fast_sqrt(horizontal_add(square(_r1 - _r2)));
 #else
-			float X1 = X - Point.X, Y1 = Y - Point.Y;
-			return Geometric::FastSqrt(X1 * X1 + Y1 * Y1);
+			float X1 = x - point.x, Y1 = y - point.y;
+			return geometric::fast_sqrt(X1 * X1 + Y1 * Y1);
 #endif
 		}
-		float Vector2::Hypotenuse() const
+		float vector2::hypotenuse() const
 		{
-			return Length();
+			return length();
 		}
-		float Vector2::LookAt(const Vector2& At) const
+		float vector2::look_at(const vector2& at) const
 		{
 #ifdef VI_VECTORCLASS
-			LOAD_FV2(_r1); LOAD_V2(_r2, At); _r1 = _r2 - _r1;
+			LOAD_FV2(_r1); LOAD_V2(_r2, at); _r1 = _r2 - _r1;
 			return atan2f(_r1.extract(0), _r1.extract(1));
 #else
-			return atan2f(At.X - X, At.Y - Y);
+			return atan2f(at.x - x, at.y - y);
 #endif
 		}
-		float Vector2::Cross(const Vector2& B) const
+		float vector2::cross(const vector2& b) const
 		{
 #ifdef VI_VECTORCLASS
-			LOAD_FV2(_r1); LOAD_V2(_r2, B); _r1 = _r1 * _r2;
+			LOAD_FV2(_r1); LOAD_V2(_r2, b); _r1 = _r1 * _r2;
 			return _r1.extract(0) - _r1.extract(1);
 #else
-			return X * B.Y - Y * B.X;
+			return x * b.y - y * b.x;
 #endif
 		}
-		Vector2 Vector2::Transform(const Matrix4x4& Matrix) const
+		vector2 vector2::transform(const matrix4x4& matrix) const
 		{
 #ifdef VI_VECTORCLASS
-			LOAD_VAL(_r1, X);
-			LOAD_VAL(_r2, Y);
-			LOAD_VAR(_r3, Matrix.Row);
-			LOAD_VAR(_r4, Matrix.Row + 4);
+			LOAD_VAL(_r1, x);
+			LOAD_VAL(_r2, y);
+			LOAD_VAR(_r3, matrix.row);
+			LOAD_VAR(_r4, matrix.row + 4);
 
 			_r1 = _r1 * _r3 + _r2 * _r4;
-			return Vector2(_r1.extract(0), _r1.extract(1));
+			return vector2(_r1.extract(0), _r1.extract(1));
 #else
-			return Vector2(
-				X * Matrix.Row[0] + Y * Matrix.Row[4],
-				X * Matrix.Row[1] + Y * Matrix.Row[5]);
+			return vector2(
+				x * matrix.row[0] + y * matrix.row[4],
+				x * matrix.row[1] + y * matrix.row[5]);
 #endif
 		}
-		Vector2 Vector2::Direction(float Rotation) const
+		vector2 vector2::direction(float rotation) const
 		{
-			return Vector2(cos(-Rotation), sin(-Rotation));
+			return vector2(cos(-rotation), sin(-rotation));
 		}
-		Vector2 Vector2::Inv() const
+		vector2 vector2::inv() const
 		{
-			return Vector2(-X, -Y);
+			return vector2(-x, -y);
 		}
-		Vector2 Vector2::InvX() const
+		vector2 vector2::inv_x() const
 		{
-			return Vector2(-X, Y);
+			return vector2(-x, y);
 		}
-		Vector2 Vector2::InvY() const
+		vector2 vector2::inv_y() const
 		{
-			return Vector2(X, -Y);
+			return vector2(x, -y);
 		}
-		Vector2 Vector2::Normalize() const
+		vector2 vector2::normalize() const
 		{
 #ifdef VI_VECTORCLASS
 			LOAD_FV2(_r1);
-			_r1 = _r1 * Geometric::FastInvSqrt(horizontal_add(square(_r1)));
-			return Vector2(_r1.extract(0), _r1.extract(1));
+			_r1 = _r1 * geometric::fast_inv_sqrt(horizontal_add(square(_r1)));
+			return vector2(_r1.extract(0), _r1.extract(1));
 #else
-			float F = Length();
-			return Vector2(X / F, Y / F);
+			float f = length();
+			return vector2(x / f, y / f);
 #endif
 		}
-		Vector2 Vector2::sNormalize() const
+		vector2 vector2::snormalize() const
 		{
 #ifdef VI_VECTORCLASS
 			LOAD_FV2(_r1);
-			float F = Geometric::FastSqrt(horizontal_add(square(_r1)));
-			if (F == 0.0f)
-				return Vector2();
+			float f = geometric::fast_sqrt(horizontal_add(square(_r1)));
+			if (f == 0.0f)
+				return vector2();
 
-			_r1 = _r1 / F;
-			return Vector2(_r1.extract(0), _r1.extract(1));
+			_r1 = _r1 / f;
+			return vector2(_r1.extract(0), _r1.extract(1));
 #else
-			float F = Length();
-			if (F == 0.0f)
-				return Vector2();
+			float f = length();
+			if (f == 0.0f)
+				return vector2();
 
-			return Vector2(X / F, Y / F);
+			return vector2(x / f, y / f);
 #endif
 		}
-		Vector2 Vector2::Lerp(const Vector2& B, float DeltaTime) const
+		vector2 vector2::lerp(const vector2& b, float delta_time) const
 		{
 #ifdef VI_VECTORCLASS
-			LOAD_FV2(_r1); LOAD_V2(_r2, B);
-			_r1 = _r1 + (_r2 - _r1) * DeltaTime;
-			return Vector2(_r1.extract(0), _r1.extract(1));
+			LOAD_FV2(_r1); LOAD_V2(_r2, b);
+			_r1 = _r1 + (_r2 - _r1) * delta_time;
+			return vector2(_r1.extract(0), _r1.extract(1));
 #else
-			return *this + (B - *this) * DeltaTime;
+			return *this + (b - *this) * delta_time;
 #endif
 		}
-		Vector2 Vector2::sLerp(const Vector2& B, float DeltaTime) const
+		vector2 vector2::slerp(const vector2& b, float delta_time) const
 		{
-			return Quaternion(Vector3()).sLerp(B.XYZ(), DeltaTime).GetEuler().XY();
+			return quaternion(vector3()).slerp(b.xyz(), delta_time).get_euler().xy();
 		}
-		Vector2 Vector2::aLerp(const Vector2& B, float DeltaTime) const
+		vector2 vector2::alerp(const vector2& b, float delta_time) const
 		{
-			float Ax = Geometric::AngluarLerp(X, B.X, DeltaTime);
-			float Ay = Geometric::AngluarLerp(Y, B.Y, DeltaTime);
-			return Vector2(Ax, Ay);
+			float ax = geometric::angluar_lerp(x, b.x, delta_time);
+			float ay = geometric::angluar_lerp(y, b.y, delta_time);
+			return vector2(ax, ay);
 		}
-		Vector2 Vector2::rLerp() const
+		vector2 vector2::rlerp() const
 		{
-			float Ax = Compute::Mathf::SaturateAngle(X);
-			float Ay = Compute::Mathf::SaturateAngle(Y);
-			return Vector2(Ax, Ay);
+			float ax = compute::mathf::saturate_angle(x);
+			float ay = compute::mathf::saturate_angle(y);
+			return vector2(ax, ay);
 		}
-		Vector2 Vector2::Abs() const
+		vector2 vector2::abs() const
 		{
 #ifdef VI_VECTORCLASS
-			LOAD_FV2(_r1); _r1 = abs(_r1);
-			return Vector2(_r1.extract(0), _r1.extract(1));
+			LOAD_FV2(_r1); _r1 = ::abs(_r1);
+			return vector2(_r1.extract(0), _r1.extract(1));
 #else
-			return Vector2(X < 0 ? -X : X, Y < 0 ? -Y : Y);
+			return vector2(x < 0 ? -x : x, y < 0 ? -y : y);
 #endif
 		}
-		Vector2 Vector2::Radians() const
+		vector2 vector2::radians() const
 		{
-			return (*this) * Compute::Mathf::Deg2Rad();
+			return (*this) * compute::mathf::deg2rad();
 		}
-		Vector2 Vector2::Degrees() const
+		vector2 vector2::degrees() const
 		{
-			return (*this) * Compute::Mathf::Rad2Deg();
+			return (*this) * compute::mathf::rad2deg();
 		}
-		Vector2 Vector2::XY() const
+		vector2 vector2::xy() const
 		{
 			return *this;
 		}
-		Vector3 Vector2::XYZ() const
+		vector3 vector2::xyz() const
 		{
-			return Vector3(X, Y, 0);
+			return vector3(x, y, 0);
 		}
-		Vector4 Vector2::XYZW() const
+		vector4 vector2::xyzw() const
 		{
-			return Vector4(X, Y, 0, 0);
+			return vector4(x, y, 0, 0);
 		}
-		Vector2 Vector2::Mul(float xy) const
+		vector2 vector2::mul(float xy) const
 		{
 #ifdef VI_VECTORCLASS
 			LOAD_FV2(_r1); _r1 = _r1 * xy;
-			return Vector2(_r1.extract(0), _r1.extract(1));
+			return vector2(_r1.extract(0), _r1.extract(1));
 #else
-			return Vector2(X * xy, Y * xy);
+			return vector2(x * xy, y * xy);
 #endif
 		}
-		Vector2 Vector2::Mul(float x, float y) const
+		vector2 vector2::mul(float x, float y) const
 		{
 #ifdef VI_VECTORCLASS
 			LOAD_FV2(_r1); LOAD_AV2(_r2, x, y); _r1 = _r1 * _r2;
-			return Vector2(_r1.extract(0), _r1.extract(1));
+			return vector2(_r1.extract(0), _r1.extract(1));
 #else
-			return Vector2(X * x, Y * y);
+			return vector2(x * x, y * y);
 #endif
 		}
-		Vector2 Vector2::Mul(const Vector2& Value) const
+		vector2 vector2::mul(const vector2& value) const
 		{
-			return Mul(Value.X, Value.Y);
+			return mul(value.x, value.y);
 		}
-		Vector2 Vector2::Div(const Vector2& Value) const
+		vector2 vector2::div(const vector2& value) const
 		{
 #ifdef VI_VECTORCLASS
-			LOAD_FV2(_r1); LOAD_V2(_r2, Value); _r1 = _r1 / _r2;
-			return Vector2(_r1.extract(0), _r1.extract(1));
+			LOAD_FV2(_r1); LOAD_V2(_r2, value); _r1 = _r1 / _r2;
+			return vector2(_r1.extract(0), _r1.extract(1));
 #else
-			return Vector2(X / Value.X, Y / Value.Y);
+			return vector2(x / value.x, y / value.y);
 #endif
 		}
-		Vector2 Vector2::Add(const Vector2& Value) const
+		vector2 vector2::add(const vector2& value) const
 		{
 #ifdef VI_VECTORCLASS
-			LOAD_FV2(_r1); LOAD_V2(_r2, Value); _r1 = _r1 + _r2;
-			return Vector2(_r1.extract(0), _r1.extract(1));
+			LOAD_FV2(_r1); LOAD_V2(_r2, value); _r1 = _r1 + _r2;
+			return vector2(_r1.extract(0), _r1.extract(1));
 #else
-			return Vector2(X + Value.X, Y + Value.Y);
+			return vector2(x + value.x, y + value.y);
 #endif
 		}
-		Vector2 Vector2::SetX(float Xf) const
+		vector2 vector2::set_x(float xf) const
 		{
-			return Vector2(Xf, Y);
+			return vector2(xf, y);
 		}
-		Vector2 Vector2::SetY(float Yf) const
+		vector2 vector2::set_y(float yf) const
 		{
-			return Vector2(X, Yf);
+			return vector2(x, yf);
 		}
-		void Vector2::Set(const Vector2& Value)
+		void vector2::set(const vector2& value)
 		{
-			X = Value.X;
-			Y = Value.Y;
+			x = value.x;
+			y = value.y;
 		}
-		void Vector2::Get2(float* In) const
+		void vector2::get2(float* in) const
 		{
-			VI_ASSERT(In != nullptr, "in of size 2 should be set");
-			In[0] = X;
-			In[1] = Y;
+			VI_ASSERT(in != nullptr, "in of size 2 should be set");
+			in[0] = x;
+			in[1] = y;
 		}
-		Vector2& Vector2::operator *=(const Vector2& V)
+		vector2& vector2::operator *=(const vector2& v)
 		{
 #ifdef VI_VECTORCLASS
-			LOAD_FV2(_r1); LOAD_V2(_r2, V);
+			LOAD_FV2(_r1); LOAD_V2(_r2, v);
 			_r1 = _r1 * _r2;
 			_r1.store_partial(2, (float*)this);
 #else
-			X *= V.X;
-			Y *= V.Y;
+			x *= v.x;
+			y *= v.y;
 #endif
 			return *this;
 		}
-		Vector2& Vector2::operator *=(float V)
+		vector2& vector2::operator *=(float v)
 		{
 #ifdef VI_VECTORCLASS
 			LOAD_FV2(_r1);
-			_r1 = _r1 * V;
+			_r1 = _r1 * v;
 			_r1.store_partial(2, (float*)this);
 #else
-			X *= V;
-			Y *= V;
+			x *= v;
+			y *= v;
 #endif
 			return *this;
 		}
-		Vector2& Vector2::operator /=(const Vector2& V)
+		vector2& vector2::operator /=(const vector2& v)
 		{
 #ifdef VI_VECTORCLASS
-			LOAD_FV2(_r1); LOAD_V2(_r2, V);
+			LOAD_FV2(_r1); LOAD_V2(_r2, v);
 			_r1 = _r1 / _r2;
 			_r1.store_partial(2, (float*)this);
 #else
-			X /= V.X;
-			Y /= V.Y;
+			x /= v.x;
+			y /= v.y;
 #endif
 			return *this;
 		}
-		Vector2& Vector2::operator /=(float V)
+		vector2& vector2::operator /=(float v)
 		{
 #ifdef VI_VECTORCLASS
 			LOAD_FV2(_r1);
-			_r1 = _r1 / V;
+			_r1 = _r1 / v;
 			_r1.store_partial(2, (float*)this);
 #else
-			X /= V;
-			Y /= V;
+			x /= v;
+			y /= v;
 #endif
 			return *this;
 		}
-		Vector2& Vector2::operator +=(const Vector2& V)
+		vector2& vector2::operator +=(const vector2& v)
 		{
 #ifdef VI_VECTORCLASS
-			LOAD_FV2(_r1); LOAD_V2(_r2, V);
+			LOAD_FV2(_r1); LOAD_V2(_r2, v);
 			_r1 = _r1 + _r2;
 			_r1.store_partial(2, (float*)this);
 #else
-			X += V.X;
-			Y += V.Y;
+			x += v.x;
+			y += v.y;
 #endif
 			return *this;
 		}
-		Vector2& Vector2::operator +=(float V)
+		vector2& vector2::operator +=(float v)
 		{
 #ifdef VI_VECTORCLASS
 			LOAD_FV2(_r1);
-			_r1 = _r1 + V;
+			_r1 = _r1 + v;
 			_r1.store_partial(2, (float*)this);
 #else
-			X += V;
-			Y += V;
+			x += v;
+			y += v;
 #endif
 			return *this;
 		}
-		Vector2& Vector2::operator -=(const Vector2& V)
+		vector2& vector2::operator -=(const vector2& v)
 		{
 #ifdef VI_VECTORCLASS
-			LOAD_FV2(_r1); LOAD_V2(_r2, V);
+			LOAD_FV2(_r1); LOAD_V2(_r2, v);
 			_r1 = _r1 - _r2;
 			_r1.store_partial(2, (float*)this);
 #else
-			X -= V.X;
-			Y -= V.Y;
+			x -= v.x;
+			y -= v.y;
 #endif
 			return *this;
 		}
-		Vector2& Vector2::operator -=(float V)
+		vector2& vector2::operator -=(float v)
 		{
 #ifdef VI_VECTORCLASS
 			LOAD_FV2(_r1);
-			_r1 = _r1 - V;
+			_r1 = _r1 - v;
 			_r1.store_partial(2, (float*)this);
 #else
-			X -= V;
-			Y -= V;
+			x -= v;
+			y -= v;
 #endif
 			return *this;
 		}
-		Vector2 Vector2::operator *(const Vector2& V) const
+		vector2 vector2::operator *(const vector2& v) const
 		{
-			return Mul(V);
+			return mul(v);
 		}
-		Vector2 Vector2::operator *(float V) const
+		vector2 vector2::operator *(float v) const
 		{
-			return Mul(V);
+			return mul(v);
 		}
-		Vector2 Vector2::operator /(const Vector2& V) const
+		vector2 vector2::operator /(const vector2& v) const
 		{
-			return Div(V);
+			return div(v);
 		}
-		Vector2 Vector2::operator /(float V) const
+		vector2 vector2::operator /(float v) const
 		{
-			return Div(V);
+			return div(v);
 		}
-		Vector2 Vector2::operator +(const Vector2& V) const
+		vector2 vector2::operator +(const vector2& v) const
 		{
-			return Add(V);
+			return add(v);
 		}
-		Vector2 Vector2::operator +(float V) const
+		vector2 vector2::operator +(float v) const
 		{
-			return Add(V);
+			return add(v);
 		}
-		Vector2 Vector2::operator -(const Vector2& V) const
+		vector2 vector2::operator -(const vector2& v) const
 		{
-			return Add(-V);
+			return add(-v);
 		}
-		Vector2 Vector2::operator -(float V) const
+		vector2 vector2::operator -(float v) const
 		{
-			return Add(-V);
+			return add(-v);
 		}
-		Vector2 Vector2::operator -() const
+		vector2 vector2::operator -() const
 		{
-			return Inv();
+			return inv();
 		}
-		Vector2& Vector2::operator =(const Vector2& V) noexcept
+		vector2& vector2::operator =(const vector2& v) noexcept
 		{
-			X = V.X;
-			Y = V.Y;
+			x = v.x;
+			y = v.y;
 			return *this;
 		}
-		bool Vector2::operator ==(const Vector2& R) const
+		bool vector2::operator ==(const vector2& r) const
 		{
-			return X == R.X && Y == R.Y;
+			return x == r.x && y == r.y;
 		}
-		bool Vector2::operator !=(const Vector2& R) const
+		bool vector2::operator !=(const vector2& r) const
 		{
-			return !(X == R.X && Y == R.Y);
+			return !(x == r.x && y == r.y);
 		}
-		bool Vector2::operator <=(const Vector2& R) const
+		bool vector2::operator <=(const vector2& r) const
 		{
-			return X <= R.X && Y <= R.Y;
+			return x <= r.x && y <= r.y;
 		}
-		bool Vector2::operator >=(const Vector2& R) const
+		bool vector2::operator >=(const vector2& r) const
 		{
-			return X >= R.X && Y >= R.Y;
+			return x >= r.x && y >= r.y;
 		}
-		bool Vector2::operator <(const Vector2& R) const
+		bool vector2::operator <(const vector2& r) const
 		{
-			return X < R.X&& Y < R.Y;
+			return x < r.x && y < r.y;
 		}
-		bool Vector2::operator >(const Vector2& R) const
+		bool vector2::operator >(const vector2& r) const
 		{
-			return X > R.X && Y > R.Y;
+			return x > r.x && y > r.y;
 		}
-		float& Vector2::operator [](uint32_t Axis)
+		float& vector2::operator [](uint32_t axis)
 		{
-			VI_ASSERT(Axis >= 0 && Axis <= 1, "index out of range");
-			if (Axis == 0)
-				return X;
+			VI_ASSERT(axis >= 0 && axis <= 1, "index out of range");
+			if (axis == 0)
+				return x;
 
-			return Y;
+			return y;
 		}
-		float Vector2::operator [](uint32_t Axis) const
+		float vector2::operator [](uint32_t axis) const
 		{
-			VI_ASSERT(Axis >= 0 && Axis <= 1, "index out of range");
-			if (Axis == 0)
-				return X;
+			VI_ASSERT(axis >= 0 && axis <= 1, "index out of range");
+			if (axis == 0)
+				return x;
 
-			return Y;
+			return y;
 		}
-		Vector2 Vector2::Random()
+		vector2 vector2::random()
 		{
-			return Vector2(Compute::Mathf::RandomMag(), Compute::Mathf::RandomMag());
+			return vector2(compute::mathf::random_mag(), compute::mathf::random_mag());
 		}
-		Vector2 Vector2::RandomAbs()
+		vector2 vector2::random_abs()
 		{
-			return Vector2(Compute::Mathf::Random(), Compute::Mathf::Random());
+			return vector2(compute::mathf::random(), compute::mathf::random());
 		}
 
-		Vector3::Vector3() noexcept : X(0.0f), Y(0.0f), Z(0.0f)
+		vector3::vector3() noexcept : x(0.0f), y(0.0f), z(0.0f)
 		{
 		}
-		Vector3::Vector3(float x, float y) noexcept : X(x), Y(y), Z(0.0f)
+		vector3::vector3(float x, float y) noexcept : x(x), y(y), z(0.0f)
 		{
 		}
-		Vector3::Vector3(float x, float y, float z) noexcept : X(x), Y(y), Z(z)
+		vector3::vector3(float x, float y, float z) noexcept : x(x), y(y), z(z)
 		{
 		}
-		Vector3::Vector3(float xyzw) noexcept : X(xyzw), Y(xyzw), Z(xyzw)
+		vector3::vector3(float xyzw) noexcept : x(xyzw), y(xyzw), z(xyzw)
 		{
 		}
-		Vector3::Vector3(const Vector2& Value) noexcept : X(Value.X), Y(Value.Y), Z(0.0f)
+		vector3::vector3(const vector2& value) noexcept : x(value.x), y(value.y), z(0.0f)
 		{
 		}
-		Vector3::Vector3(const Vector3& Value) noexcept : X(Value.X), Y(Value.Y), Z(Value.Z)
+		vector3::vector3(const vector3& value) noexcept : x(value.x), y(value.y), z(value.z)
 		{
 		}
-		Vector3::Vector3(const Vector4& Value) noexcept : X(Value.X), Y(Value.Y), Z(Value.Z)
+		vector3::vector3(const vector4& value) noexcept : x(value.x), y(value.y), z(value.z)
 		{
 		}
-		bool Vector3::IsEquals(const Vector3& Other, float MaxDisplacement) const
+		bool vector3::is_equals(const vector3& other, float max_displacement) const
 		{
-			return abs(X - Other.X) <= MaxDisplacement && abs(Y - Other.Y) <= MaxDisplacement && abs(Z - Other.Z) <= MaxDisplacement;
+			return fabs(x - other.x) <= max_displacement && fabs(y - other.y) <= max_displacement && fabs(z - other.z) <= max_displacement;
 		}
-		float Vector3::Length() const
+		float vector3::length() const
 		{
 #ifdef VI_VECTORCLASS
 			LOAD_FV3(_r1);
 			return sqrt(horizontal_add(square(_r1)));
 #else
-			return std::sqrt(X * X + Y * Y + Z * Z);
+			return std::sqrt(x * x + y * y + z * z);
 #endif
 		}
-		float Vector3::Sum() const
+		float vector3::sum() const
 		{
 #ifdef VI_VECTORCLASS
 			LOAD_FV3(_r1);
 			return horizontal_add(_r1);
 #else
-			return X + Y + Z;
+			return x + y + z;
 #endif
 		}
-		float Vector3::Dot(const Vector3& B) const
+		float vector3::dot(const vector3& b) const
 		{
 #ifdef VI_VECTORCLASS
-			LOAD_FV3(_r1); LOAD_V3(_r2, B);
+			LOAD_FV3(_r1); LOAD_V3(_r2, b);
 			return horizontal_add(_r1 * _r2);
 #else
-			return X * B.X + Y * B.Y + Z * B.Z;
+			return x * b.x + y * b.y + z * b.z;
 #endif
 		}
-		float Vector3::Distance(const Vector3& Point) const
+		float vector3::distance(const vector3& point) const
 		{
 #ifdef VI_VECTORCLASS
-			LOAD_FV3(_r1); LOAD_V3(_r2, Point);
-			return Geometric::FastSqrt(horizontal_add(square(_r1 - _r2)));
+			LOAD_FV3(_r1); LOAD_V3(_r2, point);
+			return geometric::fast_sqrt(horizontal_add(square(_r1 - _r2)));
 #else
-			float X1 = X - Point.X, Y1 = Y - Point.Y, Z1 = Z - Point.Z;
-			return Geometric::FastSqrt(X1 * X1 + Y1 * Y1 + Z1 * Z1);
+			float X1 = x - point.x, Y1 = y - point.y, Z1 = z - point.z;
+			return geometric::fast_sqrt(X1 * X1 + Y1 * Y1 + Z1 * Z1);
 #endif
 		}
-		float Vector3::Hypotenuse() const
+		float vector3::hypotenuse() const
 		{
 #ifdef VI_VECTORCLASS
-			LOAD_AV2(_r1, X, Z);
-			float R = Geometric::FastSqrt(horizontal_add(square(_r1)));
+			LOAD_AV2(_r1, x, z);
+			float r = geometric::fast_sqrt(horizontal_add(square(_r1)));
 
-			LOAD_AV2(_r2, R, Y);
-			return Geometric::FastSqrt(horizontal_add(square(_r2)));
+			LOAD_AV2(_r2, r, y);
+			return geometric::fast_sqrt(horizontal_add(square(_r2)));
 #else
-			float R = Geometric::FastSqrt(X * X + Z * Z);
-			return Geometric::FastSqrt(R * R + Y * Y);
+			float r = geometric::fast_sqrt(x * x + z * z);
+			return geometric::fast_sqrt(r * r + y * y);
 #endif
 		}
-		Vector3 Vector3::LookAt(const Vector3& B) const
+		vector3 vector3::look_at(const vector3& b) const
 		{
-			Vector2 H1(X, Z), H2(B.X, B.Z);
-			return Vector3(0.0f, -H1.LookAt(H2), 0.0f);
+			vector2 H1(x, z), H2(b.x, b.z);
+			return vector3(0.0f, -H1.look_at(H2), 0.0f);
 		}
-		Vector3 Vector3::Cross(const Vector3& B) const
+		vector3 vector3::cross(const vector3& b) const
 		{
 #ifdef VI_VECTORCLASS
-			LOAD_AV3(_r1, Y, Z, X);
-			LOAD_AV3(_r2, Z, X, Y);
-			LOAD_AV3(_r3, B.Z, B.X, B.Y);
-			LOAD_AV3(_r4, B.Y, B.Z, B.X);
+			LOAD_AV3(_r1, y, z, x);
+			LOAD_AV3(_r2, z, x, y);
+			LOAD_AV3(_r3, b.z, b.x, b.y);
+			LOAD_AV3(_r4, b.y, b.z, b.x);
 
 			_r1 = _r1 * _r3 - _r2 * _r4;
-			return Vector3(_r1.extract(0), _r1.extract(1), _r1.extract(2));
+			return vector3(_r1.extract(0), _r1.extract(1), _r1.extract(2));
 #else
-			return Vector3(Y * B.Z - Z * B.Y, Z * B.X - X * B.Z, X * B.Y - Y * B.X);
+			return vector3(y * b.z - z * b.y, z * b.x - x * b.z, x * b.y - y * b.x);
 #endif
 		}
-		Vector3 Vector3::Transform(const Matrix4x4& Matrix) const
+		vector3 vector3::transform(const matrix4x4& matrix) const
 		{
 #ifdef VI_VECTORCLASS
-			LOAD_VAL(_r1, X);
-			LOAD_VAL(_r2, Y);
-			LOAD_VAL(_r3, Z);
-			LOAD_VAR(_r4, Matrix.Row);
-			LOAD_VAR(_r5, Matrix.Row + 4);
-			LOAD_VAR(_r6, Matrix.Row + 8);
+			LOAD_VAL(_r1, x);
+			LOAD_VAL(_r2, y);
+			LOAD_VAL(_r3, z);
+			LOAD_VAR(_r4, matrix.row);
+			LOAD_VAR(_r5, matrix.row + 4);
+			LOAD_VAR(_r6, matrix.row + 8);
 
 			_r1 = _r1 * _r4 + _r2 * _r5 + _r3 * _r6;
-			return Vector3(_r1.extract(0), _r1.extract(1), _r1.extract(2));
+			return vector3(_r1.extract(0), _r1.extract(1), _r1.extract(2));
 #else
-			return Vector3(
-				X * Matrix.Row[0] + Y * Matrix.Row[4] + Z * Matrix.Row[8],
-				X * Matrix.Row[1] + Y * Matrix.Row[5] + Z * Matrix.Row[9],
-				X * Matrix.Row[2] + Y * Matrix.Row[6] + Z * Matrix.Row[10]);
+			return vector3(
+				x * matrix.row[0] + y * matrix.row[4] + z * matrix.row[8],
+				x * matrix.row[1] + y * matrix.row[5] + z * matrix.row[9],
+				x * matrix.row[2] + y * matrix.row[6] + z * matrix.row[10]);
 #endif
 		}
-		Vector3 Vector3::dDirection() const
+		vector3 vector3::ddirection() const
 		{
-			float CosX = cos(X);
-			return Vector3(sin(Y) * CosX, -sin(X), cos(Y) * CosX);
+			float cos_x = cos(x);
+			return vector3(sin(y) * cos_x, -sin(x), cos(y) * cos_x);
 		}
-		Vector3 Vector3::hDirection() const
+		vector3 vector3::hdirection() const
 		{
-			return Vector3(-cos(Y), 0, sin(Y));
+			return vector3(-cos(y), 0, sin(y));
 		}
-		Vector3 Vector3::Direction() const
+		vector3 vector3::direction() const
 		{
-			return Matrix4x4::CreateLookAt(0, *this, Vector3::Up()).RotationEuler();
+			return matrix4x4::create_look_at(0, *this, vector3::up()).rotation_euler();
 		}
-		Vector3 Vector3::Inv() const
+		vector3 vector3::inv() const
 		{
-			return Vector3(-X, -Y, -Z);
+			return vector3(-x, -y, -z);
 		}
-		Vector3 Vector3::InvX() const
+		vector3 vector3::inv_x() const
 		{
-			return Vector3(-X, Y, Z);
+			return vector3(-x, y, z);
 		}
-		Vector3 Vector3::InvY() const
+		vector3 vector3::inv_y() const
 		{
-			return Vector3(X, -Y, Z);
+			return vector3(x, -y, z);
 		}
-		Vector3 Vector3::InvZ() const
+		vector3 vector3::inv_z() const
 		{
-			return Vector3(X, Y, -Z);
+			return vector3(x, y, -z);
 		}
-		Vector3 Vector3::Normalize() const
+		vector3 vector3::normalize() const
 		{
 #ifdef VI_VECTORCLASS
 			LOAD_FV3(_r1);
-			_r1 = _r1 * Geometric::FastInvSqrt(horizontal_add(square(_r1)));
-			return Vector3(_r1.extract(0), _r1.extract(1), _r1.extract(2));
+			_r1 = _r1 * geometric::fast_inv_sqrt(horizontal_add(square(_r1)));
+			return vector3(_r1.extract(0), _r1.extract(1), _r1.extract(2));
 #else
-			float F = Length();
-			return Vector3(X / F, Y / F, Z / F);
+			float f = length();
+			return vector3(x / f, y / f, z / f);
 #endif
 		}
-		Vector3 Vector3::sNormalize() const
+		vector3 vector3::snormalize() const
 		{
 #ifdef VI_VECTORCLASS
 			LOAD_FV3(_r1);
-			float F = Geometric::FastSqrt(horizontal_add(square(_r1)));
-			if (F == 0.0f)
-				return Vector3();
+			float f = geometric::fast_sqrt(horizontal_add(square(_r1)));
+			if (f == 0.0f)
+				return vector3();
 
-			_r1 = _r1 / F;
-			return Vector3(_r1.extract(0), _r1.extract(1), _r1.extract(2));
+			_r1 = _r1 / f;
+			return vector3(_r1.extract(0), _r1.extract(1), _r1.extract(2));
 #else
-			float F = Length();
-			if (F == 0.0f)
-				return Vector3();
+			float f = length();
+			if (f == 0.0f)
+				return vector3();
 
-			return Vector3(X / F, Y / F, Z / F);
+			return vector3(x / f, y / f, z / f);
 #endif
 		}
-		Vector3 Vector3::Lerp(const Vector3& B, float DeltaTime) const
+		vector3 vector3::lerp(const vector3& b, float delta_time) const
 		{
 #ifdef VI_VECTORCLASS
-			LOAD_FV3(_r1); LOAD_V3(_r2, B);
-			_r1 = _r1 + (_r2 - _r1) * DeltaTime;
-			return Vector3(_r1.extract(0), _r1.extract(1), _r1.extract(2));
+			LOAD_FV3(_r1); LOAD_V3(_r2, b);
+			_r1 = _r1 + (_r2 - _r1) * delta_time;
+			return vector3(_r1.extract(0), _r1.extract(1), _r1.extract(2));
 #else
-			return *this + (B - *this) * DeltaTime;
+			return *this + (b - *this) * delta_time;
 #endif
 		}
-		Vector3 Vector3::sLerp(const Vector3& B, float DeltaTime) const
+		vector3 vector3::slerp(const vector3& b, float delta_time) const
 		{
-			return Quaternion(*this).sLerp(B, DeltaTime).GetEuler();
+			return quaternion(*this).slerp(b, delta_time).get_euler();
 		}
-		Vector3 Vector3::aLerp(const Vector3& B, float DeltaTime) const
+		vector3 vector3::alerp(const vector3& b, float delta_time) const
 		{
-			float Ax = Geometric::AngluarLerp(X, B.X, DeltaTime);
-			float Ay = Geometric::AngluarLerp(Y, B.Y, DeltaTime);
-			float Az = Geometric::AngluarLerp(Z, B.Z, DeltaTime);
+			float ax = geometric::angluar_lerp(x, b.x, delta_time);
+			float ay = geometric::angluar_lerp(y, b.y, delta_time);
+			float az = geometric::angluar_lerp(z, b.z, delta_time);
 
-			return Vector3(Ax, Ay, Az);
+			return vector3(ax, ay, az);
 		}
-		Vector3 Vector3::rLerp() const
+		vector3 vector3::rlerp() const
 		{
-			float Ax = Compute::Mathf::SaturateAngle(X);
-			float Ay = Compute::Mathf::SaturateAngle(Y);
-			float Az = Compute::Mathf::SaturateAngle(Z);
+			float ax = compute::mathf::saturate_angle(x);
+			float ay = compute::mathf::saturate_angle(y);
+			float az = compute::mathf::saturate_angle(z);
 
-			return Vector3(Ax, Ay, Az);
+			return vector3(ax, ay, az);
 		}
-		Vector3 Vector3::Abs() const
+		vector3 vector3::abs() const
 		{
 #ifdef VI_VECTORCLASS
-			LOAD_FV3(_r1); _r1 = abs(_r1);
-			return Vector3(_r1.extract(0), _r1.extract(1), _r1.extract(2));
+			LOAD_FV3(_r1); _r1 = ::abs(_r1);
+			return vector3(_r1.extract(0), _r1.extract(1), _r1.extract(2));
 #else
-			return Vector3(X < 0 ? -X : X, Y < 0 ? -Y : Y, Z < 0 ? -Z : Z);
+			return vector3(x < 0 ? -x : x, y < 0 ? -y : y, z < 0 ? -z : z);
 #endif
 		}
-		Vector3 Vector3::Radians() const
+		vector3 vector3::radians() const
 		{
-			return (*this) * Compute::Mathf::Deg2Rad();
+			return (*this) * compute::mathf::deg2rad();
 		}
-		Vector3 Vector3::Degrees() const
+		vector3 vector3::degrees() const
 		{
-			return (*this) * Compute::Mathf::Rad2Deg();
+			return (*this) * compute::mathf::rad2deg();
 		}
-		Vector3 Vector3::ViewSpace() const
+		vector3 vector3::view_space() const
 		{
-			return InvZ();
+			return inv_z();
 		}
-		Vector2 Vector3::XY() const
+		vector2 vector3::xy() const
 		{
-			return Vector2(X, Y);
+			return vector2(x, y);
 		}
-		Vector3 Vector3::XYZ() const
+		vector3 vector3::xyz() const
 		{
 			return *this;
 		}
-		Vector4 Vector3::XYZW() const
+		vector4 vector3::xyzw() const
 		{
-			return Vector4(X, Y, Z, 0);
+			return vector4(x, y, z, 0);
 		}
-		Vector3 Vector3::Mul(float xyz) const
+		vector3 vector3::mul(float xyz) const
 		{
 #ifdef VI_VECTORCLASS
 			LOAD_FV3(_r1); _r1 = _r1 * xyz;
-			return Vector3(_r1.extract(0), _r1.extract(1), _r1.extract(2));
+			return vector3(_r1.extract(0), _r1.extract(1), _r1.extract(2));
 #else
-			return Vector3(X * xyz, Y * xyz, Z * xyz);
+			return vector3(x * xyz, y * xyz, z * xyz);
 #endif
 		}
-		Vector3 Vector3::Mul(const Vector2& XY, float z) const
+		vector3 vector3::mul(const vector2& xy, float z) const
 		{
 #ifdef VI_VECTORCLASS
-			LOAD_FV3(_r1); LOAD_AV3(_r2, XY.X, XY.Y, z); _r1 = _r1 * _r2;
-			return Vector3(_r1.extract(0), _r1.extract(1), _r1.extract(2));
+			LOAD_FV3(_r1); LOAD_AV3(_r2, xy.x, xy.y, z); _r1 = _r1 * _r2;
+			return vector3(_r1.extract(0), _r1.extract(1), _r1.extract(2));
 #else
-			return Vector3(X * XY.X, Y * XY.Y, Z * z);
+			return vector3(x * xy.x, y * xy.y, z * z);
 #endif
 		}
-		Vector3 Vector3::Mul(const Vector3& Value) const
+		vector3 vector3::mul(const vector3& value) const
 		{
 #ifdef VI_VECTORCLASS
-			LOAD_FV3(_r1); LOAD_V3(_r2, Value); _r1 = _r1 * _r2;
-			return Vector3(_r1.extract(0), _r1.extract(1), _r1.extract(2));
+			LOAD_FV3(_r1); LOAD_V3(_r2, value); _r1 = _r1 * _r2;
+			return vector3(_r1.extract(0), _r1.extract(1), _r1.extract(2));
 #else
-			return Vector3(X * Value.X, Y * Value.Y, Z * Value.Z);
+			return vector3(x * value.x, y * value.y, z * value.z);
 #endif
 		}
-		Vector3 Vector3::Div(const Vector3& Value) const
+		vector3 vector3::div(const vector3& value) const
 		{
 #ifdef VI_VECTORCLASS
-			LOAD_FV3(_r1); LOAD_V3(_r2, Value); _r1 = _r1 / _r2;
-			return Vector3(_r1.extract(0), _r1.extract(1), _r1.extract(2));
+			LOAD_FV3(_r1); LOAD_V3(_r2, value); _r1 = _r1 / _r2;
+			return vector3(_r1.extract(0), _r1.extract(1), _r1.extract(2));
 #else
-			return Vector3(X / Value.X, Y / Value.Y, Z / Value.Z);
+			return vector3(x / value.x, y / value.y, z / value.z);
 #endif
 		}
-		Vector3 Vector3::Add(const Vector3& Value) const
+		vector3 vector3::add(const vector3& value) const
 		{
 #ifdef VI_VECTORCLASS
-			LOAD_FV3(_r1); LOAD_V3(_r2, Value); _r1 = _r1 + _r2;
-			return Vector3(_r1.extract(0), _r1.extract(1), _r1.extract(2));
+			LOAD_FV3(_r1); LOAD_V3(_r2, value); _r1 = _r1 + _r2;
+			return vector3(_r1.extract(0), _r1.extract(1), _r1.extract(2));
 #else
-			return Vector3(X + Value.X, Y + Value.Y, Z + Value.Z);
+			return vector3(x + value.x, y + value.y, z + value.z);
 #endif
 		}
-		Vector3 Vector3::SetX(float Xf) const
+		vector3 vector3::set_x(float xf) const
 		{
-			return Vector3(Xf, Y, Z);
+			return vector3(xf, y, z);
 		}
-		Vector3 Vector3::SetY(float Yf) const
+		vector3 vector3::set_y(float yf) const
 		{
-			return Vector3(X, Yf, Z);
+			return vector3(x, yf, z);
 		}
-		Vector3 Vector3::SetZ(float Zf) const
+		vector3 vector3::set_z(float zf) const
 		{
-			return Vector3(X, Y, Zf);
+			return vector3(x, y, zf);
 		}
-		Vector3 Vector3::Rotate(const Vector3& Origin, const Vector3& Rotation)
+		vector3 vector3::rotate(const vector3& origin, const vector3& rotation)
 		{
-			return Transform(Matrix4x4::Create(Origin, Rotation));
+			return transform(matrix4x4::create(origin, rotation));
 		}
-		void Vector3::Set(const Vector3& Value)
+		void vector3::set(const vector3& value)
 		{
-			X = Value.X;
-			Y = Value.Y;
-			Z = Value.Z;
+			x = value.x;
+			y = value.y;
+			z = value.z;
 		}
-		void Vector3::Get2(float* In) const
+		void vector3::get2(float* in) const
 		{
-			VI_ASSERT(In != nullptr, "in of size 2 should be set");
-			In[0] = X;
-			In[1] = Y;
+			VI_ASSERT(in != nullptr, "in of size 2 should be set");
+			in[0] = x;
+			in[1] = y;
 		}
-		void Vector3::Get3(float* In) const
+		void vector3::get3(float* in) const
 		{
-			VI_ASSERT(In != nullptr, "in of size 3 should be set");
-			In[0] = X;
-			In[1] = Y;
-			In[2] = Z;
+			VI_ASSERT(in != nullptr, "in of size 3 should be set");
+			in[0] = x;
+			in[1] = y;
+			in[2] = z;
 		}
-		Vector3& Vector3::operator *=(const Vector3& V)
+		vector3& vector3::operator *=(const vector3& v)
 		{
 #ifdef VI_VECTORCLASS
-			LOAD_FV3(_r1); LOAD_V3(_r2, V);
+			LOAD_FV3(_r1); LOAD_V3(_r2, v);
 			_r1 = _r1 * _r2;
 			_r1.store_partial(3, (float*)this);
 #else
-			X *= V.X;
-			Y *= V.Y;
-			Z *= V.Z;
+			x *= v.x;
+			y *= v.y;
+			z *= v.z;
 #endif
 			return *this;
 		}
-		Vector3& Vector3::operator *=(float V)
+		vector3& vector3::operator *=(float v)
 		{
 #ifdef VI_VECTORCLASS
-			LOAD_FV3(_r1); LOAD_VAL(_r2, V);
+			LOAD_FV3(_r1); LOAD_VAL(_r2, v);
 			_r1 = _r1 * _r2;
 			_r1.store_partial(3, (float*)this);
 #else
-			X *= V;
-			Y *= V;
-			Z *= V;
+			x *= v;
+			y *= v;
+			z *= v;
 #endif
 			return *this;
 		}
-		Vector3& Vector3::operator /=(const Vector3& V)
+		vector3& vector3::operator /=(const vector3& v)
 		{
 #ifdef VI_VECTORCLASS
-			LOAD_FV3(_r1); LOAD_V3(_r2, V);
+			LOAD_FV3(_r1); LOAD_V3(_r2, v);
 			_r1 = _r1 / _r2;
 			_r1.store_partial(3, (float*)this);
 #else
-			X /= V.X;
-			Y /= V.Y;
-			Z /= V.Z;
+			x /= v.x;
+			y /= v.y;
+			z /= v.z;
 #endif
 			return *this;
 		}
-		Vector3& Vector3::operator /=(float V)
+		vector3& vector3::operator /=(float v)
 		{
 #ifdef VI_VECTORCLASS
-			LOAD_FV3(_r1); LOAD_VAL(_r2, V);
+			LOAD_FV3(_r1); LOAD_VAL(_r2, v);
 			_r1 = _r1 / _r2;
 			_r1.store_partial(3, (float*)this);
 #else
-			X *= V;
-			Y *= V;
-			Z *= V;
+			x *= v;
+			y *= v;
+			z *= v;
 #endif
 			return *this;
 		}
-		Vector3& Vector3::operator +=(const Vector3& V)
+		vector3& vector3::operator +=(const vector3& v)
 		{
 #ifdef VI_VECTORCLASS
-			LOAD_FV3(_r1); LOAD_V3(_r2, V);
+			LOAD_FV3(_r1); LOAD_V3(_r2, v);
 			_r1 = _r1 + _r2;
 			_r1.store_partial(3, (float*)this);
 #else
-			X += V.X;
-			Y += V.Y;
-			Z += V.Z;
+			x += v.x;
+			y += v.y;
+			z += v.z;
 #endif
 			return *this;
 		}
-		Vector3& Vector3::operator +=(float V)
+		vector3& vector3::operator +=(float v)
 		{
 #ifdef VI_VECTORCLASS
-			LOAD_FV3(_r1); LOAD_VAL(_r2, V);
+			LOAD_FV3(_r1); LOAD_VAL(_r2, v);
 			_r1 = _r1 + _r2;
 			_r1.store_partial(3, (float*)this);
 #else
-			X += V;
-			Y += V;
-			Z += V;
+			x += v;
+			y += v;
+			z += v;
 #endif
 			return *this;
 		}
-		Vector3& Vector3::operator -=(const Vector3& V)
+		vector3& vector3::operator -=(const vector3& v)
 		{
 #ifdef VI_VECTORCLASS
-			LOAD_FV3(_r1); LOAD_V3(_r2, V);
+			LOAD_FV3(_r1); LOAD_V3(_r2, v);
 			_r1 = _r1 - _r2;
 			_r1.store_partial(3, (float*)this);
 #else
-			X -= V.X;
-			Y -= V.Y;
-			Z -= V.Z;
+			x -= v.x;
+			y -= v.y;
+			z -= v.z;
 #endif
 			return *this;
 		}
-		Vector3& Vector3::operator -=(float V)
+		vector3& vector3::operator -=(float v)
 		{
 #ifdef VI_VECTORCLASS
-			LOAD_FV3(_r1); LOAD_VAL(_r2, V);
+			LOAD_FV3(_r1); LOAD_VAL(_r2, v);
 			_r1 = _r1 - _r2;
 			_r1.store_partial(3, (float*)this);
 #else
-			X -= V;
-			Y -= V;
-			Z -= V;
+			x -= v;
+			y -= v;
+			z -= v;
 #endif
 			return *this;
 		}
-		Vector3 Vector3::operator *(const Vector3& V) const
+		vector3 vector3::operator *(const vector3& v) const
 		{
-			return Mul(V);
+			return mul(v);
 		}
-		Vector3 Vector3::operator *(float V) const
+		vector3 vector3::operator *(float v) const
 		{
-			return Mul(V);
+			return mul(v);
 		}
-		Vector3 Vector3::operator /(const Vector3& V) const
+		vector3 vector3::operator /(const vector3& v) const
 		{
-			return Div(V);
+			return div(v);
 		}
-		Vector3 Vector3::operator /(float V) const
+		vector3 vector3::operator /(float v) const
 		{
-			return Div(V);
+			return div(v);
 		}
-		Vector3 Vector3::operator +(const Vector3& V) const
+		vector3 vector3::operator +(const vector3& v) const
 		{
-			return Add(V);
+			return add(v);
 		}
-		Vector3 Vector3::operator +(float V) const
+		vector3 vector3::operator +(float v) const
 		{
-			return Add(V);
+			return add(v);
 		}
-		Vector3 Vector3::operator -(const Vector3& V) const
+		vector3 vector3::operator -(const vector3& v) const
 		{
-			return Add(-V);
+			return add(-v);
 		}
-		Vector3 Vector3::operator -(float V) const
+		vector3 vector3::operator -(float v) const
 		{
-			return Add(-V);
+			return add(-v);
 		}
-		Vector3 Vector3::operator -() const
+		vector3 vector3::operator -() const
 		{
-			return Inv();
+			return inv();
 		}
-		Vector3& Vector3::operator =(const Vector3& V) noexcept
+		vector3& vector3::operator =(const vector3& v) noexcept
 		{
-			X = V.X;
-			Y = V.Y;
-			Z = V.Z;
+			x = v.x;
+			y = v.y;
+			z = v.z;
 			return *this;
 		}
-		bool Vector3::operator ==(const Vector3& R) const
+		bool vector3::operator ==(const vector3& r) const
 		{
-			return X == R.X && Y == R.Y && Z == R.Z;
+			return x == r.x && y == r.y && z == r.z;
 		}
-		bool Vector3::operator !=(const Vector3& R) const
+		bool vector3::operator !=(const vector3& r) const
 		{
-			return !(X == R.X && Y == R.Y && Z == R.Z);
+			return !(x == r.x && y == r.y && z == r.z);
 		}
-		bool Vector3::operator <=(const Vector3& R) const
+		bool vector3::operator <=(const vector3& r) const
 		{
-			return X <= R.X && Y <= R.Y && Z <= R.Z;
+			return x <= r.x && y <= r.y && z <= r.z;
 		}
-		bool Vector3::operator >=(const Vector3& R) const
+		bool vector3::operator >=(const vector3& r) const
 		{
-			return X >= R.X && Y >= R.Y && Z >= R.Z;
+			return x >= r.x && y >= r.y && z >= r.z;
 		}
-		bool Vector3::operator <(const Vector3& R) const
+		bool vector3::operator <(const vector3& r) const
 		{
-			return X < R.X&& Y < R.Y&& Z < R.Z;
+			return x < r.x && y < r.y && z < r.z;
 		}
-		bool Vector3::operator >(const Vector3& R) const
+		bool vector3::operator >(const vector3& r) const
 		{
-			return X > R.X && Y > R.Y && Z > R.Z;
+			return x > r.x && y > r.y && z > r.z;
 		}
-		float& Vector3::operator [](uint32_t Axis)
+		float& vector3::operator [](uint32_t axis)
 		{
-			VI_ASSERT(Axis >= 0 && Axis <= 2, "index out of range");
-			if (Axis == 0)
-				return X;
-			else if (Axis == 1)
-				return Y;
+			VI_ASSERT(axis >= 0 && axis <= 2, "index out of range");
+			if (axis == 0)
+				return x;
+			else if (axis == 1)
+				return y;
 
-			return Z;
+			return z;
 		}
-		float Vector3::operator [](uint32_t Axis) const
+		float vector3::operator [](uint32_t axis) const
 		{
-			VI_ASSERT(Axis >= 0 && Axis <= 2, "index out of range");
-			if (Axis == 0)
-				return X;
-			else if (Axis == 1)
-				return Y;
+			VI_ASSERT(axis >= 0 && axis <= 2, "index out of range");
+			if (axis == 0)
+				return x;
+			else if (axis == 1)
+				return y;
 
-			return Z;
+			return z;
 		}
-		Vector3 Vector3::Random()
+		vector3 vector3::random()
 		{
-			return Vector3(Compute::Mathf::RandomMag(), Compute::Mathf::RandomMag(), Compute::Mathf::RandomMag());
+			return vector3(compute::mathf::random_mag(), compute::mathf::random_mag(), compute::mathf::random_mag());
 		}
-		Vector3 Vector3::RandomAbs()
+		vector3 vector3::random_abs()
 		{
-			return Vector3(Compute::Mathf::Random(), Compute::Mathf::Random(), Compute::Mathf::Random());
+			return vector3(compute::mathf::random(), compute::mathf::random(), compute::mathf::random());
 		}
 
-		Vector4::Vector4() noexcept : X(0.0f), Y(0.0f), Z(0.0f), W(0.0f)
+		vector4::vector4() noexcept : x(0.0f), y(0.0f), z(0.0f), w(0.0f)
 		{
 		}
-		Vector4::Vector4(float x, float y) noexcept : X(x), Y(y), Z(0.0f), W(0.0f)
+		vector4::vector4(float x, float y) noexcept : x(x), y(y), z(0.0f), w(0.0f)
 		{
 		}
-		Vector4::Vector4(float x, float y, float z) noexcept : X(x), Y(y), Z(z), W(0.0f)
+		vector4::vector4(float x, float y, float z) noexcept : x(x), y(y), z(z), w(0.0f)
 		{
 		}
-		Vector4::Vector4(float x, float y, float z, float w) noexcept : X(x), Y(y), Z(z), W(w)
+		vector4::vector4(float x, float y, float z, float w) noexcept : x(x), y(y), z(z), w(w)
 		{
 		}
-		Vector4::Vector4(float xyzw) noexcept : X(xyzw), Y(xyzw), Z(xyzw), W(xyzw)
+		vector4::vector4(float xyzw) noexcept : x(xyzw), y(xyzw), z(xyzw), w(xyzw)
 		{
 		}
-		Vector4::Vector4(const Vector2& Value) noexcept : X(Value.X), Y(Value.Y), Z(0.0f), W(0.0f)
+		vector4::vector4(const vector2& value) noexcept : x(value.x), y(value.y), z(0.0f), w(0.0f)
 		{
 		}
-		Vector4::Vector4(const Vector3& Value) noexcept : X(Value.X), Y(Value.Y), Z(Value.Z), W(0.0f)
+		vector4::vector4(const vector3& value) noexcept : x(value.x), y(value.y), z(value.z), w(0.0f)
 		{
 		}
-		Vector4::Vector4(const Vector4& Value) noexcept : X(Value.X), Y(Value.Y), Z(Value.Z), W(Value.W)
+		vector4::vector4(const vector4& value) noexcept : x(value.x), y(value.y), z(value.z), w(value.w)
 		{
 		}
-		bool Vector4::IsEquals(const Vector4& Other, float MaxDisplacement) const
+		bool vector4::is_equals(const vector4& other, float max_displacement) const
 		{
-			return abs(X - Other.X) <= MaxDisplacement && abs(Y - Other.Y) <= MaxDisplacement && abs(Z - Other.Z) <= MaxDisplacement && abs(W - Other.W) <= MaxDisplacement;
+			return fabs(x - other.x) <= max_displacement && fabs(y - other.y) <= max_displacement && fabs(z - other.z) <= max_displacement && fabs(w - other.w) <= max_displacement;
 		}
-		float Vector4::Length() const
+		float vector4::length() const
 		{
 #ifdef VI_VECTORCLASS
 			LOAD_FV4(_r1);
 			return std::sqrt(horizontal_add(square(_r1)));
 #else
-			return std::sqrt(X * X + Y * Y + Z * Z + W * W);
+			return std::sqrt(x * x + y * y + z * z + w * w);
 #endif
 		}
-		float Vector4::Sum() const
+		float vector4::sum() const
 		{
 #ifdef VI_VECTORCLASS
 			LOAD_FV4(_r1);
 			return horizontal_add(_r1);
 #else
-			return X + Y + Z + W;
+			return x + y + z + w;
 #endif
 		}
-		float Vector4::Dot(const Vector4& B) const
+		float vector4::dot(const vector4& b) const
 		{
 #ifdef VI_VECTORCLASS
-			LOAD_FV4(_r1); LOAD_V4(_r2, B);
+			LOAD_FV4(_r1); LOAD_V4(_r2, b);
 			return horizontal_add(_r1 * _r2);
 #else
-			return X * B.X + Y * B.Y + Z * B.Z + W * B.W;
+			return x * b.x + y * b.y + z * b.z + w * b.w;
 #endif
 		}
-		float Vector4::Distance(const Vector4& Point) const
+		float vector4::distance(const vector4& point) const
 		{
 #ifdef VI_VECTORCLASS
-			LOAD_FV4(_r1); LOAD_V4(_r2, Point);
-			return Geometric::FastSqrt(horizontal_add(square(_r1 - _r2)));
+			LOAD_FV4(_r1); LOAD_V4(_r2, point);
+			return geometric::fast_sqrt(horizontal_add(square(_r1 - _r2)));
 #else
-			float X1 = X - Point.X, Y1 = Y - Point.Y, Z1 = Z - Point.Z, W1 = W - Point.W;
-			return Geometric::FastSqrt(X1 * X1 + Y1 * Y1 + Z1 * Z1 + W1 * W1);
+			float X1 = x - point.x, Y1 = y - point.y, Z1 = z - point.z, W1 = w - point.w;
+			return geometric::fast_sqrt(X1 * X1 + Y1 * Y1 + Z1 * Z1 + W1 * W1);
 #endif
 		}
-		Vector4 Vector4::Cross(const Vector4& B) const
+		vector4 vector4::cross(const vector4& b) const
 		{
 #ifdef VI_VECTORCLASS
-			LOAD_AV3(_r1, Y, Z, X);
-			LOAD_AV3(_r2, Z, X, Y);
-			LOAD_AV3(_r3, B.Z, B.X, B.Y);
-			LOAD_AV3(_r4, B.Y, B.Z, B.X);
+			LOAD_AV3(_r1, y, z, x);
+			LOAD_AV3(_r2, z, x, y);
+			LOAD_AV3(_r3, b.z, b.x, b.y);
+			LOAD_AV3(_r4, b.y, b.z, b.x);
 
 			_r1 = _r1 * _r3 - _r2 * _r4;
-			return Vector3(_r1.extract(0), _r1.extract(1), _r1.extract(2));
+			return vector3(_r1.extract(0), _r1.extract(1), _r1.extract(2));
 #else
-			return Vector4(Y * B.Z - Z * B.Y, Z * B.X - X * B.Z, X * B.Y - Y * B.X);
+			return vector4(y * b.z - z * b.y, z * b.x - x * b.z, x * b.y - y * b.x);
 #endif
 		}
-		Vector4 Vector4::Transform(const Matrix4x4& Matrix) const
+		vector4 vector4::transform(const matrix4x4& matrix) const
 		{
 #ifdef VI_VECTORCLASS
-			LOAD_VAL(_r1, X);
-			LOAD_VAL(_r2, Y);
-			LOAD_VAL(_r3, Z);
-			LOAD_VAL(_r4, W);
-			LOAD_VAR(_r5, Matrix.Row);
-			LOAD_VAR(_r6, Matrix.Row + 4);
-			LOAD_VAR(_r7, Matrix.Row + 8);
-			LOAD_VAR(_r8, Matrix.Row + 12);
+			LOAD_VAL(_r1, x);
+			LOAD_VAL(_r2, y);
+			LOAD_VAL(_r3, z);
+			LOAD_VAL(_r4, w);
+			LOAD_VAR(_r5, matrix.row);
+			LOAD_VAR(_r6, matrix.row + 4);
+			LOAD_VAR(_r7, matrix.row + 8);
+			LOAD_VAR(_r8, matrix.row + 12);
 
 			_r1 = _r1 * _r5 + _r2 * _r6 + _r3 * _r7 + _r4 * _r8;
-			return Vector4(_r1.extract(0), _r1.extract(1), _r1.extract(2), _r1.extract(3));
+			return vector4(_r1.extract(0), _r1.extract(1), _r1.extract(2), _r1.extract(3));
 #else
-			return Vector4(
-				X * Matrix.Row[0] + Y * Matrix.Row[4] + Z * Matrix.Row[8] + W * Matrix.Row[12],
-				X * Matrix.Row[1] + Y * Matrix.Row[5] + Z * Matrix.Row[9] + W * Matrix.Row[13],
-				X * Matrix.Row[2] + Y * Matrix.Row[6] + Z * Matrix.Row[10] + W * Matrix.Row[14],
-				X * Matrix.Row[3] + Y * Matrix.Row[7] + Z * Matrix.Row[11] + W * Matrix.Row[15]);
+			return vector4(
+				x * matrix.row[0] + y * matrix.row[4] + z * matrix.row[8] + w * matrix.row[12],
+				x * matrix.row[1] + y * matrix.row[5] + z * matrix.row[9] + w * matrix.row[13],
+				x * matrix.row[2] + y * matrix.row[6] + z * matrix.row[10] + w * matrix.row[14],
+				x * matrix.row[3] + y * matrix.row[7] + z * matrix.row[11] + w * matrix.row[15]);
 #endif
 		}
-		Vector4 Vector4::Inv() const
+		vector4 vector4::inv() const
 		{
-			return Vector4(-X, -Y, -Z, -W);
+			return vector4(-x, -y, -z, -w);
 		}
-		Vector4 Vector4::InvX() const
+		vector4 vector4::inv_x() const
 		{
-			return Vector4(-X, Y, Z, W);
+			return vector4(-x, y, z, w);
 		}
-		Vector4 Vector4::InvY() const
+		vector4 vector4::inv_y() const
 		{
-			return Vector4(X, -Y, Z, W);
+			return vector4(x, -y, z, w);
 		}
-		Vector4 Vector4::InvZ() const
+		vector4 vector4::inv_z() const
 		{
-			return Vector4(X, Y, -Z, W);
+			return vector4(x, y, -z, w);
 		}
-		Vector4 Vector4::InvW() const
+		vector4 vector4::inv_w() const
 		{
-			return Vector4(X, Y, Z, -W);
+			return vector4(x, y, z, -w);
 		}
-		Vector4 Vector4::Normalize() const
+		vector4 vector4::normalize() const
 		{
 #ifdef VI_VECTORCLASS
 			LOAD_FV4(_r1);
-			_r1 = _r1 * Geometric::FastInvSqrt(horizontal_add(square(_r1)));
-			return Vector4(_r1.extract(0), _r1.extract(1), _r1.extract(2), _r1.extract(3));
+			_r1 = _r1 * geometric::fast_inv_sqrt(horizontal_add(square(_r1)));
+			return vector4(_r1.extract(0), _r1.extract(1), _r1.extract(2), _r1.extract(3));
 #else
-			float F = Length();
-			return Vector4(X / F, Y / F, Z / F, W / F);
+			float f = length();
+			return vector4(x / f, y / f, z / f, w / f);
 #endif
 		}
-		Vector4 Vector4::sNormalize() const
+		vector4 vector4::snormalize() const
 		{
 #ifdef VI_VECTORCLASS
 			LOAD_FV4(_r1);
-			float F = Geometric::FastSqrt(horizontal_add(square(_r1)));
-			if (F == 0.0f)
-				return Vector4();
+			float f = geometric::fast_sqrt(horizontal_add(square(_r1)));
+			if (f == 0.0f)
+				return vector4();
 
-			_r1 = _r1 / F;
-			return Vector4(_r1.extract(0), _r1.extract(1), _r1.extract(2), _r1.extract(3));
+			_r1 = _r1 / f;
+			return vector4(_r1.extract(0), _r1.extract(1), _r1.extract(2), _r1.extract(3));
 #else
-			float F = Length();
-			if (F == 0.0f)
-				return Vector4();
+			float f = length();
+			if (f == 0.0f)
+				return vector4();
 
-			return Vector4(X / F, Y / F, Z / F, W / F);
+			return vector4(x / f, y / f, z / f, w / f);
 #endif
 		}
-		Vector4 Vector4::Lerp(const Vector4& B, float DeltaTime) const
+		vector4 vector4::lerp(const vector4& b, float delta_time) const
 		{
 #ifdef VI_VECTORCLASS
-			LOAD_FV4(_r1); LOAD_V4(_r2, B);
-			_r1 = _r1 + (_r2 - _r1) * DeltaTime;
-			return Vector3(_r1.extract(0), _r1.extract(1), _r1.extract(2));
+			LOAD_FV4(_r1); LOAD_V4(_r2, b);
+			_r1 = _r1 + (_r2 - _r1) * delta_time;
+			return vector3(_r1.extract(0), _r1.extract(1), _r1.extract(2));
 #else
-			return *this + (B - *this) * DeltaTime;
+			return *this + (b - *this) * delta_time;
 #endif
 		}
-		Vector4 Vector4::sLerp(const Vector4& B, float DeltaTime) const
+		vector4 vector4::slerp(const vector4& b, float delta_time) const
 		{
-			Vector3 Lerp = Quaternion(Vector3()).sLerp(B.XYZ(), DeltaTime).GetEuler();
-			return Vector4(Lerp.X, Lerp.Y, Lerp.Z, W + (B.W - W) * DeltaTime);
+			vector3 lerp = quaternion(vector3()).slerp(b.xyz(), delta_time).get_euler();
+			return vector4(lerp.x, lerp.y, lerp.z, w + (b.w - w) * delta_time);
 		}
-		Vector4 Vector4::aLerp(const Vector4& B, float DeltaTime) const
+		vector4 vector4::alerp(const vector4& b, float delta_time) const
 		{
-			float Ax = Geometric::AngluarLerp(X, B.X, DeltaTime);
-			float Ay = Geometric::AngluarLerp(Y, B.Y, DeltaTime);
-			float Az = Geometric::AngluarLerp(Z, B.Z, DeltaTime);
-			float Aw = Geometric::AngluarLerp(W, B.W, DeltaTime);
+			float ax = geometric::angluar_lerp(x, b.x, delta_time);
+			float ay = geometric::angluar_lerp(y, b.y, delta_time);
+			float az = geometric::angluar_lerp(z, b.z, delta_time);
+			float aw = geometric::angluar_lerp(w, b.w, delta_time);
 
-			return Vector4(Ax, Ay, Az, Aw);
+			return vector4(ax, ay, az, aw);
 		}
-		Vector4 Vector4::rLerp() const
+		vector4 vector4::rlerp() const
 		{
-			float Ax = Compute::Mathf::SaturateAngle(X);
-			float Ay = Compute::Mathf::SaturateAngle(Y);
-			float Az = Compute::Mathf::SaturateAngle(Z);
-			float Aw = Compute::Mathf::SaturateAngle(W);
+			float ax = compute::mathf::saturate_angle(x);
+			float ay = compute::mathf::saturate_angle(y);
+			float az = compute::mathf::saturate_angle(z);
+			float aw = compute::mathf::saturate_angle(w);
 
-			return Vector4(Ax, Ay, Az, Aw);
+			return vector4(ax, ay, az, aw);
 		}
-		Vector4 Vector4::Abs() const
+		vector4 vector4::abs() const
 		{
 #ifdef VI_VECTORCLASS
-			LOAD_FV4(_r1); _r1 = abs(_r1);
-			return Vector4(_r1.extract(0), _r1.extract(1), _r1.extract(2), _r1.extract(3));
+			LOAD_FV4(_r1); _r1 = ::abs(_r1);
+			return vector4(_r1.extract(0), _r1.extract(1), _r1.extract(2), _r1.extract(3));
 #else
-			return Vector4(X < 0 ? -X : X, Y < 0 ? -Y : Y, Z < 0 ? -Z : Z, W < 0 ? -W : W);
+			return vector4(x < 0 ? -x : x, y < 0 ? -y : y, z < 0 ? -z : z, w < 0 ? -w : w);
 #endif
 		}
-		Vector4 Vector4::Radians() const
+		vector4 vector4::radians() const
 		{
-			return (*this) * Compute::Mathf::Deg2Rad();
+			return (*this) * compute::mathf::deg2rad();
 		}
-		Vector4 Vector4::Degrees() const
+		vector4 vector4::degrees() const
 		{
-			return (*this) * Compute::Mathf::Rad2Deg();
+			return (*this) * compute::mathf::rad2deg();
 		}
-		Vector4 Vector4::ViewSpace() const
+		vector4 vector4::view_space() const
 		{
-			return InvZ();
+			return inv_z();
 		}
-		Vector2 Vector4::XY() const
+		vector2 vector4::xy() const
 		{
-			return Vector2(X, Y);
+			return vector2(x, y);
 		}
-		Vector3 Vector4::XYZ() const
+		vector3 vector4::xyz() const
 		{
-			return Vector3(X, Y, Z);
+			return vector3(x, y, z);
 		}
-		Vector4 Vector4::XYZW() const
+		vector4 vector4::xyzw() const
 		{
 			return *this;
 		}
-		Vector4 Vector4::SetX(float TexCoordX) const
+		vector4 vector4::set_x(float texcoord_x) const
 		{
-			return Vector4(TexCoordX, Y, Z, W);
+			return vector4(texcoord_x, y, z, w);
 		}
-		Vector4 Vector4::SetY(float TexCoordY) const
+		vector4 vector4::set_y(float texcoord_y) const
 		{
-			return Vector4(X, TexCoordY, Z, W);
+			return vector4(x, texcoord_y, z, w);
 		}
-		Vector4 Vector4::SetZ(float TZ) const
+		vector4 vector4::set_z(float TZ) const
 		{
-			return Vector4(X, Y, TZ, W);
+			return vector4(x, y, TZ, w);
 		}
-		Vector4 Vector4::SetW(float TW) const
+		vector4 vector4::set_w(float TW) const
 		{
-			return Vector4(X, Y, Z, TW);
+			return vector4(x, y, z, TW);
 		}
-		Vector4 Vector4::Mul(float xyzw) const
+		vector4 vector4::mul(float xyzw) const
 		{
 #ifdef VI_VECTORCLASS
 			LOAD_FV4(_r1); _r1 = _r1 * xyzw;
-			return Vector4(_r1.extract(0), _r1.extract(1), _r1.extract(2), _r1.extract(3));
+			return vector4(_r1.extract(0), _r1.extract(1), _r1.extract(2), _r1.extract(3));
 #else
-			return Vector4(X * xyzw, Y * xyzw, Z * xyzw, W * xyzw);
+			return vector4(x * xyzw, y * xyzw, z * xyzw, w * xyzw);
 #endif
 		}
-		Vector4 Vector4::Mul(const Vector2& XY, float z, float w) const
+		vector4 vector4::mul(const vector2& xy, float z, float w) const
 		{
 #ifdef VI_VECTORCLASS
-			LOAD_FV4(_r1); LOAD_AV4(_r2, XY.X, XY.Y, z, w); _r1 = _r1 * _r2;
-			return Vector4(_r1.extract(0), _r1.extract(1), _r1.extract(2), _r1.extract(3));
+			LOAD_FV4(_r1); LOAD_AV4(_r2, xy.x, xy.y, z, w); _r1 = _r1 * _r2;
+			return vector4(_r1.extract(0), _r1.extract(1), _r1.extract(2), _r1.extract(3));
 #else
-			return Vector4(X * XY.X, Y * XY.Y, Z * z, W * w);
+			return vector4(x * xy.x, y * xy.y, z * z, w * w);
 #endif
 		}
-		Vector4 Vector4::Mul(const Vector3& XYZ, float w) const
+		vector4 vector4::mul(const vector3& xyz, float w) const
 		{
 #ifdef VI_VECTORCLASS
-			LOAD_FV4(_r1); LOAD_AV4(_r2, XYZ.X, XYZ.Y, XYZ.Z, w); _r1 = _r1 * _r2;
-			return Vector4(_r1.extract(0), _r1.extract(1), _r1.extract(2), _r1.extract(3));
+			LOAD_FV4(_r1); LOAD_AV4(_r2, xyz.x, xyz.y, xyz.z, w); _r1 = _r1 * _r2;
+			return vector4(_r1.extract(0), _r1.extract(1), _r1.extract(2), _r1.extract(3));
 #else
-			return Vector4(X * XYZ.X, Y * XYZ.Y, Z * XYZ.Z, W * w);
+			return vector4(x * xyz.x, y * xyz.y, z * xyz.z, w * w);
 #endif
 		}
-		Vector4 Vector4::Mul(const Vector4& Value) const
+		vector4 vector4::mul(const vector4& value) const
 		{
 #ifdef VI_VECTORCLASS
-			LOAD_FV4(_r1); LOAD_V4(_r2, Value); _r1 = _r1 * _r2;
-			return Vector4(_r1.extract(0), _r1.extract(1), _r1.extract(2), _r1.extract(3));
+			LOAD_FV4(_r1); LOAD_V4(_r2, value); _r1 = _r1 * _r2;
+			return vector4(_r1.extract(0), _r1.extract(1), _r1.extract(2), _r1.extract(3));
 #else
-			return Vector4(X * Value.X, Y * Value.Y, Z * Value.Z, W * Value.W);
+			return vector4(x * value.x, y * value.y, z * value.z, w * value.w);
 #endif
 		}
-		Vector4 Vector4::Div(const Vector4& Value) const
+		vector4 vector4::div(const vector4& value) const
 		{
 #ifdef VI_VECTORCLASS
-			LOAD_FV4(_r1); LOAD_V4(_r2, Value); _r1 = _r1 / _r2;
-			return Vector4(_r1.extract(0), _r1.extract(1), _r1.extract(2), _r1.extract(3));
+			LOAD_FV4(_r1); LOAD_V4(_r2, value); _r1 = _r1 / _r2;
+			return vector4(_r1.extract(0), _r1.extract(1), _r1.extract(2), _r1.extract(3));
 #else
-			return Vector4(X / Value.X, Y / Value.Y, Z / Value.Z, W / Value.W);
+			return vector4(x / value.x, y / value.y, z / value.z, w / value.w);
 #endif
 		}
-		Vector4 Vector4::Add(const Vector4& Value) const
+		vector4 vector4::add(const vector4& value) const
 		{
 #ifdef VI_VECTORCLASS
-			LOAD_FV4(_r1); LOAD_V4(_r2, Value); _r1 = _r1 + _r2;
-			return Vector4(_r1.extract(0), _r1.extract(1), _r1.extract(2), _r1.extract(3));
+			LOAD_FV4(_r1); LOAD_V4(_r2, value); _r1 = _r1 + _r2;
+			return vector4(_r1.extract(0), _r1.extract(1), _r1.extract(2), _r1.extract(3));
 #else
-			return Vector4(X + Value.X, Y + Value.Y, Z + Value.Z, W + Value.W);
+			return vector4(x + value.x, y + value.y, z + value.z, w + value.w);
 #endif
 		}
-		void Vector4::Set(const Vector4& Value)
+		void vector4::set(const vector4& value)
 		{
-			X = Value.X;
-			Y = Value.Y;
-			Z = Value.Z;
-			W = Value.W;
+			x = value.x;
+			y = value.y;
+			z = value.z;
+			w = value.w;
 		}
-		void Vector4::Get2(float* In) const
+		void vector4::get2(float* in) const
 		{
-			VI_ASSERT(In != nullptr, "in of size 2 should be set");
-			In[0] = X;
-			In[1] = Y;
+			VI_ASSERT(in != nullptr, "in of size 2 should be set");
+			in[0] = x;
+			in[1] = y;
 		}
-		void Vector4::Get3(float* In) const
+		void vector4::get3(float* in) const
 		{
-			VI_ASSERT(In != nullptr, "in of size 3 should be set");
-			In[0] = X;
-			In[1] = Y;
-			In[2] = Z;
+			VI_ASSERT(in != nullptr, "in of size 3 should be set");
+			in[0] = x;
+			in[1] = y;
+			in[2] = z;
 		}
-		void Vector4::Get4(float* In) const
+		void vector4::get4(float* in) const
 		{
-			VI_ASSERT(In != nullptr, "in of size 4 should be set");
-			In[0] = X;
-			In[1] = Y;
-			In[2] = Z;
-			In[3] = W;
+			VI_ASSERT(in != nullptr, "in of size 4 should be set");
+			in[0] = x;
+			in[1] = y;
+			in[2] = z;
+			in[3] = w;
 		}
-		Vector4& Vector4::operator *=(const Matrix4x4& V)
+		vector4& vector4::operator *=(const matrix4x4& v)
 		{
-			Set(Transform(V));
+			set(transform(v));
 			return *this;
 		}
-		Vector4& Vector4::operator *=(const Vector4& V)
+		vector4& vector4::operator *=(const vector4& v)
 		{
 #ifdef VI_VECTORCLASS
-			LOAD_FV4(_r1); LOAD_V4(_r2, V);
+			LOAD_FV4(_r1); LOAD_V4(_r2, v);
 			_r1 = _r1 * _r2;
 			_r1.store((float*)this);
 #else
-			X *= V.X;
-			Y *= V.Y;
-			Z *= V.Z;
-			W *= V.W;
+			x *= v.x;
+			y *= v.y;
+			z *= v.z;
+			w *= v.w;
 #endif
 			return *this;
 		}
-		Vector4& Vector4::operator *=(float V)
+		vector4& vector4::operator *=(float v)
 		{
 #ifdef VI_VECTORCLASS
-			LOAD_FV4(_r1); LOAD_VAL(_r2, V);
+			LOAD_FV4(_r1); LOAD_VAL(_r2, v);
 			_r1 = _r1 * _r2;
 			_r1.store((float*)this);
 #else
-			X *= V;
-			Y *= V;
-			Z *= V;
-			W *= V;
+			x *= v;
+			y *= v;
+			z *= v;
+			w *= v;
 #endif
 			return *this;
 		}
-		Vector4& Vector4::operator /=(const Vector4& V)
+		vector4& vector4::operator /=(const vector4& v)
 		{
 #ifdef VI_VECTORCLASS
-			LOAD_FV4(_r1); LOAD_V4(_r2, V);
+			LOAD_FV4(_r1); LOAD_V4(_r2, v);
 			_r1 = _r1 / _r2;
 			_r1.store((float*)this);
 #else
-			X /= V.X;
-			Y /= V.Y;
-			Z /= V.Z;
-			W /= V.W;
+			x /= v.x;
+			y /= v.y;
+			z /= v.z;
+			w /= v.w;
 #endif
 			return *this;
 		}
-		Vector4& Vector4::operator /=(float V)
+		vector4& vector4::operator /=(float v)
 		{
 #ifdef VI_VECTORCLASS
-			LOAD_FV4(_r1); LOAD_VAL(_r2, V);
+			LOAD_FV4(_r1); LOAD_VAL(_r2, v);
 			_r1 = _r1 / _r2;
 			_r1.store((float*)this);
 #else
-			X /= V;
-			Y /= V;
-			Z /= V;
-			W /= V;
+			x /= v;
+			y /= v;
+			z /= v;
+			w /= v;
 #endif
 			return *this;
 		}
-		Vector4& Vector4::operator +=(const Vector4& V)
+		vector4& vector4::operator +=(const vector4& v)
 		{
 #ifdef VI_VECTORCLASS
-			LOAD_FV4(_r1); LOAD_V4(_r2, V);
+			LOAD_FV4(_r1); LOAD_V4(_r2, v);
 			_r1 = _r1 + _r2;
 			_r1.store((float*)this);
 #else
-			X += V.X;
-			Y += V.Y;
-			Z += V.Z;
-			W += V.W;
+			x += v.x;
+			y += v.y;
+			z += v.z;
+			w += v.w;
 #endif
 			return *this;
 		}
-		Vector4& Vector4::operator +=(float V)
+		vector4& vector4::operator +=(float v)
 		{
 #ifdef VI_VECTORCLASS
-			LOAD_FV4(_r1); LOAD_VAL(_r2, V);
+			LOAD_FV4(_r1); LOAD_VAL(_r2, v);
 			_r1 = _r1 + _r2;
 			_r1.store((float*)this);
 #else
-			X += V;
-			Y += V;
-			Z += V;
-			W += V;
+			x += v;
+			y += v;
+			z += v;
+			w += v;
 #endif
 			return *this;
 		}
-		Vector4& Vector4::operator -=(const Vector4& V)
+		vector4& vector4::operator -=(const vector4& v)
 		{
 #ifdef VI_VECTORCLASS
-			LOAD_FV4(_r1); LOAD_V4(_r2, V);
+			LOAD_FV4(_r1); LOAD_V4(_r2, v);
 			_r1 = _r1 - _r2;
 			_r1.store((float*)this);
 #else
-			X -= V.X;
-			Y -= V.Y;
-			Z -= V.Z;
-			W -= V.W;
+			x -= v.x;
+			y -= v.y;
+			z -= v.z;
+			w -= v.w;
 #endif
 			return *this;
 		}
-		Vector4& Vector4::operator -=(float V)
+		vector4& vector4::operator -=(float v)
 		{
 #ifdef VI_VECTORCLASS
-			LOAD_FV4(_r1); LOAD_VAL(_r2, V);
+			LOAD_FV4(_r1); LOAD_VAL(_r2, v);
 			_r1 = _r1 - _r2;
 			_r1.store((float*)this);
 #else
-			X -= V;
-			Y -= V;
-			Z -= V;
-			W -= V;
+			x -= v;
+			y -= v;
+			z -= v;
+			w -= v;
 #endif
 			return *this;
 		}
-		Vector4 Vector4::operator *(const Matrix4x4& V) const
+		vector4 vector4::operator *(const matrix4x4& v) const
 		{
-			return Transform(V);
+			return transform(v);
 		}
-		Vector4 Vector4::operator *(const Vector4& V) const
+		vector4 vector4::operator *(const vector4& v) const
 		{
-			return Mul(V);
+			return mul(v);
 		}
-		Vector4 Vector4::operator *(float V) const
+		vector4 vector4::operator *(float v) const
 		{
-			return Mul(V);
+			return mul(v);
 		}
-		Vector4 Vector4::operator /(const Vector4& V) const
+		vector4 vector4::operator /(const vector4& v) const
 		{
-			return Div(V);
+			return div(v);
 		}
-		Vector4 Vector4::operator /(float V) const
+		vector4 vector4::operator /(float v) const
 		{
-			return Div(V);
+			return div(v);
 		}
-		Vector4 Vector4::operator +(const Vector4& V) const
+		vector4 vector4::operator +(const vector4& v) const
 		{
-			return Add(V);
+			return add(v);
 		}
-		Vector4 Vector4::operator +(float V) const
+		vector4 vector4::operator +(float v) const
 		{
-			return Add(V);
+			return add(v);
 		}
-		Vector4 Vector4::operator -(const Vector4& V) const
+		vector4 vector4::operator -(const vector4& v) const
 		{
-			return Add(-V);
+			return add(-v);
 		}
-		Vector4 Vector4::operator -(float V) const
+		vector4 vector4::operator -(float v) const
 		{
-			return Add(-V);
+			return add(-v);
 		}
-		Vector4 Vector4::operator -() const
+		vector4 vector4::operator -() const
 		{
-			return Inv();
+			return inv();
 		}
-		Vector4& Vector4::operator =(const Vector4& V) noexcept
+		vector4& vector4::operator =(const vector4& v) noexcept
 		{
-			X = V.X;
-			Y = V.Y;
-			Z = V.Z;
-			W = V.W;
+			x = v.x;
+			y = v.y;
+			z = v.z;
+			w = v.w;
 			return *this;
 		}
-		bool Vector4::operator ==(const Vector4& R) const
+		bool vector4::operator ==(const vector4& r) const
 		{
-			return X == R.X && Y == R.Y && Z == R.Z && W == R.W;
+			return x == r.x && y == r.y && z == r.z && w == r.w;
 		}
-		bool Vector4::operator !=(const Vector4& R) const
+		bool vector4::operator !=(const vector4& r) const
 		{
-			return !(X == R.X && Y == R.Y && Z == R.Z && W == R.W);
+			return !(x == r.x && y == r.y && z == r.z && w == r.w);
 		}
-		bool Vector4::operator <=(const Vector4& R) const
+		bool vector4::operator <=(const vector4& r) const
 		{
-			return X <= R.X && Y <= R.Y && Z <= R.Z && W <= R.W;
+			return x <= r.x && y <= r.y && z <= r.z && w <= r.w;
 		}
-		bool Vector4::operator >=(const Vector4& R) const
+		bool vector4::operator >=(const vector4& r) const
 		{
-			return X >= R.X && Y >= R.Y && Z >= R.Z && W >= R.W;
+			return x >= r.x && y >= r.y && z >= r.z && w >= r.w;
 		}
-		bool Vector4::operator <(const Vector4& R) const
+		bool vector4::operator <(const vector4& r) const
 		{
-			return X < R.X&& Y < R.Y&& Z < R.Z&& W < R.W;
+			return x < r.x && y < r.y && z < r.z && w < r.w;
 		}
-		bool Vector4::operator >(const Vector4& R) const
+		bool vector4::operator >(const vector4& r) const
 		{
-			return X > R.X && Y > R.Y && Z > R.Z && W > R.W;
+			return x > r.x && y > r.y && z > r.z && w > r.w;
 		}
-		float& Vector4::operator [](uint32_t Axis)
+		float& vector4::operator [](uint32_t axis)
 		{
-			VI_ASSERT(Axis >= 0 && Axis <= 3, "index outside of range");
-			if (Axis == 0)
-				return X;
-			else if (Axis == 1)
-				return Y;
-			else if (Axis == 2)
-				return Z;
+			VI_ASSERT(axis >= 0 && axis <= 3, "index outside of range");
+			if (axis == 0)
+				return x;
+			else if (axis == 1)
+				return y;
+			else if (axis == 2)
+				return z;
 
-			return W;
+			return w;
 		}
-		float Vector4::operator [](uint32_t Axis) const
+		float vector4::operator [](uint32_t axis) const
 		{
-			VI_ASSERT(Axis >= 0 && Axis <= 3, "index outside of range");
-			if (Axis == 0)
-				return X;
-			else if (Axis == 1)
-				return Y;
-			else if (Axis == 2)
-				return Z;
+			VI_ASSERT(axis >= 0 && axis <= 3, "index outside of range");
+			if (axis == 0)
+				return x;
+			else if (axis == 1)
+				return y;
+			else if (axis == 2)
+				return z;
 
-			return W;
+			return w;
 		}
-		Vector4 Vector4::Random()
+		vector4 vector4::random()
 		{
-			return Vector4(Compute::Mathf::RandomMag(), Compute::Mathf::RandomMag(), Compute::Mathf::RandomMag(), Compute::Mathf::RandomMag());
+			return vector4(compute::mathf::random_mag(), compute::mathf::random_mag(), compute::mathf::random_mag(), compute::mathf::random_mag());
 		}
-		Vector4 Vector4::RandomAbs()
+		vector4 vector4::random_abs()
 		{
-			return Vector4(Compute::Mathf::Random(), Compute::Mathf::Random(), Compute::Mathf::Random(), Compute::Mathf::Random());
-		}
-		
-		Bounding::Bounding() noexcept
-		{
-		}
-		Bounding::Bounding(const Vector3& LowerBound, const Vector3& UpperBound) noexcept : Lower(LowerBound), Upper(UpperBound)
-		{
-			VI_ASSERT(Lower <= Upper, "lower should be smaller than upper");
-			Volume = Geometric::AabbVolume(Lower, Upper);
-			Radius = ((Upper - Lower) * 0.5f).Sum();
-			Center = (Lower + Upper) * 0.5f;
-		}
-		void Bounding::Merge(const Bounding& A, const Bounding& B)
-		{
-			Lower.X = std::min(A.Lower.X, B.Lower.X);
-			Lower.Y = std::min(A.Lower.Y, B.Lower.Y);
-			Lower.Z = std::min(A.Lower.Z, B.Lower.Z);
-			Upper.X = std::max(A.Upper.X, B.Upper.X);
-			Upper.Y = std::max(A.Upper.Y, B.Upper.Y);
-			Upper.Z = std::max(A.Upper.Z, B.Upper.Z);
-			Volume = Geometric::AabbVolume(Lower, Upper);
-			Radius = ((Upper - Lower) * 0.5f).Sum();
-			Center = (Lower + Upper) * 0.5f;
-		}
-		bool Bounding::Contains(const Bounding& Bounds) const
-		{
-			return Bounds.Lower >= Lower && Bounds.Upper <= Upper;
-		}
-		bool Bounding::Overlaps(const Bounding& Bounds) const
-		{
-			return Bounds.Upper >= Lower && Bounds.Lower <= Upper;
+			return vector4(compute::mathf::random(), compute::mathf::random(), compute::mathf::random(), compute::mathf::random());
 		}
 
-		Frustum8C::Frustum8C() noexcept
+		bounding::bounding() noexcept
 		{
-			Geometric::CreateFrustum8C(Corners, 90.0f, 1.0f, 0.1f, 1.0f);
 		}
-		Frustum8C::Frustum8C(float FieldOfView, float Aspect, float NearZ, float FarZ) noexcept
+		bounding::bounding(const vector3& lower_bound, const vector3& upper_bound) noexcept : lower(lower_bound), upper(upper_bound)
 		{
-			Geometric::CreateFrustum8CRad(Corners, FieldOfView, Aspect, NearZ, FarZ);
+			VI_ASSERT(lower <= upper, "lower should be smaller than upper");
+			volume = geometric::aabb_volume(lower, upper);
+			radius = ((upper - lower) * 0.5f).sum();
+			center = (lower + upper) * 0.5f;
 		}
-		void Frustum8C::Transform(const Matrix4x4& Value)
+		void bounding::merge(const bounding& a, const bounding& b)
+		{
+			lower.x = std::min(a.lower.x, b.lower.x);
+			lower.y = std::min(a.lower.y, b.lower.y);
+			lower.z = std::min(a.lower.z, b.lower.z);
+			upper.x = std::max(a.upper.x, b.upper.x);
+			upper.y = std::max(a.upper.y, b.upper.y);
+			upper.z = std::max(a.upper.z, b.upper.z);
+			volume = geometric::aabb_volume(lower, upper);
+			radius = ((upper - lower) * 0.5f).sum();
+			center = (lower + upper) * 0.5f;
+		}
+		bool bounding::contains(const bounding& bounds) const
+		{
+			return bounds.lower >= lower && bounds.upper <= upper;
+		}
+		bool bounding::overlaps(const bounding& bounds) const
+		{
+			return bounds.upper >= lower && bounds.lower <= upper;
+		}
+
+		frustum8c::frustum8c() noexcept
+		{
+			geometric::create_frustum8c(corners, 90.0f, 1.0f, 0.1f, 1.0f);
+		}
+		frustum8c::frustum8c(float field_of_view, float aspect, float near_z, float far_z) noexcept
+		{
+			geometric::create_frustum8c_rad(corners, field_of_view, aspect, near_z, far_z);
+		}
+		void frustum8c::transform(const matrix4x4& value)
 		{
 			for (uint32_t i = 0; i < 8; i++)
 			{
-				Vector4& Corner = Corners[i];
-				Corner = Corner * Value;
+				vector4& corner = corners[i];
+				corner = corner * value;
 			}
 		}
-		void Frustum8C::GetBoundingBox(Vector2* X, Vector2* Y, Vector2* Z)
+		void frustum8c::get_bounding_box(float size, vector2* x, vector2* y, vector2* z)
 		{
-			VI_ASSERT(X || Y || Z, "at least one vector of x, y, z should be set");
-			float MinX = std::numeric_limits<float>::max();
-			float MaxX = std::numeric_limits<float>::min();
-			float MinY = std::numeric_limits<float>::max();
-			float MaxY = std::numeric_limits<float>::min();
-			float MinZ = std::numeric_limits<float>::max();
-			float MaxZ = std::numeric_limits<float>::min();
+			VI_ASSERT(x || y || z, "at least one vector of x, y, z should be set");
+			float min_x = std::numeric_limits<float>::max();
+			float max_x = std::numeric_limits<float>::min();
+			float min_y = std::numeric_limits<float>::max();
+			float max_y = std::numeric_limits<float>::min();
+			float min_z = std::numeric_limits<float>::max();
+			float max_z = std::numeric_limits<float>::min();
 
 			for (uint32_t i = 0; i < 8; i++)
 			{
-				Vector4& Corner = Corners[i];
-				MinX = std::min(MinX, Corner.X);
-				MaxX = std::max(MaxX, Corner.X);
-				MinY = std::min(MinY, Corner.Y);
-				MaxY = std::max(MaxY, Corner.Y);
-				MinZ = std::min(MinZ, Corner.Z);
-				MaxZ = std::max(MaxZ, Corner.Z);
+				vector4& corner = corners[i];
+				min_x = std::min(min_x, corner.x);
+				max_x = std::max(max_x, corner.x);
+				min_y = std::min(min_y, corner.y);
+				max_y = std::max(max_y, corner.y);
+				min_z = std::min(min_z, corner.z);
+				max_z = std::max(max_z, corner.z);
 			}
 
-			if (X != nullptr)
-				*X = Vector2(MinX, MaxX);
+			if (x != nullptr)
+				*x = vector2(min_x, max_x) * size;
 
-			if (Y != nullptr)
-				*Y = Vector2(MinY, MaxY);
+			if (y != nullptr)
+				*y = vector2(min_y, max_y) * size;
 
-			if (Z != nullptr)
-				*Z = Vector2(MinZ, MaxZ);
+			if (z != nullptr)
+				*z = vector2(min_z, max_z) * size;
 		}
 
-		Frustum6P::Frustum6P() noexcept
+		frustum6p::frustum6p() noexcept
 		{
 		}
-		Frustum6P::Frustum6P(const Matrix4x4& Clip) noexcept
+		frustum6p::frustum6p(const matrix4x4& clip) noexcept
 		{
-			Planes[(size_t)Side::RIGHT].X = Clip[3] - Clip[0];
-			Planes[(size_t)Side::RIGHT].Y = Clip[7] - Clip[4];
-			Planes[(size_t)Side::RIGHT].Z = Clip[11] - Clip[8];
-			Planes[(size_t)Side::RIGHT].W = Clip[15] - Clip[12];
-			NormalizePlane(Planes[(size_t)Side::RIGHT]);
+			planes[(size_t)side::RIGHT].x = clip[3] - clip[0];
+			planes[(size_t)side::RIGHT].y = clip[7] - clip[4];
+			planes[(size_t)side::RIGHT].z = clip[11] - clip[8];
+			planes[(size_t)side::RIGHT].w = clip[15] - clip[12];
+			normalize_plane(planes[(size_t)side::RIGHT]);
 
-			Planes[(size_t)Side::LEFT].X = Clip[3] + Clip[0];
-			Planes[(size_t)Side::LEFT].Y = Clip[7] + Clip[4];
-			Planes[(size_t)Side::LEFT].Z = Clip[11] + Clip[8];
-			Planes[(size_t)Side::LEFT].W = Clip[15] + Clip[12];
-			NormalizePlane(Planes[(size_t)Side::LEFT]);
+			planes[(size_t)side::LEFT].x = clip[3] + clip[0];
+			planes[(size_t)side::LEFT].y = clip[7] + clip[4];
+			planes[(size_t)side::LEFT].z = clip[11] + clip[8];
+			planes[(size_t)side::LEFT].w = clip[15] + clip[12];
+			normalize_plane(planes[(size_t)side::LEFT]);
 
-			Planes[(size_t)Side::BOTTOM].X = Clip[3] + Clip[1];
-			Planes[(size_t)Side::BOTTOM].Y = Clip[7] + Clip[5];
-			Planes[(size_t)Side::BOTTOM].Z = Clip[11] + Clip[9];
-			Planes[(size_t)Side::BOTTOM].W = Clip[15] + Clip[13];
-			NormalizePlane(Planes[(size_t)Side::BOTTOM]);
+			planes[(size_t)side::BOTTOM].x = clip[3] + clip[1];
+			planes[(size_t)side::BOTTOM].y = clip[7] + clip[5];
+			planes[(size_t)side::BOTTOM].z = clip[11] + clip[9];
+			planes[(size_t)side::BOTTOM].w = clip[15] + clip[13];
+			normalize_plane(planes[(size_t)side::BOTTOM]);
 
-			Planes[(size_t)Side::TOP].X = Clip[3] - Clip[1];
-			Planes[(size_t)Side::TOP].Y = Clip[7] - Clip[5];
-			Planes[(size_t)Side::TOP].Z = Clip[11] - Clip[9];
-			Planes[(size_t)Side::TOP].W = Clip[15] - Clip[13];
-			NormalizePlane(Planes[(size_t)Side::TOP]);
+			planes[(size_t)side::TOP].x = clip[3] - clip[1];
+			planes[(size_t)side::TOP].y = clip[7] - clip[5];
+			planes[(size_t)side::TOP].z = clip[11] - clip[9];
+			planes[(size_t)side::TOP].w = clip[15] - clip[13];
+			normalize_plane(planes[(size_t)side::TOP]);
 
-			Planes[(size_t)Side::BACK].X = Clip[3] - Clip[2];
-			Planes[(size_t)Side::BACK].Y = Clip[7] - Clip[6];
-			Planes[(size_t)Side::BACK].Z = Clip[11] - Clip[10];
-			Planes[(size_t)Side::BACK].W = Clip[15] - Clip[14];
-			NormalizePlane(Planes[(size_t)Side::BACK]);
+			planes[(size_t)side::BACK].x = clip[3] - clip[2];
+			planes[(size_t)side::BACK].y = clip[7] - clip[6];
+			planes[(size_t)side::BACK].z = clip[11] - clip[10];
+			planes[(size_t)side::BACK].w = clip[15] - clip[14];
+			normalize_plane(planes[(size_t)side::BACK]);
 
-			Planes[(size_t)Side::FRONT].X = Clip[3] + Clip[2];
-			Planes[(size_t)Side::FRONT].Y = Clip[7] + Clip[6];
-			Planes[(size_t)Side::FRONT].Z = Clip[11] + Clip[10];
-			Planes[(size_t)Side::FRONT].W = Clip[15] + Clip[14];
-			NormalizePlane(Planes[(size_t)Side::FRONT]);
+			planes[(size_t)side::FRONT].x = clip[3] + clip[2];
+			planes[(size_t)side::FRONT].y = clip[7] + clip[6];
+			planes[(size_t)side::FRONT].z = clip[11] + clip[10];
+			planes[(size_t)side::FRONT].w = clip[15] + clip[14];
+			normalize_plane(planes[(size_t)side::FRONT]);
 		}
-		void Frustum6P::NormalizePlane(Vector4& Plane)
+		void frustum6p::normalize_plane(vector4& plane)
 		{
-			float Magnitude = (float)sqrt(Plane.X * Plane.X + Plane.Y * Plane.Y + Plane.Z * Plane.Z);
-			Plane.X /= Magnitude;
-			Plane.Y /= Magnitude;
-			Plane.Z /= Magnitude;
-			Plane.W /= Magnitude;
+			float magnitude = (float)sqrt(plane.x * plane.x + plane.y * plane.y + plane.z * plane.z);
+			plane.x /= magnitude;
+			plane.y /= magnitude;
+			plane.z /= magnitude;
+			plane.w /= magnitude;
 		}
-		bool Frustum6P::OverlapsAABB(const Bounding& Bounds) const
+		bool frustum6p::overlaps_aabb(const bounding& bounds) const
 		{
-			const Vector3& Mid = Bounds.Center;
-			const Vector3& Min = Bounds.Lower;
-			const Vector3& Max = Bounds.Upper;
-			float Distance = -Bounds.Radius;
+			const vector3& mid = bounds.center;
+			const vector3& min = bounds.lower;
+			const vector3& max = bounds.upper;
+			float distance = -bounds.radius;
 #ifdef VI_VECTORCLASS
-			LOAD_AV4(_rc, Mid.X, Mid.Y, Mid.Z, 1.0f);
-			LOAD_AV4(_m1, Min.X, Min.Y, Min.Z, 1.0f);
-			LOAD_AV4(_m2, Max.X, Min.Y, Min.Z, 1.0f);
-			LOAD_AV4(_m3, Min.X, Max.Y, Min.Z, 1.0f);
-			LOAD_AV4(_m4, Max.X, Max.Y, Min.Z, 1.0f);
-			LOAD_AV4(_m5, Min.X, Min.Y, Max.Z, 1.0f);
-			LOAD_AV4(_m6, Max.X, Min.Y, Max.Z, 1.0f);
-			LOAD_AV4(_m7, Min.X, Max.Y, Max.Z, 1.0f);
-			LOAD_AV4(_m8, Max.X, Max.Y, Max.Z, 1.0f);
+			LOAD_AV4(_rc, mid.x, mid.y, mid.z, 1.0f);
+			LOAD_AV4(_m1, min.x, min.y, min.z, 1.0f);
+			LOAD_AV4(_m2, max.x, min.y, min.z, 1.0f);
+			LOAD_AV4(_m3, min.x, max.y, min.z, 1.0f);
+			LOAD_AV4(_m4, max.x, max.y, min.z, 1.0f);
+			LOAD_AV4(_m5, min.x, min.y, max.z, 1.0f);
+			LOAD_AV4(_m6, max.x, min.y, max.z, 1.0f);
+			LOAD_AV4(_m7, min.x, max.y, max.z, 1.0f);
+			LOAD_AV4(_m8, max.x, max.y, max.z, 1.0f);
 #else
-			Vector4 RC(Mid.X, Mid.Y, Mid.Z, 1.0f);
-			Vector4 M1(Min.X, Min.Y, Min.Z, 1.0f);
-			Vector4 M2(Max.X, Min.Y, Min.Z, 1.0f);
-			Vector4 M3(Min.X, Max.Y, Min.Z, 1.0f);
-			Vector4 M4(Max.X, Max.Y, Min.Z, 1.0f);
-			Vector4 M5(Min.X, Min.Y, Max.Z, 1.0f);
-			Vector4 M6(Max.X, Min.Y, Max.Z, 1.0f);
-			Vector4 M7(Min.X, Max.Y, Max.Z, 1.0f);
-			Vector4 M8(Max.X, Max.Y, Max.Z, 1.0f);
+			vector4 RC(mid.x, mid.y, mid.z, 1.0f);
+			vector4 M1(min.x, min.y, min.z, 1.0f);
+			vector4 M2(max.x, min.y, min.z, 1.0f);
+			vector4 M3(min.x, max.y, min.z, 1.0f);
+			vector4 M4(max.x, max.y, min.z, 1.0f);
+			vector4 M5(min.x, min.y, max.z, 1.0f);
+			vector4 M6(max.x, min.y, max.z, 1.0f);
+			vector4 M7(min.x, max.y, max.z, 1.0f);
+			vector4 M8(max.x, max.y, max.z, 1.0f);
 #endif
 			for (size_t i = 0; i < 6; i++)
 			{
 #ifdef VI_VECTORCLASS
-				LOAD_V4(_rp, Planes[i]);
-				if (horizontal_add(_rc * _rp) < Distance)
+				LOAD_V4(_rp, planes[i]);
+				if (horizontal_add(_rc * _rp) < distance)
 					return false;
 
 				if (horizontal_add(_rp * _m1) > 0.0f)
@@ -1727,32 +1727,32 @@ namespace Vitex
 				if (horizontal_add(_rp * _m8) > 0.0f)
 					continue;
 #else
-				auto& Plane = Planes[i];
-				if (Plane.Dot(RC) < Distance)
+				auto& plane = planes[i];
+				if (plane.dot(RC) < distance)
 					return false;
 
-				if (Plane.Dot(M1) > 0)
+				if (plane.dot(M1) > 0)
 					continue;
 
-				if (Plane.Dot(M2) > 0)
+				if (plane.dot(M2) > 0)
 					continue;
 
-				if (Plane.Dot(M3) > 0)
+				if (plane.dot(M3) > 0)
 					continue;
 
-				if (Plane.Dot(M4) > 0)
+				if (plane.dot(M4) > 0)
 					continue;
 
-				if (Plane.Dot(M5) > 0)
+				if (plane.dot(M5) > 0)
 					continue;
 
-				if (Plane.Dot(M6) > 0)
+				if (plane.dot(M6) > 0)
 					continue;
 
-				if (Plane.Dot(M7) > 0)
+				if (plane.dot(M7) > 0)
 					continue;
 
-				if (Plane.Dot(M8) > 0)
+				if (plane.dot(M8) > 0)
 					continue;
 #endif
 				return false;
@@ -1760,144 +1760,144 @@ namespace Vitex
 
 			return true;
 		}
-		bool Frustum6P::OverlapsSphere(const Vector3& Center, float Radius) const
+		bool frustum6p::overlaps_sphere(const vector3& center, float radius) const
 		{
-			Vector4 Position(Center.X, Center.Y, Center.Z, 1.0f);
-			float Distance = -Radius;
+			vector4 position(center.x, center.y, center.z, 1.0f);
+			float distance = -radius;
 
 			for (size_t i = 0; i < 6; i++)
 			{
-				if (Position.Dot(Planes[i]) < Distance)
+				if (position.dot(planes[i]) < distance)
 					return false;
 			}
 
 			return true;
 		}
 
-		Ray::Ray() noexcept : Direction(0, 0, 1)
+		ray::ray() noexcept : direction(0, 0, 1)
 		{
 		}
-		Ray::Ray(const Vector3& _Origin, const Vector3& _Direction) noexcept : Origin(_Origin), Direction(_Direction)
+		ray::ray(const vector3& _Origin, const vector3& _Direction) noexcept : origin(_Origin), direction(_Direction)
 		{
 		}
-		Vector3 Ray::GetPoint(float T) const
+		vector3 ray::get_point(float t) const
 		{
-			return Origin + (Direction * T);
+			return origin + (direction * t);
 		}
-		Vector3 Ray::operator *(float T) const
+		vector3 ray::operator *(float t) const
 		{
-			return GetPoint(T);
+			return get_point(t);
 		}
-		bool Ray::IntersectsPlane(const Vector3& Normal, float Diameter) const
+		bool ray::intersects_plane(const vector3& normal, float diameter) const
 		{
-			float D = Normal.Dot(Direction);
-			if (Compute::Mathf::Abs(D) < std::numeric_limits<float>::epsilon())
+			float d = normal.dot(direction);
+			if (compute::mathf::abs(d) < std::numeric_limits<float>::epsilon())
 				return false;
 
-			float N = Normal.Dot(Origin) + Diameter;
-			float T = -(N / D);
-			return T >= 0;
+			float n = normal.dot(origin) + diameter;
+			float t = -(n / d);
+			return t >= 0;
 		}
-		bool Ray::IntersectsSphere(const Vector3& Position, float Radius, bool DiscardInside) const
+		bool ray::intersects_sphere(const vector3& position, float radius, bool discard_inside) const
 		{
-			Vector3 R = Origin - Position;
-			float L = R.Length();
+			vector3 r = origin - position;
+			float l = r.length();
 
-			if (L * L <= Radius * Radius && DiscardInside)
+			if (l * l <= radius * radius && discard_inside)
 				return true;
 
-			float A = Direction.Dot(Direction);
-			float B = 2 * R.Dot(Direction);
-			float C = R.Dot(R) - Radius * Radius;
-			float D = (B * B) - (4 * A * C);
+			float a = direction.dot(direction);
+			float b = 2 * r.dot(direction);
+			float c = r.dot(r) - radius * radius;
+			float d = (b * b) - (4 * a * c);
 
-			return D >= 0.0f;
+			return d >= 0.0f;
 		}
-		bool Ray::IntersectsAABBAt(const Vector3& Min, const Vector3& Max, Vector3* Hit) const
+		bool ray::intersects_aabb_at(const vector3& min, const vector3& max, vector3* hit) const
 		{
-			Vector3 HitPoint; float T;
-			if (Origin > Min && Origin < Max)
+			vector3 hit_point; float t;
+			if (origin > min && origin < max)
 				return true;
 
-			if (Origin.X <= Min.X && Direction.X > 0)
+			if (origin.x <= min.x && direction.x > 0)
 			{
-				T = (Min.X - Origin.X) / Direction.X;
-				HitPoint = Origin + Direction * T;
+				t = (min.x - origin.x) / direction.x;
+				hit_point = origin + direction * t;
 
-				if (HitPoint.Y >= Min.Y && HitPoint.Y <= Max.Y && HitPoint.Z >= Min.Z && HitPoint.Z <= Max.Z)
+				if (hit_point.y >= min.y && hit_point.y <= max.y && hit_point.z >= min.z && hit_point.z <= max.z)
 				{
-					if (Hit != nullptr)
-						*Hit = HitPoint;
+					if (hit != nullptr)
+						*hit = hit_point;
 
 					return true;
 				}
 			}
 
-			if (Origin.X >= Max.X && Direction.X < 0)
+			if (origin.x >= max.x && direction.x < 0)
 			{
-				T = (Max.X - Origin.X) / Direction.X;
-				HitPoint = Origin + Direction * T;
+				t = (max.x - origin.x) / direction.x;
+				hit_point = origin + direction * t;
 
-				if (HitPoint.Y >= Min.Y && HitPoint.Y <= Max.Y && HitPoint.Z >= Min.Z && HitPoint.Z <= Max.Z)
+				if (hit_point.y >= min.y && hit_point.y <= max.y && hit_point.z >= min.z && hit_point.z <= max.z)
 				{
-					if (Hit != nullptr)
-						*Hit = HitPoint;
+					if (hit != nullptr)
+						*hit = hit_point;
 
 					return true;
 				}
 			}
 
-			if (Origin.Y <= Min.Y && Direction.Y > 0)
+			if (origin.y <= min.y && direction.y > 0)
 			{
-				T = (Min.Y - Origin.Y) / Direction.Y;
-				HitPoint = Origin + Direction * T;
+				t = (min.y - origin.y) / direction.y;
+				hit_point = origin + direction * t;
 
-				if (HitPoint.X >= Min.X && HitPoint.X <= Max.X && HitPoint.Z >= Min.Z && HitPoint.Z <= Max.Z)
+				if (hit_point.x >= min.x && hit_point.x <= max.x && hit_point.z >= min.z && hit_point.z <= max.z)
 				{
-					if (Hit != nullptr)
-						*Hit = HitPoint;
+					if (hit != nullptr)
+						*hit = hit_point;
 
 					return true;
 				}
 			}
 
-			if (Origin.Y >= Max.Y && Direction.Y < 0)
+			if (origin.y >= max.y && direction.y < 0)
 			{
-				T = (Max.Y - Origin.Y) / Direction.Y;
-				HitPoint = Origin + Direction * T;
+				t = (max.y - origin.y) / direction.y;
+				hit_point = origin + direction * t;
 
-				if (HitPoint.X >= Min.X && HitPoint.X <= Max.X && HitPoint.Z >= Min.Z && HitPoint.Z <= Max.Z)
+				if (hit_point.x >= min.x && hit_point.x <= max.x && hit_point.z >= min.z && hit_point.z <= max.z)
 				{
-					if (Hit != nullptr)
-						*Hit = HitPoint;
+					if (hit != nullptr)
+						*hit = hit_point;
 
 					return true;
 				}
 			}
 
-			if (Origin.Z <= Min.Z && Direction.Z > 0)
+			if (origin.z <= min.z && direction.z > 0)
 			{
-				T = (Min.Z - Origin.Z) / Direction.Z;
-				HitPoint = Origin + Direction * T;
+				t = (min.z - origin.z) / direction.z;
+				hit_point = origin + direction * t;
 
-				if (HitPoint.X >= Min.X && HitPoint.X <= Max.X && HitPoint.Y >= Min.Y && HitPoint.Y <= Max.Y)
+				if (hit_point.x >= min.x && hit_point.x <= max.x && hit_point.y >= min.y && hit_point.y <= max.y)
 				{
-					if (Hit != nullptr)
-						*Hit = HitPoint;
+					if (hit != nullptr)
+						*hit = hit_point;
 
 					return true;
 				}
 			}
 
-			if (Origin.Z >= Max.Z && Direction.Z < 0)
+			if (origin.z >= max.z && direction.z < 0)
 			{
-				T = (Max.Z - Origin.Z) / Direction.Z;
-				HitPoint = Origin + Direction * T;
+				t = (max.z - origin.z) / direction.z;
+				hit_point = origin + direction * t;
 
-				if (HitPoint.X >= Min.X && HitPoint.X <= Max.X && HitPoint.Y >= Min.Y && HitPoint.Y <= Max.Y)
+				if (hit_point.x >= min.x && hit_point.x <= max.x && hit_point.y >= min.y && hit_point.y <= max.y)
 				{
-					if (Hit != nullptr)
-						*Hit = HitPoint;
+					if (hit != nullptr)
+						*hit = hit_point;
 
 					return true;
 				}
@@ -1905,103 +1905,102 @@ namespace Vitex
 
 			return false;
 		}
-		bool Ray::IntersectsAABB(const Vector3& Position, const Vector3& Scale, Vector3* Hit) const
+		bool ray::intersects_aabb(const vector3& position, const vector3& scale, vector3* hit) const
 		{
-			Vector3 Min = Position - Scale;
-			Vector3 Max = Position + Scale;
-
-			return IntersectsAABBAt(Min, Max, Hit);
+			vector3 min = position - scale;
+			vector3 max = position + scale;
+			return intersects_aabb_at(min, max, hit);
 		}
-		bool Ray::IntersectsOBB(const Matrix4x4& World, Vector3* Hit) const
+		bool ray::intersects_obb(const matrix4x4& world, vector3* hit) const
 		{
-			Matrix4x4 Offset = World.Inv();
-			Vector3 Min = -1.0f, Max = 1.0f;
-			Vector3 O = (Vector4(Origin.X, Origin.Y, Origin.Z, 1.0f) * Offset).XYZ();
-			if (O > Min && O < Max)
+			matrix4x4 offset = world.inv();
+			vector3 min = -1.0f, max = 1.0f;
+			vector3 o = (vector4(origin.x, origin.y, origin.z, 1.0f) * offset).xyz();
+			if (o > min && o < max)
 				return true;
 
-			Vector3 D = (Direction.XYZW() * Offset).sNormalize().XYZ();
-			Vector3 HitPoint; float T;
+			vector3 d = (direction.xyzw() * offset).snormalize().xyz();
+			vector3 hit_point; float t;
 
-			if (O.X <= Min.X && D.X > 0)
+			if (o.x <= min.x && d.x > 0)
 			{
-				T = (Min.X - O.X) / D.X;
-				HitPoint = O + D * T;
+				t = (min.x - o.x) / d.x;
+				hit_point = o + d * t;
 
-				if (HitPoint.Y >= Min.Y && HitPoint.Y <= Max.Y && HitPoint.Z >= Min.Z && HitPoint.Z <= Max.Z)
+				if (hit_point.y >= min.y && hit_point.y <= max.y && hit_point.z >= min.z && hit_point.z <= max.z)
 				{
-					if (Hit != nullptr)
-						*Hit = HitPoint.Transform(World);
+					if (hit != nullptr)
+						*hit = hit_point.transform(world);
 
 					return true;
 				}
 			}
 
-			if (O.X >= Max.X && D.X < 0)
+			if (o.x >= max.x && d.x < 0)
 			{
-				T = (Max.X - O.X) / D.X;
-				HitPoint = O + D * T;
+				t = (max.x - o.x) / d.x;
+				hit_point = o + d * t;
 
-				if (HitPoint.Y >= Min.Y && HitPoint.Y <= Max.Y && HitPoint.Z >= Min.Z && HitPoint.Z <= Max.Z)
+				if (hit_point.y >= min.y && hit_point.y <= max.y && hit_point.z >= min.z && hit_point.z <= max.z)
 				{
-					if (Hit != nullptr)
-						*Hit = HitPoint.Transform(World);
+					if (hit != nullptr)
+						*hit = hit_point.transform(world);
 
 					return true;
 				}
 			}
 
-			if (O.Y <= Min.Y && D.Y > 0)
+			if (o.y <= min.y && d.y > 0)
 			{
-				T = (Min.Y - O.Y) / D.Y;
-				HitPoint = O + D * T;
+				t = (min.y - o.y) / d.y;
+				hit_point = o + d * t;
 
-				if (HitPoint.X >= Min.X && HitPoint.X <= Max.X && HitPoint.Z >= Min.Z && HitPoint.Z <= Max.Z)
+				if (hit_point.x >= min.x && hit_point.x <= max.x && hit_point.z >= min.z && hit_point.z <= max.z)
 				{
-					if (Hit != nullptr)
-						*Hit = HitPoint.Transform(World);
+					if (hit != nullptr)
+						*hit = hit_point.transform(world);
 
 					return true;
 				}
 			}
 
-			if (O.Y >= Max.Y && D.Y < 0)
+			if (o.y >= max.y && d.y < 0)
 			{
-				T = (Max.Y - O.Y) / D.Y;
-				HitPoint = O + D * T;
+				t = (max.y - o.y) / d.y;
+				hit_point = o + d * t;
 
-				if (HitPoint.X >= Min.X && HitPoint.X <= Max.X && HitPoint.Z >= Min.Z && HitPoint.Z <= Max.Z)
+				if (hit_point.x >= min.x && hit_point.x <= max.x && hit_point.z >= min.z && hit_point.z <= max.z)
 				{
-					if (Hit != nullptr)
-						*Hit = HitPoint.Transform(World);
+					if (hit != nullptr)
+						*hit = hit_point.transform(world);
 
 					return true;
 				}
 			}
 
-			if (O.Z <= Min.Z && D.Z > 0)
+			if (o.z <= min.z && d.z > 0)
 			{
-				T = (Min.Z - O.Z) / D.Z;
-				HitPoint = O + D * T;
+				t = (min.z - o.z) / d.z;
+				hit_point = o + d * t;
 
-				if (HitPoint.X >= Min.X && HitPoint.X <= Max.X && HitPoint.Y >= Min.Y && HitPoint.Y <= Max.Y)
+				if (hit_point.x >= min.x && hit_point.x <= max.x && hit_point.y >= min.y && hit_point.y <= max.y)
 				{
-					if (Hit != nullptr)
-						*Hit = HitPoint.Transform(World);
+					if (hit != nullptr)
+						*hit = hit_point.transform(world);
 
 					return true;
 				}
 			}
 
-			if (O.Z >= Max.Z && D.Z < 0)
+			if (o.z >= max.z && d.z < 0)
 			{
-				T = (Max.Z - O.Z) / D.Z;
-				HitPoint = O + D * T;
+				t = (max.z - o.z) / d.z;
+				hit_point = o + d * t;
 
-				if (HitPoint.X >= Min.X && HitPoint.X <= Max.X && HitPoint.Y >= Min.Y && HitPoint.Y <= Max.Y)
+				if (hit_point.x >= min.x && hit_point.x <= max.x && hit_point.y >= min.y && hit_point.y <= max.y)
 				{
-					if (Hit != nullptr)
-						*Hit = HitPoint.Transform(World);
+					if (hit != nullptr)
+						*hit = hit_point.transform(world);
 
 					return true;
 				}
@@ -2010,651 +2009,651 @@ namespace Vitex
 			return false;
 		}
 
-		Matrix4x4::Matrix4x4() noexcept : Row { 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1 }
+		matrix4x4::matrix4x4() noexcept : row { 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1 }
 		{
 		}
-		Matrix4x4::Matrix4x4(float Array[16]) noexcept
+		matrix4x4::matrix4x4(float array[16]) noexcept
 		{
-			memcpy(Row, Array, sizeof(float) * 16);
+			memcpy(row, array, sizeof(float) * 16);
 		}
-		Matrix4x4::Matrix4x4(const Vector4& row0, const Vector4& row1, const Vector4& row2, const Vector4& row3) noexcept
+		matrix4x4::matrix4x4(const vector4& row0, const vector4& row1, const vector4& row2, const vector4& row3) noexcept
 		{
-			memcpy(Row + 0, &row0, sizeof(Vector4));
-			memcpy(Row + 4, &row1, sizeof(Vector4));
-			memcpy(Row + 8, &row2, sizeof(Vector4));
-			memcpy(Row + 12, &row3, sizeof(Vector4));
+			memcpy(row + 0, &row0, sizeof(vector4));
+			memcpy(row + 4, &row1, sizeof(vector4));
+			memcpy(row + 8, &row2, sizeof(vector4));
+			memcpy(row + 12, &row3, sizeof(vector4));
 		}
-		Matrix4x4::Matrix4x4(float row00, float row01, float row02, float row03, float row10, float row11, float row12, float row13, float row20, float row21, float row22, float row23, float row30, float row31, float row32, float row33) noexcept :
-			Row { row00, row01, row02, row03, row10, row11, row12, row13, row20, row21, row22, row23, row30, row31, row32, row33 }
-		{
-		}
-		Matrix4x4::Matrix4x4(bool) noexcept
+		matrix4x4::matrix4x4(float row00, float row01, float row02, float row03, float row10, float row11, float row12, float row13, float row20, float row21, float row22, float row23, float row30, float row31, float row32, float row33) noexcept :
+			row { row00, row01, row02, row03, row10, row11, row12, row13, row20, row21, row22, row23, row30, row31, row32, row33 }
 		{
 		}
-		Matrix4x4::Matrix4x4(const Matrix4x4& V) noexcept
+		matrix4x4::matrix4x4(bool) noexcept
 		{
-			memcpy(Row, V.Row, sizeof(float) * 16);
 		}
-		float& Matrix4x4::operator [](uint32_t Index)
+		matrix4x4::matrix4x4(const matrix4x4& v) noexcept
 		{
-			return Row[Index];
+			memcpy(row, v.row, sizeof(float) * 16);
 		}
-		float Matrix4x4::operator [](uint32_t Index) const
+		float& matrix4x4::operator [](uint32_t index)
 		{
-			return Row[Index];
+			return row[index];
 		}
-		bool Matrix4x4::operator ==(const Matrix4x4& Equal) const
+		float matrix4x4::operator [](uint32_t index) const
 		{
-			return memcmp(Row, Equal.Row, sizeof(float) * 16) == 0;
+			return row[index];
 		}
-		bool Matrix4x4::operator !=(const Matrix4x4& Equal) const
+		bool matrix4x4::operator ==(const matrix4x4& equal) const
 		{
-			return memcmp(Row, Equal.Row, sizeof(float) * 16) != 0;
+			return memcmp(row, equal.row, sizeof(float) * 16) == 0;
 		}
-		Matrix4x4 Matrix4x4::operator *(const Matrix4x4& V) const
+		bool matrix4x4::operator !=(const matrix4x4& equal) const
 		{
-			return this->Mul(V);
+			return memcmp(row, equal.row, sizeof(float) * 16) != 0;
 		}
-		Vector4 Matrix4x4::operator *(const Vector4& V) const
+		matrix4x4 matrix4x4::operator *(const matrix4x4& v) const
 		{
-			Matrix4x4 Result = this->Mul(V);
-			return Vector4(Result.Row[0], Result.Row[4], Result.Row[8], Result.Row[12]);
+			return this->mul(v);
 		}
-		Matrix4x4& Matrix4x4::operator =(const Matrix4x4& V) noexcept
+		vector4 matrix4x4::operator *(const vector4& v) const
 		{
-			memcpy(Row, V.Row, sizeof(float) * 16);
+			matrix4x4 result = this->mul(v);
+			return vector4(result.row[0], result.row[4], result.row[8], result.row[12]);
+		}
+		matrix4x4& matrix4x4::operator =(const matrix4x4& v) noexcept
+		{
+			memcpy(row, v.row, sizeof(float) * 16);
 			return *this;
 		}
-		Vector4 Matrix4x4::Row11() const
+		vector4 matrix4x4::row11() const
 		{
-			return Vector4(Row[0], Row[1], Row[2], Row[3]);
+			return vector4(row[0], row[1], row[2], row[3]);
 		}
-		Vector4 Matrix4x4::Row22() const
+		vector4 matrix4x4::row22() const
 		{
-			return Vector4(Row[4], Row[5], Row[6], Row[7]);
+			return vector4(row[4], row[5], row[6], row[7]);
 		}
-		Vector4 Matrix4x4::Row33() const
+		vector4 matrix4x4::row33() const
 		{
-			return Vector4(Row[8], Row[9], Row[10], Row[11]);
+			return vector4(row[8], row[9], row[10], row[11]);
 		}
-		Vector4 Matrix4x4::Row44() const
+		vector4 matrix4x4::row44() const
 		{
-			return Vector4(Row[12], Row[13], Row[14], Row[15]);
+			return vector4(row[12], row[13], row[14], row[15]);
 		}
-		Vector3 Matrix4x4::Up() const
+		vector3 matrix4x4::up() const
 		{
-			return Vector3(-Row[4], Row[5], Row[6]);
+			return vector3(-row[4], row[5], row[6]);
 		}
-		Vector3 Matrix4x4::Right() const
+		vector3 matrix4x4::right() const
 		{
-			return Vector3(-Row[0], Row[1], Row[2]);
+			return vector3(-row[0], row[1], row[2]);
 		}
-		Vector3 Matrix4x4::Forward() const
+		vector3 matrix4x4::forward() const
 		{
-			return Vector3(-Row[8], Row[9], Row[10]);
+			return vector3(-row[8], row[9], row[10]);
 		}
-		Matrix4x4 Matrix4x4::Inv() const
+		matrix4x4 matrix4x4::inv() const
 		{
-			Matrix4x4 Result(true);
-			float A2323 = Row[10] * Row[15] - Row[11] * Row[14];
-			float A1323 = Row[9] * Row[15] - Row[11] * Row[13];
-			float A1223 = Row[9] * Row[14] - Row[10] * Row[13];
-			float A0323 = Row[8] * Row[15] - Row[11] * Row[12];
-			float A0223 = Row[8] * Row[14] - Row[10] * Row[12];
-			float A0123 = Row[8] * Row[13] - Row[9] * Row[12];
-			float A2313 = Row[6] * Row[15] - Row[7] * Row[14];
-			float A1313 = Row[5] * Row[15] - Row[7] * Row[13];
-			float A1213 = Row[5] * Row[14] - Row[6] * Row[13];
-			float A2312 = Row[6] * Row[11] - Row[7] * Row[10];
-			float A1312 = Row[5] * Row[11] - Row[7] * Row[9];
-			float A1212 = Row[5] * Row[10] - Row[6] * Row[9];
-			float A0313 = Row[4] * Row[15] - Row[7] * Row[12];
-			float A0213 = Row[4] * Row[14] - Row[6] * Row[12];
-			float A0312 = Row[4] * Row[11] - Row[7] * Row[8];
-			float A0212 = Row[4] * Row[10] - Row[6] * Row[8];
-			float A0113 = Row[4] * Row[13] - Row[5] * Row[12];
-			float A0112 = Row[4] * Row[9] - Row[5] * Row[8];
+			matrix4x4 result(true);
+			float A2323 = row[10] * row[15] - row[11] * row[14];
+			float A1323 = row[9] * row[15] - row[11] * row[13];
+			float A1223 = row[9] * row[14] - row[10] * row[13];
+			float A0323 = row[8] * row[15] - row[11] * row[12];
+			float A0223 = row[8] * row[14] - row[10] * row[12];
+			float A0123 = row[8] * row[13] - row[9] * row[12];
+			float A2313 = row[6] * row[15] - row[7] * row[14];
+			float A1313 = row[5] * row[15] - row[7] * row[13];
+			float A1213 = row[5] * row[14] - row[6] * row[13];
+			float A2312 = row[6] * row[11] - row[7] * row[10];
+			float A1312 = row[5] * row[11] - row[7] * row[9];
+			float A1212 = row[5] * row[10] - row[6] * row[9];
+			float A0313 = row[4] * row[15] - row[7] * row[12];
+			float A0213 = row[4] * row[14] - row[6] * row[12];
+			float A0312 = row[4] * row[11] - row[7] * row[8];
+			float A0212 = row[4] * row[10] - row[6] * row[8];
+			float A0113 = row[4] * row[13] - row[5] * row[12];
+			float A0112 = row[4] * row[9] - row[5] * row[8];
 #ifdef VI_VECTORCLASS
-			LOAD_AV4(_r1, Row[5], Row[4], Row[4], Row[4]);
+			LOAD_AV4(_r1, row[5], row[4], row[4], row[4]);
 			LOAD_AV4(_r2, A2323, A2323, A1323, A1223);
-			LOAD_AV4(_r3, Row[6], Row[6], Row[5], Row[5]);
+			LOAD_AV4(_r3, row[6], row[6], row[5], row[5]);
 			LOAD_AV4(_r4, A1323, A0323, A0323, A0223);
-			LOAD_AV4(_r5, Row[7], Row[7], Row[7], Row[6]);
+			LOAD_AV4(_r5, row[7], row[7], row[7], row[6]);
 			LOAD_AV4(_r6, A1223, A0223, A0123, A0123);
-			LOAD_AV4(_r7, Row[0], -Row[1], Row[2], -Row[3]);
+			LOAD_AV4(_r7, row[0], -row[1], row[2], -row[3]);
 			LOAD_AV4(_r8, 1.0f, -1.0f, 1.0f, -1.0f);
 			_r7 *= _r1 * _r2 - _r3 * _r4 + _r5 * _r6;
-			float F = horizontal_add(_r7);
-			F = 1.0f / (F != 0.0f ? F : 1.0f);
-			_r1 = Vec4f(Row[5], Row[1], Row[1], Row[1]);
+			float f = horizontal_add(_r7);
+			f = 1.0f / (f != 0.0f ? f : 1.0f);
+			_r1 = Vec4f(row[5], row[1], row[1], row[1]);
 			_r2 = Vec4f(A2323, A2323, A2313, A2312);
-			_r3 = Vec4f(Row[6], Row[2], Row[2], Row[2]);
+			_r3 = Vec4f(row[6], row[2], row[2], row[2]);
 			_r4 = Vec4f(A1323, A1323, A1313, A1312);
-			_r5 = Vec4f(Row[7], Row[3], Row[3], Row[3]);
+			_r5 = Vec4f(row[7], row[3], row[3], row[3]);
 			_r6 = Vec4f(A1223, A1223, A1213, A1212);
-			_r7 = (_r1 * _r2 - _r3 * _r4 + _r5 * _r6) * _r8 * F;
-			_r7.store(Result.Row + 0);
-			_r1 = Vec4f(Row[4], Row[0], Row[0], Row[0]);
+			_r7 = (_r1 * _r2 - _r3 * _r4 + _r5 * _r6) * _r8 * f;
+			_r7.store(result.row + 0);
+			_r1 = Vec4f(row[4], row[0], row[0], row[0]);
 			_r4 = Vec4f(A0323, A0323, A0313, A0312);
 			_r6 = Vec4f(A0223, A0223, A0213, A0212);
-			_r7 = (_r1 * _r2 - _r3 * _r4 + _r5 * _r6) * -_r8 * F;
-			_r7.store(Result.Row + 4);
+			_r7 = (_r1 * _r2 - _r3 * _r4 + _r5 * _r6) * -_r8 * f;
+			_r7.store(result.row + 4);
 			_r2 = Vec4f(A1323, A1323, A1313, A1312);
-			_r3 = Vec4f(Row[5], Row[1], Row[1], Row[1]);
+			_r3 = Vec4f(row[5], row[1], row[1], row[1]);
 			_r6 = Vec4f(A0123, A0123, A0113, A0112);
-			_r7 = (_r1 * _r2 - _r3 * _r4 + _r5 * _r6) * _r8 * F;
-			_r7.store(Result.Row + 8);
+			_r7 = (_r1 * _r2 - _r3 * _r4 + _r5 * _r6) * _r8 * f;
+			_r7.store(result.row + 8);
 			_r2 = Vec4f(A1223, A1223, A1213, A1212);
 			_r4 = Vec4f(A0223, A0223, A0213, A0212);
-			_r5 = Vec4f(Row[6], Row[2], Row[2], Row[2]);
-			_r7 = (_r1 * _r2 - _r3 * _r4 + _r5 * _r6) * -_r8 * F;
-			_r7.store(Result.Row + 12);
+			_r5 = Vec4f(row[6], row[2], row[2], row[2]);
+			_r7 = (_r1 * _r2 - _r3 * _r4 + _r5 * _r6) * -_r8 * f;
+			_r7.store(result.row + 12);
 #else
-			float F =
-				Row[0] * (Row[5] * A2323 - Row[6] * A1323 + Row[7] * A1223)
-				- Row[1] * (Row[4] * A2323 - Row[6] * A0323 + Row[7] * A0223)
-				+ Row[2] * (Row[4] * A1323 - Row[5] * A0323 + Row[7] * A0123)
-				- Row[3] * (Row[4] * A1223 - Row[5] * A0223 + Row[6] * A0123);
-			F = 1.0f / (F != 0.0f ? F : 1.0f);
+			float f =
+				row[0] * (row[5] * A2323 - row[6] * A1323 + row[7] * A1223)
+				- row[1] * (row[4] * A2323 - row[6] * A0323 + row[7] * A0223)
+				+ row[2] * (row[4] * A1323 - row[5] * A0323 + row[7] * A0123)
+				- row[3] * (row[4] * A1223 - row[5] * A0223 + row[6] * A0123);
+			f = 1.0f / (f != 0.0f ? f : 1.0f);
 
-			Result.Row[0] = F * (Row[5] * A2323 - Row[6] * A1323 + Row[7] * A1223);
-			Result.Row[1] = F * -(Row[1] * A2323 - Row[2] * A1323 + Row[3] * A1223);
-			Result.Row[2] = F * (Row[1] * A2313 - Row[2] * A1313 + Row[3] * A1213);
-			Result.Row[3] = F * -(Row[1] * A2312 - Row[2] * A1312 + Row[3] * A1212);
-			Result.Row[4] = F * -(Row[4] * A2323 - Row[6] * A0323 + Row[7] * A0223);
-			Result.Row[5] = F * (Row[0] * A2323 - Row[2] * A0323 + Row[3] * A0223);
-			Result.Row[6] = F * -(Row[0] * A2313 - Row[2] * A0313 + Row[3] * A0213);
-			Result.Row[7] = F * (Row[0] * A2312 - Row[2] * A0312 + Row[3] * A0212);
-			Result.Row[8] = F * (Row[4] * A1323 - Row[5] * A0323 + Row[7] * A0123);
-			Result.Row[9] = F * -(Row[0] * A1323 - Row[1] * A0323 + Row[3] * A0123);
-			Result.Row[10] = F * (Row[0] * A1313 - Row[1] * A0313 + Row[3] * A0113);
-			Result.Row[11] = F * -(Row[0] * A1312 - Row[1] * A0312 + Row[3] * A0112);
-			Result.Row[12] = F * -(Row[4] * A1223 - Row[5] * A0223 + Row[6] * A0123);
-			Result.Row[13] = F * (Row[0] * A1223 - Row[1] * A0223 + Row[2] * A0123);
-			Result.Row[14] = F * -(Row[0] * A1213 - Row[1] * A0213 + Row[2] * A0113);
-			Result.Row[15] = F * (Row[0] * A1212 - Row[1] * A0212 + Row[2] * A0112);
+			result.row[0] = f * (row[5] * A2323 - row[6] * A1323 + row[7] * A1223);
+			result.row[1] = f * -(row[1] * A2323 - row[2] * A1323 + row[3] * A1223);
+			result.row[2] = f * (row[1] * A2313 - row[2] * A1313 + row[3] * A1213);
+			result.row[3] = f * -(row[1] * A2312 - row[2] * A1312 + row[3] * A1212);
+			result.row[4] = f * -(row[4] * A2323 - row[6] * A0323 + row[7] * A0223);
+			result.row[5] = f * (row[0] * A2323 - row[2] * A0323 + row[3] * A0223);
+			result.row[6] = f * -(row[0] * A2313 - row[2] * A0313 + row[3] * A0213);
+			result.row[7] = f * (row[0] * A2312 - row[2] * A0312 + row[3] * A0212);
+			result.row[8] = f * (row[4] * A1323 - row[5] * A0323 + row[7] * A0123);
+			result.row[9] = f * -(row[0] * A1323 - row[1] * A0323 + row[3] * A0123);
+			result.row[10] = f * (row[0] * A1313 - row[1] * A0313 + row[3] * A0113);
+			result.row[11] = f * -(row[0] * A1312 - row[1] * A0312 + row[3] * A0112);
+			result.row[12] = f * -(row[4] * A1223 - row[5] * A0223 + row[6] * A0123);
+			result.row[13] = f * (row[0] * A1223 - row[1] * A0223 + row[2] * A0123);
+			result.row[14] = f * -(row[0] * A1213 - row[1] * A0213 + row[2] * A0113);
+			result.row[15] = f * (row[0] * A1212 - row[1] * A0212 + row[2] * A0112);
 #endif
-			return Result;
+			return result;
 		}
-		Matrix4x4 Matrix4x4::Transpose() const
+		matrix4x4 matrix4x4::transpose() const
 		{
 #ifdef VI_VECTORCLASS
 			LOAD_FV16(_r1);
 			_r1 = permute16f<0, 4, 8, 12, 1, 5, 9, 13, 2, 6, 10, 14, 3, 7, 11, 15>(_r1);
 
-			Matrix4x4 Result(true);
-			_r1.store(Result.Row);
+			matrix4x4 result(true);
+			_r1.store(result.row);
 
-			return Result;
+			return result;
 #else
-			return Matrix4x4(
-				Vector4(Row[0], Row[4], Row[8], Row[12]),
-				Vector4(Row[1], Row[5], Row[9], Row[13]),
-				Vector4(Row[2], Row[6], Row[10], Row[14]),
-				Vector4(Row[3], Row[7], Row[11], Row[15]));
+			return matrix4x4(
+				vector4(row[0], row[4], row[8], row[12]),
+				vector4(row[1], row[5], row[9], row[13]),
+				vector4(row[2], row[6], row[10], row[14]),
+				vector4(row[3], row[7], row[11], row[15]));
 #endif
 		}
-		Quaternion Matrix4x4::RotationQuaternion() const
+		quaternion matrix4x4::rotation_quaternion() const
 		{
-			Vector3 Scaling[3] =
+			vector3 scaling[3] =
 			{
-				Vector3(Row[0], Row[1], Row[2]),
-				Vector3(Row[4], Row[5], Row[6]),
-				Vector3(Row[8], Row[9], Row[10])
+				vector3(row[0], row[1], row[2]),
+				vector3(row[4], row[5], row[6]),
+				vector3(row[8], row[9], row[10])
 			};
 
-			Vector3 Scale = { Scaling[0].Length(), Scaling[1].Length(), Scaling[2].Length() };
-			if (Determinant() < 0)
-				Scale = -Scale;
+			vector3 scale = { scaling[0].length(), scaling[1].length(), scaling[2].length() };
+			if (determinant() < 0)
+				scale = -scale;
 
-			if (Scale.X)
-				Scaling[0] /= Scale.X;
+			if (scale.x)
+				scaling[0] /= scale.x;
 
-			if (Scale.Y)
-				Scaling[1] /= Scale.Y;
+			if (scale.y)
+				scaling[1] /= scale.y;
 
-			if (Scale.Z)
-				Scaling[2] /= Scale.Z;
+			if (scale.z)
+				scaling[2] /= scale.z;
 
-			Matrix4x4 Rotated =
+			matrix4x4 rotated =
 			{
-				Scaling[0].X, Scaling[1].X, Scaling[2].X, 0.0f,
-				Scaling[0].Y, Scaling[1].Y, Scaling[2].Y, 0.0f,
-				Scaling[0].Z, Scaling[1].Z, Scaling[2].Z, 0.0f,
+				scaling[0].x, scaling[1].x, scaling[2].x, 0.0f,
+				scaling[0].y, scaling[1].y, scaling[2].y, 0.0f,
+				scaling[0].z, scaling[1].z, scaling[2].z, 0.0f,
 				0.0f, 0.0f, 0.0f, 1.0f
 			};
 
-			return Quaternion(Rotated);
+			return quaternion(rotated);
 		}
-		Vector3 Matrix4x4::RotationEuler() const
+		vector3 matrix4x4::rotation_euler() const
 		{
-			return RotationQuaternion().GetEuler();
+			return rotation_quaternion().get_euler();
 		}
-		Vector3 Matrix4x4::Position() const
+		vector3 matrix4x4::position() const
 		{
-			return Vector3(Row[12], Row[13], Row[14]);
+			return vector3(row[12], row[13], row[14]);
 		}
-		Vector3 Matrix4x4::Scale() const
+		vector3 matrix4x4::scale() const
 		{
-			Vector3 Scale =
+			vector3 scale =
 			{
-				Vector3(Row[0], Row[1], Row[2]).Length(),
-				Vector3(Row[4], Row[5], Row[6]).Length(),
-				Vector3(Row[8], Row[9], Row[10]).Length()
+				vector3(row[0], row[1], row[2]).length(),
+				vector3(row[4], row[5], row[6]).length(),
+				vector3(row[8], row[9], row[10]).length()
 			};
-			
-			if (Determinant() < 0)
-				Scale = -Scale;
 
-			return Scale;
+			if (determinant() < 0)
+				scale = -scale;
+
+			return scale;
 		}
-		Matrix4x4 Matrix4x4::SetScale(const Vector3& Value) const
+		matrix4x4 matrix4x4::set_scale(const vector3& value) const
 		{
-			Matrix4x4 Local = *this;
-			Local.Row[0] = Value.X;
-			Local.Row[5] = Value.Y;
-			Local.Row[10] = Value.Z;
-			return Local;
+			matrix4x4 local = *this;
+			local.row[0] = value.x;
+			local.row[5] = value.y;
+			local.row[10] = value.z;
+			return local;
 		}
-		Matrix4x4 Matrix4x4::Mul(const Matrix4x4& V) const
+		matrix4x4 matrix4x4::mul(const matrix4x4& v) const
 		{
-			Matrix4x4 Result;
+			matrix4x4 result;
 #ifdef VI_VECTORCLASS
-			LOAD_VAR(_r1, V.Row + 0);
-			LOAD_VAR(_r2, V.Row + 4);
-			LOAD_VAR(_r3, V.Row + 8);
-			LOAD_VAR(_r4, V.Row + 12);
+			LOAD_VAR(_r1, v.row + 0);
+			LOAD_VAR(_r2, v.row + 4);
+			LOAD_VAR(_r3, v.row + 8);
+			LOAD_VAR(_r4, v.row + 12);
 			LOAD_VAL(_r5, 0.0f);
 
-			_r5 += _r1 * Row[0];
-			_r5 += _r2 * Row[1];
-			_r5 += _r3 * Row[2];
-			_r5 += _r4 * Row[3];
-			_r5.store(Result.Row + 0);
+			_r5 += _r1 * row[0];
+			_r5 += _r2 * row[1];
+			_r5 += _r3 * row[2];
+			_r5 += _r4 * row[3];
+			_r5.store(result.row + 0);
 			_r5 = Vec4f(0.0f);
-			_r5 += _r1 * Row[4];
-			_r5 += _r2 * Row[5];
-			_r5 += _r3 * Row[6];
-			_r5 += _r4 * Row[7];
-			_r5.store(Result.Row + 4);
+			_r5 += _r1 * row[4];
+			_r5 += _r2 * row[5];
+			_r5 += _r3 * row[6];
+			_r5 += _r4 * row[7];
+			_r5.store(result.row + 4);
 			_r5 = Vec4f(0.0f);
-			_r5 += _r1 * Row[8];
-			_r5 += _r2 * Row[9];
-			_r5 += _r3 * Row[10];
-			_r5 += _r4 * Row[11];
-			_r5.store(Result.Row + 8);
+			_r5 += _r1 * row[8];
+			_r5 += _r2 * row[9];
+			_r5 += _r3 * row[10];
+			_r5 += _r4 * row[11];
+			_r5.store(result.row + 8);
 			_r5 = Vec4f(0.0f);
-			_r5 += _r1 * Row[12];
-			_r5 += _r2 * Row[13];
-			_r5 += _r3 * Row[14];
-			_r5 += _r4 * Row[15];
-			_r5.store(Result.Row + 12);
+			_r5 += _r1 * row[12];
+			_r5 += _r2 * row[13];
+			_r5 += _r3 * row[14];
+			_r5 += _r4 * row[15];
+			_r5.store(result.row + 12);
 #else
-			Result.Row[0] = (Row[0] * V.Row[0]) + (Row[1] * V.Row[4]) + (Row[2] * V.Row[8]) + (Row[3] * V.Row[12]);
-			Result.Row[1] = (Row[0] * V.Row[1]) + (Row[1] * V.Row[5]) + (Row[2] * V.Row[9]) + (Row[3] * V.Row[13]);
-			Result.Row[2] = (Row[0] * V.Row[2]) + (Row[1] * V.Row[6]) + (Row[2] * V.Row[10]) + (Row[3] * V.Row[14]);
-			Result.Row[3] = (Row[0] * V.Row[3]) + (Row[1] * V.Row[7]) + (Row[2] * V.Row[11]) + (Row[3] * V.Row[15]);
-			Result.Row[4] = (Row[4] * V.Row[0]) + (Row[5] * V.Row[4]) + (Row[6] * V.Row[8]) + (Row[7] * V.Row[12]);
-			Result.Row[5] = (Row[4] * V.Row[1]) + (Row[5] * V.Row[5]) + (Row[6] * V.Row[9]) + (Row[7] * V.Row[13]);
-			Result.Row[6] = (Row[4] * V.Row[2]) + (Row[5] * V.Row[6]) + (Row[6] * V.Row[10]) + (Row[7] * V.Row[14]);
-			Result.Row[7] = (Row[4] * V.Row[3]) + (Row[5] * V.Row[7]) + (Row[6] * V.Row[11]) + (Row[7] * V.Row[15]);
-			Result.Row[8] = (Row[8] * V.Row[0]) + (Row[9] * V.Row[4]) + (Row[10] * V.Row[8]) + (Row[11] * V.Row[12]);
-			Result.Row[9] = (Row[8] * V.Row[1]) + (Row[9] * V.Row[5]) + (Row[10] * V.Row[9]) + (Row[11] * V.Row[13]);
-			Result.Row[10] = (Row[8] * V.Row[2]) + (Row[9] * V.Row[6]) + (Row[10] * V.Row[10]) + (Row[11] * V.Row[14]);
-			Result.Row[11] = (Row[8] * V.Row[3]) + (Row[9] * V.Row[7]) + (Row[10] * V.Row[11]) + (Row[11] * V.Row[15]);
-			Result.Row[12] = (Row[12] * V.Row[0]) + (Row[13] * V.Row[4]) + (Row[14] * V.Row[8]) + (Row[15] * V.Row[12]);
-			Result.Row[13] = (Row[12] * V.Row[1]) + (Row[13] * V.Row[5]) + (Row[14] * V.Row[9]) + (Row[15] * V.Row[13]);
-			Result.Row[14] = (Row[12] * V.Row[2]) + (Row[13] * V.Row[6]) + (Row[14] * V.Row[10]) + (Row[15] * V.Row[14]);
-			Result.Row[15] = (Row[12] * V.Row[3]) + (Row[13] * V.Row[7]) + (Row[14] * V.Row[11]) + (Row[15] * V.Row[15]);
+			result.row[0] = (row[0] * v.row[0]) + (row[1] * v.row[4]) + (row[2] * v.row[8]) + (row[3] * v.row[12]);
+			result.row[1] = (row[0] * v.row[1]) + (row[1] * v.row[5]) + (row[2] * v.row[9]) + (row[3] * v.row[13]);
+			result.row[2] = (row[0] * v.row[2]) + (row[1] * v.row[6]) + (row[2] * v.row[10]) + (row[3] * v.row[14]);
+			result.row[3] = (row[0] * v.row[3]) + (row[1] * v.row[7]) + (row[2] * v.row[11]) + (row[3] * v.row[15]);
+			result.row[4] = (row[4] * v.row[0]) + (row[5] * v.row[4]) + (row[6] * v.row[8]) + (row[7] * v.row[12]);
+			result.row[5] = (row[4] * v.row[1]) + (row[5] * v.row[5]) + (row[6] * v.row[9]) + (row[7] * v.row[13]);
+			result.row[6] = (row[4] * v.row[2]) + (row[5] * v.row[6]) + (row[6] * v.row[10]) + (row[7] * v.row[14]);
+			result.row[7] = (row[4] * v.row[3]) + (row[5] * v.row[7]) + (row[6] * v.row[11]) + (row[7] * v.row[15]);
+			result.row[8] = (row[8] * v.row[0]) + (row[9] * v.row[4]) + (row[10] * v.row[8]) + (row[11] * v.row[12]);
+			result.row[9] = (row[8] * v.row[1]) + (row[9] * v.row[5]) + (row[10] * v.row[9]) + (row[11] * v.row[13]);
+			result.row[10] = (row[8] * v.row[2]) + (row[9] * v.row[6]) + (row[10] * v.row[10]) + (row[11] * v.row[14]);
+			result.row[11] = (row[8] * v.row[3]) + (row[9] * v.row[7]) + (row[10] * v.row[11]) + (row[11] * v.row[15]);
+			result.row[12] = (row[12] * v.row[0]) + (row[13] * v.row[4]) + (row[14] * v.row[8]) + (row[15] * v.row[12]);
+			result.row[13] = (row[12] * v.row[1]) + (row[13] * v.row[5]) + (row[14] * v.row[9]) + (row[15] * v.row[13]);
+			result.row[14] = (row[12] * v.row[2]) + (row[13] * v.row[6]) + (row[14] * v.row[10]) + (row[15] * v.row[14]);
+			result.row[15] = (row[12] * v.row[3]) + (row[13] * v.row[7]) + (row[14] * v.row[11]) + (row[15] * v.row[15]);
 #endif
-			return Result;
+			return result;
 		}
-		Matrix4x4 Matrix4x4::Mul(const Vector4& V) const
+		matrix4x4 matrix4x4::mul(const vector4& v) const
 		{
-			Matrix4x4 Result;
+			matrix4x4 result;
 #ifdef VI_VECTORCLASS
-			LOAD_V4(_r1, V);
-			LOAD_VAR(_r2, Row + 0);
-			LOAD_VAR(_r3, Row + 4);
-			LOAD_VAR(_r4, Row + 8);
-			LOAD_VAR(_r5, Row + 12);
+			LOAD_V4(_r1, v);
+			LOAD_VAR(_r2, row + 0);
+			LOAD_VAR(_r3, row + 4);
+			LOAD_VAR(_r4, row + 8);
+			LOAD_VAR(_r5, row + 12);
 			LOAD_VAL(_r6, 0.0f);
 
 			_r6 = horizontal_add(_r1 * _r2);
-			_r6.store(Result.Row + 0);
+			_r6.store(result.row + 0);
 			_r6 = horizontal_add(_r1 * _r3);
-			_r6.store(Result.Row + 4);
+			_r6.store(result.row + 4);
 			_r6 = horizontal_add(_r1 * _r4);
-			_r6.store(Result.Row + 8);
+			_r6.store(result.row + 8);
 			_r6 = horizontal_add(_r1 * _r5);
-			_r6.store(Result.Row + 12);
+			_r6.store(result.row + 12);
 #else
-			float X = (Row[0] * V.X) + (Row[1] * V.Y) + (Row[2] * V.Z) + (Row[3] * V.W);
-			Result.Row[0] = Result.Row[1] = Result.Row[2] = Result.Row[3] = X;
+			float x = (row[0] * v.x) + (row[1] * v.y) + (row[2] * v.z) + (row[3] * v.w);
+			result.row[0] = result.row[1] = result.row[2] = result.row[3] = x;
 
-			float Y = (Row[4] * V.X) + (Row[5] * V.Y) + (Row[6] * V.Z) + (Row[7] * V.W);
-			Result.Row[4] = Result.Row[5] = Result.Row[6] = Result.Row[7] = Y;
+			float y = (row[4] * v.x) + (row[5] * v.y) + (row[6] * v.z) + (row[7] * v.w);
+			result.row[4] = result.row[5] = result.row[6] = result.row[7] = y;
 
-			float Z = (Row[8] * V.X) + (Row[9] * V.Y) + (Row[10] * V.Z) + (Row[11] * V.W);
-			Result.Row[8] = Result.Row[9] = Result.Row[10] = Result.Row[11] = Z;
+			float z = (row[8] * v.x) + (row[9] * v.y) + (row[10] * v.z) + (row[11] * v.w);
+			result.row[8] = result.row[9] = result.row[10] = result.row[11] = z;
 
-			float W = (Row[12] * V.X) + (Row[13] * V.Y) + (Row[14] * V.Z) + (Row[15] * V.W);
-			Result.Row[12] = Result.Row[13] = Result.Row[14] = Result.Row[15] = W;
+			float w = (row[12] * v.x) + (row[13] * v.y) + (row[14] * v.z) + (row[15] * v.w);
+			result.row[12] = result.row[13] = result.row[14] = result.row[15] = w;
 #endif
-			return Result;
+			return result;
 		}
-		Vector2 Matrix4x4::XY() const
+		vector2 matrix4x4::xy() const
 		{
 #ifdef VI_VECTORCLASS
-			LOAD_AV4(_r1, Row[0], Row[4], Row[8], Row[12]);
-			LOAD_AV4(_r2, Row[1], Row[5], Row[9], Row[13]);
-			return Vector2(horizontal_add(_r1), horizontal_add(_r2));
+			LOAD_AV4(_r1, row[0], row[4], row[8], row[12]);
+			LOAD_AV4(_r2, row[1], row[5], row[9], row[13]);
+			return vector2(horizontal_add(_r1), horizontal_add(_r2));
 #else
-			return Vector2(
-				Row[0] + Row[4] + Row[8] + Row[12],
-				Row[1] + Row[5] + Row[9] + Row[13]);
+			return vector2(
+				row[0] + row[4] + row[8] + row[12],
+				row[1] + row[5] + row[9] + row[13]);
 #endif
 		}
-		Vector3 Matrix4x4::XYZ() const
+		vector3 matrix4x4::xyz() const
 		{
 #ifdef VI_VECTORCLASS
-			LOAD_AV4(_r1, Row[0], Row[4], Row[8], Row[12]);
-			LOAD_AV4(_r2, Row[1], Row[5], Row[9], Row[13]);
-			LOAD_AV4(_r3, Row[2], Row[6], Row[10], Row[14]);
-			return Vector3(horizontal_add(_r1), horizontal_add(_r2), horizontal_add(_r3));
+			LOAD_AV4(_r1, row[0], row[4], row[8], row[12]);
+			LOAD_AV4(_r2, row[1], row[5], row[9], row[13]);
+			LOAD_AV4(_r3, row[2], row[6], row[10], row[14]);
+			return vector3(horizontal_add(_r1), horizontal_add(_r2), horizontal_add(_r3));
 #else
-			return Vector3(
-				Row[0] + Row[4] + Row[8] + Row[12],
-				Row[1] + Row[5] + Row[9] + Row[13],
-				Row[2] + Row[6] + Row[10] + Row[14]);
+			return vector3(
+				row[0] + row[4] + row[8] + row[12],
+				row[1] + row[5] + row[9] + row[13],
+				row[2] + row[6] + row[10] + row[14]);
 #endif
 		}
-		Vector4 Matrix4x4::XYZW() const
+		vector4 matrix4x4::xyzw() const
 		{
 #ifdef VI_VECTORCLASS
-			LOAD_AV4(_r1, Row[0], Row[4], Row[8], Row[12]);
-			LOAD_AV4(_r2, Row[1], Row[5], Row[9], Row[13]);
-			LOAD_AV4(_r3, Row[2], Row[6], Row[10], Row[14]);
-			LOAD_AV4(_r4, Row[3], Row[7], Row[11], Row[15]);
-			return Vector4(horizontal_add(_r1), horizontal_add(_r2), horizontal_add(_r3), horizontal_add(_r4));
+			LOAD_AV4(_r1, row[0], row[4], row[8], row[12]);
+			LOAD_AV4(_r2, row[1], row[5], row[9], row[13]);
+			LOAD_AV4(_r3, row[2], row[6], row[10], row[14]);
+			LOAD_AV4(_r4, row[3], row[7], row[11], row[15]);
+			return vector4(horizontal_add(_r1), horizontal_add(_r2), horizontal_add(_r3), horizontal_add(_r4));
 #else
-			return Vector4(
-				Row[0] + Row[4] + Row[8] + Row[12],
-				Row[1] + Row[5] + Row[9] + Row[13],
-				Row[2] + Row[6] + Row[10] + Row[14],
-				Row[3] + Row[7] + Row[11] + Row[15]);
+			return vector4(
+				row[0] + row[4] + row[8] + row[12],
+				row[1] + row[5] + row[9] + row[13],
+				row[2] + row[6] + row[10] + row[14],
+				row[3] + row[7] + row[11] + row[15]);
 #endif
 		}
-		float Matrix4x4::Determinant() const
+		float matrix4x4::determinant() const
 		{
-			return Row[0] * Row[5] * Row[10] * Row[15] - Row[0] * Row[5] * Row[11] * Row[14] + Row[0] * Row[6] * Row[11] * Row[13] - Row[0] * Row[6] * Row[9] * Row[15]
-				+ Row[0] * Row[7] * Row[9] * Row[14] - Row[0] * Row[7] * Row[10] * Row[13] - Row[1] * Row[6] * Row[11] * Row[12] + Row[1] * Row[6] * Row[8] * Row[15]
-				- Row[1] * Row[7] * Row[8] * Row[14] + Row[1] * Row[7] * Row[10] * Row[12] - Row[1] * Row[4] * Row[10] * Row[15] + Row[1] * Row[4] * Row[11] * Row[14]
-				+ Row[2] * Row[7] * Row[8] * Row[13] - Row[2] * Row[7] * Row[9] * Row[12] + Row[2] * Row[4] * Row[9] * Row[15] - Row[2] * Row[4] * Row[11] * Row[13]
-				+ Row[2] * Row[5] * Row[11] * Row[12] - Row[2] * Row[5] * Row[8] * Row[15] - Row[3] * Row[4] * Row[9] * Row[14] + Row[3] * Row[4] * Row[10] * Row[13]
-				- Row[3] * Row[5] * Row[10] * Row[12] + Row[3] * Row[5] * Row[8] * Row[14] - Row[3] * Row[6] * Row[8] * Row[13] + Row[3] * Row[6] * Row[9] * Row[12];
+			return row[0] * row[5] * row[10] * row[15] - row[0] * row[5] * row[11] * row[14] + row[0] * row[6] * row[11] * row[13] - row[0] * row[6] * row[9] * row[15]
+				+ row[0] * row[7] * row[9] * row[14] - row[0] * row[7] * row[10] * row[13] - row[1] * row[6] * row[11] * row[12] + row[1] * row[6] * row[8] * row[15]
+				- row[1] * row[7] * row[8] * row[14] + row[1] * row[7] * row[10] * row[12] - row[1] * row[4] * row[10] * row[15] + row[1] * row[4] * row[11] * row[14]
+				+ row[2] * row[7] * row[8] * row[13] - row[2] * row[7] * row[9] * row[12] + row[2] * row[4] * row[9] * row[15] - row[2] * row[4] * row[11] * row[13]
+				+ row[2] * row[5] * row[11] * row[12] - row[2] * row[5] * row[8] * row[15] - row[3] * row[4] * row[9] * row[14] + row[3] * row[4] * row[10] * row[13]
+				- row[3] * row[5] * row[10] * row[12] + row[3] * row[5] * row[8] * row[14] - row[3] * row[6] * row[8] * row[13] + row[3] * row[6] * row[9] * row[12];
 		}
-		void Matrix4x4::Identify()
+		void matrix4x4::identify()
 		{
-			static float Base[16] = { 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1 };
-			memcpy(Row, Base, sizeof(float) * 16);
+			static float base[16] = { 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1 };
+			memcpy(row, base, sizeof(float) * 16);
 		}
-		void Matrix4x4::Set(const Matrix4x4& Value)
+		void matrix4x4::set(const matrix4x4& value)
 		{
-			memcpy(Row, Value.Row, sizeof(float) * 16);
+			memcpy(row, value.row, sizeof(float) * 16);
 		}
-		Matrix4x4 Matrix4x4::CreateTranslatedScale(const Vector3& Position, const Vector3& Scale)
+		matrix4x4 matrix4x4::create_translated_scale(const vector3& position, const vector3& scale)
 		{
-			Matrix4x4 Value;
-			Value.Row[12] = Position.X;
-			Value.Row[13] = Position.Y;
-			Value.Row[14] = Position.Z;
-			Value.Row[0] = Scale.X;
-			Value.Row[5] = Scale.Y;
-			Value.Row[10] = Scale.Z;
+			matrix4x4 value;
+			value.row[12] = position.x;
+			value.row[13] = position.y;
+			value.row[14] = position.z;
+			value.row[0] = scale.x;
+			value.row[5] = scale.y;
+			value.row[10] = scale.z;
 
-			return Value;
+			return value;
 		}
-		Matrix4x4 Matrix4x4::CreateRotationX(float Rotation)
+		matrix4x4 matrix4x4::create_rotation_x(float rotation)
 		{
-			float Cos = cos(Rotation);
-			float Sin = sin(Rotation);
-			Matrix4x4 X;
-			X.Row[5] = Cos;
-			X.Row[6] = Sin;
-			X.Row[9] = -Sin;
-			X.Row[10] = Cos;
+			float cos = ::cos(rotation);
+			float sin = ::sin(rotation);
+			matrix4x4 x;
+			x.row[5] = cos;
+			x.row[6] = sin;
+			x.row[9] = -sin;
+			x.row[10] = cos;
 
-			return X;
+			return x;
 		}
-		Matrix4x4 Matrix4x4::CreateRotationY(float Rotation)
+		matrix4x4 matrix4x4::create_rotation_y(float rotation)
 		{
-			float Cos = cos(Rotation);
-			float Sin = sin(Rotation);
-			Matrix4x4 Y;
-			Y.Row[0] = Cos;
-			Y.Row[2] = -Sin;
-			Y.Row[8] = Sin;
-			Y.Row[10] = Cos;
+			float cos = ::cos(rotation);
+			float sin = ::sin(rotation);
+			matrix4x4 y;
+			y.row[0] = cos;
+			y.row[2] = -sin;
+			y.row[8] = sin;
+			y.row[10] = cos;
 
-			return Y;
+			return y;
 		}
-		Matrix4x4 Matrix4x4::CreateRotationZ(float Rotation)
+		matrix4x4 matrix4x4::create_rotation_z(float rotation)
 		{
-			float Cos = cos(Rotation);
-			float Sin = sin(Rotation);
-			Matrix4x4 Z;
-			Z.Row[0] = Cos;
-			Z.Row[1] = Sin;
-			Z.Row[4] = -Sin;
-			Z.Row[5] = Cos;
+			float cos = ::cos(rotation);
+			float sin = ::sin(rotation);
+			matrix4x4 z;
+			z.row[0] = cos;
+			z.row[1] = sin;
+			z.row[4] = -sin;
+			z.row[5] = cos;
 
-			return Z;
+			return z;
 		}
-		Matrix4x4 Matrix4x4::CreateRotation(const Vector3& Rotation)
+		matrix4x4 matrix4x4::create_rotation(const vector3& rotation)
 		{
-			return Matrix4x4::CreateRotationX(Rotation.X) * Matrix4x4::CreateRotationY(Rotation.Y) * Matrix4x4::CreateRotationZ(Rotation.Z);
+			return matrix4x4::create_rotation_x(rotation.x) * matrix4x4::create_rotation_y(rotation.y) * matrix4x4::create_rotation_z(rotation.z);
 		}
-		Matrix4x4 Matrix4x4::CreateScale(const Vector3& Scale)
+		matrix4x4 matrix4x4::create_scale(const vector3& scale)
 		{
-			Matrix4x4 Result;
-			Result.Row[0] = Scale.X;
-			Result.Row[5] = Scale.Y;
-			Result.Row[10] = Scale.Z;
+			matrix4x4 result;
+			result.row[0] = scale.x;
+			result.row[5] = scale.y;
+			result.row[10] = scale.z;
 
-			return Result;
+			return result;
 		}
-		Matrix4x4 Matrix4x4::CreateTranslation(const Vector3& Position)
+		matrix4x4 matrix4x4::create_translation(const vector3& position)
 		{
-			Matrix4x4 Result;
-			Result.Row[12] = Position.X;
-			Result.Row[13] = Position.Y;
-			Result.Row[14] = Position.Z;
+			matrix4x4 result;
+			result.row[12] = position.x;
+			result.row[13] = position.y;
+			result.row[14] = position.z;
 
-			return Result;
+			return result;
 		}
-		Matrix4x4 Matrix4x4::CreatePerspectiveRad(float FieldOfView, float AspectRatio, float NearZ, float FarZ)
+		matrix4x4 matrix4x4::create_perspective_rad(float field_of_view, float aspect_ratio, float near_z, float far_z)
 		{
-			float Height = 1.0f / std::tan(0.5f * FieldOfView);
-			float Width = Height / AspectRatio;
-			float Depth = 1.0f / (FarZ - NearZ);
+			float height = 1.0f / std::tan(0.5f * field_of_view);
+			float width = height / aspect_ratio;
+			float depth = 1.0f / (far_z - near_z);
 
-			return Matrix4x4(
-				Vector4(Width, 0, 0, 0),
-				Vector4(0, Height, 0, 0),
-				Vector4(0, 0, FarZ * Depth, 1),
-				Vector4(0, 0, -NearZ * FarZ * Depth, 0));
+			return matrix4x4(
+				vector4(width, 0, 0, 0),
+				vector4(0, height, 0, 0),
+				vector4(0, 0, far_z * depth, 1),
+				vector4(0, 0, -near_z * far_z * depth, 0));
 		}
-		Matrix4x4 Matrix4x4::CreatePerspective(float FieldOfView, float AspectRatio, float NearZ, float FarZ)
+		matrix4x4 matrix4x4::create_perspective(float field_of_view, float aspect_ratio, float near_z, float far_z)
 		{
-			return CreatePerspectiveRad(Compute::Mathf::Deg2Rad() * FieldOfView, AspectRatio, NearZ, FarZ);
+			return create_perspective_rad(compute::mathf::deg2rad() * field_of_view, aspect_ratio, near_z, far_z);
 		}
-		Matrix4x4 Matrix4x4::CreateOrthographic(float Width, float Height, float NearZ, float FarZ)
+		matrix4x4 matrix4x4::create_orthographic(float width, float height, float near_z, float far_z)
 		{
-			if (Geometric::IsLeftHanded())
+			if (geometric::is_left_handed())
 			{
-				float Depth = 1.0f / (FarZ - NearZ);
-				return Matrix4x4(
-					Vector4(2 / Width, 0, 0, 0),
-					Vector4(0, 2 / Height, 0, 0),
-					Vector4(0, 0, Depth, 0),
-					Vector4(0, 0, -Depth * NearZ, 1));
+				float depth = 1.0f / (far_z - near_z);
+				return matrix4x4(
+					vector4(2 / width, 0, 0, 0),
+					vector4(0, 2 / height, 0, 0),
+					vector4(0, 0, depth, 0),
+					vector4(0, 0, -depth * near_z, 1));
 			}
 			else
 			{
-				float Depth = 1.0f / (NearZ - FarZ);
-				return Matrix4x4(
-					Vector4(2 / Width, 0, 0, 0),
-					Vector4(0, 2 / Height, 0, 0),
-					Vector4(0, 0, Depth, 0),
-					Vector4(0, 0, Depth * NearZ, 1));
+				float depth = 1.0f / (near_z - far_z);
+				return matrix4x4(
+					vector4(2 / width, 0, 0, 0),
+					vector4(0, 2 / height, 0, 0),
+					vector4(0, 0, depth, 0),
+					vector4(0, 0, depth * near_z, 1));
 			}
 		}
-		Matrix4x4 Matrix4x4::CreateOrthographicOffCenter(float Left, float Right, float Bottom, float Top, float NearZ, float FarZ)
+		matrix4x4 matrix4x4::create_orthographic_off_center(float left, float right, float bottom, float top, float near_z, float far_z)
 		{
-			float Width = 1.0f / (Right - Left);
-			float Height = 1.0f / (Top - Bottom);
-			float Depth = 1.0f / (FarZ - NearZ);
+			float width = 1.0f / (right - left);
+			float height = 1.0f / (top - bottom);
+			float depth = 1.0f / (far_z - near_z);
 
-			return Matrix4x4(
-				Vector4(2 * Width, 0, 0, 0),
-				Vector4(0, 2 * Height, 0, 0),
-				Vector4(0, 0, Depth, 0),
-				Vector4(-(Left + Right) * Width, -(Top + Bottom) * Height, -Depth * NearZ, 1));
+			return matrix4x4(
+				vector4(2 * width, 0, 0, 0),
+				vector4(0, 2 * height, 0, 0),
+				vector4(0, 0, depth, 0),
+				vector4(-(left + right) * width, -(top + bottom) * height, -depth * near_z, 1));
 		}
-		Matrix4x4 Matrix4x4::Create(const Vector3& Position, const Vector3& Scale, const Vector3& Rotation)
+		matrix4x4 matrix4x4::create(const vector3& position, const vector3& scale, const vector3& rotation)
 		{
-			return Matrix4x4::CreateScale(Scale) * Matrix4x4::Create(Position, Rotation);
+			return matrix4x4::create_scale(scale) * matrix4x4::create(position, rotation);
 		}
-		Matrix4x4 Matrix4x4::Create(const Vector3& Position, const Vector3& Rotation)
+		matrix4x4 matrix4x4::create(const vector3& position, const vector3& rotation)
 		{
-			return Matrix4x4::CreateRotation(Rotation) * Matrix4x4::CreateTranslation(Position);
+			return matrix4x4::create_rotation(rotation) * matrix4x4::create_translation(position);
 		}
-		Matrix4x4 Matrix4x4::CreateView(const Vector3& Position, const Vector3& Rotation)
+		matrix4x4 matrix4x4::create_view(const vector3& position, const vector3& rotation)
 		{
 			return
-				Matrix4x4::CreateTranslation(-Position) *
-				Matrix4x4::CreateRotationY(Rotation.Y) *
-				Matrix4x4::CreateRotationX(-Rotation.X) *
-				Matrix4x4::CreateScale(Vector3(-1.0f, 1.0f, 1.0f)) *
-				Matrix4x4::CreateRotationZ(Rotation.Z);
+				matrix4x4::create_translation(-position) *
+				matrix4x4::create_rotation_y(rotation.y) *
+				matrix4x4::create_rotation_x(-rotation.x) *
+				matrix4x4::create_scale(vector3(-1.0f, 1.0f, 1.0f)) *
+				matrix4x4::create_rotation_z(rotation.z);
 		}
-		Matrix4x4 Matrix4x4::CreateLookAt(const Vector3& Position, const Vector3& Target, const Vector3& Up)
+		matrix4x4 matrix4x4::create_look_at(const vector3& position, const vector3& target, const vector3& up)
 		{
-			Vector3 Z = (Target - Position).Normalize();
-			Vector3 X = Up.Cross(Z).Normalize();
-			Vector3 Y = Z.Cross(X);
+			vector3 z = (target - position).normalize();
+			vector3 x = up.cross(z).normalize();
+			vector3 y = z.cross(x);
 
-			Matrix4x4 Result(true);
-			Result.Row[0] = X.X;
-			Result.Row[1] = Y.X;
-			Result.Row[2] = Z.X;
-			Result.Row[3] = 0;
-			Result.Row[4] = X.Y;
-			Result.Row[5] = Y.Y;
-			Result.Row[6] = Z.Y;
-			Result.Row[7] = 0;
-			Result.Row[8] = X.Z;
-			Result.Row[9] = Y.Z;
-			Result.Row[10] = Z.Z;
-			Result.Row[11] = 0;
-			Result.Row[12] = -X.Dot(Position);
-			Result.Row[13] = -Y.Dot(Position);
-			Result.Row[14] = -Z.Dot(Position);
-			Result.Row[15] = 1;
+			matrix4x4 result(true);
+			result.row[0] = x.x;
+			result.row[1] = y.x;
+			result.row[2] = z.x;
+			result.row[3] = 0;
+			result.row[4] = x.y;
+			result.row[5] = y.y;
+			result.row[6] = z.y;
+			result.row[7] = 0;
+			result.row[8] = x.z;
+			result.row[9] = y.z;
+			result.row[10] = z.z;
+			result.row[11] = 0;
+			result.row[12] = -x.dot(position);
+			result.row[13] = -y.dot(position);
+			result.row[14] = -z.dot(position);
+			result.row[15] = 1;
 
-			return Result;
+			return result;
 		}
-		Matrix4x4 Matrix4x4::CreateRotation(const Vector3& Forward, const Vector3& Up, const Vector3& Right)
+		matrix4x4 matrix4x4::create_rotation(const vector3& forward, const vector3& up, const vector3& right)
 		{
-			Matrix4x4 Rotation(true);
-			Rotation.Row[0] = Right.X;
-			Rotation.Row[1] = Right.Y;
-			Rotation.Row[2] = Right.Z;
-			Rotation.Row[3] = 0;
-			Rotation.Row[4] = Up.X;
-			Rotation.Row[5] = Up.Y;
-			Rotation.Row[6] = Up.Z;
-			Rotation.Row[7] = 0;
-			Rotation.Row[8] = Forward.X;
-			Rotation.Row[9] = Forward.Y;
-			Rotation.Row[10] = Forward.Z;
-			Rotation.Row[11] = 0;
-			Rotation.Row[12] = 0;
-			Rotation.Row[13] = 0;
-			Rotation.Row[14] = 0;
-			Rotation.Row[15] = 1;
+			matrix4x4 rotation(true);
+			rotation.row[0] = right.x;
+			rotation.row[1] = right.y;
+			rotation.row[2] = right.z;
+			rotation.row[3] = 0;
+			rotation.row[4] = up.x;
+			rotation.row[5] = up.y;
+			rotation.row[6] = up.z;
+			rotation.row[7] = 0;
+			rotation.row[8] = forward.x;
+			rotation.row[9] = forward.y;
+			rotation.row[10] = forward.z;
+			rotation.row[11] = 0;
+			rotation.row[12] = 0;
+			rotation.row[13] = 0;
+			rotation.row[14] = 0;
+			rotation.row[15] = 1;
 
-			return Rotation;
+			return rotation;
 		}
-		Matrix4x4 Matrix4x4::CreateLookAt(CubeFace Face, const Vector3& Position)
+		matrix4x4 matrix4x4::create_look_at(cube_face face, const vector3& position)
 		{
-			switch (Face)
+			switch (face)
 			{
-				case CubeFace::PositiveX:
-					return Matrix4x4::CreateLookAt(Position, Position + Vector3(1, 0, 0), Vector3::Up());
-				case CubeFace::NegativeX:
-					return Matrix4x4::CreateLookAt(Position, Position - Vector3(1, 0, 0), Vector3::Up());
-				case CubeFace::PositiveY:
-					if (Geometric::IsLeftHanded())
-						return Matrix4x4::CreateLookAt(Position, Position + Vector3(0, 1, 0), Vector3::Backward());
+				case cube_face::positive_x:
+					return matrix4x4::create_look_at(position, position + vector3(1, 0, 0), vector3::up());
+				case cube_face::negative_x:
+					return matrix4x4::create_look_at(position, position - vector3(1, 0, 0), vector3::up());
+				case cube_face::positive_y:
+					if (geometric::is_left_handed())
+						return matrix4x4::create_look_at(position, position + vector3(0, 1, 0), vector3::backward());
 					else
-						return Matrix4x4::CreateLookAt(Position, Position - Vector3(0, 1, 0), Vector3::Forward());
-				case CubeFace::NegativeY:
-					if (Geometric::IsLeftHanded())
-						return Matrix4x4::CreateLookAt(Position, Position - Vector3(0, 1, 0), Vector3::Forward());
+						return matrix4x4::create_look_at(position, position - vector3(0, 1, 0), vector3::forward());
+				case cube_face::negative_y:
+					if (geometric::is_left_handed())
+						return matrix4x4::create_look_at(position, position - vector3(0, 1, 0), vector3::forward());
 					else
-						return Matrix4x4::CreateLookAt(Position, Position + Vector3(0, 1, 0), Vector3::Backward());
-				case CubeFace::PositiveZ:
-					return Matrix4x4::CreateLookAt(Position, Position + Vector3(0, 0, 1), Vector3::Up());
-				case CubeFace::NegativeZ:
-					return Matrix4x4::CreateLookAt(Position, Position - Vector3(0, 0, 1), Vector3::Up());
+						return matrix4x4::create_look_at(position, position + vector3(0, 1, 0), vector3::backward());
+				case cube_face::positive_z:
+					return matrix4x4::create_look_at(position, position + vector3(0, 0, 1), vector3::up());
+				case cube_face::negative_z:
+					return matrix4x4::create_look_at(position, position - vector3(0, 0, 1), vector3::up());
 				default:
-					return Matrix4x4::Identity();
+					return matrix4x4::identity();
 			}
 		}
 
-		Quaternion::Quaternion() noexcept : X(0.0f), Y(0.0f), Z(0.0f), W(0.0f)
+		quaternion::quaternion() noexcept : x(0.0f), y(0.0f), z(0.0f), w(0.0f)
 		{
 		}
-		Quaternion::Quaternion(float x, float y, float z, float w) noexcept : X(x), Y(y), Z(z), W(w)
+		quaternion::quaternion(float x, float y, float z, float w) noexcept : x(x), y(y), z(z), w(w)
 		{
 		}
-		Quaternion::Quaternion(const Quaternion& In) noexcept : X(In.X), Y(In.Y), Z(In.Z), W(In.W)
+		quaternion::quaternion(const quaternion& in) noexcept : x(in.x), y(in.y), z(in.z), w(in.w)
 		{
 		}
-		Quaternion::Quaternion(const Vector3& Axis, float Angle) noexcept
+		quaternion::quaternion(const vector3& axis, float angle) noexcept
 		{
-			SetAxis(Axis, Angle);
+			set_axis(axis, angle);
 		}
-		Quaternion::Quaternion(const Vector3& Euler) noexcept
+		quaternion::quaternion(const vector3& euler) noexcept
 		{
-			SetEuler(Euler);
+			set_euler(euler);
 		}
-		Quaternion::Quaternion(const Matrix4x4& Value) noexcept
+		quaternion::quaternion(const matrix4x4& value) noexcept
 		{
-			SetMatrix(Value);
+			set_matrix(value);
 		}
-		void Quaternion::SetAxis(const Vector3& Axis, float Angle)
+		void quaternion::set_axis(const vector3& axis, float angle)
 		{
 #ifdef VI_VECTORCLASS
-			LOAD_V3(_r1, Axis);
-			_r1 *= std::sin(Angle / 2);
-			_r1.insert(3, std::cos(Angle / 2));
+			LOAD_V3(_r1, axis);
+			_r1 *= std::sin(angle / 2);
+			_r1.insert(3, std::cos(angle / 2));
 			_r1.store((float*)this);
 #else
-			float Sin = std::sin(Angle / 2);
-			X = Axis.X * Sin;
-			Y = Axis.Y * Sin;
-			Z = Axis.Z * Sin;
-			W = std::cos(Angle / 2);
+			float sin = std::sin(angle / 2);
+			x = axis.x * sin;
+			y = axis.y * sin;
+			z = axis.z * sin;
+			w = std::cos(angle / 2);
 #endif
 		}
-		void Quaternion::SetEuler(const Vector3& V)
+		void quaternion::set_euler(const vector3& v)
 		{
 #ifdef VI_VECTORCLASS
 			float _sx[4], _cx[4];
-			LOAD_V3(_r1, V);
+			LOAD_V3(_r1, v);
 			LOAD_VAL(_r2, 0.0f);
 			_r1 *= 0.5f;
 			_r2 = cos(_r1);
@@ -2672,1082 +2671,1082 @@ namespace Vitex
 			_r1 += _r2 * _r5;
 			_r1.store((float*)this);
 #else
-			float SinX = std::sin(V.X / 2);
-			float CosX = std::cos(V.X / 2);
-			float SinY = std::sin(V.Y / 2);
-			float CosY = std::cos(V.Y / 2);
-			float SinZ = std::sin(V.Z / 2);
-			float CosZ = std::cos(V.Z / 2);
-			X = SinX * CosY;
-			Y = CosX * SinY;
-			Z = SinX * SinY;
-			W = CosX * CosY;
+			float sin_x = std::sin(v.x / 2);
+			float cos_x = std::cos(v.x / 2);
+			float sin_y = std::sin(v.y / 2);
+			float cos_y = std::cos(v.y / 2);
+			float sin_z = std::sin(v.z / 2);
+			float cos_z = std::cos(v.z / 2);
+			x = sin_x * cos_y;
+			y = cos_x * sin_y;
+			z = sin_x * sin_y;
+			w = cos_x * cos_y;
 
-			float fX = X * CosZ + Y * SinZ;
-			float fY = Y * CosZ - X * SinZ;
-			float fZ = Z * CosZ + W * SinZ;
-			float fW = W * CosZ - Z * SinZ;
-			X = fX;
-			Y = fY;
-			Z = fZ;
-			W = fW;
+			float fX = x * cos_z + y * sin_z;
+			float fY = y * cos_z - x * sin_z;
+			float fZ = z * cos_z + w * sin_z;
+			float fW = w * cos_z - z * sin_z;
+			x = fX;
+			y = fY;
+			z = fZ;
+			w = fW;
 #endif
 		}
-		void Quaternion::SetMatrix(const Matrix4x4& Value)
+		void quaternion::set_matrix(const matrix4x4& value)
 		{
-			float T = Value.Row[0] + Value.Row[5] + Value.Row[10];
-			if (T > 0.0f)
+			float t = value.row[0] + value.row[5] + value.row[10];
+			if (t > 0.0f)
 			{
-				float S = std::sqrt(1 + T) * 2.0f;
-				X = (Value.Row[9] - Value.Row[6]) / S;
-				Y = (Value.Row[2] - Value.Row[8]) / S;
-				Z = (Value.Row[4] - Value.Row[1]) / S;
-				W = 0.25f * S;
+				float s = std::sqrt(1 + t) * 2.0f;
+				x = (value.row[9] - value.row[6]) / s;
+				y = (value.row[2] - value.row[8]) / s;
+				z = (value.row[4] - value.row[1]) / s;
+				w = 0.25f * s;
 			}
-			else if (Value.Row[0] > Value.Row[5] && Value.Row[0] > Value.Row[10])
+			else if (value.row[0] > value.row[5] && value.row[0] > value.row[10])
 			{
-				float S = std::sqrt(1.0f + Value.Row[0] - Value.Row[5] - Value.Row[10]) * 2.0f;
-				X = 0.25f * S;
-				Y = (Value.Row[4] + Value.Row[1]) / S;
-				Z = (Value.Row[2] + Value.Row[8]) / S;
-				W = (Value.Row[9] - Value.Row[6]) / S;
+				float s = std::sqrt(1.0f + value.row[0] - value.row[5] - value.row[10]) * 2.0f;
+				x = 0.25f * s;
+				y = (value.row[4] + value.row[1]) / s;
+				z = (value.row[2] + value.row[8]) / s;
+				w = (value.row[9] - value.row[6]) / s;
 			}
-			else if (Value.Row[5] > Value.Row[10])
+			else if (value.row[5] > value.row[10])
 			{
-				float S = std::sqrt(1.0f + Value.Row[5] - Value.Row[0] - Value.Row[10]) * 2.0f;
-				X = (Value.Row[4] + Value.Row[1]) / S;
-				Y = 0.25f * S;
-				Z = (Value.Row[9] + Value.Row[6]) / S;
-				W = (Value.Row[2] - Value.Row[8]) / S;
+				float s = std::sqrt(1.0f + value.row[5] - value.row[0] - value.row[10]) * 2.0f;
+				x = (value.row[4] + value.row[1]) / s;
+				y = 0.25f * s;
+				z = (value.row[9] + value.row[6]) / s;
+				w = (value.row[2] - value.row[8]) / s;
 			}
 			else
 			{
-				float S = std::sqrt(1.0f + Value.Row[10] - Value.Row[0] - Value.Row[5]) * 2.0f;
-				X = (Value.Row[2] + Value.Row[8]) / S;
-				Y = (Value.Row[9] + Value.Row[6]) / S;
-				Z = 0.25f * S;
-				W = (Value.Row[4] - Value.Row[1]) / S;
+				float s = std::sqrt(1.0f + value.row[10] - value.row[0] - value.row[5]) * 2.0f;
+				x = (value.row[2] + value.row[8]) / s;
+				y = (value.row[9] + value.row[6]) / s;
+				z = 0.25f * s;
+				w = (value.row[4] - value.row[1]) / s;
 			}
 		}
-		void Quaternion::Set(const Quaternion& Value)
+		void quaternion::set(const quaternion& value)
 		{
-			X = Value.X;
-			Y = Value.Y;
-			Z = Value.Z;
-			W = Value.W;
+			x = value.x;
+			y = value.y;
+			z = value.z;
+			w = value.w;
 		}
-		Quaternion Quaternion::operator *(float R) const
+		quaternion quaternion::operator *(float r) const
 		{
-			return Mul(R);
+			return mul(r);
 		}
-		Vector3 Quaternion::operator *(const Vector3& R) const
+		vector3 quaternion::operator *(const vector3& r) const
 		{
-			return Mul(R);
+			return mul(r);
 		}
-		Quaternion Quaternion::operator *(const Quaternion& R) const
+		quaternion quaternion::operator *(const quaternion& r) const
 		{
-			return Mul(R);
+			return mul(r);
 		}
-		Quaternion Quaternion::operator -(const Quaternion& R) const
+		quaternion quaternion::operator -(const quaternion& r) const
 		{
-			return Sub(R);
+			return sub(r);
 		}
-		Quaternion Quaternion::operator +(const Quaternion& R) const
+		quaternion quaternion::operator +(const quaternion& r) const
 		{
-			return Add(R);
+			return add(r);
 		}
-		Quaternion& Quaternion::operator =(const Quaternion& R) noexcept
+		quaternion& quaternion::operator =(const quaternion& r) noexcept
 		{
-			this->X = R.X;
-			this->Y = R.Y;
-			this->Z = R.Z;
-			this->W = R.W;
+			this->x = r.x;
+			this->y = r.y;
+			this->z = r.z;
+			this->w = r.w;
 			return *this;
 		}
-		Quaternion Quaternion::Normalize() const
+		quaternion quaternion::normalize() const
 		{
 #ifdef VI_VECTORCLASS
 			LOAD_FV4(_r1);
-			_r1 /= Geometric::FastSqrt(horizontal_add(square(_r1)));
+			_r1 /= geometric::fast_sqrt(horizontal_add(square(_r1)));
 
-			Quaternion Result;
-			_r1.store((float*)&Result);
-			return Result;
+			quaternion result;
+			_r1.store((float*)&result);
+			return result;
 #else
-			float F = Length();
-			return Quaternion(X / F, Y / F, Z / F, W / F);
+			float f = length();
+			return quaternion(x / f, y / f, z / f, w / f);
 #endif
 		}
-		Quaternion Quaternion::sNormalize() const
+		quaternion quaternion::snormalize() const
 		{
 #ifdef VI_VECTORCLASS
 			LOAD_FV4(_r1);
-			float F = Geometric::FastSqrt(horizontal_add(square(_r1)));
-			if (F == 0.0f)
-				return Quaternion();
+			float f = geometric::fast_sqrt(horizontal_add(square(_r1)));
+			if (f == 0.0f)
+				return quaternion();
 
-			Quaternion Result;
-			_r1 /= F;
-			_r1.store((float*)&Result);
-			return Result;
+			quaternion result;
+			_r1 /= f;
+			_r1.store((float*)&result);
+			return result;
 #else
-			float F = Length();
-			if (F == 0.0f)
-				return Quaternion();
+			float f = length();
+			if (f == 0.0f)
+				return quaternion();
 
-			return Quaternion(X / F, Y / F, Z / F, W / F);
+			return quaternion(x / f, y / f, z / f, w / f);
 #endif
 		}
-		Quaternion Quaternion::Conjugate() const
+		quaternion quaternion::conjugate() const
 		{
-			return Quaternion(-X, -Y, -Z, W);
+			return quaternion(-x, -y, -z, w);
 		}
-		Quaternion Quaternion::Mul(float R) const
+		quaternion quaternion::mul(float r) const
 		{
 #ifdef VI_VECTORCLASS
 			LOAD_FV4(_r1);
-			_r1 *= R;
+			_r1 *= r;
 
-			Quaternion Result;
-			_r1.store((float*)&Result);
-			return Result;
+			quaternion result;
+			_r1.store((float*)&result);
+			return result;
 #else
-			return Quaternion(X * R, Y * R, Z * R, W * R);
+			return quaternion(x * r, y * r, z * r, w * r);
 #endif
 		}
-		Quaternion Quaternion::Mul(const Quaternion& R) const
+		quaternion quaternion::mul(const quaternion& r) const
 		{
 #ifdef VI_VECTORCLASS
-			LOAD_AV4(_r1, W, -X, -Y, -Z);
-			LOAD_AV4(_r2, X, W, Y, -Z);
-			LOAD_AV4(_r3, Y, W, Z, -X);
-			LOAD_AV4(_r4, Z, W, X, -Y);
-			LOAD_AV4(_r5, R.W, R.X, R.Y, R.Z);
-			LOAD_AV4(_r6, R.W, R.X, R.Z, R.Y);
-			LOAD_AV4(_r7, R.W, R.Y, R.X, R.Z);
-			LOAD_AV4(_r8, R.W, R.Z, R.Y, R.X);
+			LOAD_AV4(_r1, w, -x, -y, -z);
+			LOAD_AV4(_r2, x, w, y, -z);
+			LOAD_AV4(_r3, y, w, z, -x);
+			LOAD_AV4(_r4, z, w, x, -y);
+			LOAD_AV4(_r5, r.w, r.x, r.y, r.z);
+			LOAD_AV4(_r6, r.w, r.x, r.z, r.y);
+			LOAD_AV4(_r7, r.w, r.y, r.x, r.z);
+			LOAD_AV4(_r8, r.w, r.z, r.y, r.x);
 			float W1 = horizontal_add(_r1 * _r5);
 			float X1 = horizontal_add(_r2 * _r6);
 			float Y1 = horizontal_add(_r3 * _r7);
 			float Z1 = horizontal_add(_r4 * _r8);
 #else
-			float W1 = W * R.W - X * R.X - Y * R.Y - Z * R.Z;
-			float X1 = X * R.W + W * R.X + Y * R.Z - Z * R.Y;
-			float Y1 = Y * R.W + W * R.Y + Z * R.X - X * R.Z;
-			float Z1 = Z * R.W + W * R.Z + X * R.Y - Y * R.X;
+			float W1 = w * r.w - x * r.x - y * r.y - z * r.z;
+			float X1 = x * r.w + w * r.x + y * r.z - z * r.y;
+			float Y1 = y * r.w + w * r.y + z * r.x - x * r.z;
+			float Z1 = z * r.w + w * r.z + x * r.y - y * r.x;
 #endif
-			return Quaternion(X1, Y1, Z1, W1);
+			return quaternion(X1, Y1, Z1, W1);
 		}
-		Vector3 Quaternion::Mul(const Vector3& R) const
+		vector3 quaternion::mul(const vector3& r) const
 		{
-			Vector3 UV0(X, Y, Z), UV1, UV2;
-			UV1 = UV0.Cross(R);
-			UV2 = UV0.Cross(UV1);
-			UV1 *= (2.0f * W);
+			vector3 UV0(x, y, z), UV1, UV2;
+			UV1 = UV0.cross(r);
+			UV2 = UV0.cross(UV1);
+			UV1 *= (2.0f * w);
 			UV2 *= 2.0f;
 
-			return R + UV1 + UV2;
+			return r + UV1 + UV2;
 		}
-		Quaternion Quaternion::Sub(const Quaternion& R) const
+		quaternion quaternion::sub(const quaternion& r) const
 		{
 #ifdef VI_VECTORCLASS
 			LOAD_FV4(_r1);
-			LOAD_V4(_r2, R);
+			LOAD_V4(_r2, r);
 			_r1 -= _r2;
 
-			Quaternion Result;
-			_r1.store((float*)&Result);
-			return Result;
+			quaternion result;
+			_r1.store((float*)&result);
+			return result;
 #else
-			return Quaternion(X - R.X, Y - R.Y, Z - R.Z, W - R.W);
+			return quaternion(x - r.x, y - r.y, z - r.z, w - r.w);
 #endif
 		}
-		Quaternion Quaternion::Add(const Quaternion& R) const
+		quaternion quaternion::add(const quaternion& r) const
 		{
 #ifdef VI_VECTORCLASS
 			LOAD_FV4(_r1);
-			LOAD_V4(_r2, R);
+			LOAD_V4(_r2, r);
 			_r1 += _r2;
 
-			Quaternion Result;
-			_r1.store((float*)&Result);
-			return Result;
+			quaternion result;
+			_r1.store((float*)&result);
+			return result;
 #else
-			return Quaternion(X + R.X, Y + R.Y, Z + R.Z, W + R.W);
+			return quaternion(x + r.x, y + r.y, z + r.z, w + r.w);
 #endif
 		}
-		Quaternion Quaternion::Lerp(const Quaternion& B, float DeltaTime) const
+		quaternion quaternion::lerp(const quaternion& b, float delta_time) const
 		{
-			Quaternion Correction = B;
-			if (Dot(B) < 0.0f)
-				Correction = Quaternion(-B.X, -B.Y, -B.Z, -B.W);
+			quaternion correction = b;
+			if (dot(b) < 0.0f)
+				correction = quaternion(-b.x, -b.y, -b.z, -b.w);
 
-			return (Correction - *this) * DeltaTime + Normalize();
+			return (correction - *this) * delta_time + normalize();
 		}
-		Quaternion Quaternion::sLerp(const Quaternion& B, float DeltaTime) const
+		quaternion quaternion::slerp(const quaternion& b, float delta_time) const
 		{
-			Quaternion Correction = B;
-			float Cos = Dot(B);
+			quaternion correction = b;
+			float cos = dot(b);
 
-			if (Cos < 0.0f)
+			if (cos < 0.0f)
 			{
-				Correction = Quaternion(-B.X, -B.Y, -B.Z, -B.W);
-				Cos = -Cos;
+				correction = quaternion(-b.x, -b.y, -b.z, -b.w);
+				cos = -cos;
 			}
 
-			if (std::abs(Cos) >= 1.0f - 1e3f)
-				return Lerp(Correction, DeltaTime);
+			if (std::abs(cos) >= 1.0f - 1e3f)
+				return lerp(correction, delta_time);
 
-			float Sin = Geometric::FastSqrt(1.0f - Cos * Cos);
-			float Angle = std::atan2(Sin, Cos);
-			float InvedSin = 1.0f / Sin;
-			float Source = std::sin(Angle - DeltaTime * Angle) * InvedSin;
-			float Destination = std::sin(DeltaTime * Angle) * InvedSin;
+			float sin = geometric::fast_sqrt(1.0f - cos * cos);
+			float angle = std::atan2(sin, cos);
+			float inved_sin = 1.0f / sin;
+			float source = std::sin(angle - delta_time * angle) * inved_sin;
+			float destination = std::sin(delta_time * angle) * inved_sin;
 
-			return Mul(Source).Add(Correction.Mul(Destination));
+			return mul(source).add(correction.mul(destination));
 		}
-		Quaternion Quaternion::CreateEulerRotation(const Vector3& V)
+		quaternion quaternion::create_euler_rotation(const vector3& v)
 		{
-			Quaternion Result;
-			Result.SetEuler(V);
-			return Result;
+			quaternion result;
+			result.set_euler(v);
+			return result;
 		}
-		Quaternion Quaternion::CreateRotation(const Matrix4x4& V)
+		quaternion quaternion::create_rotation(const matrix4x4& v)
 		{
-			Quaternion Result;
-			Result.SetMatrix(V);
-			return Result;
+			quaternion result;
+			result.set_matrix(v);
+			return result;
 		}
-		Vector3 Quaternion::Forward() const
+		vector3 quaternion::forward() const
 		{
 #ifdef VI_VECTORCLASS
-			LOAD_AV4(_r1, X, -W, Y, W);
-			LOAD_AV4(_r2, Z, Y, Z, X);
-			LOAD_AV2(_r3, X, Y);
+			LOAD_AV4(_r1, x, -w, y, w);
+			LOAD_AV4(_r2, z, y, z, x);
+			LOAD_AV2(_r3, x, y);
 			_r1 *= _r2;
 			_r2 = permute4f<-1, -1, 2, 3>(_r1);
 			_r1 = permute4f<0, 1, -1, -1>(_r1);
 			_r3 = square(_r3);
 
-			Vector3 Result(horizontal_add(_r1), horizontal_add(_r2), horizontal_add(_r3));
-			Result *= 2.0f;
-			Result.Z = 1.0f - Result.Z;
-			return Result;
+			vector3 result(horizontal_add(_r1), horizontal_add(_r2), horizontal_add(_r3));
+			result *= 2.0f;
+			result.z = 1.0f - result.z;
+			return result;
 #else
-			return Vector3(
-				2.0f * (X * Z - W * Y),
-				2.0f * (Y * Z + W * X),
-				1.0f - 2.0f * (X * X + Y * Y));
+			return vector3(
+				2.0f * (x * z - w * y),
+				2.0f * (y * z + w * x),
+				1.0f - 2.0f * (x * x + y * y));
 #endif
 		}
-		Vector3 Quaternion::Up() const
+		vector3 quaternion::up() const
 		{
 #ifdef VI_VECTORCLASS
-			LOAD_AV4(_r1, X, W, Y, -W);
-			LOAD_AV4(_r2, Y, Z, Z, X);
-			LOAD_AV2(_r3, X, Z);
+			LOAD_AV4(_r1, x, w, y, -w);
+			LOAD_AV4(_r2, y, z, z, x);
+			LOAD_AV2(_r3, x, z);
 			_r1 *= _r2;
 			_r2 = permute4f<-1, -1, 2, 3>(_r1);
 			_r1 = permute4f<0, 1, -1, -1>(_r1);
 			_r3 = square(_r3);
 
-			Vector3 Result(horizontal_add(_r1), horizontal_add(_r3), horizontal_add(_r2));
-			Result *= 2.0f;
-			Result.Y = 1.0f - Result.Y;
-			return Result;
+			vector3 result(horizontal_add(_r1), horizontal_add(_r3), horizontal_add(_r2));
+			result *= 2.0f;
+			result.y = 1.0f - result.y;
+			return result;
 #else
-			return Vector3(
-				2.0f * (X * Y + W * Z),
-				1.0f - 2.0f * (X * X + Z * Z),
-				2.0f * (Y * Z - W * X));
+			return vector3(
+				2.0f * (x * y + w * z),
+				1.0f - 2.0f * (x * x + z * z),
+				2.0f * (y * z - w * x));
 #endif
 		}
-		Vector3 Quaternion::Right() const
+		vector3 quaternion::right() const
 		{
 #ifdef VI_VECTORCLASS
-			LOAD_AV4(_r1, X, -W, X, W);
-			LOAD_AV4(_r2, Y, Z, Z, Y);
-			LOAD_AV2(_r3, Y, Z);
+			LOAD_AV4(_r1, x, -w, x, w);
+			LOAD_AV4(_r2, y, z, z, y);
+			LOAD_AV2(_r3, y, z);
 			_r1 *= _r2;
 			_r2 = permute4f<-1, -1, 2, 3>(_r1);
 			_r1 = permute4f<0, 1, -1, -1>(_r1);
 			_r3 = square(_r3);
 
-			Vector3 Result(horizontal_add(_r3), horizontal_add(_r1), horizontal_add(_r2));
-			Result *= 2.0f;
-			Result.X = 1.0f - Result.X;
-			return Result;
+			vector3 result(horizontal_add(_r3), horizontal_add(_r1), horizontal_add(_r2));
+			result *= 2.0f;
+			result.x = 1.0f - result.x;
+			return result;
 #else
-			return Vector3(
-				1.0f - 2.0f * (Y * Y + Z * Z),
-				2.0f * (X * Y - W * Z),
-				2.0f * (X * Z + W * Y));
+			return vector3(
+				1.0f - 2.0f * (y * y + z * z),
+				2.0f * (x * y - w * z),
+				2.0f * (x * z + w * y));
 #endif
 		}
-		Matrix4x4 Quaternion::GetMatrix() const
+		matrix4x4 quaternion::get_matrix() const
 		{
-			Matrix4x4 Result =
+			matrix4x4 result =
 			{
-				1.0f - 2.0f * (Y * Y + Z * Z), 2.0f * (X * Y + Z * W), 2.0f * (X * Z - Y * W), 0.0f,
-				2.0f * (X * Y - Z * W), 1.0f - 2.0f * (X * X + Z * Z), 2.0f * (Y * Z + X * W), 0.0f,
-				2.0f * (X * Z + Y * W), 2.0f * (Y * Z - X * W), 1.0f - 2.0f * (X * X + Y * Y), 0.0f,
+				1.0f - 2.0f * (y * y + z * z), 2.0f * (x * y + z * w), 2.0f * (x * z - y * w), 0.0f,
+				2.0f * (x * y - z * w), 1.0f - 2.0f * (x * x + z * z), 2.0f * (y * z + x * w), 0.0f,
+				2.0f * (x * z + y * w), 2.0f * (y * z - x * w), 1.0f - 2.0f * (x * x + y * y), 0.0f,
 				0.0f, 0.0f, 0.0f, 1.0f
 			};
 
-			return Result;
+			return result;
 		}
-		Vector3 Quaternion::GetEuler() const
+		vector3 quaternion::get_euler() const
 		{
 #ifdef VI_VECTORCLASS
-			LOAD_AV4(_r1, W, Y, W, -Z);
-			LOAD_AV4(_r2, X, Z, Y, X);
+			LOAD_AV4(_r1, w, y, w, -z);
+			LOAD_AV4(_r2, x, z, y, x);
 			LOAD_FV3(_r3);
-			LOAD_AV2(_r4, W, Z);
-			LOAD_AV2(_r5, X, Y);
-			float XYZW[4];
+			LOAD_AV2(_r4, w, z);
+			LOAD_AV2(_r5, x, y);
+			float xyzw[4];
 			_r1 *= _r2;
 			_r4 *= _r5;
 			_r2 = permute4f<-1, -1, 2, 3>(_r1);
 			_r1 = permute4f<0, 1, -1, -1>(_r1);
 			_r3 = square(_r3);
-			_r3.store(XYZW);
+			_r3.store(xyzw);
 
 			float T0 = +2.0f * horizontal_add(_r1);
-			float T1 = +1.0f - 2.0f * (XYZW[0] + XYZW[1]);
-			float Roll = Compute::Mathf::Atan2(T0, T1);
+			float T1 = +1.0f - 2.0f * (xyzw[0] + xyzw[1]);
+			float roll = compute::mathf::atan2(T0, T1);
 
 			float T2 = +2.0f * horizontal_add(_r2);
 			T2 = ((T2 > 1.0f) ? 1.0f : T2);
 			T2 = ((T2 < -1.0f) ? -1.0f : T2);
-			float Pitch = Compute::Mathf::Asin(T2);
+			float pitch = compute::mathf::asin(T2);
 
 			float T3 = +2.0f * horizontal_add(_r4);
-			float T4 = +1.0f - 2.0f * (XYZW[1] + XYZW[2]);
-			float Yaw = Compute::Mathf::Atan2(T3, T4);
+			float T4 = +1.0f - 2.0f * (xyzw[1] + xyzw[2]);
+			float yaw = compute::mathf::atan2(T3, T4);
 
-			return Vector3(Roll, Pitch, Yaw);
+			return vector3(roll, pitch, yaw);
 #else
-			float Y2 = Y * Y;
-			float T0 = +2.0f * (W * X + Y * Z);
-			float T1 = +1.0f - 2.0f * (X * X + Y2);
-			float Roll = Compute::Mathf::Atan2(T0, T1);
+			float Y2 = y * y;
+			float T0 = +2.0f * (w * x + y * z);
+			float T1 = +1.0f - 2.0f * (x * x + Y2);
+			float roll = compute::mathf::atan2(T0, T1);
 
-			float T2 = +2.0f * (W * Y - Z * X);
+			float T2 = +2.0f * (w * y - z * x);
 			T2 = ((T2 > 1.0f) ? 1.0f : T2);
 			T2 = ((T2 < -1.0f) ? -1.0f : T2);
-			float Pitch = Compute::Mathf::Asin(T2);
+			float pitch = compute::mathf::asin(T2);
 
-			float T3 = +2.0f * (W * Z + X * Y);
-			float T4 = +1.0f - 2.0f * (Y2 + Z * Z);
-			float Yaw = Compute::Mathf::Atan2(T3, T4);
+			float T3 = +2.0f * (w * z + x * y);
+			float T4 = +1.0f - 2.0f * (Y2 + z * z);
+			float yaw = compute::mathf::atan2(T3, T4);
 
-			return Vector3(Roll, Pitch, Yaw);
+			return vector3(roll, pitch, yaw);
 #endif
 		}
-		float Quaternion::Dot(const Quaternion& R) const
+		float quaternion::dot(const quaternion& r) const
 		{
 #ifdef VI_VECTORCLASS
 			LOAD_FV4(_r1);
-			LOAD_V4(_r2, R);
+			LOAD_V4(_r2, r);
 			_r1 *= _r2;
 			return horizontal_add(_r1);
 #else
-			return X * R.X + Y * R.Y + Z * R.Z + W * R.W;
+			return x * r.x + y * r.y + z * r.z + w * r.w;
 #endif
 		}
-		float Quaternion::Length() const
+		float quaternion::length() const
 		{
 #ifdef VI_VECTORCLASS
 			LOAD_FV4(_r1);
 			return std::sqrt(horizontal_add(square(_r1)));
 #else
-			return std::sqrt(X * X + Y * Y + Z * Z + W * W);
+			return std::sqrt(x * x + y * y + z * z + w * w);
 #endif
 		}
-		bool Quaternion::operator ==(const Quaternion& V) const
+		bool quaternion::operator ==(const quaternion& v) const
 		{
-			return X == V.X && Y == V.Y && Z == V.Z && W == V.W;
+			return x == v.x && y == v.y && z == v.z && w == v.w;
 		}
-		bool Quaternion::operator !=(const Quaternion& V) const
+		bool quaternion::operator !=(const quaternion& v) const
 		{
-			return !(*this == V);
-		}
-
-		RandomVector2::RandomVector2() noexcept : Min(0), Max(1), Intensity(false), Accuracy(1)
-		{
-		}
-		RandomVector2::RandomVector2(const Vector2& MinV, const Vector2& MaxV, bool IntensityV, float AccuracyV) noexcept : Min(MinV), Max(MaxV), Intensity(IntensityV), Accuracy(AccuracyV)
-		{
-		}
-		Vector2 RandomVector2::Generate()
-		{
-			Vector2 fMin = Min * Accuracy;
-			Vector2 fMax = Max * Accuracy;
-			float InvAccuracy = 1.0f / Accuracy;
-			if (Intensity)
-				InvAccuracy *= Compute::Mathf::Random();
-
-			return Vector2(
-				Compute::Mathf::Random(fMin.X, fMax.X),
-				Compute::Mathf::Random(fMin.Y, fMax.Y)) * InvAccuracy;
+			return !(*this == v);
 		}
 
-		RandomVector3::RandomVector3() noexcept : Min(0), Max(1), Intensity(false), Accuracy(1)
+		random_vector2::random_vector2() noexcept : min(0), max(1), intensity(false), accuracy(1)
 		{
 		}
-		RandomVector3::RandomVector3(const Vector3& MinV, const Vector3& MaxV, bool IntensityV, float AccuracyV) noexcept : Min(MinV), Max(MaxV), Intensity(IntensityV), Accuracy(AccuracyV)
+		random_vector2::random_vector2(const vector2& min_v, const vector2& max_v, bool intensity_v, float accuracy_v) noexcept : min(min_v), max(max_v), intensity(intensity_v), accuracy(accuracy_v)
 		{
 		}
-		Vector3 RandomVector3::Generate()
+		vector2 random_vector2::generate()
 		{
-			Vector3 fMin = Min * Accuracy;
-			Vector3 fMax = Max * Accuracy;
-			float InvAccuracy = 1.0f / Accuracy;
-			if (Intensity)
-				InvAccuracy *= Compute::Mathf::Random();
+			vector2 fMin = min * accuracy;
+			vector2 fMax = max * accuracy;
+			float inv_accuracy = 1.0f / accuracy;
+			if (intensity)
+				inv_accuracy *= compute::mathf::random();
 
-			return Vector3(
-				Compute::Mathf::Random(fMin.X, fMax.X),
-				Compute::Mathf::Random(fMin.Y, fMax.Y),
-				Compute::Mathf::Random(fMin.Z, fMax.Z)) * InvAccuracy;
-		}
-
-		RandomVector4::RandomVector4() noexcept : Min(0), Max(1), Intensity(false), Accuracy(1)
-		{
-		}
-		RandomVector4::RandomVector4(const Vector4& MinV, const Vector4& MaxV, bool IntensityV, float AccuracyV) noexcept : Min(MinV), Max(MaxV), Intensity(IntensityV), Accuracy(AccuracyV)
-		{
-		}
-		Vector4 RandomVector4::Generate()
-		{
-			Vector4 fMin = Min * Accuracy;
-			Vector4 fMax = Max * Accuracy;
-			float InvAccuracy = 1.0f / Accuracy;
-			if (Intensity)
-				InvAccuracy *= Compute::Mathf::Random();
-
-			return Vector4(
-				Compute::Mathf::Random(fMin.X, fMax.X),
-				Compute::Mathf::Random(fMin.Y, fMax.Y),
-				Compute::Mathf::Random(fMin.Z, fMax.Z),
-				Compute::Mathf::Random(fMin.W, fMax.W)) * InvAccuracy;
+			return vector2(
+				compute::mathf::random(fMin.x, fMax.x),
+				compute::mathf::random(fMin.y, fMax.y)) * inv_accuracy;
 		}
 
-		RandomFloat::RandomFloat() noexcept : Min(0), Max(1), Intensity(false), Accuracy(1)
+		random_vector3::random_vector3() noexcept : min(0), max(1), intensity(false), accuracy(1)
 		{
 		}
-		RandomFloat::RandomFloat(float MinV, float MaxV, bool IntensityV, float AccuracyV) noexcept : Min(MinV), Max(MaxV), Intensity(IntensityV), Accuracy(AccuracyV)
+		random_vector3::random_vector3(const vector3& min_v, const vector3& max_v, bool intensity_v, float accuracy_v) noexcept : min(min_v), max(max_v), intensity(intensity_v), accuracy(accuracy_v)
 		{
 		}
-		float RandomFloat::Generate()
+		vector3 random_vector3::generate()
 		{
-			return (Compute::Mathf::Random(Min * Accuracy, Max * Accuracy) / Accuracy) * (Intensity ? Compute::Mathf::Random() : 1);
+			vector3 fMin = min * accuracy;
+			vector3 fMax = max * accuracy;
+			float inv_accuracy = 1.0f / accuracy;
+			if (intensity)
+				inv_accuracy *= compute::mathf::random();
+
+			return vector3(
+				compute::mathf::random(fMin.x, fMax.x),
+				compute::mathf::random(fMin.y, fMax.y),
+				compute::mathf::random(fMin.z, fMax.z)) * inv_accuracy;
 		}
 
-		uint8_t AdjTriangle::FindEdge(uint32_t vref0, uint32_t vref1)
+		random_vector4::random_vector4() noexcept : min(0), max(1), intensity(false), accuracy(1)
 		{
-			uint8_t EdgeNb = 0xff;
-			if (VRef[0] == vref0 && VRef[1] == vref1)
-				EdgeNb = 0;
-			else if (VRef[0] == vref1 && VRef[1] == vref0)
-				EdgeNb = 0;
-			else if (VRef[0] == vref0 && VRef[2] == vref1)
-				EdgeNb = 1;
-			else if (VRef[0] == vref1 && VRef[2] == vref0)
-				EdgeNb = 1;
-			else if (VRef[1] == vref0 && VRef[2] == vref1)
-				EdgeNb = 2;
-			else if (VRef[1] == vref1 && VRef[2] == vref0)
-				EdgeNb = 2;
-
-			return EdgeNb;
 		}
-		uint32_t AdjTriangle::OppositeVertex(uint32_t vref0, uint32_t vref1)
+		random_vector4::random_vector4(const vector4& min_v, const vector4& max_v, bool intensity_v, float accuracy_v) noexcept : min(min_v), max(max_v), intensity(intensity_v), accuracy(accuracy_v)
 		{
-			uint32_t Ref = 0xffffffff;
-			if (VRef[0] == vref0 && VRef[1] == vref1)
-				Ref = VRef[2];
-			else if (VRef[0] == vref1 && VRef[1] == vref0)
-				Ref = VRef[2];
-			else if (VRef[0] == vref0 && VRef[2] == vref1)
-				Ref = VRef[1];
-			else if (VRef[0] == vref1 && VRef[2] == vref0)
-				Ref = VRef[1];
-			else if (VRef[1] == vref0 && VRef[2] == vref1)
-				Ref = VRef[0];
-			else if (VRef[1] == vref1 && VRef[2] == vref0)
-				Ref = VRef[0];
+		}
+		vector4 random_vector4::generate()
+		{
+			vector4 fMin = min * accuracy;
+			vector4 fMax = max * accuracy;
+			float inv_accuracy = 1.0f / accuracy;
+			if (intensity)
+				inv_accuracy *= compute::mathf::random();
 
-			return Ref;
+			return vector4(
+				compute::mathf::random(fMin.x, fMax.x),
+				compute::mathf::random(fMin.y, fMax.y),
+				compute::mathf::random(fMin.z, fMax.z),
+				compute::mathf::random(fMin.w, fMax.w)) * inv_accuracy;
 		}
 
-		Adjacencies::Adjacencies() noexcept : NbEdges(0), CurrentNbFaces(0), Edges(nullptr), NbFaces(0), Faces(nullptr)
+		random_float::random_float() noexcept : min(0), max(1), intensity(false), accuracy(1)
 		{
 		}
-		Adjacencies::~Adjacencies() noexcept
+		random_float::random_float(float min_v, float max_v, bool intensity_v, float accuracy_v) noexcept : min(min_v), max(max_v), intensity(intensity_v), accuracy(accuracy_v)
 		{
-			Core::Memory::Deallocate(Faces);
-			Core::Memory::Deallocate(Edges);
 		}
-		bool Adjacencies::Fill(Adjacencies::Desc& create)
+		float random_float::generate()
 		{
-			NbFaces = create.NbFaces;
-			Faces = Core::Memory::Allocate<AdjTriangle>(sizeof(AdjTriangle) * NbFaces);
-			Edges = Core::Memory::Allocate<AdjEdge>(sizeof(AdjEdge) * NbFaces * 3);
-			for (uint32_t i = 0; i < NbFaces; i++)
+			return (compute::mathf::random(min * accuracy, max * accuracy) / accuracy) * (intensity ? compute::mathf::random() : 1);
+		}
+
+		uint8_t adj_triangle::find_edge(uint32_t vref0, uint32_t vref1)
+		{
+			uint8_t edge_nb = 0xff;
+			if (vref[0] == vref0 && vref[1] == vref1)
+				edge_nb = 0;
+			else if (vref[0] == vref1 && vref[1] == vref0)
+				edge_nb = 0;
+			else if (vref[0] == vref0 && vref[2] == vref1)
+				edge_nb = 1;
+			else if (vref[0] == vref1 && vref[2] == vref0)
+				edge_nb = 1;
+			else if (vref[1] == vref0 && vref[2] == vref1)
+				edge_nb = 2;
+			else if (vref[1] == vref1 && vref[2] == vref0)
+				edge_nb = 2;
+
+			return edge_nb;
+		}
+		uint32_t adj_triangle::opposite_vertex(uint32_t vref0, uint32_t vref1)
+		{
+			uint32_t ref = 0xffffffff;
+			if (vref[0] == vref0 && vref[1] == vref1)
+				ref = vref[2];
+			else if (vref[0] == vref1 && vref[1] == vref0)
+				ref = vref[2];
+			else if (vref[0] == vref0 && vref[2] == vref1)
+				ref = vref[1];
+			else if (vref[0] == vref1 && vref[2] == vref0)
+				ref = vref[1];
+			else if (vref[1] == vref0 && vref[2] == vref1)
+				ref = vref[0];
+			else if (vref[1] == vref1 && vref[2] == vref0)
+				ref = vref[0];
+
+			return ref;
+		}
+
+		adjacencies::adjacencies() noexcept : nb_edges(0), current_nb_faces(0), edges(nullptr), nb_faces(0), faces(nullptr)
+		{
+		}
+		adjacencies::~adjacencies() noexcept
+		{
+			core::memory::deallocate(faces);
+			core::memory::deallocate(edges);
+		}
+		bool adjacencies::fill(adjacencies::desc& create)
+		{
+			nb_faces = create.nb_faces;
+			faces = core::memory::allocate<adj_triangle>(sizeof(adj_triangle) * nb_faces);
+			edges = core::memory::allocate<adj_edge>(sizeof(adj_edge) * nb_faces * 3);
+			for (uint32_t i = 0; i < nb_faces; i++)
 			{
-				uint32_t Ref0 = create.Faces[i * 3 + 0];
-				uint32_t Ref1 = create.Faces[i * 3 + 1];
-				uint32_t Ref2 = create.Faces[i * 3 + 2];
-				AddTriangle(Ref0, Ref1, Ref2);
+				uint32_t ref0 = create.faces[i * 3 + 0];
+				uint32_t ref1 = create.faces[i * 3 + 1];
+				uint32_t ref2 = create.faces[i * 3 + 2];
+				add_triangle(ref0, ref1, ref2);
 			}
 
 			return true;
 		}
-		bool Adjacencies::Resolve()
+		bool adjacencies::resolve()
 		{
-			RadixSorter Core;
-			uint32_t* FaceNb = Core::Memory::Allocate<uint32_t>(sizeof(uint32_t) * NbEdges);
-			uint32_t* VRefs0 = Core::Memory::Allocate<uint32_t>(sizeof(uint32_t) * NbEdges);
-			uint32_t* VRefs1 = Core::Memory::Allocate<uint32_t>(sizeof(uint32_t) * NbEdges);
-			for (uint32_t i = 0; i < NbEdges; i++)
+			radix_sorter core;
+			uint32_t* face_nb = core::memory::allocate<uint32_t>(sizeof(uint32_t) * nb_edges);
+			uint32_t* vrefs0 = core::memory::allocate<uint32_t>(sizeof(uint32_t) * nb_edges);
+			uint32_t* vrefs1 = core::memory::allocate<uint32_t>(sizeof(uint32_t) * nb_edges);
+			for (uint32_t i = 0; i < nb_edges; i++)
 			{
-				FaceNb[i] = Edges[i].FaceNb;
-				VRefs0[i] = Edges[i].Ref0;
-				VRefs1[i] = Edges[i].Ref1;
+				face_nb[i] = edges[i].face_nb;
+				vrefs0[i] = edges[i].ref0;
+				vrefs1[i] = edges[i].ref1;
 			}
 
-			uint32_t* Sorted = Core.Sort(FaceNb, NbEdges).Sort(VRefs0, NbEdges).Sort(VRefs1, NbEdges).GetIndices();
-			uint32_t LastRef0 = VRefs0[Sorted[0]];
-			uint32_t LastRef1 = VRefs1[Sorted[0]];
-			uint32_t Count = 0;
-			uint32_t TmpBuffer[3];
+			uint32_t* sorted = core.sort(face_nb, nb_edges).sort(vrefs0, nb_edges).sort(vrefs1, nb_edges).get_indices();
+			uint32_t last_ref0 = vrefs0[sorted[0]];
+			uint32_t last_ref1 = vrefs1[sorted[0]];
+			uint32_t count = 0;
+			uint32_t tmp_buffer[3];
 
-			for (uint32_t i = 0; i < NbEdges; i++)
+			for (uint32_t i = 0; i < nb_edges; i++)
 			{
-				uint32_t Face = FaceNb[Sorted[i]];
-				uint32_t Ref0 = VRefs0[Sorted[i]];
-				uint32_t Ref1 = VRefs1[Sorted[i]];
+				uint32_t face = face_nb[sorted[i]];
+				uint32_t ref0 = vrefs0[sorted[i]];
+				uint32_t ref1 = vrefs1[sorted[i]];
 
-				if (Ref0 == LastRef0 && Ref1 == LastRef1)
+				if (ref0 == last_ref0 && ref1 == last_ref1)
 				{
-					TmpBuffer[Count++] = Face;
-					if (Count == 3)
+					tmp_buffer[count++] = face;
+					if (count == 3)
 					{
-						Core::Memory::Deallocate(FaceNb);
-						Core::Memory::Deallocate(VRefs0);
-						Core::Memory::Deallocate(VRefs1);
+						core::memory::deallocate(face_nb);
+						core::memory::deallocate(vrefs0);
+						core::memory::deallocate(vrefs1);
 						return false;
 					}
 				}
 				else
 				{
-					if (Count == 2)
+					if (count == 2)
 					{
-						bool Status = UpdateLink(TmpBuffer[0], TmpBuffer[1], LastRef0, LastRef1);
-						if (!Status)
+						bool status = update_link(tmp_buffer[0], tmp_buffer[1], last_ref0, last_ref1);
+						if (!status)
 						{
-							Core::Memory::Deallocate(FaceNb);
-							Core::Memory::Deallocate(VRefs0);
-							Core::Memory::Deallocate(VRefs1);
-							return Status;
+							core::memory::deallocate(face_nb);
+							core::memory::deallocate(vrefs0);
+							core::memory::deallocate(vrefs1);
+							return status;
 						}
 					}
 
-					Count = 0;
-					TmpBuffer[Count++] = Face;
-					LastRef0 = Ref0;
-					LastRef1 = Ref1;
+					count = 0;
+					tmp_buffer[count++] = face;
+					last_ref0 = ref0;
+					last_ref1 = ref1;
 				}
 			}
 
-			bool Status = true;
-			if (Count == 2)
-				Status = UpdateLink(TmpBuffer[0], TmpBuffer[1], LastRef0, LastRef1);
+			bool status = true;
+			if (count == 2)
+				status = update_link(tmp_buffer[0], tmp_buffer[1], last_ref0, last_ref1);
 
-			Core::Memory::Deallocate(FaceNb);
-			Core::Memory::Deallocate(VRefs0);
-			Core::Memory::Deallocate(VRefs1);
-			Core::Memory::Deallocate(Edges);
+			core::memory::deallocate(face_nb);
+			core::memory::deallocate(vrefs0);
+			core::memory::deallocate(vrefs1);
+			core::memory::deallocate(edges);
 
-			return Status;
+			return status;
 		}
-		bool Adjacencies::AddTriangle(uint32_t ref0, uint32_t ref1, uint32_t ref2)
+		bool adjacencies::add_triangle(uint32_t ref0, uint32_t ref1, uint32_t ref2)
 		{
-			Faces[CurrentNbFaces].VRef[0] = ref0;
-			Faces[CurrentNbFaces].VRef[1] = ref1;
-			Faces[CurrentNbFaces].VRef[2] = ref2;
-			Faces[CurrentNbFaces].ATri[0] = -1;
-			Faces[CurrentNbFaces].ATri[1] = -1;
-			Faces[CurrentNbFaces].ATri[2] = -1;
+			faces[current_nb_faces].vref[0] = ref0;
+			faces[current_nb_faces].vref[1] = ref1;
+			faces[current_nb_faces].vref[2] = ref2;
+			faces[current_nb_faces].atri[0] = -1;
+			faces[current_nb_faces].atri[1] = -1;
+			faces[current_nb_faces].atri[2] = -1;
 
 			if (ref0 < ref1)
-				AddEdge(ref0, ref1, CurrentNbFaces);
+				add_edge(ref0, ref1, current_nb_faces);
 			else
-				AddEdge(ref1, ref0, CurrentNbFaces);
+				add_edge(ref1, ref0, current_nb_faces);
 
 			if (ref0 < ref2)
-				AddEdge(ref0, ref2, CurrentNbFaces);
+				add_edge(ref0, ref2, current_nb_faces);
 			else
-				AddEdge(ref2, ref0, CurrentNbFaces);
+				add_edge(ref2, ref0, current_nb_faces);
 
 			if (ref1 < ref2)
-				AddEdge(ref1, ref2, CurrentNbFaces);
+				add_edge(ref1, ref2, current_nb_faces);
 			else
-				AddEdge(ref2, ref1, CurrentNbFaces);
+				add_edge(ref2, ref1, current_nb_faces);
 
-			CurrentNbFaces++;
+			current_nb_faces++;
 			return true;
 		}
-		bool Adjacencies::AddEdge(uint32_t ref0, uint32_t ref1, uint32_t face)
+		bool adjacencies::add_edge(uint32_t ref0, uint32_t ref1, uint32_t face)
 		{
-			Edges[NbEdges].Ref0 = ref0;
-			Edges[NbEdges].Ref1 = ref1;
-			Edges[NbEdges].FaceNb = face;
-			NbEdges++;
+			edges[nb_edges].ref0 = ref0;
+			edges[nb_edges].ref1 = ref1;
+			edges[nb_edges].face_nb = face;
+			nb_edges++;
 
 			return true;
 		}
-		bool Adjacencies::UpdateLink(uint32_t firsttri, uint32_t secondtri, uint32_t ref0, uint32_t ref1)
+		bool adjacencies::update_link(uint32_t firsttri, uint32_t secondtri, uint32_t ref0, uint32_t ref1)
 		{
-			AdjTriangle* Tri0 = &Faces[firsttri];
-			AdjTriangle* Tri1 = &Faces[secondtri];
-			uint8_t EdgeNb0 = Tri0->FindEdge(ref0, ref1);
-			if (EdgeNb0 == 0xff)
+			adj_triangle* tri0 = &faces[firsttri];
+			adj_triangle* tri1 = &faces[secondtri];
+			uint8_t edge_nb0 = tri0->find_edge(ref0, ref1);
+			if (edge_nb0 == 0xff)
 				return false;
 
-			uint8_t EdgeNb1 = Tri1->FindEdge(ref0, ref1);
-			if (EdgeNb1 == 0xff)
+			uint8_t edge_nb1 = tri1->find_edge(ref0, ref1);
+			if (edge_nb1 == 0xff)
 				return false;
 
-			Tri0->ATri[EdgeNb0] = secondtri | ((uint32_t)EdgeNb1 << 30);
-			Tri1->ATri[EdgeNb1] = firsttri | ((uint32_t)EdgeNb0 << 30);
+			tri0->atri[edge_nb0] = secondtri | ((uint32_t)edge_nb1 << 30);
+			tri1->atri[edge_nb1] = firsttri | ((uint32_t)edge_nb0 << 30);
 
 			return true;
 		}
 
-		TriangleStrip::TriangleStrip() noexcept : Adj(nullptr), Tags(nullptr), NbStrips(0), TotalLength(0), OneSided(false), SGICipher(false), ConnectAllStrips(false)
+		triangle_strip::triangle_strip() noexcept : adj(nullptr), tags(nullptr), nb_strips(0), total_length(0), one_sided(false), sgi_cipher(false), connect_all_strips(false)
 		{
 		}
-		TriangleStrip::~TriangleStrip() noexcept
+		triangle_strip::~triangle_strip() noexcept
 		{
-			FreeBuffers();
+			free_buffers();
 		}
-		TriangleStrip& TriangleStrip::FreeBuffers()
+		triangle_strip& triangle_strip::free_buffers()
 		{
-			Core::Vector<uint32_t>().swap(SingleStrip);
-			Core::Vector<uint32_t>().swap(StripRuns);
-			Core::Vector<uint32_t>().swap(StripLengths);
-			Core::Memory::Deallocate(Tags);
-			Tags = nullptr;
+			core::vector<uint32_t>().swap(single_strip);
+			core::vector<uint32_t>().swap(strip_runs);
+			core::vector<uint32_t>().swap(strip_lengths);
+			core::memory::deallocate(tags);
+			tags = nullptr;
 
-			Core::Memory::Delete(Adj);
+			core::memory::deinit(adj);
 			return *this;
 		}
-		bool TriangleStrip::Fill(const TriangleStrip::Desc& create)
+		bool triangle_strip::fill(const triangle_strip::desc& create)
 		{
-			Adjacencies::Desc ac;
-			ac.NbFaces = create.NbFaces;
-			ac.Faces = create.Faces;
-			FreeBuffers();
+			adjacencies::desc ac;
+			ac.nb_faces = create.nb_faces;
+			ac.faces = create.faces;
+			free_buffers();
 
-			Adj = Core::Memory::New<Adjacencies>();
-			if (!Adj->Fill(ac))
+			adj = core::memory::init<adjacencies>();
+			if (!adj->fill(ac))
 			{
-				Core::Memory::Delete(Adj);
-				Adj = nullptr;
+				core::memory::deinit(adj);
+				adj = nullptr;
 				return false;
 			}
 
-			if (!Adj->Resolve())
+			if (!adj->resolve())
 			{
-				Core::Memory::Delete(Adj);
-				Adj = nullptr;
+				core::memory::deinit(adj);
+				adj = nullptr;
 				return false;
 			}
 
-			OneSided = create.OneSided;
-			SGICipher = create.SGICipher;
-			ConnectAllStrips = create.ConnectAllStrips;
+			one_sided = create.one_sided;
+			sgi_cipher = create.sgi_cipher;
+			connect_all_strips = create.connect_all_strips;
 
 			return true;
 		}
-		bool TriangleStrip::Resolve(TriangleStrip::Result& result)
+		bool triangle_strip::resolve(triangle_strip::result& result)
 		{
-			VI_ASSERT(Adj != nullptr, "triangle strip should be initialized");
-			Tags = Core::Memory::Allocate<bool>(sizeof(bool) * Adj->NbFaces);
-			uint32_t* Connectivity = Core::Memory::Allocate<uint32_t>(sizeof(uint32_t) * Adj->NbFaces);
+			VI_ASSERT(adj != nullptr, "triangle strip should be initialized");
+			tags = core::memory::allocate<bool>(sizeof(bool) * adj->nb_faces);
+			uint32_t* connectivity = core::memory::allocate<uint32_t>(sizeof(uint32_t) * adj->nb_faces);
 
-			memset(Tags, 0, Adj->NbFaces * sizeof(bool));
-			memset(Connectivity, 0, Adj->NbFaces * sizeof(uint32_t));
+			memset(tags, 0, adj->nb_faces * sizeof(bool));
+			memset(connectivity, 0, adj->nb_faces * sizeof(uint32_t));
 
-			if (SGICipher)
+			if (sgi_cipher)
 			{
-				for (uint32_t i = 0; i < Adj->NbFaces; i++)
+				for (uint32_t i = 0; i < adj->nb_faces; i++)
 				{
-					AdjTriangle* Tri = &Adj->Faces[i];
-					if (!IS_BOUNDARY(Tri->ATri[0]))
-						Connectivity[i]++;
+					adj_triangle* tri = &adj->faces[i];
+					if (!IS_BOUNDARY(tri->atri[0]))
+						connectivity[i]++;
 
-					if (!IS_BOUNDARY(Tri->ATri[1]))
-						Connectivity[i]++;
+					if (!IS_BOUNDARY(tri->atri[1]))
+						connectivity[i]++;
 
-					if (!IS_BOUNDARY(Tri->ATri[2]))
-						Connectivity[i]++;
+					if (!IS_BOUNDARY(tri->atri[2]))
+						connectivity[i]++;
 				}
 
-				RadixSorter RS;
-				uint32_t* Sorted = RS.Sort(Connectivity, Adj->NbFaces).GetIndices();
-				memcpy(Connectivity, Sorted, Adj->NbFaces * sizeof(uint32_t));
+				radix_sorter RS;
+				uint32_t* sorted = RS.sort(connectivity, adj->nb_faces).get_indices();
+				memcpy(connectivity, sorted, adj->nb_faces * sizeof(uint32_t));
 			}
 			else
 			{
-				for (uint32_t i = 0; i < Adj->NbFaces; i++)
-					Connectivity[i] = i;
+				for (uint32_t i = 0; i < adj->nb_faces; i++)
+					connectivity[i] = i;
 			}
 
-			NbStrips = 0;
-			uint32_t TotalNbFaces = 0;
-			uint32_t Index = 0;
+			nb_strips = 0;
+			uint32_t total_nb_faces = 0;
+			uint32_t index = 0;
 
-			while (TotalNbFaces != Adj->NbFaces)
+			while (total_nb_faces != adj->nb_faces)
 			{
-				while (Tags[Connectivity[Index]])
-					Index++;
+				while (tags[connectivity[index]])
+					index++;
 
-				uint32_t FirstFace = Connectivity[Index];
-				TotalNbFaces += ComputeStrip(FirstFace);
-				NbStrips++;
+				uint32_t first_face = connectivity[index];
+				total_nb_faces += compute_strip(first_face);
+				nb_strips++;
 			}
 
-			Core::Memory::Deallocate(Connectivity);
-			Core::Memory::Deallocate(Tags);
-			result.Groups = StripLengths;
-			result.Strips = StripRuns;
+			core::memory::deallocate(connectivity);
+			core::memory::deallocate(tags);
+			result.groups = strip_lengths;
+			result.strips = strip_runs;
 
-			if (ConnectAllStrips)
-				ConnectStrips(result);
+			if (connect_all_strips)
+				connect_strips(result);
 
 			return true;
 		}
-		uint32_t TriangleStrip::ComputeStrip(uint32_t face)
+		uint32_t triangle_strip::compute_strip(uint32_t face)
 		{
-			uint32_t* Strip[3];
-			uint32_t* Faces[3];
-			uint32_t Length[3];
-			uint32_t FirstLength[3];
-			uint32_t Refs0[3];
-			uint32_t Refs1[3];
+			uint32_t* strip[3];
+			uint32_t* faces[3];
+			uint32_t length[3];
+			uint32_t first_length[3];
+			uint32_t refs0[3];
+			uint32_t refs1[3];
 
-			Refs0[0] = Adj->Faces[face].VRef[0];
-			Refs1[0] = Adj->Faces[face].VRef[1];
+			refs0[0] = adj->faces[face].vref[0];
+			refs1[0] = adj->faces[face].vref[1];
 
-			Refs0[1] = Adj->Faces[face].VRef[2];
-			Refs1[1] = Adj->Faces[face].VRef[0];
+			refs0[1] = adj->faces[face].vref[2];
+			refs1[1] = adj->faces[face].vref[0];
 
-			Refs0[2] = Adj->Faces[face].VRef[1];
-			Refs1[2] = Adj->Faces[face].VRef[2];
+			refs0[2] = adj->faces[face].vref[1];
+			refs1[2] = adj->faces[face].vref[2];
 
 			for (uint32_t j = 0; j < 3; j++)
 			{
-				Strip[j] = Core::Memory::Allocate<uint32_t>(sizeof(uint32_t) * (Adj->NbFaces + 2 + 1 + 2));
-				Faces[j] = Core::Memory::Allocate<uint32_t>(sizeof(uint32_t) * (Adj->NbFaces + 2));
-				memset(Strip[j], 0xff, (Adj->NbFaces + 2 + 1 + 2) * sizeof(uint32_t));
-				memset(Faces[j], 0xff, (Adj->NbFaces + 2) * sizeof(uint32_t));
+				strip[j] = core::memory::allocate<uint32_t>(sizeof(uint32_t) * (adj->nb_faces + 2 + 1 + 2));
+				faces[j] = core::memory::allocate<uint32_t>(sizeof(uint32_t) * (adj->nb_faces + 2));
+				memset(strip[j], 0xff, (adj->nb_faces + 2 + 1 + 2) * sizeof(uint32_t));
+				memset(faces[j], 0xff, (adj->nb_faces + 2) * sizeof(uint32_t));
 
-				bool* vTags = Core::Memory::Allocate<bool>(sizeof(bool) * Adj->NbFaces);
-				memcpy(vTags, Tags, Adj->NbFaces * sizeof(bool));
+				bool* vTags = core::memory::allocate<bool>(sizeof(bool) * adj->nb_faces);
+				memcpy(vTags, tags, adj->nb_faces * sizeof(bool));
 
-				Length[j] = TrackStrip(face, Refs0[j], Refs1[j], &Strip[j][0], &Faces[j][0], vTags);
-				FirstLength[j] = Length[j];
+				length[j] = track_strip(face, refs0[j], refs1[j], &strip[j][0], &faces[j][0], vTags);
+				first_length[j] = length[j];
 
-				for (uint32_t i = 0; i < Length[j] / 2; i++)
+				for (uint32_t i = 0; i < length[j] / 2; i++)
 				{
-					Strip[j][i] ^= Strip[j][Length[j] - i - 1];
-					Strip[j][Length[j] - i - 1] ^= Strip[j][i];
-					Strip[j][i] ^= Strip[j][Length[j] - i - 1];
+					strip[j][i] ^= strip[j][length[j] - i - 1];
+					strip[j][length[j] - i - 1] ^= strip[j][i];
+					strip[j][i] ^= strip[j][length[j] - i - 1];
 				}
 
-				for (uint32_t i = 0; i < (Length[j] - 2) / 2; i++)
+				for (uint32_t i = 0; i < (length[j] - 2) / 2; i++)
 				{
-					Faces[j][i] ^= Faces[j][Length[j] - i - 3];
-					Faces[j][Length[j] - i - 3] ^= Faces[j][i];
-					Faces[j][i] ^= Faces[j][Length[j] - i - 3];
+					faces[j][i] ^= faces[j][length[j] - i - 3];
+					faces[j][length[j] - i - 3] ^= faces[j][i];
+					faces[j][i] ^= faces[j][length[j] - i - 3];
 				}
 
-				uint32_t NewRef0 = Strip[j][Length[j] - 3];
-				uint32_t NewRef1 = Strip[j][Length[j] - 2];
-				uint32_t ExtraLength = TrackStrip(face, NewRef0, NewRef1, &Strip[j][Length[j] - 3], &Faces[j][Length[j] - 3], vTags);
-				Length[j] += ExtraLength - 3;
-				Core::Memory::Deallocate(vTags);
+				uint32_t new_ref0 = strip[j][length[j] - 3];
+				uint32_t new_ref1 = strip[j][length[j] - 2];
+				uint32_t extra_length = track_strip(face, new_ref0, new_ref1, &strip[j][length[j] - 3], &faces[j][length[j] - 3], vTags);
+				length[j] += extra_length - 3;
+				core::memory::deallocate(vTags);
 			}
 
-			uint32_t Longest = Length[0];
-			uint32_t Best = 0;
-			if (Length[1] > Longest)
+			uint32_t longest = length[0];
+			uint32_t best = 0;
+			if (length[1] > longest)
 			{
-				Longest = Length[1];
-				Best = 1;
+				longest = length[1];
+				best = 1;
 			}
 
-			if (Length[2] > Longest)
+			if (length[2] > longest)
 			{
-				Longest = Length[2];
-				Best = 2;
+				longest = length[2];
+				best = 2;
 			}
 
-			uint32_t NbFaces = Longest - 2;
-			for (uint32_t j = 0; j < Longest - 2; j++)
-				Tags[Faces[Best][j]] = true;
+			uint32_t nb_faces = longest - 2;
+			for (uint32_t j = 0; j < longest - 2; j++)
+				tags[faces[best][j]] = true;
 
-			if (OneSided && FirstLength[Best] & 1)
+			if (one_sided && first_length[best] & 1)
 			{
-				if (Longest == 3 || Longest == 4)
+				if (longest == 3 || longest == 4)
 				{
-					Strip[Best][1] ^= Strip[Best][2];
-					Strip[Best][2] ^= Strip[Best][1];
-					Strip[Best][1] ^= Strip[Best][2];
+					strip[best][1] ^= strip[best][2];
+					strip[best][2] ^= strip[best][1];
+					strip[best][1] ^= strip[best][2];
 				}
 				else
 				{
-					for (uint32_t j = 0; j < Longest / 2; j++)
+					for (uint32_t j = 0; j < longest / 2; j++)
 					{
-						Strip[Best][j] ^= Strip[Best][Longest - j - 1];
-						Strip[Best][Longest - j - 1] ^= Strip[Best][j];
-						Strip[Best][j] ^= Strip[Best][Longest - j - 1];
+						strip[best][j] ^= strip[best][longest - j - 1];
+						strip[best][longest - j - 1] ^= strip[best][j];
+						strip[best][j] ^= strip[best][longest - j - 1];
 					}
 
-					uint32_t NewPos = Longest - FirstLength[Best];
-					if (NewPos & 1)
+					uint32_t new_pos = longest - first_length[best];
+					if (new_pos & 1)
 					{
-						for (uint32_t j = 0; j < Longest; j++)
-							Strip[Best][Longest - j] = Strip[Best][Longest - j - 1];
-						Longest++;
+						for (uint32_t j = 0; j < longest; j++)
+							strip[best][longest - j] = strip[best][longest - j - 1];
+						longest++;
 					}
 				}
 			}
 
-			for (uint32_t j = 0; j < Longest; j++)
+			for (uint32_t j = 0; j < longest; j++)
 			{
-				uint32_t Ref = Strip[Best][j];
-				StripRuns.push_back(Ref);
+				uint32_t ref = strip[best][j];
+				strip_runs.push_back(ref);
 			}
 
-			StripLengths.push_back(Longest);
+			strip_lengths.push_back(longest);
 			for (uint32_t j = 0; j < 3; j++)
 			{
-				Core::Memory::Deallocate(Faces[j]);
-				Core::Memory::Deallocate(Strip[j]);
+				core::memory::deallocate(faces[j]);
+				core::memory::deallocate(strip[j]);
 			}
 
-			return NbFaces;
+			return nb_faces;
 		}
-		uint32_t TriangleStrip::TrackStrip(uint32_t face, uint32_t oldest, uint32_t middle, uint32_t* strip, uint32_t* faces, bool* tags)
+		uint32_t triangle_strip::track_strip(uint32_t face, uint32_t oldest, uint32_t middle, uint32_t* strip, uint32_t* faces, bool* tags)
 		{
-			uint32_t Length = 2;
+			uint32_t length = 2;
 			strip[0] = oldest;
 			strip[1] = middle;
 
-			bool DoTheStrip = true;
-			while (DoTheStrip)
+			bool do_the_strip = true;
+			while (do_the_strip)
 			{
-				uint32_t Newest = Adj->Faces[face].OppositeVertex(oldest, middle);
-				strip[Length++] = Newest;
+				uint32_t newest = adj->faces[face].opposite_vertex(oldest, middle);
+				strip[length++] = newest;
 				*faces++ = face;
 				tags[face] = true;
 
-				uint8_t CurEdge = Adj->Faces[face].FindEdge(middle, Newest);
-				if (!IS_BOUNDARY(CurEdge))
+				uint8_t cur_edge = adj->faces[face].find_edge(middle, newest);
+				if (!IS_BOUNDARY(cur_edge))
 				{
-					uint32_t Link = Adj->Faces[face].ATri[CurEdge];
-					face = MAKE_ADJ_TRI(Link);
+					uint32_t link = adj->faces[face].atri[cur_edge];
+					face = MAKE_ADJ_TRI(link);
 					if (tags[face])
-						DoTheStrip = false;
+						do_the_strip = false;
 				}
 				else
-					DoTheStrip = false;
+					do_the_strip = false;
 
 				oldest = middle;
-				middle = Newest;
+				middle = newest;
 			}
 
-			return Length;
+			return length;
 		}
-		bool TriangleStrip::ConnectStrips(TriangleStrip::Result& result)
+		bool triangle_strip::connect_strips(triangle_strip::result& result)
 		{
-			uint32_t* drefs = (uint32_t*)result.Strips.data();
-			SingleStrip.clear();
-			TotalLength = 0;
+			uint32_t* drefs = (uint32_t*)result.strips.data();
+			single_strip.clear();
+			total_length = 0;
 
-			for (uint32_t k = 0; k < result.Groups.size(); k++)
+			for (uint32_t k = 0; k < result.groups.size(); k++)
 			{
 				if (k)
 				{
-					uint32_t LastRef = drefs[-1];
-					uint32_t FirstRef = drefs[0];
-					SingleStrip.push_back(LastRef);
-					SingleStrip.push_back(FirstRef);
-					TotalLength += 2;
+					uint32_t last_ref = drefs[-1];
+					uint32_t first_ref = drefs[0];
+					single_strip.push_back(last_ref);
+					single_strip.push_back(first_ref);
+					total_length += 2;
 
-					if (OneSided && TotalLength & 1)
+					if (one_sided && total_length & 1)
 					{
-						uint32_t SecondRef = drefs[1];
-						if (FirstRef != SecondRef)
+						uint32_t second_ref = drefs[1];
+						if (first_ref != second_ref)
 						{
-							SingleStrip.push_back(FirstRef);
-							TotalLength++;
+							single_strip.push_back(first_ref);
+							total_length++;
 						}
 						else
 						{
-							result.Groups[k]--;
+							result.groups[k]--;
 							drefs++;
 						}
 					}
 				}
 
-				for (uint32_t j = 0; j < result.Groups[k]; j++)
+				for (uint32_t j = 0; j < result.groups[k]; j++)
 				{
-					uint32_t Ref = drefs[j];
-					SingleStrip.push_back(Ref);
+					uint32_t ref = drefs[j];
+					single_strip.push_back(ref);
 				}
 
-				drefs += result.Groups[k];
-				TotalLength += result.Groups[k];
+				drefs += result.groups[k];
+				total_length += result.groups[k];
 			}
 
-			result.Strips = SingleStrip;
-			result.Groups = Core::Vector<uint32_t>({ TotalLength });
+			result.strips = single_strip;
+			result.groups = core::vector<uint32_t>({ total_length });
 
 			return true;
 		}
 
-		Core::Vector<int> TriangleStrip::Result::GetIndices(int Group)
+		core::vector<int> triangle_strip::result::get_indices(int group)
 		{
-			Core::Vector<int> Indices;
-			if (Group < 0)
+			core::vector<int> indices;
+			if (group < 0)
 			{
-				Indices.reserve(Strips.size());
-				for (auto& Index : Strips)
-					Indices.push_back(Index);
+				indices.reserve(strips.size());
+				for (auto& index : strips)
+					indices.push_back(index);
 
-				return Indices;
+				return indices;
 			}
-			else if (Group < (int)Groups.size())
+			else if (group < (int)groups.size())
 			{
-				size_t Size = Groups[Group];
-				Indices.reserve(Size);
+				size_t size = groups[group];
+				indices.reserve(size);
 
-				size_t Off = 0, Idx = 0;
-				while (Off != Group)
-					Idx += Groups[Off++];
+				size_t off = 0, idx = 0;
+				while (off != group)
+					idx += groups[off++];
 
-				Size += Idx;
-				for (size_t i = Idx; i < Size; i++)
-					Indices.push_back(Strips[i]);
+				size += idx;
+				for (size_t i = idx; i < size; i++)
+					indices.push_back(strips[i]);
 
-				return Indices;
+				return indices;
 			}
 
-			return Indices;
+			return indices;
 		}
-		Core::Vector<int> TriangleStrip::Result::GetInvIndices(int Group)
+		core::vector<int> triangle_strip::result::get_inv_indices(int group)
 		{
-			Core::Vector<int> Indices = GetIndices(Group);
-			std::reverse(Indices.begin(), Indices.end());
+			core::vector<int> indices = get_indices(group);
+			std::reverse(indices.begin(), indices.end());
 
-			return Indices;
+			return indices;
 		}
 
-		RadixSorter::RadixSorter() noexcept : CurrentSize(0), Indices(nullptr), Indices2(nullptr)
+		radix_sorter::radix_sorter() noexcept : current_size(0), indices(nullptr), indices2(nullptr)
 		{
-			Histogram = Core::Memory::Allocate<uint32_t>(sizeof(uint32_t) * 256 * 4);
-			Offset = Core::Memory::Allocate<uint32_t>(sizeof(uint32_t) * 256);
-			ResetIndices();
+			histogram = core::memory::allocate<uint32_t>(sizeof(uint32_t) * 256 * 4);
+			offset = core::memory::allocate<uint32_t>(sizeof(uint32_t) * 256);
+			reset_indices();
 		}
-		RadixSorter::RadixSorter(const RadixSorter& Other) noexcept : CurrentSize(0), Indices(nullptr), Indices2(nullptr)
+		radix_sorter::radix_sorter(const radix_sorter& other) noexcept : current_size(0), indices(nullptr), indices2(nullptr)
 		{
-			Histogram = Core::Memory::Allocate<uint32_t>(sizeof(uint32_t) * 256 * 4);
-			Offset = Core::Memory::Allocate<uint32_t>(sizeof(uint32_t) * 256);
-			ResetIndices();
+			histogram = core::memory::allocate<uint32_t>(sizeof(uint32_t) * 256 * 4);
+			offset = core::memory::allocate<uint32_t>(sizeof(uint32_t) * 256);
+			reset_indices();
 		}
-		RadixSorter::RadixSorter(RadixSorter&& Other) noexcept : Histogram(Other.Histogram), Offset(Other.Offset), CurrentSize(Other.CurrentSize), Indices(Other.Indices), Indices2(Other.Indices2)
+		radix_sorter::radix_sorter(radix_sorter&& other) noexcept : histogram(other.histogram), offset(other.offset), current_size(other.current_size), indices(other.indices), indices2(other.indices2)
 		{
-			Other.Indices = nullptr;
-			Other.Indices2 = nullptr;
-			Other.CurrentSize = 0;
-			Other.Histogram = nullptr;
-			Other.Offset = nullptr;
+			other.indices = nullptr;
+			other.indices2 = nullptr;
+			other.current_size = 0;
+			other.histogram = nullptr;
+			other.offset = nullptr;
 		}
-		RadixSorter::~RadixSorter() noexcept
+		radix_sorter::~radix_sorter() noexcept
 		{
-			Core::Memory::Deallocate(Offset);
-			Core::Memory::Deallocate(Histogram);
-			Core::Memory::Deallocate(Indices2);
-			Core::Memory::Deallocate(Indices);
+			core::memory::deallocate(offset);
+			core::memory::deallocate(histogram);
+			core::memory::deallocate(indices2);
+			core::memory::deallocate(indices);
 		}
-		RadixSorter& RadixSorter::operator =(const RadixSorter& V)
+		radix_sorter& radix_sorter::operator =(const radix_sorter& v)
 		{
-			Core::Memory::Deallocate(Histogram);
-			Histogram = Core::Memory::Allocate<uint32_t>(sizeof(uint32_t) * 256 * 4);
+			core::memory::deallocate(histogram);
+			histogram = core::memory::allocate<uint32_t>(sizeof(uint32_t) * 256 * 4);
 
-			Core::Memory::Deallocate(Offset);
-			Offset = Core::Memory::Allocate<uint32_t>(sizeof(uint32_t) * 256);
-			ResetIndices();
+			core::memory::deallocate(offset);
+			offset = core::memory::allocate<uint32_t>(sizeof(uint32_t) * 256);
+			reset_indices();
 
 			return *this;
 		}
-		RadixSorter& RadixSorter::operator =(RadixSorter&& Other) noexcept
+		radix_sorter& radix_sorter::operator =(radix_sorter&& other) noexcept
 		{
-			Core::Memory::Deallocate(Offset);
-			Core::Memory::Deallocate(Histogram);
-			Core::Memory::Deallocate(Indices2);
-			Core::Memory::Deallocate(Indices);
-			Indices = Other.Indices;
-			Indices2 = Other.Indices2;
-			CurrentSize = Other.CurrentSize;
-			Histogram = Other.Histogram;
-			Offset = Other.Offset;
-			Other.Indices = nullptr;
-			Other.Indices2 = nullptr;
-			Other.CurrentSize = 0;
-			Other.Histogram = nullptr;
-			Other.Offset = nullptr;
+			core::memory::deallocate(offset);
+			core::memory::deallocate(histogram);
+			core::memory::deallocate(indices2);
+			core::memory::deallocate(indices);
+			indices = other.indices;
+			indices2 = other.indices2;
+			current_size = other.current_size;
+			histogram = other.histogram;
+			offset = other.offset;
+			other.indices = nullptr;
+			other.indices2 = nullptr;
+			other.current_size = 0;
+			other.histogram = nullptr;
+			other.offset = nullptr;
 
 			return *this;
 		}
-		RadixSorter& RadixSorter::Sort(uint32_t* input, uint32_t nb, bool signedvalues)
+		radix_sorter& radix_sorter::sort(uint32_t* input, uint32_t nb, bool signedvalues)
 		{
-			if (nb > CurrentSize)
+			if (nb > current_size)
 			{
-				Core::Memory::Deallocate(Indices2);
-				Core::Memory::Deallocate(Indices);
-				Indices = Core::Memory::Allocate<uint32_t>(sizeof(uint32_t) * nb);
-				Indices2 = Core::Memory::Allocate<uint32_t>(sizeof(uint32_t) * nb);
-				CurrentSize = nb;
-				ResetIndices();
+				core::memory::deallocate(indices2);
+				core::memory::deallocate(indices);
+				indices = core::memory::allocate<uint32_t>(sizeof(uint32_t) * nb);
+				indices2 = core::memory::allocate<uint32_t>(sizeof(uint32_t) * nb);
+				current_size = nb;
+				reset_indices();
 			}
 
-			memset(Histogram, 0, 256 * 4 * sizeof(uint32_t));
+			memset(histogram, 0, 256 * 4 * sizeof(uint32_t));
 
-			bool AlreadySorted = true;
-			uint32_t* vIndices = Indices;
+			bool already_sorted = true;
+			uint32_t* vIndices = indices;
 			uint8_t* p = (uint8_t*)input;
 			uint8_t* pe = &p[nb * 4];
-			uint32_t* h0 = &Histogram[0];
-			uint32_t* h1 = &Histogram[256];
-			uint32_t* h2 = &Histogram[512];
-			uint32_t* h3 = &Histogram[768];
+			uint32_t* h0 = &histogram[0];
+			uint32_t* h1 = &histogram[256];
+			uint32_t* h2 = &histogram[512];
+			uint32_t* h3 = &histogram[768];
 
 			if (!signedvalues)
 			{
-				uint32_t PrevVal = input[Indices[0]];
+				uint32_t prev_val = input[indices[0]];
 				while (p != pe)
 				{
-					uint32_t Val = input[*vIndices++];
-					if (Val < PrevVal)
-						AlreadySorted = false;
+					uint32_t val = input[*vIndices++];
+					if (val < prev_val)
+						already_sorted = false;
 
-					PrevVal = Val;
+					prev_val = val;
 					h0[*p++]++;
 					h1[*p++]++;
 					h2[*p++]++;
@@ -3756,14 +3755,14 @@ namespace Vitex
 			}
 			else
 			{
-				signed int PrevVal = (signed int)input[Indices[0]];
+				signed int prev_val = (signed int)input[indices[0]];
 				while (p != pe)
 				{
-					signed int Val = (signed int)input[*vIndices++];
-					if (Val < PrevVal)
-						AlreadySorted = false;
+					signed int val = (signed int)input[*vIndices++];
+					if (val < prev_val)
+						already_sorted = false;
 
-					PrevVal = Val;
+					prev_val = val;
 					h0[*p++]++;
 					h1[*p++]++;
 					h2[*p++]++;
@@ -3771,1498 +3770,1498 @@ namespace Vitex
 				}
 			}
 
-			if (AlreadySorted)
+			if (already_sorted)
 				return *this;
 
-			uint32_t NbNegativeValues = 0;
+			uint32_t nb_negative_values = 0;
 			if (signedvalues)
 			{
-				uint32_t* h4 = &Histogram[768];
+				uint32_t* h4 = &histogram[768];
 				for (uint32_t i = 128; i < 256; i++)
-					NbNegativeValues += h4[i];
+					nb_negative_values += h4[i];
 			}
 
 			for (uint32_t j = 0; j < 4; j++)
 			{
-				uint32_t* CurCount = &Histogram[j << 8];
-				bool PerformPass = true;
+				uint32_t* cur_count = &histogram[j << 8];
+				bool perform_pass = true;
 
 				for (uint32_t i = 0; i < 256; i++)
 				{
-					if (CurCount[i] == nb)
+					if (cur_count[i] == nb)
 					{
-						PerformPass = false;
+						perform_pass = false;
 						break;
 					}
 
-					if (CurCount[i])
+					if (cur_count[i])
 						break;
 				}
 
-				if (PerformPass)
+				if (perform_pass)
 				{
 					if (j != 3 || !signedvalues)
 					{
-						Offset[0] = 0;
+						offset[0] = 0;
 						for (uint32_t i = 1; i < 256; i++)
-							Offset[i] = Offset[i - 1] + CurCount[i - 1];
+							offset[i] = offset[i - 1] + cur_count[i - 1];
 					}
 					else
 					{
-						Offset[0] = NbNegativeValues;
+						offset[0] = nb_negative_values;
 						for (uint32_t i = 1; i < 128; i++)
-							Offset[i] = Offset[i - 1] + CurCount[i - 1];
+							offset[i] = offset[i - 1] + cur_count[i - 1];
 
-						Offset[128] = 0;
+						offset[128] = 0;
 						for (uint32_t i = 129; i < 256; i++)
-							Offset[i] = Offset[i - 1] + CurCount[i - 1];
+							offset[i] = offset[i - 1] + cur_count[i - 1];
 					}
 
-					uint8_t* InputBytes = (uint8_t*)input;
-					uint32_t* IndicesStart = Indices;
-					uint32_t* IndicesEnd = &Indices[nb];
-					InputBytes += j;
+					uint8_t* input_bytes = (uint8_t*)input;
+					uint32_t* indices_start = indices;
+					uint32_t* indices_end = &indices[nb];
+					input_bytes += j;
 
-					while (IndicesStart != IndicesEnd)
+					while (indices_start != indices_end)
 					{
-						uint32_t id = *IndicesStart++;
-						Indices2[Offset[InputBytes[id << 2]]++] = id;
+						uint32_t id = *indices_start++;
+						indices2[offset[input_bytes[id << 2]]++] = id;
 					}
 
-					uint32_t* Tmp = Indices;
-					Indices = Indices2;
-					Indices2 = Tmp;
+					uint32_t* tmp = indices;
+					indices = indices2;
+					indices2 = tmp;
 				}
 			}
 
 			return *this;
 		}
-		RadixSorter& RadixSorter::Sort(float* input2, uint32_t nb)
+		radix_sorter& radix_sorter::sort(float* input2, uint32_t nb)
 		{
 			uint32_t* input = (uint32_t*)input2;
-			if (nb > CurrentSize)
+			if (nb > current_size)
 			{
-				Core::Memory::Deallocate(Indices2);
-				Core::Memory::Deallocate(Indices);
-				Indices = Core::Memory::Allocate<uint32_t>(sizeof(uint32_t) * nb);
-				Indices2 = Core::Memory::Allocate<uint32_t>(sizeof(uint32_t) * nb);
-				CurrentSize = nb;
-				ResetIndices();
+				core::memory::deallocate(indices2);
+				core::memory::deallocate(indices);
+				indices = core::memory::allocate<uint32_t>(sizeof(uint32_t) * nb);
+				indices2 = core::memory::allocate<uint32_t>(sizeof(uint32_t) * nb);
+				current_size = nb;
+				reset_indices();
 			}
 
-			memset(Histogram, 0, 256 * 4 * sizeof(uint32_t));
+			memset(histogram, 0, 256 * 4 * sizeof(uint32_t));
 			{
-				float PrevVal = input2[Indices[0]];
-				bool AlreadySorted = true;
-				uint32_t* vIndices = Indices;
+				float prev_val = input2[indices[0]];
+				bool already_sorted = true;
+				uint32_t* vIndices = indices;
 				uint8_t* p = (uint8_t*)input;
 				uint8_t* pe = &p[nb * 4];
-				uint32_t* h0 = &Histogram[0];
-				uint32_t* h1 = &Histogram[256];
-				uint32_t* h2 = &Histogram[512];
-				uint32_t* h3 = &Histogram[768];
+				uint32_t* h0 = &histogram[0];
+				uint32_t* h1 = &histogram[256];
+				uint32_t* h2 = &histogram[512];
+				uint32_t* h3 = &histogram[768];
 
 				while (p != pe)
 				{
-					float Val = input2[*vIndices++];
-					if (Val < PrevVal)
-						AlreadySorted = false;
+					float val = input2[*vIndices++];
+					if (val < prev_val)
+						already_sorted = false;
 
-					PrevVal = Val;
+					prev_val = val;
 					h0[*p++]++;
 					h1[*p++]++;
 					h2[*p++]++;
 					h3[*p++]++;
 				}
 
-				if (AlreadySorted)
+				if (already_sorted)
 					return *this;
 			}
 
-			uint32_t NbNegativeValues = 0;
-			uint32_t* h3 = &Histogram[768];
+			uint32_t nb_negative_values = 0;
+			uint32_t* h3 = &histogram[768];
 			for (uint32_t i = 128; i < 256; i++)
-				NbNegativeValues += h3[i];
+				nb_negative_values += h3[i];
 
 			for (uint32_t j = 0; j < 4; j++)
 			{
-				uint32_t* CurCount = &Histogram[j << 8];
-				bool PerformPass = true;
+				uint32_t* cur_count = &histogram[j << 8];
+				bool perform_pass = true;
 
 				for (uint32_t i = 0; i < 256; i++)
 				{
-					if (CurCount[i] == nb)
+					if (cur_count[i] == nb)
 					{
-						PerformPass = false;
+						perform_pass = false;
 						break;
 					}
 
-					if (CurCount[i])
+					if (cur_count[i])
 						break;
 				}
 
-				if (PerformPass)
+				if (perform_pass)
 				{
 					if (j != 3)
 					{
-						Offset[0] = 0;
+						offset[0] = 0;
 						for (uint32_t i = 1; i < 256; i++)
-							Offset[i] = Offset[i - 1] + CurCount[i - 1];
+							offset[i] = offset[i - 1] + cur_count[i - 1];
 
-						uint8_t* InputBytes = (uint8_t*)input;
-						uint32_t* IndicesStart = Indices;
-						uint32_t* IndicesEnd = &Indices[nb];
-						InputBytes += j;
+						uint8_t* input_bytes = (uint8_t*)input;
+						uint32_t* indices_start = indices;
+						uint32_t* indices_end = &indices[nb];
+						input_bytes += j;
 
-						while (IndicesStart != IndicesEnd)
+						while (indices_start != indices_end)
 						{
-							uint32_t id = *IndicesStart++;
-							Indices2[Offset[InputBytes[id << 2]]++] = id;
+							uint32_t id = *indices_start++;
+							indices2[offset[input_bytes[id << 2]]++] = id;
 						}
 					}
 					else
 					{
-						Offset[0] = NbNegativeValues;
+						offset[0] = nb_negative_values;
 						for (uint32_t i = 1; i < 128; i++)
-							Offset[i] = Offset[i - 1] + CurCount[i - 1];
+							offset[i] = offset[i - 1] + cur_count[i - 1];
 
-						Offset[255] = 0;
+						offset[255] = 0;
 						for (uint32_t i = 0; i < 127; i++)
-							Offset[254 - i] = Offset[255 - i] + CurCount[255 - i];
+							offset[254 - i] = offset[255 - i] + cur_count[255 - i];
 
 						for (uint32_t i = 128; i < 256; i++)
-							Offset[i] += CurCount[i];
+							offset[i] += cur_count[i];
 
 						for (uint32_t i = 0; i < nb; i++)
 						{
-							uint32_t Radix = input[Indices[i]] >> 24;
-							if (Radix < 128)
-								Indices2[Offset[Radix]++] = Indices[i];
+							uint32_t radix = input[indices[i]] >> 24;
+							if (radix < 128)
+								indices2[offset[radix]++] = indices[i];
 							else
-								Indices2[--Offset[Radix]] = Indices[i];
+								indices2[--offset[radix]] = indices[i];
 						}
 					}
 
-					uint32_t* Tmp = Indices;
-					Indices = Indices2;
-					Indices2 = Tmp;
+					uint32_t* tmp = indices;
+					indices = indices2;
+					indices2 = tmp;
 				}
 			}
 
 			return *this;
 		}
-		RadixSorter& RadixSorter::ResetIndices()
+		radix_sorter& radix_sorter::reset_indices()
 		{
-			for (uint32_t i = 0; i < CurrentSize; i++)
-				Indices[i] = i;
+			for (uint32_t i = 0; i < current_size; i++)
+				indices[i] = i;
 
 			return *this;
 		}
-		uint32_t* RadixSorter::GetIndices()
+		uint32_t* radix_sorter::get_indices()
 		{
-			return Indices;
+			return indices;
 		}
 
-		bool Geometric::IsCubeInFrustum(const Matrix4x4& WVP, float Radius)
+		bool geometric::is_cube_in_frustum(const matrix4x4& WVP, float radius)
 		{
-			Radius = -Radius;
+			radius = -radius;
 #ifdef VI_VECTORCLASS
-			LOAD_AV4(_r1, WVP.Row[3], WVP.Row[7], WVP.Row[11], WVP.Row[15]);
-			LOAD_AV4(_r2, WVP.Row[0], WVP.Row[4], WVP.Row[8], WVP.Row[12]);
+			LOAD_AV4(_r1, WVP.row[3], WVP.row[7], WVP.row[11], WVP.row[15]);
+			LOAD_AV4(_r2, WVP.row[0], WVP.row[4], WVP.row[8], WVP.row[12]);
 			LOAD_VAL(_r3, _r1 + _r2);
-			float F = _r3.extract(3); _r3.cutoff(3);
-			F /= Geometric::FastSqrt(horizontal_add(square(_r3)));
-			if (F <= Radius)
+			float f = _r3.extract(3); _r3.cutoff(3);
+			f /= geometric::fast_sqrt(horizontal_add(square(_r3)));
+			if (f <= radius)
 				return false;
 
 			_r3 = _r1 - _r2;
-			F = _r3.extract(3); _r3.cutoff(3);
-			F /= Geometric::FastSqrt(horizontal_add(square(_r3)));
-			if (F <= Radius)
+			f = _r3.extract(3); _r3.cutoff(3);
+			f /= geometric::fast_sqrt(horizontal_add(square(_r3)));
+			if (f <= radius)
 				return false;
 
-			_r2 = Vec4f(WVP.Row[1], WVP.Row[5], WVP.Row[9], WVP.Row[13]);
+			_r2 = Vec4f(WVP.row[1], WVP.row[5], WVP.row[9], WVP.row[13]);
 			_r3 = _r1 + _r2;
-			F = _r3.extract(3); _r3.cutoff(3);
-			F /= Geometric::FastSqrt(horizontal_add(square(_r3)));
-			if (F <= Radius)
+			f = _r3.extract(3); _r3.cutoff(3);
+			f /= geometric::fast_sqrt(horizontal_add(square(_r3)));
+			if (f <= radius)
 				return false;
 
 			_r3 = _r1 - _r2;
-			F = _r3.extract(3); _r3.cutoff(3);
-			F /= Geometric::FastSqrt(horizontal_add(square(_r3)));
-			if (F <= Radius)
+			f = _r3.extract(3); _r3.cutoff(3);
+			f /= geometric::fast_sqrt(horizontal_add(square(_r3)));
+			if (f <= radius)
 				return false;
 
-			_r2 = Vec4f(WVP.Row[2], WVP.Row[6], WVP.Row[10], WVP.Row[14]);
+			_r2 = Vec4f(WVP.row[2], WVP.row[6], WVP.row[10], WVP.row[14]);
 			_r3 = _r1 + _r2;
-			F = _r3.extract(3); _r3.cutoff(3);
-			F /= Geometric::FastSqrt(horizontal_add(square(_r3)));
-			if (F <= Radius)
+			f = _r3.extract(3); _r3.cutoff(3);
+			f /= geometric::fast_sqrt(horizontal_add(square(_r3)));
+			if (f <= radius)
 				return false;
 
-			_r2 = Vec4f(WVP.Row[2], WVP.Row[6], WVP.Row[10], WVP.Row[14]);
+			_r2 = Vec4f(WVP.row[2], WVP.row[6], WVP.row[10], WVP.row[14]);
 			_r3 = _r1 - _r2;
-			F = _r3.extract(3); _r3.cutoff(3);
-			F /= Geometric::FastSqrt(horizontal_add(square(_r3)));
-			if (F <= Radius)
+			f = _r3.extract(3); _r3.cutoff(3);
+			f /= geometric::fast_sqrt(horizontal_add(square(_r3)));
+			if (f <= radius)
 				return false;
 #else
-			float Plane[4];
-			Plane[0] = WVP.Row[3] + WVP.Row[0];
-			Plane[1] = WVP.Row[7] + WVP.Row[4];
-			Plane[2] = WVP.Row[11] + WVP.Row[8];
-			Plane[3] = WVP.Row[15] + WVP.Row[12];
+			float plane[4];
+			plane[0] = WVP.row[3] + WVP.row[0];
+			plane[1] = WVP.row[7] + WVP.row[4];
+			plane[2] = WVP.row[11] + WVP.row[8];
+			plane[3] = WVP.row[15] + WVP.row[12];
 
-			Plane[3] /= Geometric::FastSqrt(Plane[0] * Plane[0] + Plane[1] * Plane[1] + Plane[2] * Plane[2]);
-			if (Plane[3] <= Radius)
+			plane[3] /= geometric::fast_sqrt(plane[0] * plane[0] + plane[1] * plane[1] + plane[2] * plane[2]);
+			if (plane[3] <= radius)
 				return false;
 
-			Plane[0] = WVP.Row[3] - WVP.Row[0];
-			Plane[1] = WVP.Row[7] - WVP.Row[4];
-			Plane[2] = WVP.Row[11] - WVP.Row[8];
-			Plane[3] = WVP.Row[15] - WVP.Row[12];
+			plane[0] = WVP.row[3] - WVP.row[0];
+			plane[1] = WVP.row[7] - WVP.row[4];
+			plane[2] = WVP.row[11] - WVP.row[8];
+			plane[3] = WVP.row[15] - WVP.row[12];
 
-			Plane[3] /= Geometric::FastSqrt(Plane[0] * Plane[0] + Plane[1] * Plane[1] + Plane[2] * Plane[2]);
-			if (Plane[3] <= Radius)
+			plane[3] /= geometric::fast_sqrt(plane[0] * plane[0] + plane[1] * plane[1] + plane[2] * plane[2]);
+			if (plane[3] <= radius)
 				return false;
 
-			Plane[0] = WVP.Row[3] + WVP.Row[1];
-			Plane[1] = WVP.Row[7] + WVP.Row[5];
-			Plane[2] = WVP.Row[11] + WVP.Row[9];
-			Plane[3] = WVP.Row[15] + WVP.Row[13];
+			plane[0] = WVP.row[3] + WVP.row[1];
+			plane[1] = WVP.row[7] + WVP.row[5];
+			plane[2] = WVP.row[11] + WVP.row[9];
+			plane[3] = WVP.row[15] + WVP.row[13];
 
-			Plane[3] /= Geometric::FastSqrt(Plane[0] * Plane[0] + Plane[1] * Plane[1] + Plane[2] * Plane[2]);
-			if (Plane[3] <= Radius)
+			plane[3] /= geometric::fast_sqrt(plane[0] * plane[0] + plane[1] * plane[1] + plane[2] * plane[2]);
+			if (plane[3] <= radius)
 				return false;
 
-			Plane[0] = WVP.Row[3] - WVP.Row[1];
-			Plane[1] = WVP.Row[7] - WVP.Row[5];
-			Plane[2] = WVP.Row[11] - WVP.Row[9];
-			Plane[3] = WVP.Row[15] - WVP.Row[13];
+			plane[0] = WVP.row[3] - WVP.row[1];
+			plane[1] = WVP.row[7] - WVP.row[5];
+			plane[2] = WVP.row[11] - WVP.row[9];
+			plane[3] = WVP.row[15] - WVP.row[13];
 
-			Plane[3] /= Geometric::FastSqrt(Plane[0] * Plane[0] + Plane[1] * Plane[1] + Plane[2] * Plane[2]);
-			if (Plane[3] <= Radius)
+			plane[3] /= geometric::fast_sqrt(plane[0] * plane[0] + plane[1] * plane[1] + plane[2] * plane[2]);
+			if (plane[3] <= radius)
 				return false;
 
-			Plane[0] = WVP.Row[3] + WVP.Row[2];
-			Plane[1] = WVP.Row[7] + WVP.Row[6];
-			Plane[2] = WVP.Row[11] + WVP.Row[10];
-			Plane[3] = WVP.Row[15] + WVP.Row[14];
+			plane[0] = WVP.row[3] + WVP.row[2];
+			plane[1] = WVP.row[7] + WVP.row[6];
+			plane[2] = WVP.row[11] + WVP.row[10];
+			plane[3] = WVP.row[15] + WVP.row[14];
 
-			Plane[3] /= Geometric::FastSqrt(Plane[0] * Plane[0] + Plane[1] * Plane[1] + Plane[2] * Plane[2]);
-			if (Plane[3] <= Radius)
+			plane[3] /= geometric::fast_sqrt(plane[0] * plane[0] + plane[1] * plane[1] + plane[2] * plane[2]);
+			if (plane[3] <= radius)
 				return false;
 
-			Plane[0] = WVP.Row[3] - WVP.Row[2];
-			Plane[1] = WVP.Row[7] - WVP.Row[6];
-			Plane[2] = WVP.Row[11] - WVP.Row[10];
-			Plane[3] = WVP.Row[15] - WVP.Row[14];
+			plane[0] = WVP.row[3] - WVP.row[2];
+			plane[1] = WVP.row[7] - WVP.row[6];
+			plane[2] = WVP.row[11] - WVP.row[10];
+			plane[3] = WVP.row[15] - WVP.row[14];
 
-			Plane[3] /= Geometric::FastSqrt(Plane[0] * Plane[0] + Plane[1] * Plane[1] + Plane[2] * Plane[2]);
-			if (Plane[3] <= Radius)
+			plane[3] /= geometric::fast_sqrt(plane[0] * plane[0] + plane[1] * plane[1] + plane[2] * plane[2]);
+			if (plane[3] <= radius)
 				return false;
 #endif
 			return true;
 		}
-		bool Geometric::IsLeftHanded()
+		bool geometric::is_left_handed()
 		{
-			return LeftHanded;
+			return left_handed;
 		}
-		bool Geometric::HasSphereIntersected(const Vector3& PositionR0, float RadiusR0, const Vector3& PositionR1, float RadiusR1)
+		bool geometric::has_sphere_intersected(const vector3& position_r0, float radius_r0, const vector3& position_r1, float radius_r1)
 		{
-			if (PositionR0.Distance(PositionR1) < RadiusR0 + RadiusR1)
+			if (position_r0.distance(position_r1) < radius_r0 + radius_r1)
 				return true;
 
 			return false;
 		}
-		bool Geometric::HasLineIntersected(float Distance0, float Distance1, const Vector3& Point0, const Vector3& Point1, Vector3& Hit)
+		bool geometric::has_line_intersected(float distance0, float distance1, const vector3& point0, const vector3& point1, vector3& hit)
 		{
-			if ((Distance0 * Distance1) >= 0)
+			if ((distance0 * distance1) >= 0)
 				return false;
 
-			if (Distance0 == Distance1)
+			if (distance0 == distance1)
 				return false;
 
-			Hit = Point0 + (Point1 - Point0) * (-Distance0 / (Distance1 - Distance0));
+			hit = point0 + (point1 - point0) * (-distance0 / (distance1 - distance0));
 			return true;
 		}
-		bool Geometric::HasLineIntersectedCube(const Vector3& Min, const Vector3& Max, const Vector3& Start, const Vector3& End)
+		bool geometric::has_line_intersected_cube(const vector3& min, const vector3& max, const vector3& start, const vector3& end)
 		{
-			if (End.X < Min.X && Start.X < Min.X)
+			if (end.x < min.x && start.x < min.x)
 				return false;
 
-			if (End.X > Max.X && Start.X > Max.X)
+			if (end.x > max.x && start.x > max.x)
 				return false;
 
-			if (End.Y < Min.Y && Start.Y < Min.Y)
+			if (end.y < min.y && start.y < min.y)
 				return false;
 
-			if (End.Y > Max.Y && Start.Y > Max.Y)
+			if (end.y > max.y && start.y > max.y)
 				return false;
 
-			if (End.Z < Min.Z && Start.Z < Min.Z)
+			if (end.z < min.z && start.z < min.z)
 				return false;
 
-			if (End.Z > Max.Z && Start.Z > Max.Z)
+			if (end.z > max.z && start.z > max.z)
 				return false;
 
-			if (Start.X > Min.X && Start.X < Max.X && Start.Y > Min.Y && Start.Y < Max.Y && Start.Z > Min.Z && Start.Z < Max.Z)
+			if (start.x > min.x && start.x < max.x && start.y > min.y && start.y < max.y && start.z > min.z && start.z < max.z)
 				return true;
 
-			Vector3 LastHit;
-			if ((HasLineIntersected(Start.X - Min.X, End.X - Min.X, Start, End, LastHit) && HasPointIntersectedCube(LastHit, Min, Max, 1)) || (HasLineIntersected(Start.Y - Min.Y, End.Y - Min.Y, Start, End, LastHit) && HasPointIntersectedCube(LastHit, Min, Max, 2)) || (HasLineIntersected(Start.Z - Min.Z, End.Z - Min.Z, Start, End, LastHit) && HasPointIntersectedCube(LastHit, Min, Max, 3)) || (HasLineIntersected(Start.X - Max.X, End.X - Max.X, Start, End, LastHit) && HasPointIntersectedCube(LastHit, Min, Max, 1)) || (HasLineIntersected(Start.Y - Max.Y, End.Y - Max.Y, Start, End, LastHit) && HasPointIntersectedCube(LastHit, Min, Max, 2)) || (HasLineIntersected(Start.Z - Max.Z, End.Z - Max.Z, Start, End, LastHit) && HasPointIntersectedCube(LastHit, Min, Max, 3)))
-				return true;
-
-			return false;
-		}
-		bool Geometric::HasPointIntersectedCube(const Vector3& LastHit, const Vector3& Min, const Vector3& Max, int Axis)
-		{
-			if (Axis == 1 && LastHit.Z > Min.Z && LastHit.Z < Max.Z && LastHit.Y > Min.Y && LastHit.Y < Max.Y)
-				return true;
-
-			if (Axis == 2 && LastHit.Z > Min.Z && LastHit.Z < Max.Z && LastHit.X > Min.X && LastHit.X < Max.X)
-				return true;
-
-			if (Axis == 3 && LastHit.X > Min.X && LastHit.X < Max.X && LastHit.Y > Min.Y && LastHit.Y < Max.Y)
+			vector3 last_hit;
+			if ((has_line_intersected(start.x - min.x, end.x - min.x, start, end, last_hit) && has_point_intersected_cube(last_hit, min, max, 1)) || (has_line_intersected(start.y - min.y, end.y - min.y, start, end, last_hit) && has_point_intersected_cube(last_hit, min, max, 2)) || (has_line_intersected(start.z - min.z, end.z - min.z, start, end, last_hit) && has_point_intersected_cube(last_hit, min, max, 3)) || (has_line_intersected(start.x - max.x, end.x - max.x, start, end, last_hit) && has_point_intersected_cube(last_hit, min, max, 1)) || (has_line_intersected(start.y - max.y, end.y - max.y, start, end, last_hit) && has_point_intersected_cube(last_hit, min, max, 2)) || (has_line_intersected(start.z - max.z, end.z - max.z, start, end, last_hit) && has_point_intersected_cube(last_hit, min, max, 3)))
 				return true;
 
 			return false;
 		}
-		bool Geometric::HasPointIntersectedCube(const Vector3& Position, const Vector3& Scale, const Vector3& P0)
+		bool geometric::has_point_intersected_cube(const vector3& last_hit, const vector3& min, const vector3& max, int axis)
 		{
-			return (P0.X) <= (Position.X + Scale.X) && (Position.X - Scale.X) <= (P0.X) && (P0.Y) <= (Position.Y + Scale.Y) && (Position.Y - Scale.Y) <= (P0.Y) && (P0.Z) <= (Position.Z + Scale.Z) && (Position.Z - Scale.Z) <= (P0.Z);
+			if (axis == 1 && last_hit.z > min.z && last_hit.z < max.z && last_hit.y > min.y && last_hit.y < max.y)
+				return true;
+
+			if (axis == 2 && last_hit.z > min.z && last_hit.z < max.z && last_hit.x > min.x && last_hit.x < max.x)
+				return true;
+
+			if (axis == 3 && last_hit.x > min.x && last_hit.x < max.x && last_hit.y > min.y && last_hit.y < max.y)
+				return true;
+
+			return false;
 		}
-		bool Geometric::HasPointIntersectedRectangle(const Vector3& Position, const Vector3& Scale, const Vector3& P0)
+		bool geometric::has_point_intersected_cube(const vector3& position, const vector3& scale, const vector3& P0)
 		{
-			return P0.X >= Position.X - Scale.X && P0.X < Position.X + Scale.X && P0.Y >= Position.Y - Scale.Y && P0.Y < Position.Y + Scale.Y;
+			return (P0.x) <= (position.x + scale.x) && (position.x - scale.x) <= (P0.x) && (P0.y) <= (position.y + scale.y) && (position.y - scale.y) <= (P0.y) && (P0.z) <= (position.z + scale.z) && (position.z - scale.z) <= (P0.z);
 		}
-		bool Geometric::HasSBIntersected(Transform* R0, Transform* R1)
+		bool geometric::has_point_intersected_rectangle(const vector3& position, const vector3& scale, const vector3& P0)
 		{
-			if (!HasSphereIntersected(R0->GetPosition(), R0->GetScale().Hypotenuse(), R1->GetPosition(), R1->GetScale().Hypotenuse()))
+			return P0.x >= position.x - scale.x && P0.x < position.x + scale.x && P0.y >= position.y - scale.y && P0.y < position.y + scale.y;
+		}
+		bool geometric::has_sb_intersected(transform* R0, transform* R1)
+		{
+			if (!has_sphere_intersected(R0->get_position(), R0->get_scale().hypotenuse(), R1->get_position(), R1->get_scale().hypotenuse()))
 				return false;
 
 			return true;
 		}
-		bool Geometric::HasOBBIntersected(Transform* R0, Transform* R1)
+		bool geometric::has_obb_intersected(transform* R0, transform* R1)
 		{
-			const Vector3& Rotation0 = R0->GetRotation();
-			const Vector3& Rotation1 = R1->GetRotation();
-			if (Rotation0 == 0.0f && Rotation1 == 0.0f)
-				return HasAABBIntersected(R0, R1);
+			const vector3& rotation0 = R0->get_rotation();
+			const vector3& rotation1 = R1->get_rotation();
+			if (rotation0 == 0.0f && rotation1 == 0.0f)
+				return has_aabb_intersected(R0, R1);
 
-			const Vector3& Position0 = R0->GetPosition();
-			const Vector3& Position1 = R1->GetPosition();
-			const Vector3& Scale0 = R0->GetScale();
-			const Vector3& Scale1 = R1->GetScale();
-			Matrix4x4 Temp0 = Matrix4x4::Create(Position0 - Position1, Scale0, Rotation0) * Matrix4x4::CreateRotation(Rotation1).Inv();
-			if (HasLineIntersectedCube(-Scale1, Scale1, Vector4(1, 1, 1, 1).Transform(Temp0.Row).XYZ(), Vector4(-1, -1, -1, 1).Transform(Temp0.Row).XYZ()))
+			const vector3& position0 = R0->get_position();
+			const vector3& position1 = R1->get_position();
+			const vector3& scale0 = R0->get_scale();
+			const vector3& scale1 = R1->get_scale();
+			matrix4x4 temp0 = matrix4x4::create(position0 - position1, scale0, rotation0) * matrix4x4::create_rotation(rotation1).inv();
+			if (has_line_intersected_cube(-scale1, scale1, vector4(1, 1, 1, 1).transform(temp0.row).xyz(), vector4(-1, -1, -1, 1).transform(temp0.row).xyz()))
 				return true;
 
-			if (HasLineIntersectedCube(-Scale1, Scale1, Vector4(1, -1, 1, 1).Transform(Temp0.Row).XYZ(), Vector4(-1, 1, -1, 1).Transform(Temp0.Row).XYZ()))
+			if (has_line_intersected_cube(-scale1, scale1, vector4(1, -1, 1, 1).transform(temp0.row).xyz(), vector4(-1, 1, -1, 1).transform(temp0.row).xyz()))
 				return true;
 
-			if (HasLineIntersectedCube(-Scale1, Scale1, Vector4(-1, -1, 1, 1).Transform(Temp0.Row).XYZ(), Vector4(1, 1, -1, 1).Transform(Temp0.Row).XYZ()))
+			if (has_line_intersected_cube(-scale1, scale1, vector4(-1, -1, 1, 1).transform(temp0.row).xyz(), vector4(1, 1, -1, 1).transform(temp0.row).xyz()))
 				return true;
 
-			if (HasLineIntersectedCube(-Scale1, Scale1, Vector4(-1, 1, 1, 1).Transform(Temp0.Row).XYZ(), Vector4(1, -1, -1, 1).Transform(Temp0.Row).XYZ()))
+			if (has_line_intersected_cube(-scale1, scale1, vector4(-1, 1, 1, 1).transform(temp0.row).xyz(), vector4(1, -1, -1, 1).transform(temp0.row).xyz()))
 				return true;
 
-			if (HasLineIntersectedCube(-Scale1, Scale1, Vector4(0, 1, 0, 1).Transform(Temp0.Row).XYZ(), Vector4(0, -1, 0, 1).Transform(Temp0.Row).XYZ()))
+			if (has_line_intersected_cube(-scale1, scale1, vector4(0, 1, 0, 1).transform(temp0.row).xyz(), vector4(0, -1, 0, 1).transform(temp0.row).xyz()))
 				return true;
 
-			if (HasLineIntersectedCube(-Scale1, Scale1, Vector4(1, 0, 0, 1).Transform(Temp0.Row).XYZ(), Vector4(-1, 0, 0, 1).Transform(Temp0.Row).XYZ()))
+			if (has_line_intersected_cube(-scale1, scale1, vector4(1, 0, 0, 1).transform(temp0.row).xyz(), vector4(-1, 0, 0, 1).transform(temp0.row).xyz()))
 				return true;
 
-			if (HasLineIntersectedCube(-Scale1, Scale1, Vector4(0, 0, 1, 1).Transform(Temp0.Row).XYZ(), Vector4(0, 0, -1, 1).Transform(Temp0.Row).XYZ()))
+			if (has_line_intersected_cube(-scale1, scale1, vector4(0, 0, 1, 1).transform(temp0.row).xyz(), vector4(0, 0, -1, 1).transform(temp0.row).xyz()))
 				return true;
 
-			Temp0 = Matrix4x4::Create(Position1 - Position0, Scale1, Rotation1) * Matrix4x4::CreateRotation(Rotation0).Inv();
-			if (HasLineIntersectedCube(-Scale0, Scale0, Vector4(1, 1, 1, 1).Transform(Temp0.Row).XYZ(), Vector4(-1, -1, -1, 1).Transform(Temp0.Row).XYZ()))
+			temp0 = matrix4x4::create(position1 - position0, scale1, rotation1) * matrix4x4::create_rotation(rotation0).inv();
+			if (has_line_intersected_cube(-scale0, scale0, vector4(1, 1, 1, 1).transform(temp0.row).xyz(), vector4(-1, -1, -1, 1).transform(temp0.row).xyz()))
 				return true;
 
-			if (HasLineIntersectedCube(-Scale0, Scale0, Vector4(1, -1, 1, 1).Transform(Temp0.Row).XYZ(), Vector4(-1, 1, -1, 1).Transform(Temp0.Row).XYZ()))
+			if (has_line_intersected_cube(-scale0, scale0, vector4(1, -1, 1, 1).transform(temp0.row).xyz(), vector4(-1, 1, -1, 1).transform(temp0.row).xyz()))
 				return true;
 
-			if (HasLineIntersectedCube(-Scale0, Scale0, Vector4(-1, -1, 1, 1).Transform(Temp0.Row).XYZ(), Vector4(1, 1, -1, 1).Transform(Temp0.Row).XYZ()))
+			if (has_line_intersected_cube(-scale0, scale0, vector4(-1, -1, 1, 1).transform(temp0.row).xyz(), vector4(1, 1, -1, 1).transform(temp0.row).xyz()))
 				return true;
 
-			if (HasLineIntersectedCube(-Scale0, Scale0, Vector4(-1, 1, 1, 1).Transform(Temp0.Row).XYZ(), Vector4(1, -1, -1, 1).Transform(Temp0.Row).XYZ()))
+			if (has_line_intersected_cube(-scale0, scale0, vector4(-1, 1, 1, 1).transform(temp0.row).xyz(), vector4(1, -1, -1, 1).transform(temp0.row).xyz()))
 				return true;
 
-			if (HasLineIntersectedCube(-Scale0, Scale0, Vector4(0, 1, 0, 1).Transform(Temp0.Row).XYZ(), Vector4(0, -1, 0, 1).Transform(Temp0.Row).XYZ()))
+			if (has_line_intersected_cube(-scale0, scale0, vector4(0, 1, 0, 1).transform(temp0.row).xyz(), vector4(0, -1, 0, 1).transform(temp0.row).xyz()))
 				return true;
 
-			if (HasLineIntersectedCube(-Scale0, Scale0, Vector4(1, 0, 0, 1).Transform(Temp0.Row).XYZ(), Vector4(-1, 0, 0, 1).Transform(Temp0.Row).XYZ()))
+			if (has_line_intersected_cube(-scale0, scale0, vector4(1, 0, 0, 1).transform(temp0.row).xyz(), vector4(-1, 0, 0, 1).transform(temp0.row).xyz()))
 				return true;
 
-			if (HasLineIntersectedCube(-Scale0, Scale0, Vector4(0, 0, 1, 1).Transform(Temp0.Row).XYZ(), Vector4(0, 0, -1, 1).Transform(Temp0.Row).XYZ()))
+			if (has_line_intersected_cube(-scale0, scale0, vector4(0, 0, 1, 1).transform(temp0.row).xyz(), vector4(0, 0, -1, 1).transform(temp0.row).xyz()))
 				return true;
 
 			return false;
 		}
-		bool Geometric::HasAABBIntersected(Transform* R0, Transform* R1)
+		bool geometric::has_aabb_intersected(transform* R0, transform* R1)
 		{
 			VI_ASSERT(R0 != nullptr && R1 != nullptr, "transforms should be set");
-			const Vector3& Position0 = R0->GetPosition();
-			const Vector3& Position1 = R1->GetPosition();
-			const Vector3& Scale0 = R0->GetScale();
-			const Vector3& Scale1 = R1->GetScale();
+			const vector3& position0 = R0->get_position();
+			const vector3& position1 = R1->get_position();
+			const vector3& scale0 = R0->get_scale();
+			const vector3& scale1 = R1->get_scale();
 			return
-				(Position0.X - Scale0.X) <= (Position1.X + Scale1.X) &&
-				(Position1.X - Scale1.X) <= (Position0.X + Scale0.X) &&
-				(Position0.Y - Scale0.Y) <= (Position1.Y + Scale1.Y) &&
-				(Position1.Y - Scale1.Y) <= (Position0.Y + Scale0.Y) &&
-				(Position0.Z - Scale0.Z) <= (Position1.Z + Scale1.Z) &&
-				(Position1.Z - Scale1.Z) <= (Position0.Z + Scale0.Z);
+				(position0.x - scale0.x) <= (position1.x + scale1.x) &&
+				(position1.x - scale1.x) <= (position0.x + scale0.x) &&
+				(position0.y - scale0.y) <= (position1.y + scale1.y) &&
+				(position1.y - scale1.y) <= (position0.y + scale0.y) &&
+				(position0.z - scale0.z) <= (position1.z + scale1.z) &&
+				(position1.z - scale1.z) <= (position0.z + scale0.z);
 		}
-		void Geometric::FlipIndexWindingOrder(Core::Vector<int>& Indices)
+		void geometric::flip_index_winding_order(core::vector<int>& indices)
 		{
-			std::reverse(Indices.begin(), Indices.end());
+			std::reverse(indices.begin(), indices.end());
 		}
-		void Geometric::MatrixRhToLh(Trigonometry::Matrix4x4* Matrix)
+		void geometric::matrix_rh_to_lh(trigonometry::matrix4x4* matrix)
 		{
-			VI_ASSERT(Matrix != nullptr, "matrix should be set");
-			*Matrix = *Matrix * RH_TO_LH;
+			VI_ASSERT(matrix != nullptr, "matrix should be set");
+			*matrix = *matrix * RH_TO_LH;
 		}
-		void Geometric::SetLeftHanded(bool IsLeftHanded)
+		void geometric::set_left_handed(bool is_left_handed)
 		{
-			VI_TRACE("[geometric] apply left-handed: %s", IsLeftHanded ? "on" : "off");
-			LeftHanded = IsLeftHanded;
+			VI_TRACE("[geometric] apply left-handed: %s", is_left_handed ? "on" : "off");
+			left_handed = is_left_handed;
 		}
-        Core::Vector<int> Geometric::CreateTriangleStrip(TriangleStrip::Desc& Desc, const Core::Vector<int>& Indices)
+		core::vector<int> geometric::create_triangle_strip(triangle_strip::desc& desc, const core::vector<int>& indices)
 		{
-			Core::Vector<uint32_t> Src;
-			Src.reserve(Indices.size());
+			core::vector<uint32_t> src;
+			src.reserve(indices.size());
 
-			for (auto& Index : Indices)
-				Src.push_back((uint32_t)Index);
+			for (auto& index : indices)
+				src.push_back((uint32_t)index);
 
-			Desc.Faces = Src.data();
-			Desc.NbFaces = (uint32_t)Src.size() / 3;
+			desc.faces = src.data();
+			desc.nb_faces = (uint32_t)src.size() / 3;
 
-			TriangleStrip Strip;
-			if (!Strip.Fill(Desc))
+			triangle_strip strip;
+			if (!strip.fill(desc))
 			{
-				Core::Vector<int> Empty;
-				return Empty;
+				core::vector<int> empty;
+				return empty;
 			}
 
-			TriangleStrip::Result Result;
-			if (!Strip.Resolve(Result))
+			triangle_strip::result result;
+			if (!strip.resolve(result))
 			{
-				Core::Vector<int> Empty;
-				return Empty;
+				core::vector<int> empty;
+				return empty;
 			}
 
-			return Result.GetIndices();
+			return result.get_indices();
 		}
-		Core::Vector<int> Geometric::CreateTriangleList(const Core::Vector<int>& Indices)
+		core::vector<int> geometric::create_triangle_list(const core::vector<int>& indices)
 		{
-			size_t Size = Indices.size() - 2;
-			Core::Vector<int> Result;
-			Result.reserve(Size * 3);
+			size_t size = indices.size() - 2;
+			core::vector<int> result;
+			result.reserve(size * 3);
 
-			for (size_t i = 0; i < Size; i++)
+			for (size_t i = 0; i < size; i++)
 			{
 				if (i % 2 == 0)
 				{
-					Result.push_back(Indices[i + 0]);
-					Result.push_back(Indices[i + 1]);
-					Result.push_back(Indices[i + 2]);
+					result.push_back(indices[i + 0]);
+					result.push_back(indices[i + 1]);
+					result.push_back(indices[i + 2]);
 				}
 				else
 				{
-					Result.push_back(Indices[i + 2]);
-					Result.push_back(Indices[i + 1]);
-					Result.push_back(Indices[i + 0]);
+					result.push_back(indices[i + 2]);
+					result.push_back(indices[i + 1]);
+					result.push_back(indices[i + 0]);
 				}
 			}
 
-			return Result;
+			return result;
 		}
-		void Geometric::CreateFrustum8CRad(Vector4* Result8, float FieldOfView, float Aspect, float NearZ, float FarZ)
+		void geometric::create_frustum8c_rad(vector4* result8, float field_of_view, float aspect, float near_z, float far_z)
 		{
-			VI_ASSERT(Result8 != nullptr, "8 sized array should be set");
-			float HalfHFov = std::tan(FieldOfView * 0.5f) * Aspect;
-			float HalfVFov = std::tan(FieldOfView * 0.5f);
-			float XN = NearZ * HalfHFov;
-			float XF = FarZ * HalfHFov;
-			float YN = NearZ * HalfVFov;
-			float YF = FarZ * HalfVFov;
+			VI_ASSERT(result8 != nullptr, "8 sized array should be set");
+			float half_hfov = std::tan(field_of_view * 0.5f) * aspect;
+			float half_vfov = std::tan(field_of_view * 0.5f);
+			float XN = near_z * half_hfov;
+			float XF = far_z * half_hfov;
+			float YN = near_z * half_vfov;
+			float YF = far_z * half_vfov;
 
-			Result8[0] = Vector4(XN, YN, NearZ, 1.0);
-			Result8[1] = Vector4(-XN, YN, NearZ, 1.0);
-			Result8[2] = Vector4(XN, -YN, NearZ, 1.0);
-			Result8[3] = Vector4(-XN, -YN, NearZ, 1.0);
-			Result8[4] = Vector4(XF, YF, FarZ, 1.0);
-			Result8[5] = Vector4(-XF, YF, FarZ, 1.0);
-			Result8[6] = Vector4(XF, -YF, FarZ, 1.0);
-			Result8[7] = Vector4(-XF, -YF, FarZ, 1.0);
+			result8[0] = vector4(XN, YN, near_z, 1.0);
+			result8[1] = vector4(-XN, YN, near_z, 1.0);
+			result8[2] = vector4(XN, -YN, near_z, 1.0);
+			result8[3] = vector4(-XN, -YN, near_z, 1.0);
+			result8[4] = vector4(XF, YF, far_z, 1.0);
+			result8[5] = vector4(-XF, YF, far_z, 1.0);
+			result8[6] = vector4(XF, -YF, far_z, 1.0);
+			result8[7] = vector4(-XF, -YF, far_z, 1.0);
 		}
-		void Geometric::CreateFrustum8C(Vector4* Result8, float FieldOfView, float Aspect, float NearZ, float FarZ)
+		void geometric::create_frustum8c(vector4* result8, float field_of_view, float aspect, float near_z, float far_z)
 		{
-			return CreateFrustum8CRad(Result8, Compute::Mathf::Deg2Rad() * FieldOfView, Aspect, NearZ, FarZ);
+			return create_frustum8c_rad(result8, compute::mathf::deg2rad() * field_of_view, aspect, near_z, far_z);
 		}
-		Ray Geometric::CreateCursorRay(const Vector3& Origin, const Vector2& Cursor, const Vector2& Screen, const Matrix4x4& InvProjection, const Matrix4x4& InvView)
+		ray geometric::create_cursor_ray(const vector3& origin, const vector2& cursor, const vector2& screen, const matrix4x4& inv_projection, const matrix4x4& inv_view)
 		{
-			Vector2 Tmp = Cursor * 2.0f;
-			Tmp /= Screen;
+			vector2 tmp = cursor * 2.0f;
+			tmp /= screen;
 
-			Vector4 Eye = Vector4(Tmp.X - 1.0f, 1.0f - Tmp.Y, 1.0f, 1.0f) * InvProjection;
-			Eye = (Vector4(Eye.X, Eye.Y, 1.0f, 0.0f) * InvView).sNormalize();
-			return Ray(Origin, Vector3(Eye.X, Eye.Y, Eye.Z));
+			vector4 eye = vector4(tmp.x - 1.0f, 1.0f - tmp.y, 1.0f, 1.0f) * inv_projection;
+			eye = (vector4(eye.x, eye.y, 1.0f, 0.0f) * inv_view).snormalize();
+			return ray(origin, vector3(eye.x, eye.y, eye.z));
 		}
-		bool Geometric::CursorRayTest(const Ray& Cursor, const Vector3& Position, const Vector3& Scale, Vector3* Hit)
+		bool geometric::cursor_ray_test(const ray& cursor, const vector3& position, const vector3& scale, vector3* hit)
 		{
-			return Cursor.IntersectsAABB(Position, Scale, Hit);
+			return cursor.intersects_aabb(position, scale, hit);
 		}
-		bool Geometric::CursorRayTest(const Ray& Cursor, const Matrix4x4& World, Vector3* Hit)
+		bool geometric::cursor_ray_test(const ray& cursor, const matrix4x4& world, vector3* hit)
 		{
-			return Cursor.IntersectsOBB(World, Hit);
+			return cursor.intersects_obb(world, hit);
 		}
-		float Geometric::FastInvSqrt(float Value)
+		float geometric::fast_inv_sqrt(float value)
 		{
-			float F = Value;
-			long I = *(long*)&F;
-			I = 0x5f3759df - (I >> 1);
-			F = *(float*)&I;
-			F = F * (1.5f - ((Value * 0.5f) * F * F));
+			float f = value;
+			long i = *(long*)&f;
+			i = 0x5f3759df - (i >> 1);
+			f = *(float*)&i;
+			f = f * (1.5f - ((value * 0.5f) * f * f));
 
-			return F;
+			return f;
 		}
-		float Geometric::FastSqrt(float Value)
+		float geometric::fast_sqrt(float value)
 		{
-			return 1.0f / FastInvSqrt(Value);
+			return 1.0f / fast_inv_sqrt(value);
 		}
-		float Geometric::AabbVolume(const Vector3& Min, const Vector3& Max)
+		float geometric::aabb_volume(const vector3& min, const vector3& max)
 		{
-			float Volume =
-				(Max[1] - Min[1]) * (Max[2] - Min[2]) +
-				(Max[0] - Min[0]) * (Max[2] - Min[2]) +
-				(Max[0] - Min[0]) * (Max[1] - Min[1]);
-			return Volume * 2.0f;
+			float volume =
+				(max[1] - min[1]) * (max[2] - min[2]) +
+				(max[0] - min[0]) * (max[2] - min[2]) +
+				(max[0] - min[0]) * (max[1] - min[1]);
+			return volume * 2.0f;
 		}
-		float Geometric::AngluarLerp(float A, float B, float DeltaTime)
+		float geometric::angluar_lerp(float a, float b, float delta_time)
 		{
-			if (A == B)
-				return A;
+			if (a == b)
+				return a;
 
-			Vector2 ACircle = Vector2(cosf(A), sinf(A));
-			Vector2 BCircle = Vector2(cosf(B), sinf(B));
-			Vector2 floatnterpolation = ACircle.Lerp(BCircle, (float)DeltaTime);
-			return std::atan2(floatnterpolation.Y, floatnterpolation.X);
+			vector2 acircle = vector2(cosf(a), sinf(a));
+			vector2 bcircle = vector2(cosf(b), sinf(b));
+			vector2 floatnterpolation = acircle.lerp(bcircle, (float)delta_time);
+			return std::atan2(floatnterpolation.y, floatnterpolation.x);
 		}
-		float Geometric::AngleDistance(float A, float B)
+		float geometric::angle_distance(float a, float b)
 		{
-			return Vector2(cosf(A), sinf(A)).Distance(Vector2(cosf(B), sinf(B)));
+			return vector2(cosf(a), sinf(a)).distance(vector2(cosf(b), sinf(b)));
 		}
-		bool Geometric::LeftHanded = true;
+		bool geometric::left_handed = true;
 
-		Transform::Transform(void* NewUserData) noexcept : Root(nullptr), Local(nullptr), Scaling(false), Dirty(true), UserData(NewUserData)
+		transform::transform(void* new_user_data) noexcept : root(nullptr), local(nullptr), scaling(false), dirty(true), user_data(new_user_data)
 		{
 		}
-		Transform::~Transform() noexcept
+		transform::~transform() noexcept
 		{
-			SetRoot(nullptr);
-			RemoveChilds();
-			Core::Memory::Delete(Local);
+			set_root(nullptr);
+			remove_childs();
+			core::memory::deinit(local);
 		}
-		void Transform::Synchronize()
+		void transform::synchronize()
 		{
-			VI_ASSERT(!Root || Local != nullptr, "corrupted root transform");
-			if (Root != nullptr)
+			VI_ASSERT(!root || local != nullptr, "corrupted root transform");
+			if (root != nullptr)
 			{
-				Local->Offset = Matrix4x4::Create(Local->Position, Local->Rotation) * Root->GetBiasUnscaled();
-				Global.Position = Local->Offset.Position();
-				Global.Rotation = Local->Offset.RotationEuler();
-				Global.Scale = (Scaling ? Local->Scale : Local->Scale * Root->Global.Scale);
-				Temporary = Matrix4x4::CreateScale(Global.Scale) * Local->Offset;
+				local->offset = matrix4x4::create(local->position, local->rotation) * root->get_bias_unscaled();
+				global.position = local->offset.position();
+				global.rotation = local->offset.rotation_euler();
+				global.scale = (scaling ? local->scale : local->scale * root->global.scale);
+				temporary = matrix4x4::create_scale(global.scale) * local->offset;
 			}
 			else
 			{
-				Global.Offset = Matrix4x4::Create(Global.Position, Global.Scale, Global.Rotation);
-				Temporary = Matrix4x4::CreateRotation(Global.Rotation) * Matrix4x4::CreateTranslation(Global.Position);
+				global.offset = matrix4x4::create(global.position, global.scale, global.rotation);
+				temporary = matrix4x4::create_rotation(global.rotation) * matrix4x4::create_translation(global.position);
 			}
-			Dirty = false;
+			dirty = false;
 		}
-		void Transform::Move(const Vector3& Value)
+		void transform::move(const vector3& value)
 		{
-			VI_ASSERT(!Root || Local != nullptr, "corrupted root transform");
-			if (Root != nullptr)
-				Local->Position += Value;
+			VI_ASSERT(!root || local != nullptr, "corrupted root transform");
+			if (root != nullptr)
+				local->position += value;
 			else
-				Global.Position += Value;
-			MakeDirty();
+				global.position += value;
+			make_dirty();
 		}
-		void Transform::Rotate(const Vector3& Value)
+		void transform::rotate(const vector3& value)
 		{
-			VI_ASSERT(!Root || Local != nullptr, "corrupted root transform");
-			if (Root != nullptr)
-				Local->Rotation += Value;
+			VI_ASSERT(!root || local != nullptr, "corrupted root transform");
+			if (root != nullptr)
+				local->rotation += value;
 			else
-				Global.Rotation += Value;
-			MakeDirty();
+				global.rotation += value;
+			make_dirty();
 		}
-		void Transform::Rescale(const Vector3& Value)
+		void transform::rescale(const vector3& value)
 		{
-			VI_ASSERT(!Root || Local != nullptr, "corrupted root transform");
-			if (Root != nullptr)
-				Local->Scale += Value;
+			VI_ASSERT(!root || local != nullptr, "corrupted root transform");
+			if (root != nullptr)
+				local->scale += value;
 			else
-				Global.Scale += Value;
-			MakeDirty();
+				global.scale += value;
+			make_dirty();
 		}
-		void Transform::Localize(Spacing& Where)
+		void transform::localize(spacing& where)
 		{
-			if (Root != nullptr)
+			if (root != nullptr)
 			{
-				Where.Offset = Matrix4x4::Create(Where.Position, Where.Rotation) * Root->GetBiasUnscaled().Inv();
-				Where.Position = Where.Offset.Position();
-				Where.Rotation = Where.Offset.RotationEuler();
-				Where.Scale = (Scaling ? Where.Scale : Where.Scale / Root->Global.Scale);
+				where.offset = matrix4x4::create(where.position, where.rotation) * root->get_bias_unscaled().inv();
+				where.position = where.offset.position();
+				where.rotation = where.offset.rotation_euler();
+				where.scale = (scaling ? where.scale : where.scale / root->global.scale);
 			}
 		}
-		void Transform::Globalize(Spacing& Where)
+		void transform::globalize(spacing& where)
 		{
-			if (Root != nullptr)
+			if (root != nullptr)
 			{
-				Where.Offset = Matrix4x4::Create(Where.Position, Where.Rotation) * Root->GetBiasUnscaled();
-				Where.Position = Where.Offset.Position();
-				Where.Rotation = Where.Offset.RotationEuler();
-				Where.Scale = (Scaling ? Where.Scale : Where.Scale * Root->Global.Scale);
+				where.offset = matrix4x4::create(where.position, where.rotation) * root->get_bias_unscaled();
+				where.position = where.offset.position();
+				where.rotation = where.offset.rotation_euler();
+				where.scale = (scaling ? where.scale : where.scale * root->global.scale);
 			}
 		}
-		void Transform::Specialize(Spacing& Where)
+		void transform::specialize(spacing& where)
 		{
-			VI_ASSERT(!Root || Local != nullptr, "corrupted root transform");
-			if (Root != nullptr)
+			VI_ASSERT(!root || local != nullptr, "corrupted root transform");
+			if (root != nullptr)
 			{
-				Where.Offset = Matrix4x4::Create(Local->Position, Local->Rotation) * Root->GetBiasUnscaled();
-				Where.Position = Where.Offset.Position();
-				Where.Rotation = Where.Offset.RotationEuler();
-				Where.Scale = (Scaling ? Local->Scale : Local->Scale * Root->Global.Scale);
+				where.offset = matrix4x4::create(local->position, local->rotation) * root->get_bias_unscaled();
+				where.position = where.offset.position();
+				where.rotation = where.offset.rotation_euler();
+				where.scale = (scaling ? local->scale : local->scale * root->global.scale);
 			}
-			else if (&Where != &Global)
-				Where = Global;
+			else if (&where != &global)
+				where = global;
 		}
-		void Transform::Copy(Transform* Target)
+		void transform::copy(transform* target)
 		{
-			VI_ASSERT(Target != nullptr && Target != this, "target should be set");
-			Core::Memory::Delete(Local);
-			if (Target->Root != nullptr)
-				Local = Core::Memory::New<Spacing>(*Target->Local);
+			VI_ASSERT(target != nullptr && target != this, "target should be set");
+			core::memory::deinit(local);
+			if (target->root != nullptr)
+				local = core::memory::init<spacing>(*target->local);
 			else
-				Local = nullptr;
+				local = nullptr;
 
-			UserData = Target->UserData;
-			Childs = Target->Childs;
-			Global = Target->Global;
-			Scaling = Target->Scaling;
-			Root = Target->Root;
-			Dirty = true;
+			user_data = target->user_data;
+			childs = target->childs;
+			global = target->global;
+			scaling = target->scaling;
+			root = target->root;
+			dirty = true;
 		}
-		void Transform::AddChild(Transform* Child)
+		void transform::add_child(transform* child)
 		{
-			VI_ASSERT(Child != nullptr && Child != this, "child should be set");
-			Childs.push_back(Child);
-			Child->MakeDirty();
+			VI_ASSERT(child != nullptr && child != this, "child should be set");
+			childs.push_back(child);
+			child->make_dirty();
 		}
-		void Transform::RemoveChild(Transform* Child)
+		void transform::remove_child(transform* child)
 		{
-			VI_ASSERT(Child != nullptr && Child != this, "child should be set");
-			if (Child->Root == this)
-				Child->SetRoot(nullptr);
+			VI_ASSERT(child != nullptr && child != this, "child should be set");
+			if (child->root == this)
+				child->set_root(nullptr);
 		}
-		void Transform::RemoveChilds()
+		void transform::remove_childs()
 		{
-			Core::Vector<Transform*> Array;
-			Array.swap(Childs);
+			core::vector<transform*> array;
+			array.swap(childs);
 
-			for (auto& Child : Array)
+			for (auto& child : array)
 			{
-				if (Child->Root == this)
-					Child->SetRoot(nullptr);
+				if (child->root == this)
+					child->set_root(nullptr);
 			}
 		}
-		void Transform::WhenDirty(Core::TaskCallback&& Callback)
+		void transform::when_dirty(core::task_callback&& callback)
 		{
-			OnDirty = std::move(Callback);
-			if (Dirty && OnDirty)
-				OnDirty();
+			on_dirty = std::move(callback);
+			if (dirty && on_dirty)
+				on_dirty();
 		}
-		void Transform::MakeDirty()
+		void transform::make_dirty()
 		{
-			if (Dirty)
+			if (dirty)
 				return;
 
-			Dirty = true;
-			if (OnDirty)
-				OnDirty();
+			dirty = true;
+			if (on_dirty)
+				on_dirty();
 
-			for (auto& Child : Childs)
-				Child->MakeDirty();
+			for (auto& child : childs)
+				child->make_dirty();
 		}
-		void Transform::SetScaling(bool Enabled)
+		void transform::set_scaling(bool enabled)
 		{
-			Scaling = Enabled;
-			MakeDirty();
+			scaling = enabled;
+			make_dirty();
 		}
-		void Transform::SetPosition(const Vector3& Value)
+		void transform::set_position(const vector3& value)
 		{
-			VI_ASSERT(!Root || Local != nullptr, "corrupted root transform");
-			bool Updated = !(Root ? Local->Position.IsEquals(Value) : Global.Position.IsEquals(Value));
-			if (Root != nullptr)
-				Local->Position = Value;
+			VI_ASSERT(!root || local != nullptr, "corrupted root transform");
+			bool updated = !(root ? local->position.is_equals(value) : global.position.is_equals(value));
+			if (root != nullptr)
+				local->position = value;
 			else
-				Global.Position = Value;
+				global.position = value;
 
-			if (Updated)
-				MakeDirty();
+			if (updated)
+				make_dirty();
 		}
-		void Transform::SetRotation(const Vector3& Value)
+		void transform::set_rotation(const vector3& value)
 		{
-			VI_ASSERT(!Root || Local != nullptr, "corrupted root transform");
-			bool Updated = !(Root ? Local->Rotation.IsEquals(Value) : Global.Rotation.IsEquals(Value));
-			if (Root != nullptr)
-				Local->Rotation = Value;
+			VI_ASSERT(!root || local != nullptr, "corrupted root transform");
+			bool updated = !(root ? local->rotation.is_equals(value) : global.rotation.is_equals(value));
+			if (root != nullptr)
+				local->rotation = value;
 			else
-				Global.Rotation = Value;
+				global.rotation = value;
 
-			if (Updated)
-				MakeDirty();
+			if (updated)
+				make_dirty();
 		}
-		void Transform::SetScale(const Vector3& Value)
+		void transform::set_scale(const vector3& value)
 		{
-			VI_ASSERT(!Root || Local != nullptr, "corrupted root transform");
-			bool Updated = !(Root ? Local->Scale.IsEquals(Value) : Global.Scale.IsEquals(Value));
-			if (Root != nullptr)
-				Local->Scale = Value;
+			VI_ASSERT(!root || local != nullptr, "corrupted root transform");
+			bool updated = !(root ? local->scale.is_equals(value) : global.scale.is_equals(value));
+			if (root != nullptr)
+				local->scale = value;
 			else
-				Global.Scale = Value;
+				global.scale = value;
 
-			if (Updated)
-				MakeDirty();
+			if (updated)
+				make_dirty();
 		}
-		void Transform::SetSpacing(Positioning Space, Spacing& Where)
+		void transform::set_spacing(positioning space, spacing& where)
 		{
-			if (Space == Positioning::Global)
-				Localize(Where);
+			if (space == positioning::global)
+				localize(where);
 
-			GetSpacing() = Where;
-			MakeDirty();
+			get_spacing() = where;
+			make_dirty();
 		}
-		void Transform::SetPivot(Transform* Parent, Spacing* Pivot)
+		void transform::set_pivot(transform* parent, spacing* pivot)
 		{
-			Core::Memory::Delete(Local);
-			Root = Parent;
-			Local = Pivot;
+			core::memory::deinit(local);
+			root = parent;
+			local = pivot;
 
-			if (Parent != nullptr)
-				Parent->AddChild(this);
+			if (parent != nullptr)
+				parent->add_child(this);
 		}
-		void Transform::SetRoot(Transform* Parent)
+		void transform::set_root(transform* parent)
 		{
-			if (!CanRootBeApplied(Parent))
+			if (!can_root_be_applied(parent))
 				return;
 
-			if (Root != nullptr)
+			if (root != nullptr)
 			{
-				Specialize(Global);
-				if (Parent != nullptr)
+				specialize(global);
+				if (parent != nullptr)
 				{
-					Core::Memory::Delete(Local);
-					Local = nullptr;
+					core::memory::deinit(local);
+					local = nullptr;
 				}
 
-				for (auto It = Root->Childs.begin(); It != Root->Childs.end(); ++It)
+				for (auto it = root->childs.begin(); it != root->childs.end(); ++it)
 				{
-					if ((*It) == this)
+					if ((*it) == this)
 					{
-						Root->Childs.erase(It);
+						root->childs.erase(it);
 						break;
 					}
 				}
 			}
 
-			Root = Parent;
-			if (Root != nullptr)
+			root = parent;
+			if (root != nullptr)
 			{
-				Root->AddChild(this);
-				if (!Local)
-					Local = Core::Memory::New<Spacing>();
+				root->add_child(this);
+				if (!local)
+					local = core::memory::init<spacing>();
 
-				*Local = Global;
-				Localize(*Local);
+				*local = global;
+				localize(*local);
 			}
 		}
-		void Transform::GetBounds(Matrix4x4& World, Vector3& Min, Vector3& Max)
+		void transform::get_bounds(matrix4x4& world, vector3& min, vector3& max)
 		{
-			Transform::Spacing& Space = GetSpacing();
-			Vector3 Scale = (Max - Min).Abs();
-			Vector3 Radius = Scale * Space.Scale * 0.5f;
-			Vector3 Top = Radius.Rotate(0, Space.Rotation);
-			Vector3 Left = Radius.InvX().Rotate(0, Space.Rotation);
-			Vector3 Right = Radius.InvY().Rotate(0, Space.Rotation);
-			Vector3 Bottom = Radius.InvZ().Rotate(0, Space.Rotation);
-			Vector3 Points[8] =
+			transform::spacing& space = get_spacing();
+			vector3 scale = (max - min).abs();
+			vector3 radius = scale * space.scale * 0.5f;
+			vector3 top = radius.rotate(0, space.rotation);
+			vector3 left = radius.inv_x().rotate(0, space.rotation);
+			vector3 right = radius.inv_y().rotate(0, space.rotation);
+			vector3 bottom = radius.inv_z().rotate(0, space.rotation);
+			vector3 points[8] =
 			{
-				-Top, Top, -Left, Left,
-				-Right, Right, -Bottom, Bottom
+				-top, top, -left, left,
+				-right, right, -bottom, bottom
 			};
-			Vector3 Lower = Points[0];
-			Vector3 Upper = Points[1];
+			vector3 lower = points[0];
+			vector3 upper = points[1];
 
 			for (size_t i = 0; i < 8; ++i)
 			{
-				auto& Point = Points[i];
-				if (Point.X > Upper.X)
-					Upper.X = Point.X;
-				if (Point.Y > Upper.Y)
-					Upper.Y = Point.Y;
-				if (Point.Z > Upper.Z)
-					Upper.Z = Point.Z;
+				auto& point = points[i];
+				if (point.x > upper.x)
+					upper.x = point.x;
+				if (point.y > upper.y)
+					upper.y = point.y;
+				if (point.z > upper.z)
+					upper.z = point.z;
 
-				if (Point.X < Lower.X)
-					Lower.X = Point.X;
-				if (Point.Y < Lower.Y)
-					Lower.Y = Point.Y;
-				if (Point.Z < Lower.Z)
-					Lower.Z = Point.Z;
+				if (point.x < lower.x)
+					lower.x = point.x;
+				if (point.y < lower.y)
+					lower.y = point.y;
+				if (point.z < lower.z)
+					lower.z = point.z;
 			}
 
-			Min = Space.Position + Lower;
-			Max = Space.Position + Upper;
-			World = GetBias();
+			min = space.position + lower;
+			max = space.position + upper;
+			world = get_bias();
 		}
-		bool Transform::HasRoot(const Transform* Target) const
+		bool transform::has_root(const transform* target) const
 		{
-			VI_ASSERT(Target != nullptr, "target should be set");
-			Trigonometry::Transform* UpperRoot = Root;
-			while (UpperRoot != nullptr)
+			VI_ASSERT(target != nullptr, "target should be set");
+			trigonometry::transform* upper_root = root;
+			while (upper_root != nullptr)
 			{
-				if (UpperRoot == Target)
+				if (upper_root == target)
 					return true;
 
-				UpperRoot = UpperRoot->GetRoot();
+				upper_root = upper_root->get_root();
 			}
 
 			return false;
 		}
-		bool Transform::HasChild(Transform* Target) const
+		bool transform::has_child(transform* target) const
 		{
-			VI_ASSERT(Target != nullptr, "target should be set");
-			for (auto& Child : Childs)
+			VI_ASSERT(target != nullptr, "target should be set");
+			for (auto& child : childs)
 			{
-				if (Child == Target)
+				if (child == target)
 					return true;
 
-				if (Child->HasChild(Target))
+				if (child->has_child(target))
 					return true;
 			}
 
 			return false;
 		}
-		bool Transform::HasScaling() const
+		bool transform::has_scaling() const
 		{
-			return Scaling;
+			return scaling;
 		}
-		bool Transform::CanRootBeApplied(Transform* Parent) const
+		bool transform::can_root_be_applied(transform* parent) const
 		{
-			if ((!Root && !Parent) || Root == Parent)
+			if ((!root && !parent) || root == parent)
 				return false;
 
-			if (Parent == this)
+			if (parent == this)
 				return false;
 
-			if (Parent && Parent->HasRoot(this))
+			if (parent && parent->has_root(this))
 				return false;
 
 			return true;
 		}
-		bool Transform::IsDirty() const
+		bool transform::is_dirty() const
 		{
-			return Dirty;
+			return dirty;
 		}
-		const Matrix4x4& Transform::GetBias() const
+		const matrix4x4& transform::get_bias() const
 		{
-			VI_ASSERT(!Root || Local != nullptr, "corrupted root transform");
-			if (Root != nullptr)
-				return Temporary;
+			VI_ASSERT(!root || local != nullptr, "corrupted root transform");
+			if (root != nullptr)
+				return temporary;
 
-			return Global.Offset;
+			return global.offset;
 		}
-		const Matrix4x4& Transform::GetBiasUnscaled() const
+		const matrix4x4& transform::get_bias_unscaled() const
 		{
-			VI_ASSERT(!Root || Local != nullptr, "corrupted root transform");
-			if (Root != nullptr)
-				return Local->Offset;
+			VI_ASSERT(!root || local != nullptr, "corrupted root transform");
+			if (root != nullptr)
+				return local->offset;
 
-			return Temporary;
+			return temporary;
 		}
-		const Vector3& Transform::GetPosition() const
+		const vector3& transform::get_position() const
 		{
-			return Global.Position;
+			return global.position;
 		}
-		const Vector3& Transform::GetRotation() const
+		const vector3& transform::get_rotation() const
 		{
-			return Global.Rotation;
+			return global.rotation;
 		}
-		const Vector3& Transform::GetScale() const
+		const vector3& transform::get_scale() const
 		{
-			return Global.Scale;
+			return global.scale;
 		}
-		Vector3 Transform::Forward() const
+		vector3 transform::forward() const
 		{
-			VI_ASSERT(!Root || Local != nullptr, "corrupted root transform");
-			if (Root != nullptr)
-				return Local->Offset.Forward();
+			VI_ASSERT(!root || local != nullptr, "corrupted root transform");
+			if (root != nullptr)
+				return local->offset.forward();
 
-			return Global.Offset.Forward();
+			return global.offset.forward();
 		}
-		Vector3 Transform::Right() const
+		vector3 transform::right() const
 		{
-			VI_ASSERT(!Root || Local != nullptr, "corrupted root transform");
-			if (Root != nullptr)
-				return Local->Offset.Right();
+			VI_ASSERT(!root || local != nullptr, "corrupted root transform");
+			if (root != nullptr)
+				return local->offset.right();
 
-			return Global.Offset.Right();
+			return global.offset.right();
 		}
-		Vector3 Transform::Up() const
+		vector3 transform::up() const
 		{
-			VI_ASSERT(!Root || Local != nullptr, "corrupted root transform");
-			if (Root != nullptr)
-				return Local->Offset.Up();
+			VI_ASSERT(!root || local != nullptr, "corrupted root transform");
+			if (root != nullptr)
+				return local->offset.up();
 
-			return Global.Offset.Up();
+			return global.offset.up();
 		}
-		Transform::Spacing& Transform::GetSpacing()
+		transform::spacing& transform::get_spacing()
 		{
-			VI_ASSERT(!Root || Local != nullptr, "corrupted root transform");
-			if (Root != nullptr)
-				return *Local;
+			VI_ASSERT(!root || local != nullptr, "corrupted root transform");
+			if (root != nullptr)
+				return *local;
 
-			return Global;
+			return global;
 		}
-		Transform::Spacing& Transform::GetSpacing(Positioning Space)
+		transform::spacing& transform::get_spacing(positioning space)
 		{
-			VI_ASSERT(!Root || Local != nullptr, "corrupted root transform");
-			if (Space == Positioning::Local)
-				return *Local;
+			VI_ASSERT(!root || local != nullptr, "corrupted root transform");
+			if (space == positioning::local)
+				return *local;
 
-			return Global;
+			return global;
 		}
-		Transform* Transform::GetRoot() const
+		transform* transform::get_root() const
 		{
-			return Root;
+			return root;
 		}
-		Transform* Transform::GetUpperRoot() const
+		transform* transform::get_upper_root() const
 		{
-			Trigonometry::Transform* UpperRoot = Root;
-			while (UpperRoot != nullptr)
-				UpperRoot = UpperRoot->GetRoot();
+			trigonometry::transform* upper_root = root;
+			while (upper_root != nullptr)
+				upper_root = upper_root->get_root();
 
 			return nullptr;
 		}
-		Transform* Transform::GetChild(size_t Child) const
+		transform* transform::get_child(size_t child) const
 		{
-			VI_ASSERT(Child < Childs.size(), "index outside of range");
-			return Childs[Child];
+			VI_ASSERT(child < childs.size(), "index outside of range");
+			return childs[child];
 		}
-		size_t Transform::GetChildsCount() const
+		size_t transform::get_childs_count() const
 		{
-			return Childs.size();
+			return childs.size();
 		}
-		Core::Vector<Transform*>& Transform::GetChilds()
+		core::vector<transform*>& transform::get_childs()
 		{
-			return Childs;
-		}
-
-		bool Cosmos::Node::IsLeaf() const
-		{
-			return (Left == NULL_NODE);
+			return childs;
 		}
 
-		Cosmos::Cosmos(size_t DefaultSize) noexcept
+		bool cosmos::node::is_leaf() const
 		{
-			Root = NULL_NODE;
-			NodeCount = 0;
-			NodeCapacity = DefaultSize;
-			Nodes.resize(NodeCapacity);
+			return (left == NULL_NODE);
+		}
 
-			for (size_t i = 0; i < NodeCapacity - 1; i++)
+		cosmos::cosmos(size_t default_size) noexcept
+		{
+			root = NULL_NODE;
+			node_count = 0;
+			node_capacity = default_size;
+			nodes.resize(node_capacity);
+
+			for (size_t i = 0; i < node_capacity - 1; i++)
 			{
-				auto& Node = Nodes[i];
-				Node.Next = i + 1;
-				Node.Height = -1;
+				auto& node = nodes[i];
+				node.next = i + 1;
+				node.height = -1;
 			}
 
-			auto& Node = Nodes[NodeCapacity - 1];
-			Node.Next = NULL_NODE;
-			Node.Height = -1;
-			FreeList = 0;
+			auto& node = nodes[node_capacity - 1];
+			node.next = NULL_NODE;
+			node.height = -1;
+			free_list = 0;
 		}
-		void Cosmos::FreeNode(size_t NodeIndex)
+		void cosmos::free_node(size_t node_index)
 		{
-			VI_ASSERT(NodeIndex < NodeCapacity, "outside of borders");
-			VI_ASSERT(NodeCount > 0, "there must be at least one node");
+			VI_ASSERT(node_index < node_capacity, "outside of borders");
+			VI_ASSERT(node_count > 0, "there must be at least one node");
 
-			auto& Node = Nodes[NodeIndex];
-			Node.Next = FreeList;
-			Node.Height = -1;
-			FreeList = NodeIndex;
-			NodeCount--;
+			auto& node = nodes[node_index];
+			node.next = free_list;
+			node.height = -1;
+			free_list = node_index;
+			node_count--;
 		}
-		void Cosmos::InsertItem(void* Item, const Vector3& Lower, const Vector3& Upper)
+		void cosmos::insert_item(void* item, const vector3& lower, const vector3& upper)
 		{
-			size_t NodeIndex = AllocateNode();
-			auto& Node = Nodes[NodeIndex];
-			Node.Bounds = Bounding(Lower, Upper);
-			Node.Height = 0;
-			Node.Item = Item;
-			InsertLeaf(NodeIndex);
+			size_t node_index = allocate_node();
+			auto& node = nodes[node_index];
+			node.bounds = bounding(lower, upper);
+			node.height = 0;
+			node.item = item;
+			insert_leaf(node_index);
 
-			Items.insert(Core::UnorderedMap<void*, size_t>::value_type(Item, NodeIndex));
+			items.insert(core::unordered_map<void*, size_t>::value_type(item, node_index));
 		}
-		void Cosmos::RemoveItem(void* Item)
+		void cosmos::remove_item(void* item)
 		{
-			auto It = Items.find(Item);
-			if (It == Items.end())
+			auto it = items.find(item);
+			if (it == items.end())
 				return;
 
-			size_t NodeIndex = It->second;
-			Items.erase(It);
+			size_t node_index = it->second;
+			items.erase(it);
 
-			VI_ASSERT(NodeIndex < NodeCapacity, "outside of borders");
-			VI_ASSERT(Nodes[NodeIndex].IsLeaf(), "cannot remove root node");
+			VI_ASSERT(node_index < node_capacity, "outside of borders");
+			VI_ASSERT(nodes[node_index].is_leaf(), "cannot remove root node");
 
-			RemoveLeaf(NodeIndex);
-			FreeNode(NodeIndex);
+			remove_leaf(node_index);
+			free_node(node_index);
 		}
-		void Cosmos::InsertLeaf(size_t LeafIndex)
+		void cosmos::insert_leaf(size_t leaf_index)
 		{
-			if (Root == NULL_NODE)
+			if (root == NULL_NODE)
 			{
-				Root = LeafIndex;
-				Nodes[Root].Parent = NULL_NODE;
+				root = leaf_index;
+				nodes[root].parent = NULL_NODE;
 				return;
 			}
 
-			size_t NextIndex = Root;
-			Bounding LeafBounds = Nodes[LeafIndex].Bounds;
-			Bounding NextBounds;
+			size_t next_index = root;
+			bounding leaf_bounds = nodes[leaf_index].bounds;
+			bounding next_bounds;
 
-			while (!Nodes[NextIndex].IsLeaf())
+			while (!nodes[next_index].is_leaf())
 			{
-				auto& Next = Nodes[NextIndex];
-				auto& Left = Nodes[Next.Left];
-				auto& Right = Nodes[Next.Right];
+				auto& next = nodes[next_index];
+				auto& left = nodes[next.left];
+				auto& right = nodes[next.right];
 
-				NextBounds.Merge(LeafBounds, Next.Bounds);
-				float BaseCost = 2.0f * (float)NextBounds.Volume;
-				float ParentCost = 2.0f * (float)(NextBounds.Volume - Next.Bounds.Volume);
+				next_bounds.merge(leaf_bounds, next.bounds);
+				float base_cost = 2.0f * (float)next_bounds.volume;
+				float parent_cost = 2.0f * (float)(next_bounds.volume - next.bounds.volume);
 
-				NextBounds.Merge(LeafBounds, Left.Bounds);
-				float LeftCost = (NextBounds.Volume - (Left.IsLeaf() ? 0.0f : Left.Bounds.Volume)) + ParentCost;
+				next_bounds.merge(leaf_bounds, left.bounds);
+				float left_cost = (next_bounds.volume - (left.is_leaf() ? 0.0f : left.bounds.volume)) + parent_cost;
 
-				NextBounds.Merge(LeafBounds, Right.Bounds);
-				float RightCost = (NextBounds.Volume - (Right.IsLeaf() ? 0.0f : Right.Bounds.Volume)) + ParentCost;
+				next_bounds.merge(leaf_bounds, right.bounds);
+				float right_cost = (next_bounds.volume - (right.is_leaf() ? 0.0f : right.bounds.volume)) + parent_cost;
 
-				if ((BaseCost < LeftCost) && (BaseCost < RightCost))
+				if ((base_cost < left_cost) && (base_cost < right_cost))
 					break;
 
-				if (LeftCost < RightCost)
-					NextIndex = Next.Left;
+				if (left_cost < right_cost)
+					next_index = next.left;
 				else
-					NextIndex = Next.Right;
+					next_index = next.right;
 			}
 
-			size_t NewParentIndex = AllocateNode();
-			auto& Leaf = Nodes[LeafIndex];
-			auto& Sibling = Nodes[NextIndex];
-			auto& NewParent = Nodes[NewParentIndex];
+			size_t new_parent_index = allocate_node();
+			auto& leaf = nodes[leaf_index];
+			auto& sibling = nodes[next_index];
+			auto& new_parent = nodes[new_parent_index];
 
-			size_t OldParentIndex = Sibling.Parent;
-			NewParent.Parent = OldParentIndex;
-			NewParent.Bounds.Merge(LeafBounds, Sibling.Bounds);
-			NewParent.Height = Sibling.Height + 1;
+			size_t old_parent_index = sibling.parent;
+			new_parent.parent = old_parent_index;
+			new_parent.bounds.merge(leaf_bounds, sibling.bounds);
+			new_parent.height = sibling.height + 1;
 
-			if (OldParentIndex != NULL_NODE)
+			if (old_parent_index != NULL_NODE)
 			{
-				auto& OldParent = Nodes[OldParentIndex];
-				if (OldParent.Left == NextIndex)
-					OldParent.Left = NewParentIndex;
+				auto& old_parent = nodes[old_parent_index];
+				if (old_parent.left == next_index)
+					old_parent.left = new_parent_index;
 				else
-					OldParent.Right = NewParentIndex;
+					old_parent.right = new_parent_index;
 
-				NewParent.Left = NextIndex;
-				NewParent.Right = LeafIndex;
-				Sibling.Parent = NewParentIndex;
-				Leaf.Parent = NewParentIndex;
+				new_parent.left = next_index;
+				new_parent.right = leaf_index;
+				sibling.parent = new_parent_index;
+				leaf.parent = new_parent_index;
 			}
 			else
 			{
-				NewParent.Left = NextIndex;
-				NewParent.Right = LeafIndex;
-				Sibling.Parent = NewParentIndex;
-				Leaf.Parent = NewParentIndex;
-				Root = NewParentIndex;
+				new_parent.left = next_index;
+				new_parent.right = leaf_index;
+				sibling.parent = new_parent_index;
+				leaf.parent = new_parent_index;
+				root = new_parent_index;
 			}
 
-			NextIndex = Leaf.Parent;
-			while (NextIndex != NULL_NODE)
+			next_index = leaf.parent;
+			while (next_index != NULL_NODE)
 			{
-				NextIndex = Balance(NextIndex);
-				auto& Next = Nodes[NextIndex];
-				auto& Left = Nodes[Next.Left];
-				auto& Right = Nodes[Next.Right];
+				next_index = balance(next_index);
+				auto& next = nodes[next_index];
+				auto& left = nodes[next.left];
+				auto& right = nodes[next.right];
 
-				Next.Height = 1 + std::max(Left.Height, Right.Height);
-				Next.Bounds.Merge(Left.Bounds, Right.Bounds);
-				NextIndex = Next.Parent;
+				next.height = 1 + std::max(left.height, right.height);
+				next.bounds.merge(left.bounds, right.bounds);
+				next_index = next.parent;
 			}
 		}
-		void Cosmos::RemoveLeaf(size_t LeafIndex)
+		void cosmos::remove_leaf(size_t leaf_index)
 		{
-			if (LeafIndex == Root)
+			if (leaf_index == root)
 			{
-				Root = NULL_NODE;
+				root = NULL_NODE;
 				return;
 			}
 
-			size_t ParentIndex = Nodes[LeafIndex].Parent;
-			auto& Parent = Nodes[ParentIndex];
+			size_t parent_index = nodes[leaf_index].parent;
+			auto& parent = nodes[parent_index];
 
-			size_t SiblingIndex = (Parent.Left == LeafIndex ? Parent.Right : Parent.Left);
-			auto& Sibling = Nodes[SiblingIndex];
+			size_t sibling_index = (parent.left == leaf_index ? parent.right : parent.left);
+			auto& sibling = nodes[sibling_index];
 
-			if (Parent.Parent != NULL_NODE)
+			if (parent.parent != NULL_NODE)
 			{
-				auto& UpperParent = Nodes[Parent.Parent];
-				if (UpperParent.Left == ParentIndex)
-					UpperParent.Left = SiblingIndex;
+				auto& upper_parent = nodes[parent.parent];
+				if (upper_parent.left == parent_index)
+					upper_parent.left = sibling_index;
 				else
-					UpperParent.Right = SiblingIndex;
+					upper_parent.right = sibling_index;
 
-				Sibling.Parent = Parent.Parent;
-				FreeNode(ParentIndex);
+				sibling.parent = parent.parent;
+				free_node(parent_index);
 
-				size_t NextIndex = Parent.Parent;
-				while (NextIndex != NULL_NODE)
+				size_t next_index = parent.parent;
+				while (next_index != NULL_NODE)
 				{
-					NextIndex = Balance(NextIndex);
-					auto& Next = Nodes[NextIndex];
-					auto& Left = Nodes[Next.Left];
-					auto& Right = Nodes[Next.Right];
+					next_index = balance(next_index);
+					auto& next = nodes[next_index];
+					auto& left = nodes[next.left];
+					auto& right = nodes[next.right];
 
-					Next.Bounds.Merge(Left.Bounds, Right.Bounds);
-					Next.Height = 1 + std::max(Left.Height, Right.Height);
-					NextIndex = Next.Parent;
+					next.bounds.merge(left.bounds, right.bounds);
+					next.height = 1 + std::max(left.height, right.height);
+					next_index = next.parent;
 				}
 			}
 			else
 			{
-				Root = SiblingIndex;
-				Sibling.Parent = NULL_NODE;
-				FreeNode(ParentIndex);
+				root = sibling_index;
+				sibling.parent = NULL_NODE;
+				free_node(parent_index);
 			}
 		}
-		void Cosmos::Reserve(size_t Size)
+		void cosmos::reserve(size_t size)
 		{
-			if (Size < Nodes.capacity())
+			if (size < nodes.capacity())
 				return;
 
-			Items.reserve(Size);
-			Nodes.reserve(Size);
+			items.reserve(size);
+			nodes.reserve(size);
 		}
-		void Cosmos::Clear()
+		void cosmos::clear()
 		{
-			auto It = Items.begin();
-			while (It != Items.end())
+			auto it = items.begin();
+			while (it != items.end())
 			{
-				size_t NodeIndex = It->second;
-				VI_ASSERT(NodeIndex < NodeCapacity, "outside of borders");
-				VI_ASSERT(Nodes[NodeIndex].IsLeaf(), "cannot remove root node");
+				size_t node_index = it->second;
+				VI_ASSERT(node_index < node_capacity, "outside of borders");
+				VI_ASSERT(nodes[node_index].is_leaf(), "cannot remove root node");
 
-				RemoveLeaf(NodeIndex);
-				FreeNode(NodeIndex);
-				It++;
+				remove_leaf(node_index);
+				free_node(node_index);
+				it++;
 			}
-			Items.clear();
+			items.clear();
 		}
-		bool Cosmos::UpdateItem(void* Item, const Vector3& Lower, const Vector3& Upper, bool Always)
+		bool cosmos::update_item(void* item, const vector3& lower, const vector3& upper, bool always)
 		{
-			auto It = Items.find(Item);
-			if (It == Items.end())
+			auto it = items.find(item);
+			if (it == items.end())
 				return false;
 
-			auto& Next = Nodes[It->second];
-			if (!Always)
+			auto& next = nodes[it->second];
+			if (!always)
 			{
-				Bounding Bounds(Lower, Upper);
-				if (Next.Bounds.Contains(Bounds))
+				bounding bounds(lower, upper);
+				if (next.bounds.contains(bounds))
 					return true;
 
-				RemoveLeaf(It->second);
-				Next.Bounds = Bounds;
+				remove_leaf(it->second);
+				next.bounds = bounds;
 			}
 			else
 			{
-				RemoveLeaf(It->second);
-				Next.Bounds = Bounding(Lower, Upper);
+				remove_leaf(it->second);
+				next.bounds = bounding(lower, upper);
 			}
 
-			InsertLeaf(It->second);
+			insert_leaf(it->second);
 			return true;
 		}
-		const Bounding& Cosmos::GetArea(void* Item)
+		const bounding& cosmos::get_area(void* item)
 		{
-			auto It = Items.find(Item);
-			if (It != Items.end())
-				return Nodes[It->second].Bounds;
+			auto it = items.find(item);
+			if (it != items.end())
+				return nodes[it->second].bounds;
 
-			return Nodes[Root].Bounds;
+			return nodes[root].bounds;
 		}
-		size_t Cosmos::AllocateNode()
+		size_t cosmos::allocate_node()
 		{
-			if (FreeList == NULL_NODE)
+			if (free_list == NULL_NODE)
 			{
-				VI_ASSERT(NodeCount == NodeCapacity, "invalid capacity");
+				VI_ASSERT(node_count == node_capacity, "invalid capacity");
 
-				NodeCapacity *= 2;
-				Nodes.resize(NodeCapacity);
+				node_capacity *= 2;
+				nodes.resize(node_capacity);
 
-				for (size_t i = NodeCount; i < NodeCapacity - 1; i++)
+				for (size_t i = node_count; i < node_capacity - 1; i++)
 				{
-					auto& Next = Nodes[i];
-					Next.Next = i + 1;
-					Next.Height = -1;
+					auto& next = nodes[i];
+					next.next = i + 1;
+					next.height = -1;
 				}
 
-				Nodes[NodeCapacity - 1].Next = NULL_NODE;
-				Nodes[NodeCapacity - 1].Height = -1;
-				FreeList = NodeCount;
+				nodes[node_capacity - 1].next = NULL_NODE;
+				nodes[node_capacity - 1].height = -1;
+				free_list = node_count;
 			}
 
-			size_t NodeIndex = FreeList;
-			auto& Node = Nodes[NodeIndex];
-			FreeList = Node.Next;
-			Node.Parent = NULL_NODE;
-			Node.Left = NULL_NODE;
-			Node.Right = NULL_NODE;
-			Node.Height = 0;
-			NodeCount++;
+			size_t node_index = free_list;
+			auto& node = nodes[node_index];
+			free_list = node.next;
+			node.parent = NULL_NODE;
+			node.left = NULL_NODE;
+			node.right = NULL_NODE;
+			node.height = 0;
+			node_count++;
 
-			return NodeIndex;
+			return node_index;
 		}
-		size_t Cosmos::Balance(size_t NodeIndex)
+		size_t cosmos::balance(size_t node_index)
 		{
-			VI_ASSERT(NodeIndex != NULL_NODE, "node should not be null");
+			VI_ASSERT(node_index != NULL_NODE, "node should not be null");
 
-			auto& Next = Nodes[NodeIndex];
-			if (Next.IsLeaf() || (Next.Height < 2))
-				return NodeIndex;
+			auto& next = nodes[node_index];
+			if (next.is_leaf() || (next.height < 2))
+				return node_index;
 
-			VI_ASSERT(Next.Left < NodeCapacity, "left outside of borders");
-			VI_ASSERT(Next.Right < NodeCapacity, "right outside of borders");
+			VI_ASSERT(next.left < node_capacity, "left outside of borders");
+			VI_ASSERT(next.right < node_capacity, "right outside of borders");
 
-			size_t LeftIndex = Next.Left;
-			size_t RightIndex = Next.Right;
-			auto& Left = Nodes[LeftIndex];
-			auto& Right = Nodes[RightIndex];
+			size_t left_index = next.left;
+			size_t right_index = next.right;
+			auto& left = nodes[left_index];
+			auto& right = nodes[right_index];
 
-			int Balance = Right.Height - Left.Height;
-			if (Balance > 1)
+			int balance = right.height - left.height;
+			if (balance > 1)
 			{
-				VI_ASSERT(Right.Left < NodeCapacity, "subleft outside of borders");
-				VI_ASSERT(Right.Right < NodeCapacity, "subright outside of borders");
+				VI_ASSERT(right.left < node_capacity, "subleft outside of borders");
+				VI_ASSERT(right.right < node_capacity, "subright outside of borders");
 
-				size_t RightLeftIndex = Right.Left;
-				size_t RightRightIndex = Right.Right;
-				auto& RightLeft = Nodes[RightLeftIndex];
-				auto& RightRight = Nodes[RightRightIndex];
+				size_t right_left_index = right.left;
+				size_t right_right_index = right.right;
+				auto& right_left = nodes[right_left_index];
+				auto& right_right = nodes[right_right_index];
 
-				Right.Left = NodeIndex;
-				Right.Parent = Next.Parent;
-				Next.Parent = RightIndex;
+				right.left = node_index;
+				right.parent = next.parent;
+				next.parent = right_index;
 
-				if (Right.Parent != NULL_NODE)
+				if (right.parent != NULL_NODE)
 				{
-					if (Nodes[Right.Parent].Left != NodeIndex)
+					if (nodes[right.parent].left != node_index)
 					{
-						VI_ASSERT(Nodes[Right.Parent].Right == NodeIndex, "invalid right spacing");
-						Nodes[Right.Parent].Right = RightIndex;
+						VI_ASSERT(nodes[right.parent].right == node_index, "invalid right spacing");
+						nodes[right.parent].right = right_index;
 					}
 					else
-						Nodes[Right.Parent].Left = RightIndex;
+						nodes[right.parent].left = right_index;
 				}
 				else
-					Root = RightIndex;
+					root = right_index;
 
-				if (RightLeft.Height > RightRight.Height)
+				if (right_left.height > right_right.height)
 				{
-					Right.Right = RightLeftIndex;
-					Next.Right = RightRightIndex;
-					RightRight.Parent = NodeIndex;
-					Next.Bounds.Merge(Left.Bounds, RightRight.Bounds);
-					Right.Bounds.Merge(Next.Bounds, RightLeft.Bounds);
+					right.right = right_left_index;
+					next.right = right_right_index;
+					right_right.parent = node_index;
+					next.bounds.merge(left.bounds, right_right.bounds);
+					right.bounds.merge(next.bounds, right_left.bounds);
 
-					Next.Height = 1 + std::max(Left.Height, RightRight.Height);
-					Right.Height = 1 + std::max(Next.Height, RightLeft.Height);
+					next.height = 1 + std::max(left.height, right_right.height);
+					right.height = 1 + std::max(next.height, right_left.height);
 				}
 				else
 				{
-					Right.Right = RightRightIndex;
-					Next.Right = RightLeftIndex;
-					RightLeft.Parent = NodeIndex;
-					Next.Bounds.Merge(Left.Bounds, RightLeft.Bounds);
-					Right.Bounds.Merge(Next.Bounds, RightRight.Bounds);
+					right.right = right_right_index;
+					next.right = right_left_index;
+					right_left.parent = node_index;
+					next.bounds.merge(left.bounds, right_left.bounds);
+					right.bounds.merge(next.bounds, right_right.bounds);
 
-					Next.Height = 1 + std::max(Left.Height, RightLeft.Height);
-					Right.Height = 1 + std::max(Next.Height, RightRight.Height);
+					next.height = 1 + std::max(left.height, right_left.height);
+					right.height = 1 + std::max(next.height, right_right.height);
 				}
 
-				return RightIndex;
+				return right_index;
 			}
-			else if (Balance < -1)
+			else if (balance < -1)
 			{
-				VI_ASSERT(Left.Left < NodeCapacity, "subleft outside of borders");
-				VI_ASSERT(Left.Right < NodeCapacity, "subright outside of borders");
+				VI_ASSERT(left.left < node_capacity, "subleft outside of borders");
+				VI_ASSERT(left.right < node_capacity, "subright outside of borders");
 
-				size_t LeftLeftIndex = Left.Left;
-				size_t LeftRightIndex = Left.Right;
-				auto& LeftLeft = Nodes[LeftLeftIndex];
-				auto& LeftRight = Nodes[LeftRightIndex];
+				size_t left_left_index = left.left;
+				size_t left_right_index = left.right;
+				auto& left_left = nodes[left_left_index];
+				auto& left_right = nodes[left_right_index];
 
-				Left.Left = NodeIndex;
-				Left.Parent = Next.Parent;
-				Next.Parent = LeftIndex;
+				left.left = node_index;
+				left.parent = next.parent;
+				next.parent = left_index;
 
-				if (Left.Parent != NULL_NODE)
+				if (left.parent != NULL_NODE)
 				{
-					if (Nodes[Left.Parent].Left != NodeIndex)
+					if (nodes[left.parent].left != node_index)
 					{
-						VI_ASSERT(Nodes[Left.Parent].Right == NodeIndex, "invalid left spacing");
-						Nodes[Left.Parent].Right = LeftIndex;
+						VI_ASSERT(nodes[left.parent].right == node_index, "invalid left spacing");
+						nodes[left.parent].right = left_index;
 					}
 					else
-						Nodes[Left.Parent].Left = LeftIndex;
+						nodes[left.parent].left = left_index;
 				}
 				else
-					Root = LeftIndex;
+					root = left_index;
 
-				if (LeftLeft.Height > LeftRight.Height)
+				if (left_left.height > left_right.height)
 				{
-					Left.Right = LeftLeftIndex;
-					Next.Left = LeftRightIndex;
-					LeftRight.Parent = NodeIndex;
-					Next.Bounds.Merge(Right.Bounds, LeftRight.Bounds);
-					Left.Bounds.Merge(Next.Bounds, LeftLeft.Bounds);
-					Next.Height = 1 + std::max(Right.Height, LeftRight.Height);
-					Left.Height = 1 + std::max(Next.Height, LeftLeft.Height);
+					left.right = left_left_index;
+					next.left = left_right_index;
+					left_right.parent = node_index;
+					next.bounds.merge(right.bounds, left_right.bounds);
+					left.bounds.merge(next.bounds, left_left.bounds);
+					next.height = 1 + std::max(right.height, left_right.height);
+					left.height = 1 + std::max(next.height, left_left.height);
 				}
 				else
 				{
-					Left.Right = LeftRightIndex;
-					Next.Left = LeftLeftIndex;
-					LeftLeft.Parent = NodeIndex;
-					Next.Bounds.Merge(Right.Bounds, LeftLeft.Bounds);
-					Left.Bounds.Merge(Next.Bounds, LeftRight.Bounds);
-					Next.Height = 1 + std::max(Right.Height, LeftLeft.Height);
-					Left.Height = 1 + std::max(Next.Height, LeftRight.Height);
+					left.right = left_right_index;
+					next.left = left_left_index;
+					left_left.parent = node_index;
+					next.bounds.merge(right.bounds, left_left.bounds);
+					left.bounds.merge(next.bounds, left_right.bounds);
+					next.height = 1 + std::max(right.height, left_left.height);
+					left.height = 1 + std::max(next.height, left_right.height);
 				}
 
-				return LeftIndex;
+				return left_index;
 			}
 
-			return NodeIndex;
+			return node_index;
 		}
-		size_t Cosmos::ComputeHeight() const
+		size_t cosmos::compute_height() const
 		{
-			return ComputeHeight(Root);
+			return compute_height(root);
 		}
-		size_t Cosmos::ComputeHeight(size_t NodeIndex) const
+		size_t cosmos::compute_height(size_t node_index) const
 		{
-			VI_ASSERT(NodeIndex < NodeCapacity, "outside of borders");
+			VI_ASSERT(node_index < node_capacity, "outside of borders");
 
-			auto& Next = Nodes[NodeIndex];
-			if (Next.IsLeaf())
+			auto& next = nodes[node_index];
+			if (next.is_leaf())
 				return 0;
 
-			size_t Height1 = ComputeHeight(Next.Left);
-			size_t Height2 = ComputeHeight(Next.Right);
-			return 1 + std::max(Height1, Height2);
+			size_t height1 = compute_height(next.left);
+			size_t height2 = compute_height(next.right);
+			return 1 + std::max(height1, height2);
 		}
-		size_t Cosmos::GetNodesCount() const
+		size_t cosmos::get_nodes_count() const
 		{
-			return Nodes.size();
+			return nodes.size();
 		}
-		size_t Cosmos::GetHeight() const
+		size_t cosmos::get_height() const
 		{
-			return Root == NULL_NODE ? 0 : Nodes[Root].Height;
+			return root == NULL_NODE ? 0 : nodes[root].height;
 		}
-		size_t Cosmos::GetMaxBalance() const
+		size_t cosmos::get_max_balance() const
 		{
-			size_t MaxBalance = 0;
-			for (size_t i = 0; i < NodeCapacity; i++)
+			size_t max_balance = 0;
+			for (size_t i = 0; i < node_capacity; i++)
 			{
-				auto& Next = Nodes[i];
-				if (Next.Height <= 1)
+				auto& next = nodes[i];
+				if (next.height <= 1)
 					continue;
 
-				VI_ASSERT(!Next.IsLeaf(), "node should be leaf");
-				size_t Balance = std::abs(Nodes[Next.Left].Height - Nodes[Next.Right].Height);
-				MaxBalance = std::max(MaxBalance, Balance);
+				VI_ASSERT(!next.is_leaf(), "node should be leaf");
+				size_t balance = std::abs(nodes[next.left].height - nodes[next.right].height);
+				max_balance = std::max(max_balance, balance);
 			}
 
-			return MaxBalance;
+			return max_balance;
 		}
-		size_t Cosmos::GetRoot() const
+		size_t cosmos::get_root() const
 		{
-			return Root;
+			return root;
 		}
-		const Core::UnorderedMap<void*, size_t>& Cosmos::GetItems() const
+		const core::unordered_map<void*, size_t>& cosmos::get_items() const
 		{
-			return Items;
+			return items;
 		}
-		const Core::Vector<Cosmos::Node>& Cosmos::GetNodes() const
+		const core::vector<cosmos::node>& cosmos::get_nodes() const
 		{
-			return Nodes;
+			return nodes;
 		}
-		const Cosmos::Node& Cosmos::GetRootNode() const
+		const cosmos::node& cosmos::get_root_node() const
 		{
-			VI_ASSERT(Root < Nodes.size(), "index out of range");
-			return Nodes[Root];
+			VI_ASSERT(root < nodes.size(), "index out of range");
+			return nodes[root];
 		}
-		const Cosmos::Node& Cosmos::GetNode(size_t Id) const
+		const cosmos::node& cosmos::get_node(size_t id) const
 		{
-			VI_ASSERT(Id < Nodes.size(), "index out of range");
-			return Nodes[Id];
+			VI_ASSERT(id < nodes.size(), "index out of range");
+			return nodes[id];
 		}
-		float Cosmos::GetVolumeRatio() const
+		float cosmos::get_volume_ratio() const
 		{
-			if (Root == NULL_NODE)
+			if (root == NULL_NODE)
 				return 0.0;
 
-			float RootArea = Nodes[Root].Bounds.Volume;
-			float TotalArea = 0.0;
+			float root_area = nodes[root].bounds.volume;
+			float total_area = 0.0;
 
-			for (size_t i = 0; i < NodeCapacity; i++)
+			for (size_t i = 0; i < node_capacity; i++)
 			{
-				auto& Next = Nodes[i];
-				if (Next.Height >= 0)
-					TotalArea += Next.Bounds.Volume;
+				auto& next = nodes[i];
+				if (next.height >= 0)
+					total_area += next.bounds.volume;
 			}
 
-			return TotalArea / RootArea;
+			return total_area / root_area;
 		}
-		bool Cosmos::IsNull(size_t Id) const
+		bool cosmos::is_null(size_t id) const
 		{
-			return Id == NULL_NODE;
+			return id == NULL_NODE;
 		}
-		bool Cosmos::Empty() const
+		bool cosmos::empty() const
 		{
-			return Items.empty();
+			return items.empty();
 		}
 	}
 }

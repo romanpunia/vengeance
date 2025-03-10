@@ -1,215 +1,217 @@
 #include "gui.h"
 #include <vitex/network.h>
 #ifdef VI_RMLUI
-#include <RmlUi/Core.h>
-#include <RmlUi/Core/Stream.h>
-#include <RmlUi/Core/RenderInterfaceCompatibility.h>
-#include <Source/Core/StyleSheetFactory.h>
-#include <Source/Core/ElementStyle.h>
+#include <RmlUi/core.h>
+#include <RmlUi/core/stream.h>
+#include <RmlUi/core/RenderInterfaceCompatibility.h>
+#include <source/core/StyleSheetFactory.h>
+#include <source/core/ElementStyle.h>
 #endif
+#define RENDERS_FOR_DATA_EVENT 1
+#define RENDERS_FOR_SIZE_EVENT 30
 #pragma warning(push)
 #pragma warning(disable: 4996)
 
-namespace Vitex
+namespace vitex
 {
-	namespace Layer
+	namespace layer
 	{
-		namespace GUI
+		namespace gui
 		{
 #ifdef VI_RMLUI
-			struct GeometryBuffer
+			struct geometry_buffer
 			{
-				Graphics::ElementBuffer* VertexBuffer;
-				Graphics::ElementBuffer* IndexBuffer;
-				Graphics::Texture2D* Texture;
+				graphics::element_buffer* vertex_buffer;
+				graphics::element_buffer* index_buffer;
+				graphics::texture_2d* texture;
 
-				GeometryBuffer() : VertexBuffer(nullptr), IndexBuffer(nullptr), Texture(nullptr)
+				geometry_buffer() : vertex_buffer(nullptr), index_buffer(nullptr), texture(nullptr)
 				{
 				}
-				~GeometryBuffer()
+				~geometry_buffer()
 				{
-					Core::Memory::Release(VertexBuffer);
-					Core::Memory::Release(IndexBuffer);
+					core::memory::release(vertex_buffer);
+					core::memory::release(index_buffer);
 				}
 			};
 
-			class RenderSubsystem final : public Rml::RenderInterfaceCompatibility
+			class render_subsystem final : public Rml::RenderInterfaceCompatibility
 			{
 			private:
 				struct
 				{
-					uint32_t DiffuseMap = (uint32_t)-1;
-					uint32_t Sampler = (uint32_t)-1;
-					uint32_t Object = (uint32_t)-1;
-				} Slots;
+					uint32_t diffuse_map = (uint32_t)-1;
+					uint32_t sampler = (uint32_t)-1;
+					uint32_t object = (uint32_t)-1;
+				} slots;
 
 			private:
-				Graphics::RasterizerState* ScissorNoneRasterizer;
-				Graphics::RasterizerState* NoneRasterizer;
-				Graphics::DepthStencilState* LessDepthStencil;
-				Graphics::DepthStencilState* NoneDepthStencil;
-				Graphics::DepthStencilState* ScissorDepthStencil;
-				Graphics::BlendState* AlphaBlend;
-				Graphics::BlendState* ColorlessBlend;
-				Graphics::SamplerState* Sampler;
-				Graphics::InputLayout* Layout;
-				Graphics::ElementBuffer* VertexBuffer;
-				Graphics::Shader* Shader;
-				Graphics::GraphicsDevice* Device;
-				HeavyContentManager* Content;
-				RenderConstants* Constants;
-				Trigonometry::Matrix4x4 Transform;
-				Trigonometry::Matrix4x4 Ortho;
-				bool HasScissor;
-				bool HasTransform;
+				graphics::rasterizer_state* scissor_none_rasterizer;
+				graphics::rasterizer_state* none_rasterizer;
+				graphics::depth_stencil_state* less_depth_stencil;
+				graphics::depth_stencil_state* none_depth_stencil;
+				graphics::depth_stencil_state* scissor_depth_stencil;
+				graphics::blend_state* alpha_blend;
+				graphics::blend_state* colorless_blend;
+				graphics::sampler_state* sampler;
+				graphics::input_layout* layout;
+				graphics::element_buffer* vertex_buffer;
+				graphics::shader* shader;
+				graphics::graphics_device* device;
+				heavy_content_manager* content;
+				render_constants* constants;
+				trigonometry::matrix4x4 transform;
+				trigonometry::matrix4x4 ortho;
+				bool has_scissor;
+				bool has_transform;
 
 			public:
-				Graphics::Texture2D* Background;
+				graphics::texture_2d* background;
 
 			public:
-				RenderSubsystem() : Rml::RenderInterfaceCompatibility(), Device(nullptr), Content(nullptr), Constants(nullptr), HasTransform(false), HasScissor(false), Background(nullptr)
+				render_subsystem() : Rml::RenderInterfaceCompatibility(), device(nullptr), content(nullptr), constants(nullptr), has_transform(false), has_scissor(false), background(nullptr)
 				{
-					Shader = nullptr;
-					VertexBuffer = nullptr;
-					Layout = nullptr;
-					NoneRasterizer = nullptr;
-					ScissorNoneRasterizer = nullptr;
-					ScissorDepthStencil = nullptr;
-					LessDepthStencil = nullptr;
-					NoneDepthStencil = nullptr;
-					AlphaBlend = nullptr;
-					ColorlessBlend = nullptr;
-					Sampler = nullptr;
+					shader = nullptr;
+					vertex_buffer = nullptr;
+					layout = nullptr;
+					none_rasterizer = nullptr;
+					scissor_none_rasterizer = nullptr;
+					scissor_depth_stencil = nullptr;
+					less_depth_stencil = nullptr;
+					none_depth_stencil = nullptr;
+					alpha_blend = nullptr;
+					colorless_blend = nullptr;
+					sampler = nullptr;
 				}
-				~RenderSubsystem() override
+				~render_subsystem() override
 				{
-					Detach();
+					detach();
 				}
-				void RenderGeometry(Rml::Vertex* Vertices, int VerticesSize, int* Indices, int IndicesSize, Rml::TextureHandle Texture, const Rml::Vector2f& Translation) override
+				void RenderGeometry(Rml::Vertex* vertices, int vertices_size, int* indices, int indices_size, Rml::TextureHandle texture, const Rml::Vector2f& translation) override
 				{
-					VI_ASSERT(Device != nullptr, "graphics device should be set");
-					VI_ASSERT(Vertices != nullptr, "vertices should be set");
-					VI_ASSERT(Indices != nullptr, "indices should be set");
-					EnableScissorRegion(HasScissor);
-					Device->ImBegin();
-					Device->ImTopology(Graphics::PrimitiveTopology::Triangle_List);
-					Device->ImTexture((Graphics::Texture2D*)Texture);
-					if (HasTransform)
-						Device->ImTransform(Trigonometry::Matrix4x4::CreateTranslation(Trigonometry::Vector3(Translation.x, Translation.y)) * Transform * Ortho);
+					VI_ASSERT(device != nullptr, "graphics device should be set");
+					VI_ASSERT(vertices != nullptr, "vertices should be set");
+					VI_ASSERT(indices != nullptr, "indices should be set");
+					EnableScissorRegion(has_scissor);
+					device->im_begin();
+					device->im_topology(graphics::primitive_topology::triangle_list);
+					device->im_texture((graphics::texture_2d*)texture);
+					if (has_transform)
+						device->im_transform(trigonometry::matrix4x4::create_translation(trigonometry::vector3(translation.x, translation.y)) * transform * ortho);
 					else
-						Device->ImTransform(Trigonometry::Matrix4x4::CreateTranslation(Trigonometry::Vector3(Translation.x, Translation.y)) * Ortho);
+						device->im_transform(trigonometry::matrix4x4::create_translation(trigonometry::vector3(translation.x, translation.y)) * ortho);
 
-					for (int i = IndicesSize; i-- > 0;)
+					for (int i = indices_size; i-- > 0;)
 					{
-						Rml::Vertex& V = Vertices[Indices[i]];
-						Device->ImEmit();
-						Device->ImPosition(V.position.x, V.position.y, 0.0f);
-						Device->ImTexCoord(V.tex_coord.x, V.tex_coord.y);
-						Device->ImColor(V.colour.red / 255.0f, V.colour.green / 255.0f, V.colour.blue / 255.0f, V.colour.alpha / 255.0f);
+						Rml::Vertex& v = vertices[indices[i]];
+						device->im_emit();
+						device->im_position(v.position.x, v.position.y, 0.0f);
+						device->im_texcoord(v.tex_coord.x, v.tex_coord.y);
+						device->im_color(v.colour.red / 255.0f, v.colour.green / 255.0f, v.colour.blue / 255.0f, v.colour.alpha / 255.0f);
 					}
-					Device->ImEnd();
+					device->im_end();
 				}
-				Rml::CompiledGeometryHandle CompileGeometry(Rml::Vertex* Vertices, int VerticesCount, int* Indices, int IndicesCount, Rml::TextureHandle Handle) override
+				Rml::CompiledGeometryHandle CompileGeometry(Rml::Vertex* vertices, int vertices_count, int* indices, int indices_count, Rml::TextureHandle handle) override
 				{
-					VI_ASSERT(Device != nullptr, "graphics device should be set");
-					GeometryBuffer* Result = Core::Memory::New<GeometryBuffer>();
-					Result->Texture = (Graphics::Texture2D*)Handle;
+					VI_ASSERT(device != nullptr, "graphics device should be set");
+					geometry_buffer* result = core::memory::init<geometry_buffer>();
+					result->texture = (graphics::texture_2d*)handle;
 
-					Graphics::ElementBuffer::Desc F = Graphics::ElementBuffer::Desc();
-					F.AccessFlags = Graphics::CPUAccess::None;
-					F.Usage = Graphics::ResourceUsage::Default;
-					F.BindFlags = Graphics::ResourceBind::Vertex_Buffer;
-					F.ElementCount = (unsigned int)VerticesCount;
-					F.Elements = (void*)Vertices;
-					F.ElementWidth = sizeof(Rml::Vertex);
-					Result->VertexBuffer = *Device->CreateElementBuffer(F);
+					graphics::element_buffer::desc f = graphics::element_buffer::desc();
+					f.access_flags = graphics::cpu_access::none;
+					f.usage = graphics::resource_usage::defaults;
+					f.bind_flags = graphics::resource_bind::vertex_buffer;
+					f.element_count = (unsigned int)vertices_count;
+					f.elements = (void*)vertices;
+					f.element_width = sizeof(Rml::Vertex);
+					result->vertex_buffer = *device->create_element_buffer(f);
 
-					F = Graphics::ElementBuffer::Desc();
-					F.AccessFlags = Graphics::CPUAccess::None;
-					F.Usage = Graphics::ResourceUsage::Default;
-					F.BindFlags = Graphics::ResourceBind::Index_Buffer;
-					F.ElementCount = (unsigned int)IndicesCount;
-					F.ElementWidth = sizeof(unsigned int);
-					F.Elements = (void*)Indices;
-					Result->IndexBuffer = *Device->CreateElementBuffer(F);
-					
-					return (Rml::CompiledGeometryHandle)Result;
+					f = graphics::element_buffer::desc();
+					f.access_flags = graphics::cpu_access::none;
+					f.usage = graphics::resource_usage::defaults;
+					f.bind_flags = graphics::resource_bind::index_buffer;
+					f.element_count = (unsigned int)indices_count;
+					f.element_width = sizeof(unsigned int);
+					f.elements = (void*)indices;
+					result->index_buffer = *device->create_element_buffer(f);
+
+					return (Rml::CompiledGeometryHandle)result;
 				}
-				void RenderCompiledGeometry(Rml::CompiledGeometryHandle Handle, const Rml::Vector2f& Translation) override
+				void RenderCompiledGeometry(Rml::CompiledGeometryHandle handle, const Rml::Vector2f& translation) override
 				{
-					GeometryBuffer* Buffer = (GeometryBuffer*)Handle;
-					VI_ASSERT(Device != nullptr, "graphics device should be set");
-					VI_ASSERT(Buffer != nullptr, "buffer should be set");
+					geometry_buffer* buffer = (geometry_buffer*)handle;
+					VI_ASSERT(device != nullptr, "graphics device should be set");
+					VI_ASSERT(buffer != nullptr, "buffer should be set");
 
-					Constants->Render.Diffuse = (Buffer->Texture != nullptr ? 1.0f : 0.0f);
-					if (HasTransform)
-						Constants->Render.Transform = Trigonometry::Matrix4x4::CreateTranslation(Trigonometry::Vector3(Translation.x, Translation.y)) * Transform * Ortho;
+					constants->render.diffuse = (buffer->texture != nullptr ? 1.0f : 0.0f);
+					if (has_transform)
+						constants->render.transform = trigonometry::matrix4x4::create_translation(trigonometry::vector3(translation.x, translation.y)) * transform * ortho;
 					else
-						Constants->Render.Transform = Trigonometry::Matrix4x4::CreateTranslation(Trigonometry::Vector3(Translation.x, Translation.y)) * Ortho;
+						constants->render.transform = trigonometry::matrix4x4::create_translation(trigonometry::vector3(translation.x, translation.y)) * ortho;
 
-					EnableScissorRegion(HasScissor);
-					Constants->SetUpdatedConstantBuffer(RenderBufferType::Render, Slots.Object, VI_VS | VI_PS);
-					Device->SetInputLayout(Layout);
-					Device->SetShader(Shader, VI_VS | VI_PS);
-					Device->SetTexture2D(Buffer->Texture, Slots.DiffuseMap, VI_PS);
-					Device->SetVertexBuffer(Buffer->VertexBuffer);
-					Device->SetIndexBuffer(Buffer->IndexBuffer, Graphics::Format::R32_Uint);
-					Device->DrawIndexed((unsigned int)Buffer->IndexBuffer->GetElements(), 0, 0);
+					EnableScissorRegion(has_scissor);
+					constants->set_updated_constant_buffer(render_buffer_type::render, slots.object, VI_VS | VI_PS);
+					device->set_input_layout(layout);
+					device->set_shader(shader, VI_VS | VI_PS);
+					device->set_texture_2d(buffer->texture, slots.diffuse_map, VI_PS);
+					device->set_vertex_buffer(buffer->vertex_buffer);
+					device->set_index_buffer(buffer->index_buffer, graphics::format::r32_uint);
+					device->draw_indexed((unsigned int)buffer->index_buffer->get_elements(), 0, 0);
 				}
-				void ReleaseCompiledGeometry(Rml::CompiledGeometryHandle Handle) override
+				void ReleaseCompiledGeometry(Rml::CompiledGeometryHandle handle) override
 				{
-					GeometryBuffer* Resource = (GeometryBuffer*)Handle;
-					Core::Memory::Delete(Resource);
+					geometry_buffer* resource = (geometry_buffer*)handle;
+					core::memory::deinit(resource);
 				}
-				void EnableScissorRegion(bool Enable) override
+				void EnableScissorRegion(bool enable) override
 				{
-					VI_ASSERT(Device != nullptr, "graphics device should be set");
-					HasScissor = Enable;
-					Ortho = Trigonometry::Matrix4x4::CreateOrthographicOffCenter(0, (float)Device->GetRenderTarget()->GetWidth(), (float)Device->GetRenderTarget()->GetHeight(), 0.0f, -30000.0f, 10000.0f);
-					Device->SetSamplerState(Sampler, Slots.Sampler, 1, VI_PS);
-					Device->SetBlendState(AlphaBlend);
-					if (Enable)
+					VI_ASSERT(device != nullptr, "graphics device should be set");
+					has_scissor = enable;
+					ortho = trigonometry::matrix4x4::create_orthographic_off_center(0, (float)device->get_render_target()->get_width(), (float)device->get_render_target()->get_height(), 0.0f, -30000.0f, 10000.0f);
+					device->set_sampler_state(sampler, slots.sampler, 1, VI_PS);
+					device->set_blend_state(alpha_blend);
+					if (enable)
 					{
-						if (HasTransform)
+						if (has_transform)
 						{
-							Device->SetRasterizerState(NoneRasterizer);
-							Device->SetDepthStencilState(LessDepthStencil);
+							device->set_rasterizer_state(none_rasterizer);
+							device->set_depth_stencil_state(less_depth_stencil);
 						}
 						else
 						{
-							Device->SetRasterizerState(ScissorNoneRasterizer);
-							Device->SetDepthStencilState(NoneDepthStencil);
+							device->set_rasterizer_state(scissor_none_rasterizer);
+							device->set_depth_stencil_state(none_depth_stencil);
 						}
 					}
 					else
 					{
-						Device->SetRasterizerState(NoneRasterizer);
-						Device->SetDepthStencilState(NoneDepthStencil);
+						device->set_rasterizer_state(none_rasterizer);
+						device->set_depth_stencil_state(none_depth_stencil);
 					}
 				}
-				void SetScissorRegion(int X, int Y, int Width, int Height) override
+				void SetScissorRegion(int x, int y, int width, int height) override
 				{
-					VI_ASSERT(Device != nullptr, "graphics device should be set");
-					if (!HasTransform)
+					VI_ASSERT(device != nullptr, "graphics device should be set");
+					if (!has_transform)
 					{
-						Trigonometry::Rectangle Scissor;
-						Scissor.Left = X;
-						Scissor.Top = Y;
-						Scissor.Right = X + Width;
-						Scissor.Bottom = Y + Height;
+						trigonometry::rectangle scissor;
+						scissor.left = x;
+						scissor.top = y;
+						scissor.right = x + width;
+						scissor.bottom = y + height;
 
-						return Device->SetScissorRects(1, &Scissor);
+						return device->set_scissor_rects(1, &scissor);
 					}
 
-					Graphics::MappedSubresource Subresource;
-					if (Device->Map(VertexBuffer, Graphics::ResourceMap::Write_Discard, &Subresource))
+					graphics::mapped_subresource subresource;
+					if (device->map(vertex_buffer, graphics::resource_map::write_discard, &subresource))
 					{
-						float fWidth = (float)Width;
-						float fHeight = (float)Height;
-						float fX = (float)X;
-						float fY = (float)Y;
+						float fWidth = (float)width;
+						float fHeight = (float)height;
+						float fX = (float)x;
+						float fY = (float)y;
 
-						Rml::Vertex Vertices[6] =
+						Rml::Vertex vertices[6] =
 						{
 							{ Rml::Vector2f(fX, fY), Rml::ColourbPremultiplied(), Rml::Vector2f() },
 							{ Rml::Vector2f(fX, fY + fHeight), Rml::ColourbPremultiplied(), Rml::Vector2f() },
@@ -218,299 +220,299 @@ namespace Vitex
 							{ Rml::Vector2f(fX + fWidth, fY + fHeight), Rml::ColourbPremultiplied(), Rml::Vector2f() },
 							{ Rml::Vector2f(fX + fWidth, fY), Rml::ColourbPremultiplied(), Rml::Vector2f() }
 						};
-						memcpy(Subresource.Pointer, Vertices, sizeof(Rml::Vertex) * 6);
-						Device->Unmap(VertexBuffer, &Subresource);
+						memcpy(subresource.pointer, vertices, sizeof(Rml::Vertex) * 6);
+						device->unmap(vertex_buffer, &subresource);
 					}
 
-					Constants->Render.Transform = Transform * Ortho;
-					Constants->UpdateConstantBuffer(RenderBufferType::Render);
-					Device->ClearDepth();
-					Device->SetBlendState(ColorlessBlend);
-					Device->SetShader(Shader, VI_VS | VI_PS);
-					Device->SetVertexBuffer(VertexBuffer);
-					Device->Draw((unsigned int)VertexBuffer->GetElements(), 0);
-					Device->SetDepthStencilState(ScissorDepthStencil);
-					Device->SetBlendState(AlphaBlend);
+					constants->render.transform = transform * ortho;
+					constants->update_constant_buffer(render_buffer_type::render);
+					device->clear_depth();
+					device->set_blend_state(colorless_blend);
+					device->set_shader(shader, VI_VS | VI_PS);
+					device->set_vertex_buffer(vertex_buffer);
+					device->draw((unsigned int)vertex_buffer->get_elements(), 0);
+					device->set_depth_stencil_state(scissor_depth_stencil);
+					device->set_blend_state(alpha_blend);
 				}
-				bool LoadTexture(Rml::TextureHandle& Handle, Rml::Vector2i& TextureDimensions, const Rml::String& Source) override
+				bool LoadTexture(Rml::TextureHandle& handle, Rml::Vector2i& texture_dimensions, const Rml::String& source) override
 				{
-					VI_ASSERT(Content != nullptr, "content manager should be set");
-					auto Result = Content->Load<Graphics::Texture2D>(Source);
-					if (!Result)
+					VI_ASSERT(content != nullptr, "content manager should be set");
+					auto result = content->load<graphics::texture_2d>(source);
+					if (!result)
 						return false;
 
-					TextureDimensions.x = Result->GetWidth();
-					TextureDimensions.y = Result->GetHeight();
-					Handle = (Rml::TextureHandle)*Result;
+					texture_dimensions.x = result->get_width();
+					texture_dimensions.y = result->get_height();
+					handle = (Rml::TextureHandle)*result;
 					return true;
 				}
-				bool GenerateTexture(Rml::TextureHandle& Handle, const Rml::byte* Source, const Rml::Vector2i& SourceDimensions) override
+				bool GenerateTexture(Rml::TextureHandle& handle, const Rml::byte* source, const Rml::Vector2i& source_dimensions) override
 				{
-					VI_ASSERT(Device != nullptr, "graphics device should be set");
-					VI_ASSERT(Source != nullptr, "source should be set");
+					VI_ASSERT(device != nullptr, "graphics device should be set");
+					VI_ASSERT(source != nullptr, "source should be set");
 
-					Graphics::Texture2D::Desc F = Graphics::Texture2D::Desc();
-					F.Data = (void*)Source;
-					F.Width = (unsigned int)SourceDimensions.x;
-					F.Height = (unsigned int)SourceDimensions.y;
-					F.RowPitch = Device->GetRowPitch(F.Width);
-					F.DepthPitch = Device->GetDepthPitch(F.RowPitch, F.Height);
-					F.MipLevels = 1;
+					graphics::texture_2d::desc f = graphics::texture_2d::desc();
+					f.data = (void*)source;
+					f.width = (unsigned int)source_dimensions.x;
+					f.height = (unsigned int)source_dimensions.y;
+					f.row_pitch = device->get_row_pitch(f.width);
+					f.depth_pitch = device->get_depth_pitch(f.row_pitch, f.height);
+					f.mip_levels = 1;
 
-					Graphics::Texture2D* Result = *Device->CreateTexture2D(F);
-					Handle = (Rml::TextureHandle)Result;
+					graphics::texture_2d* result = *device->create_texture_2d(f);
+					handle = (Rml::TextureHandle)result;
 					return true;
 				}
-				void ReleaseTexture(Rml::TextureHandle Handle) override
+				void ReleaseTexture(Rml::TextureHandle handle) override
 				{
-					Graphics::Texture2D* Resource = (Graphics::Texture2D*)Handle;
-					Core::Memory::Release(Resource);
+					graphics::texture_2d* resource = (graphics::texture_2d*)handle;
+					core::memory::release(resource);
 				}
-				void SetTransform(const Rml::Matrix4f* NewTransform) override
+				void SetTransform(const Rml::Matrix4f* new_transform) override
 				{
-					HasTransform = (NewTransform != nullptr);
-					if (HasTransform)
-						Transform = Utils::ToMatrix(NewTransform);
+					has_transform = (new_transform != nullptr);
+					if (has_transform)
+						transform = utils::to_matrix(new_transform);
 				}
-				void Attach(RenderConstants* NewConstants, HeavyContentManager* NewContent)
+				void attach(render_constants* new_constants, heavy_content_manager* new_content)
 				{
-					VI_ASSERT(NewConstants != nullptr, "render constants should be set");
-					VI_ASSERT(NewContent != nullptr, "content manager should be set");
-					VI_ASSERT(NewContent->GetDevice() != nullptr, "graphics device should be set");
+					VI_ASSERT(new_constants != nullptr, "render constants should be set");
+					VI_ASSERT(new_content != nullptr, "content manager should be set");
+					VI_ASSERT(new_content->get_device() != nullptr, "graphics device should be set");
 
-					Detach();
-					Constants = NewConstants;
-					Content = NewContent;
-					Device = Content->GetDevice();
-					Constants->AddRef();
-					Content->AddRef();
-					Device->AddRef();
+					detach();
+					constants = new_constants;
+					content = new_content;
+					device = content->get_device();
+					constants->add_ref();
+					content->add_ref();
+					device->add_ref();
 
-					Graphics::Shader::Desc I = Graphics::Shader::Desc();
-					if (Device->GetSectionData("materials/material_ui_element", &I))
+					graphics::shader::desc i = graphics::shader::desc();
+					if (device->get_section_data("materials/material_ui_element", &i))
 					{
-						Shader = *Device->CreateShader(I);
-						Slots.DiffuseMap = *Device->GetShaderSlot(Shader, "DiffuseMap");
-						Slots.Sampler = *Device->GetShaderSamplerSlot(Shader, "DiffuseMap", "Sampler");
-						Slots.Object = *Device->GetShaderSlot(Shader, "Object");
+						shader = *device->create_shader(i);
+						slots.diffuse_map = *device->get_shader_slot(shader, "DiffuseMap");
+						slots.sampler = *device->get_shader_sampler_slot(shader, "DiffuseMap", "Sampler");
+						slots.object = *device->get_shader_slot(shader, "ObjectBuffer");
 					}
 
-					Graphics::ElementBuffer::Desc F = Graphics::ElementBuffer::Desc();
-					F.AccessFlags = Graphics::CPUAccess::Write;
-					F.Usage = Graphics::ResourceUsage::Dynamic;
-					F.BindFlags = Graphics::ResourceBind::Vertex_Buffer;
-					F.ElementCount = (unsigned int)6;
-					F.Elements = (void*)nullptr;
-					F.ElementWidth = sizeof(Rml::Vertex);
+					graphics::element_buffer::desc f = graphics::element_buffer::desc();
+					f.access_flags = graphics::cpu_access::write;
+					f.usage = graphics::resource_usage::dynamic;
+					f.bind_flags = graphics::resource_bind::vertex_buffer;
+					f.element_count = (unsigned int)6;
+					f.elements = (void*)nullptr;
+					f.element_width = sizeof(Rml::Vertex);
 
-					VertexBuffer = *Device->CreateElementBuffer(F);
-					Layout = Device->GetInputLayout("vx_ui");
-					ScissorNoneRasterizer = Device->GetRasterizerState("sw_co");
-					NoneRasterizer = Device->GetRasterizerState("so_co");
-					NoneDepthStencil = Device->GetDepthStencilState("doo_soo_lt");
-					LessDepthStencil = Device->GetDepthStencilState("drw_srw_lt");
-					ScissorDepthStencil = Device->GetDepthStencilState("dro_srw_gte");
-					AlphaBlend = Device->GetBlendState("bw_wrgba_source");
-					ColorlessBlend = Device->GetBlendState("bo_woooo_one");
-					Sampler = Device->GetSamplerState("a16_fa_wrap");
-					Subsystem::Get()->CreateDecorators(Constants);
+					vertex_buffer = *device->create_element_buffer(f);
+					layout = device->get_input_layout("vx_ui");
+					scissor_none_rasterizer = device->get_rasterizer_state("sw_co");
+					none_rasterizer = device->get_rasterizer_state("so_co");
+					none_depth_stencil = device->get_depth_stencil_state("doo_soo_lt");
+					less_depth_stencil = device->get_depth_stencil_state("drw_srw_lt");
+					scissor_depth_stencil = device->get_depth_stencil_state("dro_srw_gte");
+					alpha_blend = device->get_blend_state("bw_wrgba_source");
+					colorless_blend = device->get_blend_state("bo_woooo_one");
+					sampler = device->get_sampler_state("a16_fa_wrap");
+					subsystem::get()->create_decorators(constants);
 				}
-				void Detach()
+				void detach()
 				{
-					Subsystem::Get()->ReleaseDecorators();
-					Core::Memory::Release(VertexBuffer);
-					Core::Memory::Release(Shader);
-					Core::Memory::Release(Constants);
-					Core::Memory::Release(Content);
-					Core::Memory::Release(Device);
+					subsystem::get()->release_decorators();
+					core::memory::release(vertex_buffer);
+					core::memory::release(shader);
+					core::memory::release(constants);
+					core::memory::release(content);
+					core::memory::release(device);
 				}
-				void ResizeBuffers(int Width, int Height)
+				void resize_buffers(int width, int height)
 				{
-					Subsystem::Get()->ResizeDecorators(Width, Height);
+					subsystem::get()->resize_decorators(width, height);
 				}
-				HeavyContentManager* GetContent()
+				heavy_content_manager* get_content()
 				{
-					return Content;
+					return content;
 				}
-				Graphics::GraphicsDevice* GetDevice()
+				graphics::graphics_device* get_device()
 				{
-					return Device;
+					return device;
 				}
-				Trigonometry::Matrix4x4* GetTransform()
+				trigonometry::matrix4x4* get_transform()
 				{
-					return HasTransform ? &Transform : nullptr;
+					return has_transform ? &transform : nullptr;
 				}
-				Trigonometry::Matrix4x4* GetProjection()
+				trigonometry::matrix4x4* get_projection()
 				{
-					return &Ortho;
+					return &ortho;
 				}
 			};
 
-			class FileSubsystem final : public Rml::FileInterface
+			class file_subsystem final : public Rml::FileInterface
 			{
 			public:
-				FileSubsystem() : Rml::FileInterface()
+				file_subsystem() : Rml::FileInterface()
 				{
 				}
-				Rml::FileHandle Open(const Rml::String& Path) override
+				Rml::FileHandle Open(const Rml::String& path) override
 				{
-					Core::String Target = Path;
-					Network::Location Origin(Target);
-					if (Origin.Protocol == "file" && !Core::OS::File::IsExists(Target.c_str()))
+					core::string target = path;
+					network::location origin(target);
+					if (origin.protocol == "file" && !core::os::file::is_exists(target.c_str()))
 					{
-						HeavyContentManager* Content = (Subsystem::Get()->GetRenderInterface() ? Subsystem::Get()->GetRenderInterface()->GetContent() : nullptr);
-						auto Subpath = (Content ? Core::OS::Path::Resolve(Path, Content->GetEnvironment(), false) : Core::OS::Path::Resolve(Path.c_str()));
-						Target = (Subpath ? *Subpath : Path);
+						heavy_content_manager* content = (subsystem::get()->get_render_interface() ? subsystem::get()->get_render_interface()->get_content() : nullptr);
+						auto subpath = (content ? core::os::path::resolve(path, content->get_environment(), false) : core::os::path::resolve(path.c_str()));
+						target = (subpath ? *subpath : path);
 					}
 
-					auto Stream = Core::OS::File::Open(Target, Core::FileMode::Binary_Read_Only);
-					if (!Stream)
+					auto stream = core::os::file::open(target, core::file_mode::binary_read_only);
+					if (!stream)
 						return (Rml::FileHandle)nullptr;
 
-					return (Rml::FileHandle)*Stream;
+					return (Rml::FileHandle)*stream;
 				}
-				void Close(Rml::FileHandle File) override
+				void Close(Rml::FileHandle file) override
 				{
-					Core::Stream* Stream = (Core::Stream*)File;
-					Core::Memory::Release(Stream);
+					core::stream* stream = (core::stream*)file;
+					core::memory::release(stream);
 				}
-				size_t Read(void* Buffer, size_t Size, Rml::FileHandle File) override
+				size_t Read(void* buffer, size_t size, Rml::FileHandle file) override
 				{
-					Core::Stream* Stream = (Core::Stream*)File;
-					VI_ASSERT(Stream != nullptr, "stream should be set");
-					return Stream->Read((uint8_t*)Buffer, Size).Or(0);
+					core::stream* stream = (core::stream*)file;
+					VI_ASSERT(stream != nullptr, "stream should be set");
+					return stream->read((uint8_t*)buffer, size).or_else(0);
 				}
-				bool Seek(Rml::FileHandle File, long Offset, int Origin) override
+				bool Seek(Rml::FileHandle file, long offset, int origin) override
 				{
-					Core::Stream* Stream = (Core::Stream*)File;
-					VI_ASSERT(Stream != nullptr, "stream should be set");
-					return !!Stream->Seek((Core::FileSeek)Origin, Offset);
+					core::stream* stream = (core::stream*)file;
+					VI_ASSERT(stream != nullptr, "stream should be set");
+					return !!stream->seek((core::file_seek)origin, offset);
 				}
-				size_t Tell(Rml::FileHandle File) override
+				size_t Tell(Rml::FileHandle file) override
 				{
-					Core::Stream* Stream = (Core::Stream*)File;
-					VI_ASSERT(Stream != nullptr, "stream should be set");
-					return Stream->Tell().Or(0);
+					core::stream* stream = (core::stream*)file;
+					VI_ASSERT(stream != nullptr, "stream should be set");
+					return stream->tell().or_else(0);
 				}
 			};
 
-			class MainSubsystem final : public Rml::SystemInterface
+			class main_subsystem final : public Rml::SystemInterface
 			{
 			private:
-				Core::UnorderedMap<Core::String, TranslationCallback> Translators;
-				Core::UnorderedMap<Core::String, Core::Vector<FontInfo>> Fonts;
-				Graphics::Activity* Activity;
-				Core::Timer* Time;
+				core::unordered_map<core::string, translation_callback> translators;
+				core::unordered_map<core::string, core::vector<font_info>> fonts;
+				graphics::activity* activity;
+				core::timer* time;
 
 			public:
-				MainSubsystem() : Rml::SystemInterface(), Activity(nullptr), Time(nullptr)
+				main_subsystem() : Rml::SystemInterface(), activity(nullptr), time(nullptr)
 				{
 				}
-				~MainSubsystem()
+				~main_subsystem()
 				{
-					Detach();
+					detach();
 				}
-				void SetMouseCursor(const Rml::String& CursorName) override
+				void SetMouseCursor(const Rml::String& cursor_name) override
 				{
-					if (!Activity)
+					if (!activity)
 						return;
 
-					if (CursorName == "none")
-						Activity->SetCursor(Graphics::DisplayCursor::None);
-					else if (CursorName == "default")
-						Activity->SetCursor(Graphics::DisplayCursor::Arrow);
-					else if (CursorName == "move")
-						Activity->SetCursor(Graphics::DisplayCursor::ResizeAll);
-					else if (CursorName == "pointer")
-						Activity->SetCursor(Graphics::DisplayCursor::Hand);
-					else if (CursorName == "text")
-						Activity->SetCursor(Graphics::DisplayCursor::TextInput);
-					else if (CursorName == "progress")
-						Activity->SetCursor(Graphics::DisplayCursor::Progress);
-					else if (CursorName == "wait")
-						Activity->SetCursor(Graphics::DisplayCursor::Wait);
-					else if (CursorName == "not-allowed")
-						Activity->SetCursor(Graphics::DisplayCursor::No);
-					else if (CursorName == "crosshair")
-						Activity->SetCursor(Graphics::DisplayCursor::Crosshair);
-					else if (CursorName == "ns-resize")
-						Activity->SetCursor(Graphics::DisplayCursor::ResizeNS);
-					else if (CursorName == "ew-resize")
-						Activity->SetCursor(Graphics::DisplayCursor::ResizeEW);
-					else if (CursorName == "nesw-resize")
-						Activity->SetCursor(Graphics::DisplayCursor::ResizeNESW);
-					else if (CursorName == "nwse-resize")
-						Activity->SetCursor(Graphics::DisplayCursor::ResizeNWSE);
+					if (cursor_name == "none")
+						activity->set_cursor(graphics::display_cursor::none);
+					else if (cursor_name == "default")
+						activity->set_cursor(graphics::display_cursor::arrow);
+					else if (cursor_name == "move")
+						activity->set_cursor(graphics::display_cursor::resize_all);
+					else if (cursor_name == "pointer")
+						activity->set_cursor(graphics::display_cursor::hand);
+					else if (cursor_name == "text")
+						activity->set_cursor(graphics::display_cursor::text_input);
+					else if (cursor_name == "progress")
+						activity->set_cursor(graphics::display_cursor::progress);
+					else if (cursor_name == "wait")
+						activity->set_cursor(graphics::display_cursor::wait);
+					else if (cursor_name == "not-allowed")
+						activity->set_cursor(graphics::display_cursor::no);
+					else if (cursor_name == "crosshair")
+						activity->set_cursor(graphics::display_cursor::crosshair);
+					else if (cursor_name == "ns-resize")
+						activity->set_cursor(graphics::display_cursor::resize_ns);
+					else if (cursor_name == "ew-resize")
+						activity->set_cursor(graphics::display_cursor::resize_ew);
+					else if (cursor_name == "nesw-resize")
+						activity->set_cursor(graphics::display_cursor::resize_nesw);
+					else if (cursor_name == "nwse-resize")
+						activity->set_cursor(graphics::display_cursor::resize_nwse);
 				}
-				void SetClipboardText(const Rml::String& Text) override
+				void SetClipboardText(const Rml::String& text) override
 				{
-					if (Activity != nullptr)
-						Activity->SetClipboardText(Text);
+					if (activity != nullptr)
+						activity->set_clipboard_text(text);
 				}
-				void GetClipboardText(Rml::String& Text) override
+				void GetClipboardText(Rml::String& text) override
 				{
-					if (Activity != nullptr)
-						Text = Activity->GetClipboardText();
+					if (activity != nullptr)
+						text = activity->get_clipboard_text();
 				}
-				void ActivateKeyboard(Rml::Vector2f CaretPosition, float LineHeight) override
+				void ActivateKeyboard(Rml::Vector2f caret_position, float line_height) override
 				{
-					if (Activity != nullptr)
-						Activity->SetScreenKeyboard(true);
+					if (activity != nullptr)
+						activity->set_screen_keyboard(true);
 				}
 				void DeactivateKeyboard() override
 				{
-					if (Activity != nullptr)
-						Activity->SetScreenKeyboard(false);
+					if (activity != nullptr)
+						activity->set_screen_keyboard(false);
 				}
-				void JoinPath(Rml::String& Result, const Rml::String& Path1, const Rml::String& Path2) override
+				void JoinPath(Rml::String& result, const Rml::String& path1, const Rml::String& path2) override
 				{
-					HeavyContentManager* Content = (Subsystem::Get()->GetRenderInterface() ? Subsystem::Get()->GetRenderInterface()->GetContent() : nullptr);
-					if (!Content)
+					heavy_content_manager* content = (subsystem::get()->get_render_interface() ? subsystem::get()->get_render_interface()->get_content() : nullptr);
+					if (!content)
 						return;
 
-					Core::String Proto1, Proto2;
-					Core::String Fixed1 = GetFixedPath(Path1, Proto1);
-					Core::String Fixed2 = GetFixedPath(Path2, Proto2);
-					if (Proto1 != "file" && Proto2 == "file")
+					core::string proto1, proto2;
+					core::string fixed1 = get_fixed_path(path1, proto1);
+					core::string fixed2 = get_fixed_path(path2, proto2);
+					if (proto1 != "file" && proto2 == "file")
 					{
-						Result.assign(Path1);
-						if (!Core::Stringify::EndsWith(Result, '/'))
-							Result.append(1, '/');
+						result.assign(path1);
+						if (!core::stringify::ends_with(result, '/'))
+							result.append(1, '/');
 
-						Result.append(Fixed2);
-						Core::Stringify::Replace(Result, "/////", "//");
-						Core::TextSettle Idx = Core::Stringify::Find(Result, "://");
-						Core::Stringify::Replace(Result, "//", "/", Idx.Found ? Idx.End : 0);
+						result.append(fixed2);
+						core::stringify::replace(result, "/////", "//");
+						core::text_settle idx = core::stringify::find(result, "://");
+						core::stringify::replace(result, "//", "/", idx.found ? idx.end : 0);
 					}
-					else if (Proto1 == "file" && Proto2 == "file")
+					else if (proto1 == "file" && proto2 == "file")
 					{
-						auto Path = Core::OS::Path::Resolve(Fixed2, Core::OS::Path::GetDirectory(Fixed1.c_str()), true);
-						if (!Path)
-							Path = Core::OS::Path::Resolve(Fixed2, Content->GetEnvironment(), true);
-						if (Path)
-							Result = *Path;
+						auto path = core::os::path::resolve(fixed2, core::os::path::get_directory(fixed1.c_str()), true);
+						if (!path)
+							path = core::os::path::resolve(fixed2, content->get_environment(), true);
+						if (path)
+							result = *path;
 					}
-					else if (Proto1 == "file" && Proto2 != "file")
+					else if (proto1 == "file" && proto2 != "file")
 					{
-						Result.assign(Path2);
-						Core::Stringify::Replace(Result, "/////", "//");
+						result.assign(path2);
+						core::stringify::replace(result, "/////", "//");
 					}
 				}
-				bool LogMessage(Rml::Log::Type Type, const Rml::String& Message) override
+				bool LogMessage(Rml::Log::Type type, const Rml::String& message) override
 				{
-					switch (Type)
+					switch (type)
 					{
 						case Rml::Log::LT_ERROR:
-							VI_ERR("[gui] %.*s", (int)Message.size(), Message.c_str());
+							VI_ERR("[gui] %.*s", (int)message.size(), message.c_str());
 							break;
 						case Rml::Log::LT_WARNING:
-							VI_WARN("[gui] %.*s", (int)Message.size(), Message.c_str());
+							VI_WARN("[gui] %.*s", (int)message.size(), message.c_str());
 							break;
 						case Rml::Log::LT_INFO:
-							VI_DEBUG("[gui] %.*s", (int)Message.size(), Message.c_str());
+							VI_DEBUG("[gui] %.*s", (int)message.size(), message.c_str());
 							break;
 						case Rml::Log::LT_ASSERT:
-							VI_TRACE("[gui] %.*s", (int)Message.size(), Message.c_str());
+							VI_TRACE("[gui] %.*s", (int)message.size(), message.c_str());
 							break;
 						default:
 							break;
@@ -518,3676 +520,3680 @@ namespace Vitex
 
 					return true;
 				}
-				int TranslateString(Rml::String& Result, const Rml::String& KeyName) override
+				int TranslateString(Rml::String& result, const Rml::String& key_name) override
 				{
-					for (auto& Item : Translators)
+					for (auto& item : translators)
 					{
-						if (!Item.second)
+						if (!item.second)
 							continue;
 
-						Result = Item.second(KeyName);
-						if (!Result.empty())
+						result = item.second(key_name);
+						if (!result.empty())
 							return 1;
 					}
 
-					Result = KeyName;
+					result = key_name;
 					return 0;
 				}
 				double GetElapsedTime() override
 				{
-					if (!Time)
+					if (!time)
 						return 0.0;
 
-					return (double)Time->GetElapsed();
+					return (double)time->get_elapsed();
 				}
-				void Attach(Graphics::Activity* NewActivity, Core::Timer* NewTime)
+				void attach(graphics::activity* new_activity, core::timer* new_time)
 				{
-					Detach();
-					Activity = NewActivity;
-					Time = NewTime;
-					if (Activity != nullptr)
-						Activity->AddRef();
-					if (Time != nullptr)
-						Time->AddRef();
+					detach();
+					activity = new_activity;
+					time = new_time;
+					if (activity != nullptr)
+						activity->add_ref();
+					if (time != nullptr)
+						time->add_ref();
 				}
-				void Detach()
+				void detach()
 				{
-					Core::Memory::Release(Activity);
-					Core::Memory::Release(Time);
+					core::memory::release(activity);
+					core::memory::release(time);
 				}
-				void SetTranslator(const std::string_view& Name, TranslationCallback&& Callback)
+				void set_translator(const std::string_view& name, translation_callback&& callback)
 				{
-					auto It = Translators.find(Core::KeyLookupCast(Name));
-					if (It == Translators.end())
-						Translators.insert(std::make_pair(Core::String(Name), std::move(Callback)));
+					auto it = translators.find(core::key_lookup_cast(name));
+					if (it == translators.end())
+						translators.insert(std::make_pair(core::string(name), std::move(callback)));
 					else
-						It->second = std::move(Callback);
+						it->second = std::move(callback);
 				}
-				bool AddFontFace(const std::string_view& Path, bool UseAsFallback, FontWeight Weight)
+				bool add_font_face(const std::string_view& path, bool use_as_fallback, font_weight weight)
 				{
-					auto It = Fonts.find(Core::KeyLookupCast(Path));
-					if (It != Fonts.end())
+					auto it = fonts.find(core::key_lookup_cast(path));
+					if (it != fonts.end())
 					{
-						for (auto& Info : It->second)
+						for (auto& info : it->second)
 						{
-							if (Info.Fallback == UseAsFallback && Info.Weight == Weight)
+							if (info.fallback == use_as_fallback && info.weight == weight)
 								return true;
 						}
 					}
 
-					Core::String TargetPath = Core::String(Path);
-					if (!Rml::LoadFontFace(TargetPath, UseAsFallback, (Rml::Style::FontWeight)Weight))
+					core::string target_path = core::string(path);
+					if (!Rml::LoadFontFace(target_path, use_as_fallback, (Rml::Style::FontWeight)weight))
 						return false;
 
-					FontInfo Info;
-					Info.Fallback = UseAsFallback;
-					Info.Weight = Weight;
-					if (It != Fonts.end())
-						It->second.push_back(Info);
+					font_info info;
+					info.fallback = use_as_fallback;
+					info.weight = weight;
+					if (it != fonts.end())
+						it->second.push_back(info);
 					else
-						Fonts[TargetPath].push_back(Info);
+						fonts[target_path].push_back(info);
 					return true;
 				}
-				Core::UnorderedMap<Core::String, Core::Vector<FontInfo>>* GetFontFaces()
+				core::unordered_map<core::string, core::vector<font_info>>* get_font_faces()
 				{
-					return &Fonts;
+					return &fonts;
 				}
-				Core::String GetFixedPath(const std::string_view& Location, Core::String& Proto)
+				core::string get_fixed_path(const std::string_view& location, core::string& proto)
 				{
-					if (!Core::Stringify::Find(Location, "://").Found)
+					if (!core::stringify::find(location, "://").found)
 					{
-						Proto = "file";
-						return Core::String(Location);
+						proto = "file";
+						return core::string(location);
 					}
 
-					Rml::URL Target = Rml::URL(Core::String(Location));
-					Proto = Target.GetProtocol();
-					return Target.GetPathedFileName();
+					Rml::URL target = Rml::URL(core::string(location));
+					proto = target.GetProtocol();
+					return target.GetPathedFileName();
 				}
 			};
 
-			class ScopedContext final : public Rml::Context
+			class scoped_context final : public Rml::Context
 			{
 			public:
-				GUI::Context* Basis;
+				gui::context* basis;
 
 			public:
-				ScopedContext(const std::string_view& Name, Rml::RenderManager* RenderManager, Rml::TextInputHandler* TextInputHandler) : Rml::Context(Rml::String(Name), RenderManager, TextInputHandler), Basis(nullptr)
+				scoped_context(const std::string_view& name, Rml::RenderManager* render_manager, Rml::TextInputHandler* text_input_handler) : Rml::Context(Rml::String(name), render_manager, text_input_handler), basis(nullptr)
 				{
 				}
 			};
 
-			class ContextInstancer final : public Rml::ContextInstancer
+			class context_instancer final : public Rml::ContextInstancer
 			{
 			public:
-				Rml::ContextPtr InstanceContext(const Rml::String& Name, Rml::RenderManager* RenderManager, Rml::TextInputHandler* TextInputHandler) override
+				Rml::ContextPtr InstanceContext(const Rml::String& name, Rml::RenderManager* render_manager, Rml::TextInputHandler* text_input_handler) override
 				{
-					return Rml::ContextPtr(Core::Memory::New<ScopedContext>(Name, RenderManager, TextInputHandler));
+					return Rml::ContextPtr(core::memory::init<scoped_context>(name, render_manager, text_input_handler));
 				}
-				void ReleaseContext(Rml::Context* Context) override
+				void ReleaseContext(Rml::Context* context) override
 				{
-					ScopedContext* Item = (ScopedContext*)Context;
-					Core::Memory::Delete(Item);
+					scoped_context* item = (scoped_context*)context;
+					core::memory::deinit(item);
 				}
 				void Release() override
 				{
-					Core::Memory::Delete(this);
+					core::memory::deinit(this);
 				}
 			};
 
-			class DocumentSubsystem final : public Rml::ElementDocument
+			class document_subsystem final : public Rml::ElementDocument
 			{
 			public:
-				DocumentSubsystem(const std::string_view& Tag) : Rml::ElementDocument(Rml::String(Tag))
+				document_subsystem(const std::string_view& tag) : Rml::ElementDocument(Rml::String(tag))
 				{
 				}
-				void LoadInlineScript(const Rml::String& Content, const Rml::String& Path, int Line) override
+				void LoadInlineScript(const Rml::String& content, const Rml::String& path, int line) override
 				{
-					ScopedContext* Scope = (ScopedContext*)GetContext();
-					VI_ASSERT(Scope && Scope->Basis && Scope->Basis->Compiler, "context should be scoped");
+					scoped_context* scope = (scoped_context*)GetContext();
+					VI_ASSERT(scope && scope->basis && scope->basis->compiler, "context should be scoped");
 
-					Scripting::Compiler* Compiler = Scope->Basis->Compiler;
-					if (!Compiler->LoadCode(Path + ":" + Core::ToString(Line), Content))
+					scripting::compiler* compiler = scope->basis->compiler;
+					if (!compiler->load_code(path + ":" + core::to_string(line), content))
 						return;
 
-					Compiler->Compile().When([Scope, Compiler](Scripting::ExpectsVM<void>&& Status)
+					compiler->compile().when([scope, compiler](scripting::expects_vm<void>&& status)
 					{
-						if (!Status)
+						if (!status)
 							return;
 
-						Scripting::Function Main = Compiler->GetModule().GetFunctionByDecl("void main()");
-						if (!Main.IsValid())
-							Main = Compiler->GetModule().GetFunctionByDecl("void main(ui_context@+)");
+						scripting::function main = compiler->get_module().get_function_by_decl("void main()");
+						if (!main.is_valid())
+							main = compiler->get_module().get_function_by_decl("void main(ui_context@+)");
 
-						Scripting::FunctionDelegate Delegate(Main);
-						if (!Delegate.IsValid())
+						scripting::function_delegate delegatef(main);
+						if (!delegatef.is_valid())
 							return;
 
-						bool HasArguments = Main.GetArgsCount() > 0;
-						Delegate([HasArguments, Scope](Scripting::ImmediateContext* Context)
+						bool has_arguments = main.get_args_count() > 0;
+						delegatef([has_arguments, scope](scripting::immediate_context* context)
 						{
-							Scope->Basis->AddRef();
-							if (HasArguments)
-								Context->SetArgObject(0, Scope->Basis);
-						}, [Scope](Scripting::ImmediateContext*)
+							scope->basis->add_ref();
+							if (has_arguments)
+								context->set_arg_object(0, scope->basis);
+						}, [scope](scripting::immediate_context*)
 						{
-							Scope->Basis->Release();
+							scope->basis->release();
 						});
 					});
 				}
-				void LoadExternalScript(const Rml::String& Path) override
+				void LoadExternalScript(const Rml::String& path) override
 				{
-					ScopedContext* Scope = (ScopedContext*)GetContext();
-					VI_ASSERT(Scope && Scope->Basis && Scope->Basis->Compiler, "context should be scoped");
+					scoped_context* scope = (scoped_context*)GetContext();
+					VI_ASSERT(scope && scope->basis && scope->basis->compiler, "context should be scoped");
 
-					Core::String Where = Path;
-					Core::Stringify::Replace(Where, '|', ':');
+					core::string where = path;
+					core::stringify::replace(where, '|', ':');
 
-					Scripting::Compiler* Compiler = Scope->Basis->Compiler;
-					if (!Compiler->LoadFile(Where))
+					scripting::compiler* compiler = scope->basis->compiler;
+					if (!compiler->load_file(where))
 						return;
 
-					Compiler->Compile().When([Scope, Compiler](Scripting::ExpectsVM<void>&& Status)
+					compiler->compile().when([scope, compiler](scripting::expects_vm<void>&& status)
 					{
-						if (!Status)
+						if (!status)
 							return;
 
-						Scripting::Function Main = Compiler->GetModule().GetFunctionByDecl("void main()");
-						if (!Main.IsValid())
-							Main = Compiler->GetModule().GetFunctionByDecl("void main(ui_context@+)");
+						scripting::function main = compiler->get_module().get_function_by_decl("void main()");
+						if (!main.is_valid())
+							main = compiler->get_module().get_function_by_decl("void main(ui_context@+)");
 
-						Scripting::FunctionDelegate Delegate(Main);
-						if (!Delegate.IsValid())
+						scripting::function_delegate delegatef(main);
+						if (!delegatef.is_valid())
 							return;
 
-						bool HasArguments = Main.GetArgsCount() > 0;
-						Delegate([HasArguments, Scope](Scripting::ImmediateContext* Context)
+						bool has_arguments = main.get_args_count() > 0;
+						delegatef([has_arguments, scope](scripting::immediate_context* context)
 						{
-							Scope->Basis->AddRef();
-							if (HasArguments)
-								Context->SetArgObject(0, Scope->Basis);
-						}, [Scope](Scripting::ImmediateContext*)
+							scope->basis->add_ref();
+							if (has_arguments)
+								context->set_arg_object(0, scope->basis);
+						}, [scope](scripting::immediate_context*)
 						{
-							Scope->Basis->Release();
+							scope->basis->release();
 						});
 					});
 				}
 			};
 
-			class DocumentInstancer final : public Rml::ElementInstancer
+			class document_instancer final : public Rml::ElementInstancer
 			{
 			public:
-				Rml::ElementPtr InstanceElement(Rml::Element*, const Rml::String& Tag, const Rml::XMLAttributes&) override
+				Rml::ElementPtr InstanceElement(Rml::Element*, const Rml::String& tag, const Rml::XMLAttributes&) override
 				{
-					return Rml::ElementPtr(Core::Memory::New<DocumentSubsystem>(Tag));
+					return Rml::ElementPtr(core::memory::init<document_subsystem>(tag));
 				}
-				void ReleaseElement(Rml::Element* Element) override
+				void ReleaseElement(Rml::Element* element) override
 				{
-					Core::Memory::Delete(Element);
+					core::memory::deinit(element);
 				}
 			};
 
-			class ListenerSubsystem final : public Rml::EventListener
+			class listener_subsystem final : public Rml::EventListener
 			{
 			public:
-				Scripting::FunctionDelegate Delegate;
-				Core::String Memory;
-				IEvent EventContext;
+				scripting::function_delegate delegatef;
+				core::string memory;
+				ievent event_context;
 
 			public:
-				ListenerSubsystem(const std::string_view& Code, Rml::Element* Element) : Memory(Code)
+				listener_subsystem(const std::string_view& code, Rml::Element* element) : memory(code)
 				{
 				}
-				~ListenerSubsystem() = default;
-				void OnDetach(Rml::Element* Element) override
+				~listener_subsystem() = default;
+				void OnDetach(Rml::Element* element) override
 				{
-					Core::Memory::Delete(this);
+					core::memory::deinit(this);
 				}
-				void ProcessEvent(Rml::Event& Event) override
+				void ProcessEvent(Rml::Event& event) override
 				{
-					ScopedContext* Scope = (ScopedContext*)Event.GetCurrentElement()->GetContext();
-					VI_ASSERT(Scope && Scope->Basis && Scope->Basis->Compiler, "context should be scoped");
-					if (!CompileInline(Scope))
+					scoped_context* scope = (scoped_context*)event.GetCurrentElement()->GetContext();
+					VI_ASSERT(scope && scope->basis && scope->basis->compiler, "context should be scoped");
+					if (!compile_inline(scope))
 						return;
 
-					Rml::Event* Ptr = Rml::Factory::InstanceEvent(Event.GetTargetElement(), Event.GetId(), Event.GetType(), Event.GetParameters(), Event.IsInterruptible()).release();
-					if (Ptr != nullptr)
+					Rml::Event* ptr = Rml::Factory::InstanceEvent(event.GetTargetElement(), event.GetId(), event.GetType(), event.GetParameters(), event.IsInterruptible()).release();
+					if (ptr != nullptr)
 					{
-						Ptr->SetCurrentElement(Event.GetCurrentElement());
-						Ptr->SetPhase(Event.GetPhase());
+						ptr->SetCurrentElement(event.GetCurrentElement());
+						ptr->SetPhase(event.GetPhase());
 					}
 
-					EventContext = IEvent(Ptr);
-					Scope->Basis->AddRef();
-					Delegate([this](Scripting::ImmediateContext* Context)
+					event_context = ievent(ptr);
+					scope->basis->add_ref();
+					delegatef([this](scripting::immediate_context* context)
 					{
-						Context->SetArgObject(0, &EventContext);
-					}, [this, Scope, Ptr](Scripting::ImmediateContext*)
+						context->set_arg_object(0, &event_context);
+					}, [this, scope, ptr](scripting::immediate_context*)
 					{
-						Scope->Basis->Release();
-						EventContext = IEvent();
-						delete Ptr;
+						scope->basis->release();
+						event_context = ievent();
+						delete ptr;
 					});
 				}
-				bool CompileInline(ScopedContext* Scope)
+				bool compile_inline(scoped_context* scope)
 				{
-					if (Delegate.IsValid())
+					if (delegatef.is_valid())
 						return true;
 
-					auto Hash = Compute::Crypto::HashHex(Compute::Digests::MD5(), Memory);
-					if (!Hash)
+					auto hash = compute::crypto::hash_hex(compute::digests::MD5(), memory);
+					if (!hash)
 						return false;
 
-					Core::String Name = "__vf" + *Hash;
-					Core::String Eval = "void " + Name + "(ui_event&in event){\n";
-					Eval.append(Memory);
-					Eval += "\n;}";
+					core::string name = "__vf" + *hash;
+					core::string eval = "void " + name + "(ui_event&in event){\n";
+					eval.append(memory);
+					eval += "\n;}";
 
-					Scripting::Function Function = nullptr;
-					Scripting::Module Module = Scope->Basis->Compiler->GetModule();
-					if (!Module.CompileFunction(Name.c_str(), Eval.c_str(), -1, (size_t)Scripting::CompileFlags::ADD_TO_MODULE, &Function))
+					scripting::function function = nullptr;
+					scripting::library library = scope->basis->compiler->get_module();
+					if (!library.compile_function(name.c_str(), eval.c_str(), -1, (size_t)scripting::compile_flags::add_to_module, &function))
 						return false;
 
-					Delegate = Function;
-					return Delegate.IsValid();
+					delegatef = function;
+					return delegatef.is_valid();
 				}
 			};
 
-			class ListenerInstancer final : public Rml::EventListenerInstancer
+			class listener_instancer final : public Rml::EventListenerInstancer
 			{
 			public:
-				Rml::EventListener* InstanceEventListener(const Rml::String& Value, Rml::Element* Element) override
+				Rml::EventListener* InstanceEventListener(const Rml::String& value, Rml::Element* element) override
 				{
-					return Core::Memory::New<ListenerSubsystem>(Value, Element);
+					return core::memory::init<listener_subsystem>(value, element);
 				}
 			};
 
-			class EventSubsystem final : public Rml::EventListener
+			class event_subsystem final : public Rml::EventListener
 			{
-				friend IEvent;
+				friend ievent;
 
 			private:
-				EventCallback Listener;
-				std::atomic<int> RefCount;
+				event_callback listener;
+				std::atomic<int> ref_count;
 
 			public:
-				EventSubsystem(EventCallback&& Callback) : Rml::EventListener(), Listener(std::move(Callback)), RefCount(1)
+				event_subsystem(event_callback&& callback) : Rml::EventListener(), listener(std::move(callback)), ref_count(1)
 				{
 				}
 				void OnAttach(Rml::Element*) override
 				{
-					RefCount++;
+					ref_count++;
 				}
 				void OnDetach(Rml::Element*) override
 				{
-					if (!--RefCount)
-						Core::Memory::Delete(this);
+					if (!--ref_count)
+						core::memory::deinit(this);
 				}
-				void ProcessEvent(Rml::Event& Event) override
+				void ProcessEvent(Rml::Event& event) override
 				{
-					if (!Listener)
+					if (!listener)
 						return;
 
-					IEvent Basis(&Event);
-					Listener(Basis);
+					ievent basis(&event);
+					listener(basis);
 				}
 			};
 #endif
-			GuiException::GuiException(Core::String&& NewMessage)
+			gui_exception::gui_exception(core::string&& new_message)
 			{
-				Message = std::move(NewMessage);
+				error_message = std::move(new_message);
 			}
-			const char* GuiException::type() const noexcept
+			const char* gui_exception::type() const noexcept
 			{
 				return "gui_error";
 			}
 
-			void IVariant::Convert(Rml::Variant* From, Core::Variant* To)
+			void ivariant::convert(Rml::Variant* from, core::variant* to)
 			{
 #ifdef VI_RMLUI
-				VI_ASSERT(From && To, "from and to should be set");
-				switch (From->GetType())
+				VI_ASSERT(from && to, "from and to should be set");
+				switch (from->GetType())
 				{
 					case Rml::Variant::BOOL:
-						*To = Core::Var::Boolean(From->Get<bool>());
+						*to = core::var::boolean(from->Get<bool>());
 						break;
 					case Rml::Variant::FLOAT:
 					case Rml::Variant::DOUBLE:
-						*To = Core::Var::Number(From->Get<double>());
+						*to = core::var::number(from->Get<double>());
 						break;
 					case Rml::Variant::BYTE:
 					case Rml::Variant::CHAR:
 					case Rml::Variant::INT:
 					case Rml::Variant::INT64:
-						*To = Core::Var::Integer(From->Get<int64_t>());
+						*to = core::var::integer(from->Get<int64_t>());
 						break;
 					case Rml::Variant::VECTOR2:
 					{
-						Rml::Vector2f T = From->Get<Rml::Vector2f>();
-						*To = Core::Var::String(FromVector2(Trigonometry::Vector2(T.x, T.y)));
+						Rml::Vector2f t = from->Get<Rml::Vector2f>();
+						*to = core::var::string(from_vector2(trigonometry::vector2(t.x, t.y)));
 						break;
 					}
 					case Rml::Variant::VECTOR3:
 					{
-						Rml::Vector3f T = From->Get<Rml::Vector3f>();
-						*To = Core::Var::String(FromVector3(Trigonometry::Vector3(T.x, T.y, T.z)));
+						Rml::Vector3f t = from->Get<Rml::Vector3f>();
+						*to = core::var::string(from_vector3(trigonometry::vector3(t.x, t.y, t.z)));
 						break;
 					}
 					case Rml::Variant::VECTOR4:
 					{
-						Rml::Vector4f T = From->Get<Rml::Vector4f>();
-						*To = Core::Var::String(FromVector4(Trigonometry::Vector4(T.x, T.y, T.z, T.w)));
+						Rml::Vector4f t = from->Get<Rml::Vector4f>();
+						*to = core::var::string(from_vector4(trigonometry::vector4(t.x, t.y, t.z, t.w)));
 						break;
 					}
 					case Rml::Variant::STRING:
 					case Rml::Variant::COLOURF:
 					case Rml::Variant::COLOURB:
-						*To = Core::Var::String(From->Get<Core::String>());
+						*to = core::var::string(from->Get<core::string>());
 						break;
 					case Rml::Variant::VOIDPTR:
-						*To = Core::Var::Pointer(From->Get<void*>());
+						*to = core::var::pointer(from->Get<void*>());
 						break;
 					default:
-						*To = Core::Var::Undefined();
+						*to = core::var::undefined();
 						break;
 				}
 #endif
 			}
-			void IVariant::Revert(Core::Variant* From, Rml::Variant* To)
+			void ivariant::revert(core::variant* from, Rml::Variant* to)
 			{
 #ifdef VI_RMLUI
-				VI_ASSERT(From && To, "from and to should be set");
-				switch (From->GetType())
+				VI_ASSERT(from && to, "from and to should be set");
+				switch (from->get_type())
 				{
-					case Core::VarType::Null:
-						*To = Rml::Variant((void*)nullptr);
+					case core::var_type::null:
+						*to = Rml::Variant((void*)nullptr);
 						break;
-					case Core::VarType::String:
+					case core::var_type::string:
 					{
-						Core::String Blob = From->GetBlob();
-						int Type = IVariant::GetVectorType(Blob);
-						if (Type == 2)
+						core::string blob = from->get_blob();
+						int type = ivariant::get_vector_type(blob);
+						if (type == 2)
 						{
-							Trigonometry::Vector2 T = IVariant::ToVector2(Blob);
-							*To = Rml::Variant(Rml::Vector2f(T.X, T.Y));
+							trigonometry::vector2 t = ivariant::to_vector2(blob);
+							*to = Rml::Variant(Rml::Vector2f(t.x, t.y));
 						}
-						else if (Type == 3)
+						else if (type == 3)
 						{
-							Trigonometry::Vector3 T = IVariant::ToVector3(Blob);
-							*To = Rml::Variant(Rml::Vector3f(T.X, T.Y, T.Z));
+							trigonometry::vector3 t = ivariant::to_vector3(blob);
+							*to = Rml::Variant(Rml::Vector3f(t.x, t.y, t.z));
 						}
-						else if (Type == 4)
+						else if (type == 4)
 						{
-							Trigonometry::Vector4 T = IVariant::ToVector4(Blob);
-							*To = Rml::Variant(Rml::Vector4f(T.X, T.Y, T.Z, T.W));
+							trigonometry::vector4 t = ivariant::to_vector4(blob);
+							*to = Rml::Variant(Rml::Vector4f(t.x, t.y, t.z, t.w));
 						}
 						else
-							*To = Rml::Variant(From->GetBlob());
+							*to = Rml::Variant(from->get_blob());
 						break;
 					}
-					case Core::VarType::Integer:
-						*To = Rml::Variant(From->GetInteger());
+					case core::var_type::integer:
+						*to = Rml::Variant(from->get_integer());
 						break;
-					case Core::VarType::Number:
-						*To = Rml::Variant(From->GetNumber());
+					case core::var_type::number:
+						*to = Rml::Variant(from->get_number());
 						break;
-					case Core::VarType::Boolean:
-						*To = Rml::Variant(From->GetBoolean());
+					case core::var_type::boolean:
+						*to = Rml::Variant(from->get_boolean());
 						break;
-					case Core::VarType::Pointer:
-						*To = Rml::Variant(From->GetPointer());
+					case core::var_type::pointer:
+						*to = Rml::Variant(from->get_pointer());
 						break;
 					default:
-						To->Clear();
+						to->Clear();
 						break;
 				}
 #endif
 			}
-			Trigonometry::Vector4 IVariant::ToColor4(const std::string_view& Value)
+			trigonometry::vector4 ivariant::to_color4(const std::string_view& value)
 			{
-				VI_ASSERT(Core::Stringify::IsCString(Value), "value should be set");
-				if (Value.empty())
+				VI_ASSERT(core::stringify::is_cstring(value), "value should be set");
+				if (value.empty())
 					return 0.0f;
 
-				Trigonometry::Vector4 Result;
-				if (Value[0] == '#')
+				trigonometry::vector4 result;
+				if (value[0] == '#')
 				{
-					if (Value.size() == 4)
+					if (value.size() == 4)
 					{
-						char Buffer[7];
-						Buffer[0] = Value[1];
-						Buffer[1] = Value[1];
-						Buffer[2] = Value[2];
-						Buffer[3] = Value[2];
-						Buffer[4] = Value[3];
-						Buffer[5] = Value[3];
-						Buffer[6] = '\0';
+						char buffer[7];
+						buffer[0] = value[1];
+						buffer[1] = value[1];
+						buffer[2] = value[2];
+						buffer[3] = value[2];
+						buffer[4] = value[3];
+						buffer[5] = value[3];
+						buffer[6] = '\0';
 
-						unsigned int R = 0, G = 0, B = 0;
-						if (sscanf(Buffer, "%02x%02x%02x", &R, &G, &B) == 3)
+						unsigned int r = 0, g = 0, b = 0;
+						if (sscanf(buffer, "%02x%02x%02x", &r, &g, &b) == 3)
 						{
-							Result.X = R / 255.0f;
-							Result.Y = G / 255.0f;
-							Result.Z = B / 255.0f;
-							Result.W = 1.0f;
+							result.x = r / 255.0f;
+							result.y = g / 255.0f;
+							result.z = b / 255.0f;
+							result.w = 1.0f;
 						}
 					}
 					else
 					{
-						unsigned int R = 0, G = 0, B = 0, A = 255;
-						if (sscanf(Value.data(), "#%02x%02x%02x%02x", &R, &G, &B, &A) == 4)
+						unsigned int r = 0, g = 0, b = 0, a = 255;
+						if (sscanf(value.data(), "#%02x%02x%02x%02x", &r, &g, &b, &a) == 4)
 						{
-							Result.X = R / 255.0f;
-							Result.Y = G / 255.0f;
-							Result.Z = B / 255.0f;
-							Result.W = A / 255.0f;
+							result.x = r / 255.0f;
+							result.y = g / 255.0f;
+							result.z = b / 255.0f;
+							result.w = a / 255.0f;
 						}
 					}
 				}
 				else
 				{
-					unsigned int R = 0, G = 0, B = 0, A = 255;
-					if (sscanf(Value.data(), "%u %u %u %u", &R, &G, &B, &A) == 4)
+					unsigned int r = 0, g = 0, b = 0, a = 255;
+					if (sscanf(value.data(), "%u %u %u %u", &r, &g, &b, &a) == 4)
 					{
-						Result.X = R / 255.0f;
-						Result.Y = G / 255.0f;
-						Result.Z = B / 255.0f;
-						Result.W = A / 255.0f;
+						result.x = r / 255.0f;
+						result.y = g / 255.0f;
+						result.z = b / 255.0f;
+						result.w = a / 255.0f;
 					}
 				}
 
-				return Result;
+				return result;
 			}
-			Core::String IVariant::FromColor4(const Trigonometry::Vector4& Base, bool HEX)
+			core::string ivariant::from_color4(const trigonometry::vector4& base, bool HEX)
 			{
 				if (!HEX)
-					return Core::Stringify::Text("%d %d %d %d", (unsigned int)(Base.X * 255.0f), (unsigned int)(Base.Y * 255.0f), (unsigned int)(Base.Z * 255.0f), (unsigned int)(Base.W * 255.0f));
+					return core::stringify::text("%d %d %d %d", (unsigned int)(base.x * 255.0f), (unsigned int)(base.y * 255.0f), (unsigned int)(base.z * 255.0f), (unsigned int)(base.w * 255.0f));
 
-				return Core::Stringify::Text("#%02x%02x%02x%02x",
-					(unsigned int)(Base.X * 255.0f),
-					(unsigned int)(Base.Y * 255.0f),
-					(unsigned int)(Base.Z * 255.0f),
-					(unsigned int)(Base.W * 255.0f));
+				return core::stringify::text("#%02x%02x%02x%02x",
+					(unsigned int)(base.x * 255.0f),
+					(unsigned int)(base.y * 255.0f),
+					(unsigned int)(base.z * 255.0f),
+					(unsigned int)(base.w * 255.0f));
 			}
-			Trigonometry::Vector4 IVariant::ToColor3(const std::string_view& Value)
+			trigonometry::vector4 ivariant::to_color3(const std::string_view& value)
 			{
-				VI_ASSERT(Core::Stringify::IsCString(Value), "value should be set");
-				if (Value.empty())
+				VI_ASSERT(core::stringify::is_cstring(value), "value should be set");
+				if (value.empty())
 					return 0.0f;
 
-				Trigonometry::Vector4 Result;
-				if (Value[0] == '#')
+				trigonometry::vector4 result;
+				if (value[0] == '#')
 				{
-					unsigned int R = 0, G = 0, B = 0;
-					int Fills = 0;
+					unsigned int r = 0, g = 0, b = 0;
+					int fills = 0;
 
-					if (Value.size() == 4)
+					if (value.size() == 4)
 					{
-						char Buffer[7];
-						Buffer[0] = Value[1];
-						Buffer[1] = Value[1];
-						Buffer[2] = Value[2];
-						Buffer[3] = Value[2];
-						Buffer[4] = Value[3];
-						Buffer[5] = Value[3];
-						Buffer[6] = '\0';
-						Fills = sscanf(Buffer, "%02x%02x%02x", &R, &G, &B);
+						char buffer[7];
+						buffer[0] = value[1];
+						buffer[1] = value[1];
+						buffer[2] = value[2];
+						buffer[3] = value[2];
+						buffer[4] = value[3];
+						buffer[5] = value[3];
+						buffer[6] = '\0';
+						fills = sscanf(buffer, "%02x%02x%02x", &r, &g, &b);
 					}
 					else
-						Fills = sscanf(Value.data(), "#%02x%02x%02x", &R, &G, &B);
+						fills = sscanf(value.data(), "#%02x%02x%02x", &r, &g, &b);
 
-					if (Fills == 3)
+					if (fills == 3)
 					{
-						Result.X = R / 255.0f;
-						Result.Y = G / 255.0f;
-						Result.Z = B / 255.0f;
+						result.x = r / 255.0f;
+						result.y = g / 255.0f;
+						result.z = b / 255.0f;
 					}
 				}
 				else
 				{
-					unsigned int R = 0, G = 0, B = 0;
-					if (sscanf(Value.data(), "%u %u %u", &R, &G, &B) == 3)
+					unsigned int r = 0, g = 0, b = 0;
+					if (sscanf(value.data(), "%u %u %u", &r, &g, &b) == 3)
 					{
-						Result.X = R / 255.0f;
-						Result.Y = G / 255.0f;
-						Result.Z = B / 255.0f;
+						result.x = r / 255.0f;
+						result.y = g / 255.0f;
+						result.z = b / 255.0f;
 					}
 				}
 
-				return Result;
+				return result;
 			}
-			Core::String IVariant::FromColor3(const Trigonometry::Vector4& Base, bool HEX)
+			core::string ivariant::from_color3(const trigonometry::vector4& base, bool HEX)
 			{
 				if (!HEX)
-					return Core::Stringify::Text("%d %d %d", (unsigned int)(Base.X * 255.0f), (unsigned int)(Base.Y * 255.0f), (unsigned int)(Base.Z * 255.0f));
+					return core::stringify::text("%d %d %d", (unsigned int)(base.x * 255.0f), (unsigned int)(base.y * 255.0f), (unsigned int)(base.z * 255.0f));
 
-				return Core::Stringify::Text("#%02x%02x%02x",
-					(unsigned int)(Base.X * 255.0f),
-					(unsigned int)(Base.Y * 255.0f),
-					(unsigned int)(Base.Z * 255.0f));
+				return core::stringify::text("#%02x%02x%02x",
+					(unsigned int)(base.x * 255.0f),
+					(unsigned int)(base.y * 255.0f),
+					(unsigned int)(base.z * 255.0f));
 			}
-			int IVariant::GetVectorType(const std::string_view& Value)
+			int ivariant::get_vector_type(const std::string_view& value)
 			{
-				if (Value.size() < 2 || Value[0] != 'v')
+				if (value.size() < 2 || value[0] != 'v')
 					return -1;
 
-				if (Value[1] == '2')
+				if (value[1] == '2')
 					return 2;
 
-				if (Value[1] == '3')
+				if (value[1] == '3')
 					return 3;
 
-				if (Value[1] == '4')
+				if (value[1] == '4')
 					return 4;
 
 				return -1;
 			}
-			Trigonometry::Vector4 IVariant::ToVector4(const std::string_view& Base)
+			trigonometry::vector4 ivariant::to_vector4(const std::string_view& base)
 			{
-				VI_ASSERT(Core::Stringify::IsCString(Base), "value should be set");
-				Trigonometry::Vector4 Result;
-				if (sscanf(Base.data(), "v4 %f %f %f %f", &Result.X, &Result.Y, &Result.Z, &Result.W) != 4)
-					return Result;
+				VI_ASSERT(core::stringify::is_cstring(base), "value should be set");
+				trigonometry::vector4 result;
+				if (sscanf(base.data(), "v4 %f %f %f %f", &result.x, &result.y, &result.z, &result.w) != 4)
+					return result;
 
-				return Result;
+				return result;
 			}
-			Core::String IVariant::FromVector4(const Trigonometry::Vector4& Base)
+			core::string ivariant::from_vector4(const trigonometry::vector4& base)
 			{
-				return Core::Stringify::Text("v4 %f %f %f %f", Base.X, Base.Y, Base.Z, Base.W);
+				return core::stringify::text("v4 %f %f %f %f", base.x, base.y, base.z, base.w);
 			}
-			Trigonometry::Vector3 IVariant::ToVector3(const std::string_view& Base)
+			trigonometry::vector3 ivariant::to_vector3(const std::string_view& base)
 			{
-				VI_ASSERT(Core::Stringify::IsCString(Base), "value should be set");
-				Trigonometry::Vector3 Result;
-				if (sscanf(Base.data(), "v3 %f %f %f", &Result.X, &Result.Y, &Result.Z) != 3)
-					return Result;
+				VI_ASSERT(core::stringify::is_cstring(base), "value should be set");
+				trigonometry::vector3 result;
+				if (sscanf(base.data(), "v3 %f %f %f", &result.x, &result.y, &result.z) != 3)
+					return result;
 
-				return Result;
+				return result;
 			}
-			Core::String IVariant::FromVector3(const Trigonometry::Vector3& Base)
+			core::string ivariant::from_vector3(const trigonometry::vector3& base)
 			{
-				return Core::Stringify::Text("v3 %f %f %f", Base.X, Base.Y, Base.Z);
+				return core::stringify::text("v3 %f %f %f", base.x, base.y, base.z);
 			}
-			Trigonometry::Vector2 IVariant::ToVector2(const std::string_view& Base)
+			trigonometry::vector2 ivariant::to_vector2(const std::string_view& base)
 			{
-				VI_ASSERT(Core::Stringify::IsCString(Base), "value should be set");
-				Trigonometry::Vector2 Result;
-				if (sscanf(Base.data(), "v2 %f %f", &Result.X, &Result.Y) != 2)
-					return Result;
+				VI_ASSERT(core::stringify::is_cstring(base), "value should be set");
+				trigonometry::vector2 result;
+				if (sscanf(base.data(), "v2 %f %f", &result.x, &result.y) != 2)
+					return result;
 
-				return Result;
+				return result;
 			}
-			Core::String IVariant::FromVector2(const Trigonometry::Vector2& Base)
+			core::string ivariant::from_vector2(const trigonometry::vector2& base)
 			{
-				return Core::Stringify::Text("v2 %f %f", Base.X, Base.Y);
+				return core::stringify::text("v2 %f %f", base.x, base.y);
 			}
 
-			IEvent::IEvent() : Base(nullptr), Owned(false)
+			ievent::ievent() : base(nullptr), owned(false)
 			{
 			}
-			IEvent::IEvent(Rml::Event* Ref) : Base(Ref), Owned(false)
+			ievent::ievent(Rml::Event* ref) : base(ref), owned(false)
 			{
 			}
-			IEvent IEvent::Copy()
+			ievent ievent::copy()
 			{
 #ifdef VI_RMLUI
-				Rml::Event* Ptr = Rml::Factory::InstanceEvent(Base->GetTargetElement(), Base->GetId(), Base->GetType(), Base->GetParameters(), Base->IsInterruptible()).release();
-				if (Ptr != nullptr)
+				Rml::Event* ptr = Rml::Factory::InstanceEvent(base->GetTargetElement(), base->GetId(), base->GetType(), base->GetParameters(), base->IsInterruptible()).release();
+				if (ptr != nullptr)
 				{
-					Ptr->SetCurrentElement(Base->GetCurrentElement());
-					Ptr->SetPhase(Base->GetPhase());
+					ptr->SetCurrentElement(base->GetCurrentElement());
+					ptr->SetPhase(base->GetPhase());
 				}
 
-				IEvent Result(Ptr);
-				Result.Owned = true;
-				return Result;
+				ievent result(ptr);
+				result.owned = true;
+				return result;
 #else
 				return *this;
 #endif
 			}
-			void IEvent::Release()
+			void ievent::release()
 			{
 #ifdef VI_RMLUI
-				if (Owned)
+				if (owned)
 				{
-					delete Base;
-					Base = nullptr;
-					Owned = false;
+					delete base;
+					base = nullptr;
+					owned = false;
 				}
 #endif
 			}
-			EventPhase IEvent::GetPhase() const
+			event_phase ievent::get_phase() const
 			{
 #ifdef VI_RMLUI
-				VI_ASSERT(IsValid(), "event should be valid");
-				return (EventPhase)Base->GetPhase();
+				VI_ASSERT(is_valid(), "event should be valid");
+				return (event_phase)base->GetPhase();
 #else
-				return EventPhase::None;
+				return event_phase::none;
 #endif
 			}
-			void IEvent::SetPhase(EventPhase Phase)
+			void ievent::set_phase(event_phase phase)
 			{
 #ifdef VI_RMLUI
-				VI_ASSERT(IsValid(), "event should be valid");
-				Base->SetPhase((Rml::EventPhase)Phase);
+				VI_ASSERT(is_valid(), "event should be valid");
+				base->SetPhase((Rml::EventPhase)phase);
 #endif
 			}
-			void IEvent::SetCurrentElement(const IElement& Element)
+			void ievent::set_current_element(const ielement& element)
 			{
 #ifdef VI_RMLUI
-				VI_ASSERT(IsValid(), "event should be valid");
-				Base->SetCurrentElement(Element.GetElement());
+				VI_ASSERT(is_valid(), "event should be valid");
+				base->SetCurrentElement(element.get_element());
 #endif
 			}
-			IElement IEvent::GetCurrentElement() const
+			ielement ievent::get_current_element() const
 			{
 #ifdef VI_RMLUI
-				VI_ASSERT(IsValid(), "event should be valid");
-				return Base->GetCurrentElement();
+				VI_ASSERT(is_valid(), "event should be valid");
+				return base->GetCurrentElement();
 #else
-				return IElement();
+				return ielement();
 #endif
 			}
-			IElement IEvent::GetTargetElement() const
+			ielement ievent::get_target_element() const
 			{
 #ifdef VI_RMLUI
-				VI_ASSERT(IsValid(), "event should be valid");
-				return Base->GetTargetElement();
+				VI_ASSERT(is_valid(), "event should be valid");
+				return base->GetTargetElement();
 #else
-				return IElement();
+				return ielement();
 #endif
 			}
-			Core::String IEvent::GetType() const
+			core::string ievent::get_type() const
 			{
 #ifdef VI_RMLUI
-				VI_ASSERT(IsValid(), "event should be valid");
-				return Base->GetType();
+				VI_ASSERT(is_valid(), "event should be valid");
+				return base->GetType();
 #else
-				return Core::String();
+				return core::string();
 #endif
 			}
-			void IEvent::StopPropagation()
+			void ievent::stop_propagation()
 			{
 #ifdef VI_RMLUI
-				VI_ASSERT(IsValid(), "event should be valid");
-				Base->StopPropagation();
+				VI_ASSERT(is_valid(), "event should be valid");
+				base->StopPropagation();
 #endif
 			}
-			void IEvent::StopImmediatePropagation()
+			void ievent::stop_immediate_propagation()
 			{
 #ifdef VI_RMLUI
-				VI_ASSERT(IsValid(), "event should be valid");
-				Base->StopImmediatePropagation();
+				VI_ASSERT(is_valid(), "event should be valid");
+				base->StopImmediatePropagation();
 #endif
 			}
-			bool IEvent::IsInterruptible() const
+			bool ievent::is_interruptible() const
 			{
 #ifdef VI_RMLUI
-				VI_ASSERT(IsValid(), "event should be valid");
-				return Base->IsInterruptible();
-#else
-				return false;
-#endif
-			}
-			bool IEvent::IsPropagating() const
-			{
-#ifdef VI_RMLUI
-				VI_ASSERT(IsValid(), "event should be valid");
-				return Base->IsPropagating();
+				VI_ASSERT(is_valid(), "event should be valid");
+				return base->IsInterruptible();
 #else
 				return false;
 #endif
 			}
-			bool IEvent::IsImmediatePropagating() const
+			bool ievent::is_propagating() const
 			{
 #ifdef VI_RMLUI
-				VI_ASSERT(IsValid(), "event should be valid");
-				return Base->IsImmediatePropagating();
+				VI_ASSERT(is_valid(), "event should be valid");
+				return base->IsPropagating();
 #else
 				return false;
 #endif
 			}
-			bool IEvent::GetBoolean(const std::string_view& Key) const
+			bool ievent::is_immediate_propagating() const
 			{
 #ifdef VI_RMLUI
-				VI_ASSERT(IsValid(), "event should be valid");
-				return Base->GetParameter<bool>(Core::String(Key), false);
+				VI_ASSERT(is_valid(), "event should be valid");
+				return base->IsImmediatePropagating();
 #else
 				return false;
 #endif
 			}
-			int64_t IEvent::GetInteger(const std::string_view& Key) const
+			bool ievent::get_boolean(const std::string_view& key) const
 			{
 #ifdef VI_RMLUI
-				VI_ASSERT(IsValid(), "event should be valid");
-				return Base->GetParameter<int64_t>(Core::String(Key), 0);
+				VI_ASSERT(is_valid(), "event should be valid");
+				return base->GetParameter<bool>(core::string(key), false);
+#else
+				return false;
+#endif
+			}
+			int64_t ievent::get_integer(const std::string_view& key) const
+			{
+#ifdef VI_RMLUI
+				VI_ASSERT(is_valid(), "event should be valid");
+				return base->GetParameter<int64_t>(core::string(key), 0);
 #else
 				return 0;
 #endif
 			}
-			double IEvent::GetNumber(const std::string_view& Key) const
+			double ievent::get_number(const std::string_view& key) const
 			{
 #ifdef VI_RMLUI
-				VI_ASSERT(IsValid(), "event should be valid");
-				return Base->GetParameter<double>(Core::String(Key), 0.0);
+				VI_ASSERT(is_valid(), "event should be valid");
+				return base->GetParameter<double>(core::string(key), 0.0);
 #else
 				return 0.0;
 #endif
 			}
-			Core::String IEvent::GetString(const std::string_view& Key) const
+			core::string ievent::get_string(const std::string_view& key) const
 			{
 #ifdef VI_RMLUI
-				VI_ASSERT(IsValid(), "event should be valid");
-				return Base->GetParameter<Rml::String>(Core::String(Key), "");
+				VI_ASSERT(is_valid(), "event should be valid");
+				return base->GetParameter<Rml::String>(core::string(key), "");
 #else
-				return Core::String();
+				return core::string();
 #endif
 			}
-			Trigonometry::Vector2 IEvent::GetVector2(const std::string_view& Key) const
+			trigonometry::vector2 ievent::get_vector2(const std::string_view& key) const
 			{
 #ifdef VI_RMLUI
-				VI_ASSERT(IsValid(), "event should be valid");
-				Rml::Vector2f Result = Base->GetParameter<Rml::Vector2f>(Core::String(Key), Rml::Vector2f());
-				return Trigonometry::Vector2(Result.x, Result.y);
+				VI_ASSERT(is_valid(), "event should be valid");
+				Rml::Vector2f result = base->GetParameter<Rml::Vector2f>(core::string(key), Rml::Vector2f());
+				return trigonometry::vector2(result.x, result.y);
 #else
-				return Trigonometry::Vector2();
+				return trigonometry::vector2();
 #endif
 			}
-			Trigonometry::Vector3 IEvent::GetVector3(const std::string_view& Key) const
+			trigonometry::vector3 ievent::get_vector3(const std::string_view& key) const
 			{
 #ifdef VI_RMLUI
-				VI_ASSERT(IsValid(), "event should be valid");
-				Rml::Vector3f Result = Base->GetParameter<Rml::Vector3f>(Core::String(Key), Rml::Vector3f());
-				return Trigonometry::Vector3(Result.x, Result.y, Result.z);
+				VI_ASSERT(is_valid(), "event should be valid");
+				Rml::Vector3f result = base->GetParameter<Rml::Vector3f>(core::string(key), Rml::Vector3f());
+				return trigonometry::vector3(result.x, result.y, result.z);
 #else
-				return Trigonometry::Vector3();
+				return trigonometry::vector3();
 #endif
 			}
-			Trigonometry::Vector4 IEvent::GetVector4(const std::string_view& Key) const
+			trigonometry::vector4 ievent::get_vector4(const std::string_view& key) const
 			{
 #ifdef VI_RMLUI
-				VI_ASSERT(IsValid(), "event should be valid");
-				Rml::Vector4f Result = Base->GetParameter<Rml::Vector4f>(Core::String(Key), Rml::Vector4f());
-				return Trigonometry::Vector4(Result.x, Result.y, Result.z, Result.w);
+				VI_ASSERT(is_valid(), "event should be valid");
+				Rml::Vector4f result = base->GetParameter<Rml::Vector4f>(core::string(key), Rml::Vector4f());
+				return trigonometry::vector4(result.x, result.y, result.z, result.w);
 #else
-				return Trigonometry::Vector4();
+				return trigonometry::vector4();
 #endif
 			}
-			void* IEvent::GetPointer(const std::string_view& Key) const
+			void* ievent::get_pointer(const std::string_view& key) const
 			{
 #ifdef VI_RMLUI
-				VI_ASSERT(IsValid(), "event should be valid");
-				return Base->GetParameter<void*>(Core::String(Key), nullptr);
+				VI_ASSERT(is_valid(), "event should be valid");
+				return base->GetParameter<void*>(core::string(key), nullptr);
 #else
 				return nullptr;
 #endif
 			}
-			Rml::Event* IEvent::GetEvent() const
+			Rml::Event* ievent::get_event() const
 			{
-				return Base;
+				return base;
 			}
-			bool IEvent::IsValid() const
+			bool ievent::is_valid() const
 			{
-				return Base != nullptr;
+				return base != nullptr;
 			}
 
-			IElement::IElement() : Base(nullptr)
+			ielement::ielement() : base(nullptr)
 			{
 			}
-			IElement::IElement(Rml::Element* Ref) : Base(Ref)
+			ielement::ielement(Rml::Element* ref) : base(ref)
 			{
 			}
-			void IElement::Release()
+			void ielement::release()
 			{
 #ifdef VI_RMLUI
-				Core::Memory::Delete(Base);
-				Base = nullptr;
+				core::memory::deinit(base);
+				base = nullptr;
 #endif
 			}
-			IElement IElement::Clone() const
+			ielement ielement::clone() const
 			{
 #ifdef VI_RMLUI
-				VI_ASSERT(IsValid(), "element should be valid");
-				Rml::ElementPtr Ptr = Base->Clone();
-				Rml::Element* Result = Ptr.get();
-				Ptr.reset();
+				VI_ASSERT(is_valid(), "element should be valid");
+				Rml::ElementPtr ptr = base->Clone();
+				Rml::Element* result = ptr.get();
+				ptr.reset();
 
-				return Result;
+				return result;
 #else
-				return IElement();
+				return ielement();
 #endif
 			}
-			void IElement::SetClass(const std::string_view& ClassName, bool Activate)
+			void ielement::set_class(const std::string_view& class_name, bool activate)
 			{
 #ifdef VI_RMLUI
-				VI_ASSERT(IsValid(), "element should be valid");
-				Base->SetClass(Core::String(ClassName), Activate);
+				VI_ASSERT(is_valid(), "element should be valid");
+				base->SetClass(core::string(class_name), activate);
 #endif
 			}
-			bool IElement::IsClassSet(const std::string_view& ClassName) const
+			bool ielement::is_class_set(const std::string_view& class_name) const
 			{
 #ifdef VI_RMLUI
-				VI_ASSERT(IsValid(), "element should be valid");
-				return Base->IsClassSet(Core::String(ClassName));
+				VI_ASSERT(is_valid(), "element should be valid");
+				return base->IsClassSet(core::string(class_name));
 #else
 				return false;
 #endif
 			}
-			void IElement::SetClassNames(const std::string_view& ClassNames)
+			void ielement::set_class_names(const std::string_view& class_names)
 			{
 #ifdef VI_RMLUI
-				VI_ASSERT(IsValid(), "element should be valid");
-				Base->SetClassNames(Core::String(ClassNames));
+				VI_ASSERT(is_valid(), "element should be valid");
+				base->SetClassNames(core::string(class_names));
 #endif
 			}
-			Core::String IElement::GetClassNames() const
+			core::string ielement::get_class_names() const
 			{
 #ifdef VI_RMLUI
-				VI_ASSERT(IsValid(), "element should be valid");
-				return Base->GetClassNames();
+				VI_ASSERT(is_valid(), "element should be valid");
+				return base->GetClassNames();
 #else
-				return Core::String();
+				return core::string();
 #endif
 
 			}
-			Core::String IElement::GetAddress(bool IncludePseudoClasses, bool IncludeParents) const
+			core::string ielement::get_address(bool include_pseudo_classes, bool include_parents) const
 			{
 #ifdef VI_RMLUI
-				VI_ASSERT(IsValid(), "element should be valid");
-				return Base->GetAddress(IncludePseudoClasses, IncludeParents);
+				VI_ASSERT(is_valid(), "element should be valid");
+				return base->GetAddress(include_pseudo_classes, include_parents);
 #else
-				return Core::String();
+				return core::string();
 #endif
 
 			}
-			void IElement::SetOffset(const Trigonometry::Vector2& Offset, const IElement& OffsetParent, bool OffsetFixed)
+			void ielement::set_offset(const trigonometry::vector2& offset, const ielement& offset_parent, bool offset_fixed)
 			{
 #ifdef VI_RMLUI
-				VI_ASSERT(IsValid(), "element should be valid");
-				Base->SetOffset(Rml::Vector2f(Offset.X, Offset.Y), OffsetParent.GetElement(), OffsetFixed);
+				VI_ASSERT(is_valid(), "element should be valid");
+				base->SetOffset(Rml::Vector2f(offset.x, offset.y), offset_parent.get_element(), offset_fixed);
 #endif
 			}
-			Trigonometry::Vector2 IElement::GetRelativeOffset(Area Type)
+			trigonometry::vector2 ielement::get_relative_offset(area type)
 			{
 #ifdef VI_RMLUI
-				VI_ASSERT(IsValid(), "element should be valid");
-				Rml::Vector2f Result = Base->GetRelativeOffset((Rml::BoxArea)Type);
-				return Trigonometry::Vector2(Result.x, Result.y);
+				VI_ASSERT(is_valid(), "element should be valid");
+				Rml::Vector2f result = base->GetRelativeOffset((Rml::BoxArea)type);
+				return trigonometry::vector2(result.x, result.y);
 #else
-				return Trigonometry::Vector2();
+				return trigonometry::vector2();
 #endif
 
 			}
-			Trigonometry::Vector2 IElement::GetAbsoluteOffset(Area Type)
+			trigonometry::vector2 ielement::get_absolute_offset(area type)
 			{
 #ifdef VI_RMLUI
-				VI_ASSERT(IsValid(), "element should be valid");
-				Rml::Vector2f Result = Base->GetAbsoluteOffset((Rml::BoxArea)Type);
-				return Trigonometry::Vector2(Result.x, Result.y);
+				VI_ASSERT(is_valid(), "element should be valid");
+				Rml::Vector2f result = base->GetAbsoluteOffset((Rml::BoxArea)type);
+				return trigonometry::vector2(result.x, result.y);
 #else
-				return Trigonometry::Vector2();
+				return trigonometry::vector2();
 #endif
 
 			}
-			void IElement::SetContentBox(const Trigonometry::Vector2& ContentBox)
+			void ielement::set_content_box(const trigonometry::vector2& content_box)
 			{
 #ifdef VI_RMLUI
-				VI_ASSERT(IsValid(), "element should be valid");
-				Base->SetBox(Rml::Box(Rml::Vector2f(ContentBox.X, ContentBox.Y)));
+				VI_ASSERT(is_valid(), "element should be valid");
+				base->SetBox(Rml::Box(Rml::Vector2f(content_box.x, content_box.y)));
 #endif
 			}
-			float IElement::GetBaseline() const
+			float ielement::get_baseline() const
 			{
 #ifdef VI_RMLUI
-				VI_ASSERT(IsValid(), "element should be valid");
-				return Base->GetBaseline();
+				VI_ASSERT(is_valid(), "element should be valid");
+				return base->GetBaseline();
 #else
 				return 0.0f;
 #endif
 
 			}
-			bool IElement::GetIntrinsicDimensions(Trigonometry::Vector2& Dimensions, float& Ratio)
+			bool ielement::get_intrinsic_dimensions(trigonometry::vector2& dimensions, float& ratio)
 			{
 #ifdef VI_RMLUI
-				VI_ASSERT(IsValid(), "element should be valid");
-				Rml::Vector2f Size;
-				bool Result = Base->GetIntrinsicDimensions(Size, Ratio);
-				Dimensions = Trigonometry::Vector2(Size.x, Size.y);
+				VI_ASSERT(is_valid(), "element should be valid");
+				Rml::Vector2f size;
+				bool result = base->GetIntrinsicDimensions(size, ratio);
+				dimensions = trigonometry::vector2(size.x, size.y);
 
-				return Result;
+				return result;
 #else
 				return false;
 #endif
 
 			}
-			bool IElement::IsPointWithinElement(const Trigonometry::Vector2& Point)
+			bool ielement::is_point_within_element(const trigonometry::vector2& point)
 			{
 #ifdef VI_RMLUI
-				VI_ASSERT(IsValid(), "element should be valid");
-				return Base->IsPointWithinElement(Rml::Vector2f(Point.X, Point.Y));
+				VI_ASSERT(is_valid(), "element should be valid");
+				return base->IsPointWithinElement(Rml::Vector2f(point.x, point.y));
 #else
 				return false;
 #endif
 
 			}
-			bool IElement::IsVisible() const
+			bool ielement::is_visible() const
 			{
 #ifdef VI_RMLUI
-				VI_ASSERT(IsValid(), "element should be valid");
-				return Base->IsVisible();
+				VI_ASSERT(is_valid(), "element should be valid");
+				return base->IsVisible();
 #else
 				return false;
 #endif
 
 			}
-			float IElement::GetZIndex() const
+			float ielement::get_zindex() const
 			{
 #ifdef VI_RMLUI
-				VI_ASSERT(IsValid(), "element should be valid");
-				return Base->GetZIndex();
+				VI_ASSERT(is_valid(), "element should be valid");
+				return base->GetZIndex();
 #else
 				return 0.0f;
 #endif
 
 			}
-			bool IElement::SetProperty(const std::string_view& Name, const std::string_view& Value)
+			bool ielement::set_property(const std::string_view& name, const std::string_view& value)
 			{
 #ifdef VI_RMLUI
-				VI_ASSERT(IsValid(), "element should be valid");
-				return Base->SetProperty(Core::String(Name), Core::String(Value));
+				VI_ASSERT(is_valid(), "element should be valid");
+				return base->SetProperty(core::string(name), core::string(value));
 #else
 				return false;
 #endif
 
 			}
-			void IElement::RemoveProperty(const std::string_view& Name)
+			void ielement::remove_property(const std::string_view& name)
 			{
 #ifdef VI_RMLUI
-				VI_ASSERT(IsValid(), "element should be valid");
-				Base->RemoveProperty(Core::String(Name));
+				VI_ASSERT(is_valid(), "element should be valid");
+				base->RemoveProperty(core::string(name));
 #endif
 			}
-			Core::String IElement::GetProperty(const std::string_view& Name)
+			core::string ielement::get_property(const std::string_view& name)
 			{
 #ifdef VI_RMLUI
-				VI_ASSERT(IsValid(), "element should be valid");
-				const Rml::Property* Result = Base->GetProperty(Core::String(Name));
-				if (!Result)
+				VI_ASSERT(is_valid(), "element should be valid");
+				const Rml::Property* result = base->GetProperty(core::string(name));
+				if (!result)
 					return "";
 
-				return Result->ToString();
+				return result->ToString();
 #else
-				return Core::String();
+				return core::string();
 #endif
 			}
-			Core::String IElement::GetLocalProperty(const std::string_view& Name)
+			core::string ielement::get_local_property(const std::string_view& name)
 			{
 #ifdef VI_RMLUI
-				VI_ASSERT(IsValid(), "element should be valid");
-				const Rml::Property* Result = Base->GetLocalProperty(Core::String(Name));
-				if (!Result)
+				VI_ASSERT(is_valid(), "element should be valid");
+				const Rml::Property* result = base->GetLocalProperty(core::string(name));
+				if (!result)
 					return "";
 
-				return Result->ToString();
+				return result->ToString();
 #else
-				return Core::String();
+				return core::string();
 #endif
 			}
-			float IElement::ResolveNumericProperty(float Value, NumericUnit Unit, float BaseValue)
+			float ielement::resolve_numeric_property(float value, numeric_unit unit, float base_value)
 			{
 #ifdef VI_RMLUI
-				VI_ASSERT(IsValid(), "element should be valid");
-				return Base->ResolveNumericValue(Rml::NumericValue(Value, (Rml::Unit)Unit), BaseValue);
-#else
-				return 0.0f;
-#endif
-			}
-			Trigonometry::Vector2 IElement::GetContainingBlock()
-			{
-#ifdef VI_RMLUI
-				VI_ASSERT(IsValid(), "element should be valid");
-				Rml::Vector2f Result = Base->GetContainingBlock();
-				return Trigonometry::Vector2(Result.x, Result.y);
-#else
-				return Trigonometry::Vector2();
-#endif
-			}
-			Position IElement::GetPosition()
-			{
-#ifdef VI_RMLUI
-				VI_ASSERT(IsValid(), "element should be valid");
-				return (Position)Base->GetPosition();
-#else
-				return Position::Static;
-#endif
-			}
-			Float IElement::GetFloat()
-			{
-#ifdef VI_RMLUI
-				VI_ASSERT(IsValid(), "element should be valid");
-				return (Float)Base->GetFloat();
-#else
-				return Float::None;
-#endif
-			}
-			Display IElement::GetDisplay()
-			{
-#ifdef VI_RMLUI
-				VI_ASSERT(IsValid(), "element should be valid");
-				return (Display)Base->GetDisplay();
-#else
-				return Display::None;
-#endif
-			}
-			float IElement::GetLineHeight()
-			{
-#ifdef VI_RMLUI
-				VI_ASSERT(IsValid(), "element should be valid");
-				return Base->GetLineHeight();
+				VI_ASSERT(is_valid(), "element should be valid");
+				return base->ResolveNumericValue(Rml::NumericValue(value, (Rml::Unit)unit), base_value);
 #else
 				return 0.0f;
 #endif
 			}
-			bool IElement::Project(Trigonometry::Vector2& Point) const noexcept
+			trigonometry::vector2 ielement::get_containing_block()
 			{
 #ifdef VI_RMLUI
-				VI_ASSERT(IsValid(), "element should be valid");
-				Rml::Vector2f Offset(Point.X, Point.Y);
-				bool Result = Base->Project(Offset);
-				Point = Trigonometry::Vector2(Offset.x, Offset.y);
+				VI_ASSERT(is_valid(), "element should be valid");
+				Rml::Vector2f result = base->GetContainingBlock();
+				return trigonometry::vector2(result.x, result.y);
+#else
+				return trigonometry::vector2();
+#endif
+			}
+			position ielement::get_position()
+			{
+#ifdef VI_RMLUI
+				VI_ASSERT(is_valid(), "element should be valid");
+				return (position)base->GetPosition();
+#else
+				return position::constant;
+#endif
+			}
+			floatf ielement::get_float()
+			{
+#ifdef VI_RMLUI
+				VI_ASSERT(is_valid(), "element should be valid");
+				return (floatf)base->GetFloat();
+#else
+				return floatf::none;
+#endif
+			}
+			display ielement::get_display()
+			{
+#ifdef VI_RMLUI
+				VI_ASSERT(is_valid(), "element should be valid");
+				return (display)base->GetDisplay();
+#else
+				return display::none;
+#endif
+			}
+			float ielement::get_line_height()
+			{
+#ifdef VI_RMLUI
+				VI_ASSERT(is_valid(), "element should be valid");
+				return base->GetLineHeight();
+#else
+				return 0.0f;
+#endif
+			}
+			bool ielement::project(trigonometry::vector2& point) const noexcept
+			{
+#ifdef VI_RMLUI
+				VI_ASSERT(is_valid(), "element should be valid");
+				Rml::Vector2f offset(point.x, point.y);
+				bool result = base->Project(offset);
+				point = trigonometry::vector2(offset.x, offset.y);
 
-				return Result;
+				return result;
 #else
 				return false;
 #endif
 			}
-			bool IElement::Animate(const std::string_view& PropertyName, const std::string_view& TargetValue, float Duration, TimingFunc Func, TimingDir Dir, int NumIterations, bool AlternateDirection, float Delay)
+			bool ielement::animate(const std::string_view& property_name, const std::string_view& target_value, float duration, timing_func func, timing_dir dir, int num_iterations, bool alternate_direction, float delay)
 			{
 #ifdef VI_RMLUI
-				VI_ASSERT(IsValid(), "element should be valid");
-				return Base->Animate(Core::String(PropertyName), Rml::Property(Core::String(TargetValue), Rml::Unit::TRANSFORM), Duration, Rml::Tween((Rml::Tween::Type)Func, (Rml::Tween::Direction)Dir), NumIterations, AlternateDirection, Delay);
+				VI_ASSERT(is_valid(), "element should be valid");
+				return base->Animate(core::string(property_name), Rml::Property(core::string(target_value), Rml::Unit::TRANSFORM), duration, Rml::Tween((Rml::Tween::Type)func, (Rml::Tween::Direction)dir), num_iterations, alternate_direction, delay);
 #else
 				return false;
 #endif
 			}
-			bool IElement::AddAnimationKey(const std::string_view& PropertyName, const std::string_view& TargetValue, float Duration, TimingFunc Func, TimingDir Dir)
+			bool ielement::add_animation_key(const std::string_view& property_name, const std::string_view& target_value, float duration, timing_func func, timing_dir dir)
 			{
 #ifdef VI_RMLUI
-				VI_ASSERT(IsValid(), "element should be valid");
-				return Base->AddAnimationKey(Core::String(PropertyName), Rml::Property(Core::String(TargetValue), Rml::Unit::TRANSFORM), Duration, Rml::Tween((Rml::Tween::Type)Func, (Rml::Tween::Direction)Dir));
+				VI_ASSERT(is_valid(), "element should be valid");
+				return base->AddAnimationKey(core::string(property_name), Rml::Property(core::string(target_value), Rml::Unit::TRANSFORM), duration, Rml::Tween((Rml::Tween::Type)func, (Rml::Tween::Direction)dir));
 #else
 				return false;
 #endif
 			}
-			void IElement::SetPseudoClass(const std::string_view& PseudoClass, bool Activate)
+			void ielement::set_pseudo_class(const std::string_view& pseudo_class, bool activate)
 			{
 #ifdef VI_RMLUI
-				VI_ASSERT(IsValid(), "element should be valid");
-				Base->SetPseudoClass(Core::String(PseudoClass), Activate);
+				VI_ASSERT(is_valid(), "element should be valid");
+				base->SetPseudoClass(core::string(pseudo_class), activate);
 #endif
 			}
-			bool IElement::IsPseudoClassSet(const std::string_view& PseudoClass) const
+			bool ielement::is_pseudo_class_set(const std::string_view& pseudo_class) const
 			{
 #ifdef VI_RMLUI
-				VI_ASSERT(IsValid(), "element should be valid");
-				return Base->IsPseudoClassSet(Core::String(PseudoClass));
+				VI_ASSERT(is_valid(), "element should be valid");
+				return base->IsPseudoClassSet(core::string(pseudo_class));
 #else
 				return false;
 #endif
 			}
-			void IElement::SetAttribute(const std::string_view& Name, const std::string_view& Value)
+			void ielement::set_attribute(const std::string_view& name, const std::string_view& value)
 			{
 #ifdef VI_RMLUI
-				VI_ASSERT(IsValid(), "element should be valid");
-				Base->SetAttribute(Core::String(Name), Core::String(Value));
+				VI_ASSERT(is_valid(), "element should be valid");
+				base->SetAttribute(core::string(name), core::string(value));
 #endif
 			}
-			Core::String IElement::GetAttribute(const std::string_view& Name)
+			core::string ielement::get_attribute(const std::string_view& name)
 			{
 #ifdef VI_RMLUI
-				VI_ASSERT(IsValid(), "element should be valid");
-				return Base->GetAttribute<Core::String>(Core::String(Name), "");
+				VI_ASSERT(is_valid(), "element should be valid");
+				return base->GetAttribute<core::string>(core::string(name), "");
 #else
-				return Core::String();
+				return core::string();
 #endif
 			}
-			bool IElement::HasAttribute(const std::string_view& Name) const
+			bool ielement::has_attribute(const std::string_view& name) const
 			{
 #ifdef VI_RMLUI
-				VI_ASSERT(IsValid(), "element should be valid");
-				return Base->HasAttribute(Core::String(Name));
+				VI_ASSERT(is_valid(), "element should be valid");
+				return base->HasAttribute(core::string(name));
 #else
 				return false;
 #endif
 			}
-			void IElement::RemoveAttribute(const std::string_view& Name)
+			void ielement::remove_attribute(const std::string_view& name)
 			{
 #ifdef VI_RMLUI
-				VI_ASSERT(IsValid(), "element should be valid");
-				Base->RemoveAttribute(Core::String(Name));
+				VI_ASSERT(is_valid(), "element should be valid");
+				base->RemoveAttribute(core::string(name));
 #endif
 			}
-			IElement IElement::GetFocusLeafNode()
+			ielement ielement::get_focus_leaf_node()
 			{
 #ifdef VI_RMLUI
-				VI_ASSERT(IsValid(), "element should be valid");
-				return Base->GetFocusLeafNode();
+				VI_ASSERT(is_valid(), "element should be valid");
+				return base->GetFocusLeafNode();
 #else
-				return IElement();
+				return ielement();
 #endif
 			}
-			Core::String IElement::GetTagName() const
+			core::string ielement::get_tag_name() const
 			{
 #ifdef VI_RMLUI
-				VI_ASSERT(IsValid(), "element should be valid");
-				return Base->GetTagName();
+				VI_ASSERT(is_valid(), "element should be valid");
+				return base->GetTagName();
 #else
-				return Core::String();
+				return core::string();
 #endif
 			}
-			Core::String IElement::GetId() const
+			core::string ielement::get_id() const
 			{
 #ifdef VI_RMLUI
-				VI_ASSERT(IsValid(), "element should be valid");
-				return Base->GetId();
+				VI_ASSERT(is_valid(), "element should be valid");
+				return base->GetId();
 #else
-				return Core::String();
+				return core::string();
 #endif
 			}
-			void IElement::SetId(const std::string_view& Id)
+			void ielement::set_id(const std::string_view& id)
 			{
 #ifdef VI_RMLUI
-				VI_ASSERT(IsValid(), "element should be valid");
-				Base->SetId(Core::String(Id));
+				VI_ASSERT(is_valid(), "element should be valid");
+				base->SetId(core::string(id));
 #endif
 			}
-			float IElement::GetAbsoluteLeft()
+			float ielement::get_absolute_left()
 			{
 #ifdef VI_RMLUI
-				VI_ASSERT(IsValid(), "element should be valid");
-				return Base->GetAbsoluteLeft();
-#else
-				return 0.0f;
-#endif
-			}
-			float IElement::GetAbsoluteTop()
-			{
-#ifdef VI_RMLUI
-				VI_ASSERT(IsValid(), "element should be valid");
-				return Base->GetAbsoluteTop();
+				VI_ASSERT(is_valid(), "element should be valid");
+				return base->GetAbsoluteLeft();
 #else
 				return 0.0f;
 #endif
 			}
-			float IElement::GetClientLeft()
+			float ielement::get_absolute_top()
 			{
 #ifdef VI_RMLUI
-				VI_ASSERT(IsValid(), "element should be valid");
-				return Base->GetClientLeft();
+				VI_ASSERT(is_valid(), "element should be valid");
+				return base->GetAbsoluteTop();
 #else
 				return 0.0f;
 #endif
 			}
-			float IElement::GetClientTop()
+			float ielement::get_client_left()
 			{
 #ifdef VI_RMLUI
-				VI_ASSERT(IsValid(), "element should be valid");
-				return Base->GetClientTop();
+				VI_ASSERT(is_valid(), "element should be valid");
+				return base->GetClientLeft();
 #else
 				return 0.0f;
 #endif
 			}
-			float IElement::GetClientWidth()
+			float ielement::get_client_top()
 			{
 #ifdef VI_RMLUI
-				VI_ASSERT(IsValid(), "element should be valid");
-				return Base->GetClientWidth();
+				VI_ASSERT(is_valid(), "element should be valid");
+				return base->GetClientTop();
 #else
 				return 0.0f;
 #endif
 			}
-			float IElement::GetClientHeight()
+			float ielement::get_client_width()
 			{
 #ifdef VI_RMLUI
-				VI_ASSERT(IsValid(), "element should be valid");
-				return Base->GetClientHeight();
+				VI_ASSERT(is_valid(), "element should be valid");
+				return base->GetClientWidth();
 #else
 				return 0.0f;
 #endif
 			}
-			IElement IElement::GetOffsetParent()
+			float ielement::get_client_height()
 			{
 #ifdef VI_RMLUI
-				VI_ASSERT(IsValid(), "element should be valid");
-				return Base->GetOffsetParent();
-#else
-				return IElement();
-#endif
-			}
-			float IElement::GetOffsetLeft()
-			{
-#ifdef VI_RMLUI
-				VI_ASSERT(IsValid(), "element should be valid");
-				return Base->GetOffsetLeft();
+				VI_ASSERT(is_valid(), "element should be valid");
+				return base->GetClientHeight();
 #else
 				return 0.0f;
 #endif
 			}
-			float IElement::GetOffsetTop()
+			ielement ielement::get_offset_parent()
 			{
 #ifdef VI_RMLUI
-				VI_ASSERT(IsValid(), "element should be valid");
-				return Base->GetOffsetTop();
+				VI_ASSERT(is_valid(), "element should be valid");
+				return base->GetOffsetParent();
+#else
+				return ielement();
+#endif
+			}
+			float ielement::get_offset_left()
+			{
+#ifdef VI_RMLUI
+				VI_ASSERT(is_valid(), "element should be valid");
+				return base->GetOffsetLeft();
 #else
 				return 0.0f;
 #endif
 			}
-			float IElement::GetOffsetWidth()
+			float ielement::get_offset_top()
 			{
 #ifdef VI_RMLUI
-				VI_ASSERT(IsValid(), "element should be valid");
-				return Base->GetOffsetWidth();
+				VI_ASSERT(is_valid(), "element should be valid");
+				return base->GetOffsetTop();
 #else
 				return 0.0f;
 #endif
 			}
-			float IElement::GetOffsetHeight()
+			float ielement::get_offset_width()
 			{
 #ifdef VI_RMLUI
-				VI_ASSERT(IsValid(), "element should be valid");
-				return Base->GetOffsetHeight();
+				VI_ASSERT(is_valid(), "element should be valid");
+				return base->GetOffsetWidth();
 #else
 				return 0.0f;
 #endif
 			}
-			float IElement::GetScrollLeft()
+			float ielement::get_offset_height()
 			{
 #ifdef VI_RMLUI
-				VI_ASSERT(IsValid(), "element should be valid");
-				return Base->GetScrollLeft();
+				VI_ASSERT(is_valid(), "element should be valid");
+				return base->GetOffsetHeight();
 #else
 				return 0.0f;
 #endif
 			}
-			void IElement::SetScrollLeft(float ScrollLeft)
+			float ielement::get_scroll_left()
 			{
 #ifdef VI_RMLUI
-				VI_ASSERT(IsValid(), "element should be valid");
-				Base->SetScrollLeft(ScrollLeft);
-#endif
-			}
-			float IElement::GetScrollTop()
-			{
-#ifdef VI_RMLUI
-				VI_ASSERT(IsValid(), "element should be valid");
-				return Base->GetScrollTop();
+				VI_ASSERT(is_valid(), "element should be valid");
+				return base->GetScrollLeft();
 #else
 				return 0.0f;
 #endif
 			}
-			void IElement::SetScrollTop(float ScrollTop)
+			void ielement::set_scroll_left(float scroll_left)
 			{
 #ifdef VI_RMLUI
-				VI_ASSERT(IsValid(), "element should be valid");
-				Base->SetScrollTop(ScrollTop);
+				VI_ASSERT(is_valid(), "element should be valid");
+				base->SetScrollLeft(scroll_left);
 #endif
 			}
-			float IElement::GetScrollWidth()
+			float ielement::get_scroll_top()
 			{
 #ifdef VI_RMLUI
-				VI_ASSERT(IsValid(), "element should be valid");
-				return Base->GetScrollWidth();
+				VI_ASSERT(is_valid(), "element should be valid");
+				return base->GetScrollTop();
 #else
 				return 0.0f;
 #endif
 			}
-			float IElement::GetScrollHeight()
+			void ielement::set_scroll_top(float scroll_top)
 			{
 #ifdef VI_RMLUI
-				VI_ASSERT(IsValid(), "element should be valid");
-				return Base->GetScrollHeight();
+				VI_ASSERT(is_valid(), "element should be valid");
+				base->SetScrollTop(scroll_top);
+#endif
+			}
+			float ielement::get_scroll_width()
+			{
+#ifdef VI_RMLUI
+				VI_ASSERT(is_valid(), "element should be valid");
+				return base->GetScrollWidth();
 #else
 				return 0.0f;
 #endif
 			}
-			IElementDocument IElement::GetOwnerDocument() const
+			float ielement::get_scroll_height()
 			{
 #ifdef VI_RMLUI
-				VI_ASSERT(IsValid(), "element should be valid");
-				return Base->GetOwnerDocument();
+				VI_ASSERT(is_valid(), "element should be valid");
+				return base->GetScrollHeight();
 #else
-				return IElementDocument();
+				return 0.0f;
 #endif
 			}
-			IElement IElement::GetParentNode() const
+			ielement_document ielement::get_owner_document() const
 			{
 #ifdef VI_RMLUI
-				VI_ASSERT(IsValid(), "element should be valid");
-				return Base->GetParentNode();
+				VI_ASSERT(is_valid(), "element should be valid");
+				return base->GetOwnerDocument();
 #else
-				return IElement();
+				return ielement_document();
 #endif
 			}
-			IElement IElement::GetNextSibling() const
+			ielement ielement::get_parent_node() const
 			{
 #ifdef VI_RMLUI
-				VI_ASSERT(IsValid(), "element should be valid");
-				return Base->GetNextSibling();
+				VI_ASSERT(is_valid(), "element should be valid");
+				return base->GetParentNode();
 #else
-				return IElement();
+				return ielement();
 #endif
 			}
-			IElement IElement::GetPreviousSibling() const
+			ielement ielement::get_next_sibling() const
 			{
 #ifdef VI_RMLUI
-				VI_ASSERT(IsValid(), "element should be valid");
-				return Base->GetPreviousSibling();
+				VI_ASSERT(is_valid(), "element should be valid");
+				return base->GetNextSibling();
 #else
-				return IElement();
+				return ielement();
 #endif
 			}
-			IElement IElement::GetFirstChild() const
+			ielement ielement::get_previous_sibling() const
 			{
 #ifdef VI_RMLUI
-				VI_ASSERT(IsValid(), "element should be valid");
-				return Base->GetFirstChild();
+				VI_ASSERT(is_valid(), "element should be valid");
+				return base->GetPreviousSibling();
 #else
-				return IElement();
+				return ielement();
 #endif
 			}
-			IElement IElement::GetLastChild() const
+			ielement ielement::get_first_child() const
 			{
 #ifdef VI_RMLUI
-				VI_ASSERT(IsValid(), "element should be valid");
-				return Base->GetLastChild();
+				VI_ASSERT(is_valid(), "element should be valid");
+				return base->GetFirstChild();
 #else
-				return IElement();
+				return ielement();
 #endif
 			}
-			IElement IElement::GetChild(int Index) const
+			ielement ielement::get_last_child() const
 			{
 #ifdef VI_RMLUI
-				VI_ASSERT(IsValid(), "element should be valid");
-				return Base->GetChild(Index);
+				VI_ASSERT(is_valid(), "element should be valid");
+				return base->GetLastChild();
 #else
-				return IElement();
+				return ielement();
 #endif
 			}
-			int IElement::GetNumChildren(bool IncludeNonDOMElements) const
+			ielement ielement::get_child(int index) const
 			{
 #ifdef VI_RMLUI
-				VI_ASSERT(IsValid(), "element should be valid");
-				return Base->GetNumChildren(IncludeNonDOMElements);
+				VI_ASSERT(is_valid(), "element should be valid");
+				return base->GetChild(index);
+#else
+				return ielement();
+#endif
+			}
+			int ielement::get_num_children(bool include_non_dom_elements) const
+			{
+#ifdef VI_RMLUI
+				VI_ASSERT(is_valid(), "element should be valid");
+				return base->GetNumChildren(include_non_dom_elements);
 #else
 				return 0;
 #endif
 			}
-			void IElement::GetInnerHTML(Core::String& Content) const
+			void ielement::get_inner_html(core::string& content) const
 			{
 #ifdef VI_RMLUI
-				VI_ASSERT(IsValid(), "element should be valid");
-				Base->GetInnerRML(Content);
+				VI_ASSERT(is_valid(), "element should be valid");
+				base->GetInnerRML(content);
 #endif
 			}
-			Core::String IElement::GetInnerHTML() const
+			core::string ielement::get_inner_html() const
 			{
 #ifdef VI_RMLUI
-				VI_ASSERT(IsValid(), "element should be valid");
-				return Base->GetInnerRML();
+				VI_ASSERT(is_valid(), "element should be valid");
+				return base->GetInnerRML();
 #else
-				return Core::String();
+				return core::string();
 #endif
 			}
-			void IElement::SetInnerHTML(const std::string_view& HTML)
+			void ielement::set_inner_html(const std::string_view& HTML)
 			{
 #ifdef VI_RMLUI
-				VI_ASSERT(IsValid(), "element should be valid");
-				Base->SetInnerRML(Core::String(HTML));
+				VI_ASSERT(is_valid(), "element should be valid");
+				base->SetInnerRML(core::string(HTML));
 #endif
 			}
-			bool IElement::IsFocused()
+			bool ielement::is_focused()
 			{
 #ifdef VI_RMLUI
-				VI_ASSERT(IsValid(), "element should be valid");
-				return Base->IsPseudoClassSet("focus");
-#else
-				return false;
-#endif
-			}
-			bool IElement::IsHovered()
-			{
-#ifdef VI_RMLUI
-				VI_ASSERT(IsValid(), "element should be valid");
-				return Base->IsPseudoClassSet("hover");
+				VI_ASSERT(is_valid(), "element should be valid");
+				return base->IsPseudoClassSet("focus");
 #else
 				return false;
 #endif
 			}
-			bool IElement::IsActive()
+			bool ielement::is_hovered()
 			{
 #ifdef VI_RMLUI
-				VI_ASSERT(IsValid(), "element should be valid");
-				return Base->IsPseudoClassSet("active");
+				VI_ASSERT(is_valid(), "element should be valid");
+				return base->IsPseudoClassSet("hover");
 #else
 				return false;
 #endif
 			}
-			bool IElement::IsChecked()
+			bool ielement::is_active()
 			{
 #ifdef VI_RMLUI
-				VI_ASSERT(IsValid(), "element should be valid");
-				return Base->IsPseudoClassSet("checked");
+				VI_ASSERT(is_valid(), "element should be valid");
+				return base->IsPseudoClassSet("active");
 #else
 				return false;
 #endif
 			}
-			bool IElement::Focus()
+			bool ielement::is_checked()
 			{
 #ifdef VI_RMLUI
-				VI_ASSERT(IsValid(), "element should be valid");
-				return Base->Focus();
+				VI_ASSERT(is_valid(), "element should be valid");
+				return base->IsPseudoClassSet("checked");
 #else
 				return false;
 #endif
 			}
-			void IElement::Blur()
+			bool ielement::focus()
 			{
 #ifdef VI_RMLUI
-				VI_ASSERT(IsValid(), "element should be valid");
-				Base->Blur();
+				VI_ASSERT(is_valid(), "element should be valid");
+				return base->Focus();
+#else
+				return false;
 #endif
 			}
-			void IElement::Click()
+			void ielement::blur()
 			{
 #ifdef VI_RMLUI
-				VI_ASSERT(IsValid(), "element should be valid");
-				Base->Click();
+				VI_ASSERT(is_valid(), "element should be valid");
+				base->Blur();
 #endif
 			}
-			void IElement::AddEventListener(const std::string_view& Event, Listener* Source, bool InCapturePhase)
+			void ielement::click()
 			{
 #ifdef VI_RMLUI
-				VI_ASSERT(IsValid(), "element should be valid");
-				VI_ASSERT(Source != nullptr && Source->Base != nullptr, "listener should be set");
-				Base->AddEventListener(Core::String(Event), Source->Base, InCapturePhase);
+				VI_ASSERT(is_valid(), "element should be valid");
+				base->Click();
 #endif
 			}
-			void IElement::RemoveEventListener(const std::string_view& Event, Listener* Source, bool InCapturePhase)
+			void ielement::add_event_listener(const std::string_view& event, listener* source, bool in_capture_phase)
 			{
 #ifdef VI_RMLUI
-				VI_ASSERT(IsValid(), "element should be valid");
-				VI_ASSERT(Source != nullptr && Source->Base != nullptr, "listener should be set");
-				Base->RemoveEventListener(Core::String(Event), Source->Base, InCapturePhase);
+				VI_ASSERT(is_valid(), "element should be valid");
+				VI_ASSERT(source != nullptr && source->base != nullptr, "listener should be set");
+				base->AddEventListener(core::string(event), source->base, in_capture_phase);
 #endif
 			}
-			bool IElement::DispatchEvent(const std::string_view& Type, const Core::VariantArgs& Args)
+			void ielement::remove_event_listener(const std::string_view& event, listener* source, bool in_capture_phase)
 			{
 #ifdef VI_RMLUI
-				VI_ASSERT(IsValid(), "element should be valid");
-				Rml::Dictionary Props;
-				for (auto& Item : Args)
+				VI_ASSERT(is_valid(), "element should be valid");
+				VI_ASSERT(source != nullptr && source->base != nullptr, "listener should be set");
+				base->RemoveEventListener(core::string(event), source->base, in_capture_phase);
+#endif
+			}
+			bool ielement::dispatch_event(const std::string_view& type, const core::variant_args& args)
+			{
+#ifdef VI_RMLUI
+				VI_ASSERT(is_valid(), "element should be valid");
+				Rml::Dictionary props;
+				for (auto& item : args)
 				{
-					Rml::Variant& Prop = Props[Item.first];
-					IVariant::Revert((Core::Variant*)&Item.second, &Prop);
+					Rml::Variant& prop = props[item.first];
+					ivariant::revert((core::variant*)&item.second, &prop);
 				}
 
-				return Base->DispatchEvent(Core::String(Type), Props);
+				return base->DispatchEvent(core::string(type), props);
 #else
 				return false;
 #endif
 			}
-			void IElement::ScrollIntoView(bool AlignWithTop)
+			void ielement::scroll_into_view(bool align_with_top)
 			{
 #ifdef VI_RMLUI
-				VI_ASSERT(IsValid(), "element should be valid");
-				Base->ScrollIntoView(AlignWithTop);
+				VI_ASSERT(is_valid(), "element should be valid");
+				base->ScrollIntoView(align_with_top);
 #endif
 			}
-			IElement IElement::AppendChild(const IElement& Element, bool DOMElement)
+			ielement ielement::append_child(const ielement& element, bool dom_element)
 			{
 #ifdef VI_RMLUI
-				VI_ASSERT(IsValid(), "element should be valid");
-				return Base->AppendChild(Rml::ElementPtr(Element.GetElement()), DOMElement);
+				VI_ASSERT(is_valid(), "element should be valid");
+				return base->AppendChild(Rml::ElementPtr(element.get_element()), dom_element);
 #else
-				return IElement();
+				return ielement();
 #endif
 			}
-			IElement IElement::InsertBefore(const IElement& Element, const IElement& AdjacentElement)
+			ielement ielement::insert_before(const ielement& element, const ielement& adjacent_element)
 			{
 #ifdef VI_RMLUI
-				VI_ASSERT(IsValid(), "element should be valid");
-				return Base->InsertBefore(Rml::ElementPtr(Element.GetElement()), AdjacentElement.GetElement());
+				VI_ASSERT(is_valid(), "element should be valid");
+				return base->InsertBefore(Rml::ElementPtr(element.get_element()), adjacent_element.get_element());
 #else
-				return IElement();
+				return ielement();
 #endif
 			}
-			IElement IElement::ReplaceChild(const IElement& InsertedElement, const IElement& ReplacedElement)
+			ielement ielement::replace_child(const ielement& inserted_element, const ielement& replaced_element)
 			{
 #ifdef VI_RMLUI
-				VI_ASSERT(IsValid(), "element should be valid");
-				Rml::ElementPtr Ptr = Base->ReplaceChild(Rml::ElementPtr(InsertedElement.GetElement()), ReplacedElement.GetElement());
-				Rml::Element* Result = Ptr.get();
-				Ptr.reset();
+				VI_ASSERT(is_valid(), "element should be valid");
+				Rml::ElementPtr ptr = base->ReplaceChild(Rml::ElementPtr(inserted_element.get_element()), replaced_element.get_element());
+				Rml::Element* result = ptr.get();
+				ptr.reset();
 
-				return Result;
+				return result;
 #else
-				return IElement();
+				return ielement();
 #endif
 			}
-			IElement IElement::RemoveChild(const IElement& Element)
+			ielement ielement::remove_child(const ielement& element)
 			{
 #ifdef VI_RMLUI
-				VI_ASSERT(IsValid(), "element should be valid");
-				Rml::ElementPtr Ptr = Base->RemoveChild(Element.GetElement());
-				Rml::Element* Result = Ptr.get();
-				Ptr.reset();
+				VI_ASSERT(is_valid(), "element should be valid");
+				Rml::ElementPtr ptr = base->RemoveChild(element.get_element());
+				Rml::Element* result = ptr.get();
+				ptr.reset();
 
-				return Result;
+				return result;
 #else
-				return IElement();
+				return ielement();
 #endif
 			}
-			bool IElement::HasChildNodes() const
+			bool ielement::has_child_nodes() const
 			{
 #ifdef VI_RMLUI
-				VI_ASSERT(IsValid(), "element should be valid");
-				return Base->HasChildNodes();
+				VI_ASSERT(is_valid(), "element should be valid");
+				return base->HasChildNodes();
 #else
 				return false;
 #endif
 			}
-			IElement IElement::GetElementById(const std::string_view& Id)
+			ielement ielement::get_element_by_id(const std::string_view& id)
 			{
 #ifdef VI_RMLUI
-				VI_ASSERT(IsValid(), "element should be valid");
-				return Base->GetElementById(Core::String(Id));
+				VI_ASSERT(is_valid(), "element should be valid");
+				return base->GetElementById(core::string(id));
 #else
-				return IElement();
+				return ielement();
 #endif
 			}
-			IElement IElement::QuerySelector(const std::string_view& Selector)
+			ielement ielement::query_selector(const std::string_view& selector)
 			{
 #ifdef VI_RMLUI
-				VI_ASSERT(IsValid(), "element should be valid");
-				return Base->QuerySelector(Core::String(Selector));
+				VI_ASSERT(is_valid(), "element should be valid");
+				return base->QuerySelector(core::string(selector));
 #else
-				return IElement();
+				return ielement();
 #endif
 			}
-			Core::Vector<IElement> IElement::QuerySelectorAll(const std::string_view& Selectors)
+			core::vector<ielement> ielement::query_selector_all(const std::string_view& selectors)
 			{
 #ifdef VI_RMLUI
-				VI_ASSERT(IsValid(), "element should be valid");
-				Rml::ElementList Elements;
-				Base->QuerySelectorAll(Elements, Core::String(Selectors));
+				VI_ASSERT(is_valid(), "element should be valid");
+				Rml::ElementList elements;
+				base->QuerySelectorAll(elements, core::string(selectors));
 
-				Core::Vector<IElement> Result;
-				Result.reserve(Elements.size());
+				core::vector<ielement> result;
+				result.reserve(elements.size());
 
-				for (auto& Item : Elements)
-					Result.push_back(Item);
+				for (auto& item : elements)
+					result.push_back(item);
 
-				return Result;
+				return result;
 #else
-				return Core::Vector<IElement>();
+				return core::vector<ielement>();
 #endif
 			}
-			bool IElement::CastFormColor(Trigonometry::Vector4* Ptr, bool Alpha)
+			bool ielement::cast_form_color(trigonometry::vector4* ptr, bool alpha)
 			{
 #ifdef VI_RMLUI
-				VI_ASSERT(IsValid(), "element should be valid");
-				VI_ASSERT(Ptr != nullptr, "ptr should be set");
+				VI_ASSERT(is_valid(), "element should be valid");
+				VI_ASSERT(ptr != nullptr, "ptr should be set");
 
-				Rml::ElementFormControl* Form = (Rml::ElementFormControl*)Base;
-				Core::String Value = Form->GetValue();
-				Trigonometry::Vector4 Color = (Alpha ? IVariant::ToColor4(Value) : IVariant::ToColor3(Value));
+				Rml::ElementFormControl* form = (Rml::ElementFormControl*)base;
+				core::string value = form->GetValue();
+				trigonometry::vector4 color = (alpha ? ivariant::to_color4(value) : ivariant::to_color3(value));
 
-				if (Alpha)
+				if (alpha)
 				{
-					if (Value[0] == '#')
+					if (value[0] == '#')
 					{
-						if (Value.size() > 9)
-							Form->SetValue(Value.substr(0, 9));
+						if (value.size() > 9)
+							form->SetValue(value.substr(0, 9));
 					}
-					else if (Value.size() > 15)
-						Form->SetValue(Value.substr(0, 15));
+					else if (value.size() > 15)
+						form->SetValue(value.substr(0, 15));
 				}
 				else
 				{
-					if (Value[0] == '#')
+					if (value[0] == '#')
 					{
-						if (Value.size() > 7)
-							Form->SetValue(Value.substr(0, 7));
+						if (value.size() > 7)
+							form->SetValue(value.substr(0, 7));
 					}
-					else if (Value.size() > 11)
-						Form->SetValue(Value.substr(0, 11));
+					else if (value.size() > 11)
+						form->SetValue(value.substr(0, 11));
 				}
 
-				if (Color == *Ptr)
+				if (color == *ptr)
 				{
-					if (!Value.empty() || Form->IsPseudoClassSet("focus"))
+					if (!value.empty() || form->IsPseudoClassSet("focus"))
 						return false;
 
-					if (Alpha)
-						Form->SetValue(IVariant::FromColor4(*Ptr, true));
+					if (alpha)
+						form->SetValue(ivariant::from_color4(*ptr, true));
 					else
-						Form->SetValue(IVariant::FromColor3(*Ptr, true));
+						form->SetValue(ivariant::from_color3(*ptr, true));
 
 					return true;
 				}
 
-				if (Form->IsPseudoClassSet("focus"))
+				if (form->IsPseudoClassSet("focus"))
 				{
-					if (!Alpha)
-						*Ptr = Trigonometry::Vector4(Color.X, Color.Y, Color.Z, Ptr->W);
+					if (!alpha)
+						*ptr = trigonometry::vector4(color.x, color.y, color.z, ptr->w);
 					else
-						*Ptr = Color;
+						*ptr = color;
 
 					return true;
 				}
 
-				if (Alpha)
-					Form->SetValue(IVariant::FromColor4(*Ptr, Value.empty() ? true : Value[0] == '#'));
+				if (alpha)
+					form->SetValue(ivariant::from_color4(*ptr, value.empty() ? true : value[0] == '#'));
 				else
-					Form->SetValue(IVariant::FromColor3(*Ptr, Value.empty() ? true : Value[0] == '#'));
+					form->SetValue(ivariant::from_color3(*ptr, value.empty() ? true : value[0] == '#'));
 
 				return false;
 #else
 				return false;
 #endif
 			}
-			bool IElement::CastFormString(Core::String* Ptr)
+			bool ielement::cast_form_string(core::string* ptr)
 			{
 #ifdef VI_RMLUI
-				VI_ASSERT(IsValid(), "element should be valid");
-				VI_ASSERT(Ptr != nullptr, "ptr should be set");
+				VI_ASSERT(is_valid(), "element should be valid");
+				VI_ASSERT(ptr != nullptr, "ptr should be set");
 
-				Rml::ElementFormControl* Form = (Rml::ElementFormControl*)Base;
-				Core::String Value = Form->GetValue();
-				if (Value == *Ptr)
+				Rml::ElementFormControl* form = (Rml::ElementFormControl*)base;
+				core::string value = form->GetValue();
+				if (value == *ptr)
 					return false;
 
-				if (Form->IsPseudoClassSet("focus"))
+				if (form->IsPseudoClassSet("focus"))
 				{
-					*Ptr = std::move(Value);
+					*ptr = std::move(value);
 					return true;
 				}
 
-				Form->SetValue(*Ptr);
+				form->SetValue(*ptr);
 				return false;
 #else
 				return false;
 #endif
 			}
-			bool IElement::CastFormPointer(void** Ptr)
+			bool ielement::cast_form_pointer(void** ptr)
 			{
 #ifdef VI_RMLUI
-				VI_ASSERT(IsValid(), "element should be valid");
-				VI_ASSERT(Ptr != nullptr, "ptr should be set");
+				VI_ASSERT(is_valid(), "element should be valid");
+				VI_ASSERT(ptr != nullptr, "ptr should be set");
 
-				Rml::ElementFormControl* Form = (Rml::ElementFormControl*)Base;
-				void* Value = ToPointer(Form->GetValue());
-				if (Value == *Ptr)
+				Rml::ElementFormControl* form = (Rml::ElementFormControl*)base;
+				void* value = to_pointer(form->GetValue());
+				if (value == *ptr)
 					return false;
 
-				if (Form->IsPseudoClassSet("focus"))
+				if (form->IsPseudoClassSet("focus"))
 				{
-					*Ptr = Value;
+					*ptr = value;
 					return true;
 				}
 
-				Form->SetValue(FromPointer(*Ptr));
+				form->SetValue(from_pointer(*ptr));
 				return false;
 #else
 				return false;
 #endif
 			}
-			bool IElement::CastFormInt32(int32_t* Ptr)
+			bool ielement::cast_form_int32(int32_t* ptr)
 			{
 #ifdef VI_RMLUI
-				VI_ASSERT(IsValid(), "element should be valid");
-				VI_ASSERT(Ptr != nullptr, "ptr should be set");
+				VI_ASSERT(is_valid(), "element should be valid");
+				VI_ASSERT(ptr != nullptr, "ptr should be set");
 
-				Rml::ElementFormControl* Form = (Rml::ElementFormControl*)Base;
-				Core::String Value(Form->GetValue());
-				if (Value.empty())
+				Rml::ElementFormControl* form = (Rml::ElementFormControl*)base;
+				core::string value(form->GetValue());
+				if (value.empty())
 				{
-					if (Form->IsPseudoClassSet("focus"))
+					if (form->IsPseudoClassSet("focus"))
 						return false;
 
-					Form->SetValue(Core::ToString(*Ptr));
+					form->SetValue(core::to_string(*ptr));
 					return false;
 				}
 
-				if (!Core::Stringify::HasInteger(Value))
+				if (!core::stringify::has_integer(value))
 				{
-					Core::Stringify::ReplaceNotOf(Value, ".-0123456789", "");
-					Form->SetValue(Value);
+					core::stringify::replace_not_of(value, ".-0123456789", "");
+					form->SetValue(value);
 				}
 
-				auto N = Core::FromString<int32_t>(Value);
-				if (!N || *N == *Ptr)
+				auto n = core::from_string<int32_t>(value);
+				if (!n || *n == *ptr)
 					return false;
 
-				if (Form->IsPseudoClassSet("focus"))
+				if (form->IsPseudoClassSet("focus"))
 				{
-					*Ptr = *N;
+					*ptr = *n;
 					return true;
 				}
 
-				Form->SetValue(Core::ToString(*Ptr));
+				form->SetValue(core::to_string(*ptr));
 				return false;
 #else
 				return false;
 #endif
 			}
-			bool IElement::CastFormUInt32(uint32_t* Ptr)
+			bool ielement::cast_form_uint32(uint32_t* ptr)
 			{
 #ifdef VI_RMLUI
-				VI_ASSERT(IsValid(), "element should be valid");
-				VI_ASSERT(Ptr != nullptr, "ptr should be set");
+				VI_ASSERT(is_valid(), "element should be valid");
+				VI_ASSERT(ptr != nullptr, "ptr should be set");
 
-				Rml::ElementFormControl* Form = (Rml::ElementFormControl*)Base;
-				Core::String Value(Form->GetValue());
-				if (Value.empty())
+				Rml::ElementFormControl* form = (Rml::ElementFormControl*)base;
+				core::string value(form->GetValue());
+				if (value.empty())
 				{
-					if (Form->IsPseudoClassSet("focus"))
+					if (form->IsPseudoClassSet("focus"))
 						return false;
 
-					Form->SetValue(Core::ToString(*Ptr));
+					form->SetValue(core::to_string(*ptr));
 					return false;
 				}
 
-				if (!Core::Stringify::HasInteger(Value))
+				if (!core::stringify::has_integer(value))
 				{
-					Core::Stringify::ReplaceNotOf(Value, ".0123456789", "");
-					Form->SetValue(Value);
+					core::stringify::replace_not_of(value, ".0123456789", "");
+					form->SetValue(value);
 				}
 
-				auto N = Core::FromString<uint32_t>(Value);
-				if (!N || *N == *Ptr)
+				auto n = core::from_string<uint32_t>(value);
+				if (!n || *n == *ptr)
 					return false;
 
-				if (Form->IsPseudoClassSet("focus"))
+				if (form->IsPseudoClassSet("focus"))
 				{
-					*Ptr = *N;
+					*ptr = *n;
 					return true;
 				}
 
-				Form->SetValue(Core::ToString(*Ptr));
+				form->SetValue(core::to_string(*ptr));
 				return false;
 #else
 				return false;
 #endif
 			}
-			bool IElement::CastFormFlag32(uint32_t* Ptr, uint32_t Mask)
+			bool ielement::cast_form_flag32(uint32_t* ptr, uint32_t mask)
 			{
 #ifdef VI_RMLUI
-				VI_ASSERT(IsValid(), "element should be valid");
-				VI_ASSERT(Ptr != nullptr, "ptr should be set");
+				VI_ASSERT(is_valid(), "element should be valid");
+				VI_ASSERT(ptr != nullptr, "ptr should be set");
 
-				bool Value = (*Ptr & Mask);
-				if (!CastFormBoolean(&Value))
+				bool value = (*ptr & mask);
+				if (!cast_form_boolean(&value))
 					return false;
 
-				if (Value)
-					*Ptr |= Mask;
+				if (value)
+					*ptr |= mask;
 				else
-					*Ptr &= ~Mask;
+					*ptr &= ~mask;
 
 				return true;
 #else
 				return false;
 #endif
 			}
-			bool IElement::CastFormInt64(int64_t* Ptr)
+			bool ielement::cast_form_int64(int64_t* ptr)
 			{
 #ifdef VI_RMLUI
-				VI_ASSERT(IsValid(), "element should be valid");
-				VI_ASSERT(Ptr != nullptr, "ptr should be set");
+				VI_ASSERT(is_valid(), "element should be valid");
+				VI_ASSERT(ptr != nullptr, "ptr should be set");
 
-				Rml::ElementFormControl* Form = (Rml::ElementFormControl*)Base;
-				Core::String Value(Form->GetValue());
-				if (Value.empty())
+				Rml::ElementFormControl* form = (Rml::ElementFormControl*)base;
+				core::string value(form->GetValue());
+				if (value.empty())
 				{
-					if (Form->IsPseudoClassSet("focus"))
+					if (form->IsPseudoClassSet("focus"))
 						return false;
 
-					Form->SetValue(Core::ToString(*Ptr));
+					form->SetValue(core::to_string(*ptr));
 					return false;
 				}
 
-				if (!Core::Stringify::HasInteger(Value))
+				if (!core::stringify::has_integer(value))
 				{
-					Core::Stringify::ReplaceNotOf(Value, ".-0123456789", "");
-					Form->SetValue(Value);
+					core::stringify::replace_not_of(value, ".-0123456789", "");
+					form->SetValue(value);
 				}
 
-				auto N = Core::FromString<int64_t>(Value);
-				if (!N || *N == *Ptr)
+				auto n = core::from_string<int64_t>(value);
+				if (!n || *n == *ptr)
 					return false;
 
-				if (Form->IsPseudoClassSet("focus"))
+				if (form->IsPseudoClassSet("focus"))
 				{
-					*Ptr = *N;
+					*ptr = *n;
 					return true;
 				}
 
-				Form->SetValue(Core::ToString(*Ptr));
+				form->SetValue(core::to_string(*ptr));
 				return false;
 #else
 				return false;
 #endif
 			}
-			bool IElement::CastFormUInt64(uint64_t* Ptr)
+			bool ielement::cast_form_uint64(uint64_t* ptr)
 			{
 #ifdef VI_RMLUI
-				VI_ASSERT(IsValid(), "element should be valid");
-				VI_ASSERT(Ptr != nullptr, "ptr should be set");
+				VI_ASSERT(is_valid(), "element should be valid");
+				VI_ASSERT(ptr != nullptr, "ptr should be set");
 
-				Rml::ElementFormControl* Form = (Rml::ElementFormControl*)Base;
-				Core::String Value(Form->GetValue());
-				if (Value.empty())
+				Rml::ElementFormControl* form = (Rml::ElementFormControl*)base;
+				core::string value(form->GetValue());
+				if (value.empty())
 				{
-					if (Form->IsPseudoClassSet("focus"))
+					if (form->IsPseudoClassSet("focus"))
 						return false;
 
-					Form->SetValue(Core::ToString(*Ptr));
+					form->SetValue(core::to_string(*ptr));
 					return false;
 				}
 
-				if (!Core::Stringify::HasInteger(Value))
+				if (!core::stringify::has_integer(value))
 				{
-					Core::Stringify::ReplaceNotOf(Value, ".0123456789", "");
-					Form->SetValue(Value);
+					core::stringify::replace_not_of(value, ".0123456789", "");
+					form->SetValue(value);
 				}
 
-				auto N = Core::FromString<uint64_t>(Value);
-				if (!N || *N == *Ptr)
+				auto n = core::from_string<uint64_t>(value);
+				if (!n || *n == *ptr)
 					return false;
 
-				if (Form->IsPseudoClassSet("focus"))
+				if (form->IsPseudoClassSet("focus"))
 				{
-					*Ptr = *N;
+					*ptr = *n;
 					return true;
 				}
 
-				Form->SetValue(Core::ToString(*Ptr));
+				form->SetValue(core::to_string(*ptr));
 				return false;
 #else
 				return false;
 #endif
 			}
-			bool IElement::CastFormSize(size_t* Ptr)
+			bool ielement::cast_form_size(size_t* ptr)
 			{
 #ifdef VI_RMLUI
-				VI_ASSERT(IsValid(), "element should be valid");
-				VI_ASSERT(Ptr != nullptr, "ptr should be set");
+				VI_ASSERT(is_valid(), "element should be valid");
+				VI_ASSERT(ptr != nullptr, "ptr should be set");
 
-				Rml::ElementFormControl* Form = (Rml::ElementFormControl*)Base;
-				Core::String Value(Form->GetValue());
-				if (Value.empty())
+				Rml::ElementFormControl* form = (Rml::ElementFormControl*)base;
+				core::string value(form->GetValue());
+				if (value.empty())
 				{
-					if (Form->IsPseudoClassSet("focus"))
+					if (form->IsPseudoClassSet("focus"))
 						return false;
 
-					Form->SetValue(Core::ToString(*Ptr));
+					form->SetValue(core::to_string(*ptr));
 					return false;
 				}
 
-				if (!Core::Stringify::HasInteger(Value))
+				if (!core::stringify::has_integer(value))
 				{
-					Core::Stringify::ReplaceNotOf(Value, ".0123456789", "");
-					Form->SetValue(Value);
+					core::stringify::replace_not_of(value, ".0123456789", "");
+					form->SetValue(value);
 				}
 
-				auto N = Core::FromString<uint64_t>(Value);
-				if (!N || *N == (uint64_t)*Ptr)
+				auto n = core::from_string<uint64_t>(value);
+				if (!n || *n == (uint64_t)*ptr)
 					return false;
 
-				if (Form->IsPseudoClassSet("focus"))
+				if (form->IsPseudoClassSet("focus"))
 				{
-					*Ptr = (size_t)*N;
+					*ptr = (size_t)*n;
 					return true;
 				}
 
-				Form->SetValue(Core::ToString(*Ptr));
+				form->SetValue(core::to_string(*ptr));
 				return false;
 #else
 				return false;
 #endif
 			}
-			bool IElement::CastFormFlag64(uint64_t* Ptr, uint64_t Mask)
+			bool ielement::cast_form_flag64(uint64_t* ptr, uint64_t mask)
 			{
 #ifdef VI_RMLUI
-				VI_ASSERT(IsValid(), "element should be valid");
-				VI_ASSERT(Ptr != nullptr, "ptr should be set");
+				VI_ASSERT(is_valid(), "element should be valid");
+				VI_ASSERT(ptr != nullptr, "ptr should be set");
 
-				bool Value = (*Ptr & Mask);
-				if (!CastFormBoolean(&Value))
+				bool value = (*ptr & mask);
+				if (!cast_form_boolean(&value))
 					return false;
 
-				if (Value)
-					*Ptr |= Mask;
+				if (value)
+					*ptr |= mask;
 				else
-					*Ptr &= ~Mask;
+					*ptr &= ~mask;
 
 				return true;
 #else
 				return false;
 #endif
 			}
-			bool IElement::CastFormFloat(float* Ptr)
+			bool ielement::cast_form_float(float* ptr)
 			{
 #ifdef VI_RMLUI
-				VI_ASSERT(IsValid(), "element should be valid");
-				VI_ASSERT(Ptr != nullptr, "ptr should be set");
+				VI_ASSERT(is_valid(), "element should be valid");
+				VI_ASSERT(ptr != nullptr, "ptr should be set");
 
-				Rml::ElementFormControl* Form = (Rml::ElementFormControl*)Base;
-				Core::String Value(Form->GetValue());
-				if (Value.empty())
+				Rml::ElementFormControl* form = (Rml::ElementFormControl*)base;
+				core::string value(form->GetValue());
+				if (value.empty())
 				{
-					if (Form->IsPseudoClassSet("focus"))
+					if (form->IsPseudoClassSet("focus"))
 						return false;
 
-					Form->SetValue(Core::ToString(*Ptr));
+					form->SetValue(core::to_string(*ptr));
 					return false;
 				}
 
-				if (!Core::Stringify::HasNumber(Value))
+				if (!core::stringify::has_number(value))
 				{
-					Core::Stringify::ReplaceNotOf(Value, ".-0123456789", "");
-					Form->SetValue(Value);
+					core::stringify::replace_not_of(value, ".-0123456789", "");
+					form->SetValue(value);
 				}
 
-				auto N = Core::FromString<float>(Value);
-				if (!N || *N == *Ptr)
+				auto n = core::from_string<float>(value);
+				if (!n || *n == *ptr)
 					return false;
 
-				if (Form->IsPseudoClassSet("focus"))
+				if (form->IsPseudoClassSet("focus"))
 				{
-					*Ptr = *N;
+					*ptr = *n;
 					return true;
 				}
 
-				Form->SetValue(Core::ToString(*Ptr));
+				form->SetValue(core::to_string(*ptr));
 				return false;
 #else
 				return false;
 #endif
 			}
-			bool IElement::CastFormFloat(float* Ptr, float Mult)
+			bool ielement::cast_form_float(float* ptr, float mult)
 			{
 #ifdef VI_RMLUI
-				VI_ASSERT(IsValid(), "element should be valid");
-				VI_ASSERT(Ptr != nullptr, "ptr should be set");
+				VI_ASSERT(is_valid(), "element should be valid");
+				VI_ASSERT(ptr != nullptr, "ptr should be set");
 
-				*Ptr *= Mult;
-				bool Result = CastFormFloat(Ptr);
-				*Ptr /= Mult;
+				*ptr *= mult;
+				bool result = cast_form_float(ptr);
+				*ptr /= mult;
 
-				return Result;
+				return result;
 #else
 				return false;
 #endif
 			}
-			bool IElement::CastFormDouble(double* Ptr)
+			bool ielement::cast_form_double(double* ptr)
 			{
 #ifdef VI_RMLUI
-				VI_ASSERT(IsValid(), "element should be valid");
-				VI_ASSERT(Ptr != nullptr, "ptr should be set");
+				VI_ASSERT(is_valid(), "element should be valid");
+				VI_ASSERT(ptr != nullptr, "ptr should be set");
 
-				Rml::ElementFormControl* Form = (Rml::ElementFormControl*)Base;
-				Core::String Value(Form->GetValue());
-				if (Value.empty())
+				Rml::ElementFormControl* form = (Rml::ElementFormControl*)base;
+				core::string value(form->GetValue());
+				if (value.empty())
 				{
-					if (Form->IsPseudoClassSet("focus"))
+					if (form->IsPseudoClassSet("focus"))
 						return false;
 
-					Form->SetValue(Core::ToString(*Ptr));
+					form->SetValue(core::to_string(*ptr));
 					return false;
 				}
 
-				if (!Core::Stringify::HasNumber(Value))
+				if (!core::stringify::has_number(value))
 				{
-					Core::Stringify::ReplaceNotOf(Value, ".-0123456789", "");
-					Form->SetValue(Value);
+					core::stringify::replace_not_of(value, ".-0123456789", "");
+					form->SetValue(value);
 				}
 
-				auto N = Core::FromString<double>(Value);
-				if (!N || *N == *Ptr)
+				auto n = core::from_string<double>(value);
+				if (!n || *n == *ptr)
 					return false;
 
-				if (Form->IsPseudoClassSet("focus"))
+				if (form->IsPseudoClassSet("focus"))
 				{
-					*Ptr = *N;
+					*ptr = *n;
 					return true;
 				}
 
-				Form->SetValue(Core::ToString(*Ptr));
+				form->SetValue(core::to_string(*ptr));
 				return false;
 #else
 				return false;
 #endif
 			}
-			bool IElement::CastFormBoolean(bool* Ptr)
+			bool ielement::cast_form_boolean(bool* ptr)
 			{
 #ifdef VI_RMLUI
-				VI_ASSERT(IsValid(), "element should be valid");
-				VI_ASSERT(Ptr != nullptr, "ptr should be set");
+				VI_ASSERT(is_valid(), "element should be valid");
+				VI_ASSERT(ptr != nullptr, "ptr should be set");
 
-				Rml::ElementFormControl* Form = (Rml::ElementFormControl*)Base;
-				bool B = Form->HasAttribute("checked");
-				if (B == *Ptr)
+				Rml::ElementFormControl* form = (Rml::ElementFormControl*)base;
+				bool b = form->HasAttribute("checked");
+				if (b == *ptr)
 					return false;
 
-				if (Form->IsPseudoClassSet("focus"))
+				if (form->IsPseudoClassSet("focus"))
 				{
-					*Ptr = B;
+					*ptr = b;
 					return true;
 				}
 
-				if (*Ptr)
-					Form->SetAttribute<bool>("checked", true);
+				if (*ptr)
+					form->SetAttribute<bool>("checked", true);
 				else
-					Form->RemoveAttribute("checked");
+					form->RemoveAttribute("checked");
 
 				return false;
 #else
 				return false;
 #endif
 			}
-			Core::String IElement::GetFormName() const
+			core::string ielement::get_form_name() const
 			{
 #ifdef VI_RMLUI
-				VI_ASSERT(IsValid(), "element should be valid");
-				Rml::ElementFormControl* Form = (Rml::ElementFormControl*)Base;
-				return Form->GetName();
+				VI_ASSERT(is_valid(), "element should be valid");
+				Rml::ElementFormControl* form = (Rml::ElementFormControl*)base;
+				return form->GetName();
 #else
-				return Core::String();
+				return core::string();
 #endif
 			}
-			void IElement::SetFormName(const std::string_view& Name)
+			void ielement::set_form_name(const std::string_view& name)
 			{
 #ifdef VI_RMLUI
-				VI_ASSERT(IsValid(), "element should be valid");
-				Rml::ElementFormControl* Form = (Rml::ElementFormControl*)Base;
-				Form->SetName(Core::String(Name));
+				VI_ASSERT(is_valid(), "element should be valid");
+				Rml::ElementFormControl* form = (Rml::ElementFormControl*)base;
+				form->SetName(core::string(name));
 #endif
 			}
-			Core::String IElement::GetFormValue() const
+			core::string ielement::get_form_value() const
 			{
 #ifdef VI_RMLUI
-				VI_ASSERT(IsValid(), "element should be valid");
-				Rml::ElementFormControl* Form = (Rml::ElementFormControl*)Base;
-				return Form->GetValue();
+				VI_ASSERT(is_valid(), "element should be valid");
+				Rml::ElementFormControl* form = (Rml::ElementFormControl*)base;
+				return form->GetValue();
 #else
-				return Core::String();
+				return core::string();
 #endif
 			}
-			void IElement::SetFormValue(const std::string_view& Value)
+			void ielement::set_form_value(const std::string_view& value)
 			{
 #ifdef VI_RMLUI
-				VI_ASSERT(IsValid(), "element should be valid");
-				Rml::ElementFormControl* Form = (Rml::ElementFormControl*)Base;
-				Form->SetValue(Core::String(Value));
+				VI_ASSERT(is_valid(), "element should be valid");
+				Rml::ElementFormControl* form = (Rml::ElementFormControl*)base;
+				form->SetValue(core::string(value));
 #endif
 			}
-			bool IElement::IsFormDisabled() const
+			bool ielement::is_form_disabled() const
 			{
 #ifdef VI_RMLUI
-				VI_ASSERT(IsValid(), "element should be valid");
-				Rml::ElementFormControl* Form = (Rml::ElementFormControl*)Base;
-				return Form->IsDisabled();
+				VI_ASSERT(is_valid(), "element should be valid");
+				Rml::ElementFormControl* form = (Rml::ElementFormControl*)base;
+				return form->IsDisabled();
 #else
 				return false;
 #endif
 			}
-			void IElement::SetFormDisabled(bool Disable)
+			void ielement::set_form_disabled(bool disable)
 			{
 #ifdef VI_RMLUI
-				VI_ASSERT(IsValid(), "element should be valid");
-				Rml::ElementFormControl* Form = (Rml::ElementFormControl*)Base;
-				Form->SetDisabled(Disable);
+				VI_ASSERT(is_valid(), "element should be valid");
+				Rml::ElementFormControl* form = (Rml::ElementFormControl*)base;
+				form->SetDisabled(disable);
 #endif
 			}
-			Rml::Element* IElement::GetElement() const
+			Rml::Element* ielement::get_element() const
 			{
-				return Base;
+				return base;
 			}
-			bool IElement::IsValid() const
+			bool ielement::is_valid() const
 			{
-				return Base != nullptr;
+				return base != nullptr;
 			}
-			Core::String IElement::FromPointer(void* Ptr)
+			core::string ielement::from_pointer(void* ptr)
 			{
-				if (!Ptr)
+				if (!ptr)
 					return "0";
 
-				return Core::ToString((intptr_t)(void*)Ptr);
+				return core::to_string((intptr_t)(void*)ptr);
 			}
-			void* IElement::ToPointer(const std::string_view& Value)
+			void* ielement::to_pointer(const std::string_view& value)
 			{
-				if (Value.empty())
+				if (value.empty())
 					return nullptr;
 
-				if (!Core::Stringify::HasInteger(Value))
+				if (!core::stringify::has_integer(value))
 					return nullptr;
 
-				return (void*)(intptr_t)*Core::FromString<int64_t>(Value);
+				return (void*)(intptr_t)*core::from_string<int64_t>(value);
 			}
 
-			IElementDocument::IElementDocument() : IElement()
+			ielement_document::ielement_document() : ielement()
 			{
 			}
-			IElementDocument::IElementDocument(Rml::ElementDocument* Ref) : IElement((Rml::Element*)Ref)
+			ielement_document::ielement_document(Rml::ElementDocument* ref) : ielement((Rml::Element*)ref)
 			{
 			}
-			void IElementDocument::Release()
+			void ielement_document::release()
 			{
 #ifdef VI_RMLUI
-				Rml::ElementDocument* Item = (Rml::ElementDocument*)Base;
-				Core::Memory::Delete(Item);
-				Base = nullptr;
+				Rml::ElementDocument* item = (Rml::ElementDocument*)base;
+				core::memory::deinit(item);
+				base = nullptr;
 #endif
 			}
-			void IElementDocument::SetTitle(const std::string_view& Title)
+			void ielement_document::set_title(const std::string_view& title)
 			{
 #ifdef VI_RMLUI
-				VI_ASSERT(IsValid(), "element should be valid");
-				((Rml::ElementDocument*)Base)->SetTitle(Core::String(Title));
+				VI_ASSERT(is_valid(), "element should be valid");
+				((Rml::ElementDocument*)base)->SetTitle(core::string(title));
 #endif
 			}
-			void IElementDocument::PullToFront()
+			void ielement_document::pull_to_front()
 			{
 #ifdef VI_RMLUI
-				VI_ASSERT(IsValid(), "element should be valid");
-				((Rml::ElementDocument*)Base)->PullToFront();
+				VI_ASSERT(is_valid(), "element should be valid");
+				((Rml::ElementDocument*)base)->PullToFront();
 #endif
 			}
-			void IElementDocument::PushToBack()
+			void ielement_document::push_to_back()
 			{
 #ifdef VI_RMLUI
-				VI_ASSERT(IsValid(), "element should be valid");
-				((Rml::ElementDocument*)Base)->PushToBack();
+				VI_ASSERT(is_valid(), "element should be valid");
+				((Rml::ElementDocument*)base)->PushToBack();
 #endif
 			}
-			void IElementDocument::Show(ModalFlag Modal, FocusFlag Focus)
+			void ielement_document::show(modal_flag modal, focus_flag focus)
 			{
 #ifdef VI_RMLUI
-				VI_ASSERT(IsValid(), "element should be valid");
-				((Rml::ElementDocument*)Base)->Show((Rml::ModalFlag)Modal, (Rml::FocusFlag)Focus);
+				VI_ASSERT(is_valid(), "element should be valid");
+				((Rml::ElementDocument*)base)->Show((Rml::ModalFlag)modal, (Rml::FocusFlag)focus);
 #endif
 			}
-			void IElementDocument::Hide()
+			void ielement_document::hide()
 			{
 #ifdef VI_RMLUI
-				VI_ASSERT(IsValid(), "element should be valid");
-				((Rml::ElementDocument*)Base)->Hide();
+				VI_ASSERT(is_valid(), "element should be valid");
+				((Rml::ElementDocument*)base)->Hide();
 #endif
 			}
-			void IElementDocument::Close()
+			void ielement_document::close()
 			{
 #ifdef VI_RMLUI
-				VI_ASSERT(IsValid(), "element should be valid");
-				((Rml::ElementDocument*)Base)->Close();
+				VI_ASSERT(is_valid(), "element should be valid");
+				((Rml::ElementDocument*)base)->Close();
 #endif
 			}
-			Core::String IElementDocument::GetTitle() const
+			core::string ielement_document::get_title() const
 			{
 #ifdef VI_RMLUI
-				VI_ASSERT(IsValid(), "element should be valid");
-				return ((Rml::ElementDocument*)Base)->GetTitle();
+				VI_ASSERT(is_valid(), "element should be valid");
+				return ((Rml::ElementDocument*)base)->GetTitle();
 #else
-				return Core::String();
+				return core::string();
 #endif
 			}
-			Core::String IElementDocument::GetSourceURL() const
+			core::string ielement_document::get_source_url() const
 			{
 #ifdef VI_RMLUI
-				VI_ASSERT(IsValid(), "element should be valid");
-				return ((Rml::ElementDocument*)Base)->GetSourceURL();
+				VI_ASSERT(is_valid(), "element should be valid");
+				return ((Rml::ElementDocument*)base)->GetSourceURL();
 #else
-				return Core::String();
+				return core::string();
 #endif
 			}
-			IElement IElementDocument::CreateElement(const std::string_view& Name)
+			ielement ielement_document::create_element(const std::string_view& name)
 			{
 #ifdef VI_RMLUI
-				VI_ASSERT(IsValid(), "element should be valid");
-				Rml::ElementPtr Ptr = ((Rml::ElementDocument*)Base)->CreateElement(Core::String(Name));
-				Rml::Element* Result = Ptr.get();
-				Ptr.reset();
+				VI_ASSERT(is_valid(), "element should be valid");
+				Rml::ElementPtr ptr = ((Rml::ElementDocument*)base)->CreateElement(core::string(name));
+				Rml::Element* result = ptr.get();
+				ptr.reset();
 
-				return Result;
+				return result;
 #else
-				return IElement();
+				return ielement();
 #endif
 			}
-			bool IElementDocument::IsModal() const
+			bool ielement_document::is_modal() const
 			{
 #ifdef VI_RMLUI
-				VI_ASSERT(IsValid(), "element should be valid");
-				return ((Rml::ElementDocument*)Base)->IsModal();
+				VI_ASSERT(is_valid(), "element should be valid");
+				return ((Rml::ElementDocument*)base)->IsModal();
 #else
 				return false;
 #endif
 			}
-			Rml::ElementDocument* IElementDocument::GetElementDocument() const
+			Rml::ElementDocument* ielement_document::get_element_document() const
 			{
-				return (Rml::ElementDocument*)Base;
+				return (Rml::ElementDocument*)base;
 			}
 
-			Trigonometry::Matrix4x4 Utils::ToMatrix(const void* Matrix) noexcept
+			trigonometry::matrix4x4 utils::to_matrix(const void* matrix) noexcept
 			{
 #ifdef VI_RMLUI
-				VI_ASSERT(Matrix != nullptr, "matrix should be set");
-				const Rml::Matrix4f* NewTransform = (const Rml::Matrix4f*)Matrix;
-				Rml::Vector4f Row11 = NewTransform->GetRow(0);
-				Trigonometry::Matrix4x4 Result;
-				Result.Row[0] = Row11.x;
-				Result.Row[1] = Row11.y;
-				Result.Row[2] = Row11.z;
-				Result.Row[3] = Row11.w;
+				VI_ASSERT(matrix != nullptr, "matrix should be set");
+				const Rml::Matrix4f* new_transform = (const Rml::Matrix4f*)matrix;
+				Rml::Vector4f row11 = new_transform->GetRow(0);
+				trigonometry::matrix4x4 result;
+				result.row[0] = row11.x;
+				result.row[1] = row11.y;
+				result.row[2] = row11.z;
+				result.row[3] = row11.w;
 
-				Rml::Vector4f Row22 = NewTransform->GetRow(1);
-				Result.Row[4] = Row22.x;
-				Result.Row[5] = Row22.y;
-				Result.Row[6] = Row22.z;
-				Result.Row[7] = Row22.w;
+				Rml::Vector4f row22 = new_transform->GetRow(1);
+				result.row[4] = row22.x;
+				result.row[5] = row22.y;
+				result.row[6] = row22.z;
+				result.row[7] = row22.w;
 
-				Rml::Vector4f Row33 = NewTransform->GetRow(2);
-				Result.Row[8] = Row33.x;
-				Result.Row[9] = Row33.y;
-				Result.Row[10] = Row33.z;
-				Result.Row[11] = Row33.w;
+				Rml::Vector4f row33 = new_transform->GetRow(2);
+				result.row[8] = row33.x;
+				result.row[9] = row33.y;
+				result.row[10] = row33.z;
+				result.row[11] = row33.w;
 
-				Rml::Vector4f Row44 = NewTransform->GetRow(3);
-				Result.Row[12] = Row44.x;
-				Result.Row[13] = Row44.y;
-				Result.Row[14] = Row44.z;
-				Result.Row[15] = Row44.w;
+				Rml::Vector4f row44 = new_transform->GetRow(3);
+				result.row[12] = row44.x;
+				result.row[13] = row44.y;
+				result.row[14] = row44.z;
+				result.row[15] = row44.w;
 
-				return Result.Transpose();
+				return result.transpose();
 #else
-				return Trigonometry::Matrix4x4();
+				return trigonometry::matrix4x4();
 #endif
 			}
-			Core::String Utils::EscapeHTML(const std::string_view& Text) noexcept
+			core::string utils::escape_html(const std::string_view& text) noexcept
 			{
-				Core::String Copy = Core::String(Text);
-				Core::Stringify::Replace(Copy, "\r\n", "&nbsp;");
-				Core::Stringify::Replace(Copy, "\n", "&nbsp;");
-				Core::Stringify::Replace(Copy, "<", "&lt;");
-				Core::Stringify::Replace(Copy, ">", "&gt;");
-				return Copy;
+				core::string copy = core::string(text);
+				core::stringify::replace(copy, "\r\n", "&nbsp;");
+				core::stringify::replace(copy, "\n", "&nbsp;");
+				core::stringify::replace(copy, "<", "&lt;");
+				core::stringify::replace(copy, ">", "&gt;");
+				return copy;
 			}
 
-			Subsystem::Subsystem() noexcept : ContextFactory(nullptr), DocumentFactory(nullptr), ListenerFactory(nullptr), RenderInterface(nullptr), FileInterface(nullptr), SystemInterface(nullptr), Id(0)
+			subsystem::subsystem() noexcept : context_factory(nullptr), document_factory(nullptr), listener_factory(nullptr), render_interface(nullptr), file_interface(nullptr), system_interface(nullptr), id(0)
 			{
 #ifdef VI_RMLUI
-				RenderInterface = Core::Memory::New<RenderSubsystem>();
-				Rml::SetRenderInterface(RenderInterface->GetAdaptedInterface());
+				render_interface = core::memory::init<render_subsystem>();
+				Rml::SetRenderInterface(render_interface->GetAdaptedInterface());
 
-				FileInterface = Core::Memory::New<FileSubsystem>();
-				Rml::SetFileInterface(FileInterface);
+				file_interface = core::memory::init<file_subsystem>();
+				Rml::SetFileInterface(file_interface);
 
-				SystemInterface = Core::Memory::New<MainSubsystem>();
-				Rml::SetSystemInterface(SystemInterface);
+				system_interface = core::memory::init<main_subsystem>();
+				Rml::SetSystemInterface(system_interface);
 
 				Rml::Initialise();
 				{
-					ContextFactory = Core::Memory::New<ContextInstancer>();
-					Rml::Factory::RegisterContextInstancer(ContextFactory);
+					context_factory = core::memory::init<context_instancer>();
+					Rml::Factory::RegisterContextInstancer(context_factory);
 
-					ListenerFactory = Core::Memory::New<ListenerInstancer>();
-					Rml::Factory::RegisterEventListenerInstancer(ListenerFactory);
+					listener_factory = core::memory::init<listener_instancer>();
+					Rml::Factory::RegisterEventListenerInstancer(listener_factory);
 
-					DocumentFactory = Core::Memory::New<DocumentInstancer>();
-					Rml::Factory::RegisterElementInstancer("body", DocumentFactory);
+					document_factory = core::memory::init<document_instancer>();
+					Rml::Factory::RegisterElementInstancer("body", document_factory);
 				}
-				CreateElements();
+				create_elements();
 #endif
 			}
-			Subsystem::~Subsystem() noexcept
+			subsystem::~subsystem() noexcept
 			{
 #ifdef VI_RMLUI
 				Rml::Shutdown();
-				Core::Memory::Delete(SystemInterface);
-				SystemInterface = nullptr;
+				core::memory::deinit(system_interface);
+				system_interface = nullptr;
 
-				Core::Memory::Delete(FileInterface);
-				FileInterface = nullptr;
+				core::memory::deinit(file_interface);
+				file_interface = nullptr;
 
-				Core::Memory::Delete(RenderInterface);
-				RenderInterface = nullptr;
+				core::memory::deinit(render_interface);
+				render_interface = nullptr;
 
-				Core::Memory::Delete(DocumentFactory);
-				DocumentFactory = nullptr;
+				core::memory::deinit(document_factory);
+				document_factory = nullptr;
 
-				Core::Memory::Delete(ListenerFactory);
-				ListenerFactory = nullptr;
+				core::memory::deinit(listener_factory);
+				listener_factory = nullptr;
 
-				Core::Memory::Delete(ContextFactory);
-				ContextFactory = nullptr;
+				core::memory::deinit(context_factory);
+				context_factory = nullptr;
 
-				ReleaseElements();
-				Shared.Release();
+				release_elements();
+				shared.release();
 #endif
 			}
-			void Subsystem::SetShared(Scripting::VirtualMachine* VM, Graphics::Activity* Activity, RenderConstants* Constants, HeavyContentManager* Content, Core::Timer* Time) noexcept
+			void subsystem::set_shared(scripting::virtual_machine* vm, graphics::activity* activity, render_constants* constants, heavy_content_manager* content, core::timer* time) noexcept
 			{
 #ifdef VI_RMLUI
-				CleanupShared();
-				Shared.VM = VM;
-				Shared.Activity = Activity;
-				Shared.Constants = Constants;
-				Shared.Content = Content;
-				Shared.Time = Time;
-				Shared.AddRef();
+				cleanup_shared();
+				shared.vm = vm;
+				shared.activity = activity;
+				shared.constants = constants;
+				shared.content = content;
+				shared.time = time;
+				shared.add_ref();
 
-				if (RenderInterface != nullptr)
-					RenderInterface->Attach(Constants, Content);
+				if (render_interface != nullptr)
+					render_interface->attach(constants, content);
 
-				if (SystemInterface != nullptr)
-					SystemInterface->Attach(Activity, Time);
+				if (system_interface != nullptr)
+					system_interface->attach(activity, time);
 #endif
 			}
-			void Subsystem::SetTranslator(const std::string_view& Name, TranslationCallback&& Callback) noexcept
+			void subsystem::set_translator(const std::string_view& name, translation_callback&& callback) noexcept
 			{
 #ifdef VI_RMLUI
-				VI_ASSERT(SystemInterface != nullptr, "system interface should be valid");
-				SystemInterface->SetTranslator(Core::String(Name), std::move(Callback));
+				VI_ASSERT(system_interface != nullptr, "system interface should be valid");
+				system_interface->set_translator(core::string(name), std::move(callback));
 #endif
 			}
-			void Subsystem::CleanupShared()
+			void subsystem::cleanup_shared()
 			{
 #ifdef VI_RMLUI
-				if (RenderInterface != nullptr)
-					RenderInterface->Detach();
+				if (render_interface != nullptr)
+					render_interface->detach();
 
-				if (SystemInterface != nullptr)
-					SystemInterface->Detach();
+				if (system_interface != nullptr)
+					system_interface->detach();
 #endif
-				Shared.Release();
+				shared.release();
 			}
-			RenderSubsystem* Subsystem::GetRenderInterface() noexcept
+			render_subsystem* subsystem::get_render_interface() noexcept
 			{
-				return RenderInterface;
+				return render_interface;
 			}
-			FileSubsystem* Subsystem::GetFileInterface() noexcept
+			file_subsystem* subsystem::get_file_interface() noexcept
 			{
-				return FileInterface;
+				return file_interface;
 			}
-			MainSubsystem* Subsystem::GetSystemInterface() noexcept
+			main_subsystem* subsystem::get_system_interface() noexcept
 			{
-				return SystemInterface;
+				return system_interface;
 			}
-			Graphics::GraphicsDevice* Subsystem::GetDevice() noexcept
+			graphics::graphics_device* subsystem::get_device() noexcept
 			{
 #ifdef VI_RMLUI
-				VI_ASSERT(RenderInterface != nullptr, "render interface should be valid");
-				return RenderInterface->GetDevice();
+				VI_ASSERT(render_interface != nullptr, "render interface should be valid");
+				return render_interface->get_device();
 #else
 				return nullptr;
 #endif
 			}
-			Graphics::Texture2D* Subsystem::GetBackground() noexcept
+			graphics::texture_2d* subsystem::get_background() noexcept
 			{
 #ifdef VI_RMLUI
-				VI_ASSERT(RenderInterface != nullptr, "render interface should be valid");
-				return RenderInterface->Background;
+				VI_ASSERT(render_interface != nullptr, "render interface should be valid");
+				return render_interface->background;
 #else
 				return nullptr;
 #endif
 			}
-			Trigonometry::Matrix4x4* Subsystem::GetTransform() noexcept
+			trigonometry::matrix4x4* subsystem::get_transform() noexcept
 			{
 #ifdef VI_RMLUI
-				VI_ASSERT(RenderInterface != nullptr, "render interface should be valid");
-				return RenderInterface->GetTransform();
+				VI_ASSERT(render_interface != nullptr, "render interface should be valid");
+				return render_interface->get_transform();
 #else
 				return nullptr;
 #endif
 			}
-			Trigonometry::Matrix4x4* Subsystem::GetProjection() noexcept
+			trigonometry::matrix4x4* subsystem::get_projection() noexcept
 			{
 #ifdef VI_RMLUI
-				VI_ASSERT(RenderInterface != nullptr, "render interface should be valid");
-				return RenderInterface->GetProjection();
+				VI_ASSERT(render_interface != nullptr, "render interface should be valid");
+				return render_interface->get_projection();
 #else
 				return nullptr;
 #endif
 			}
 
-			DataModel::DataModel(Rml::DataModelConstructor* Ref) : Base(nullptr)
+			data_model::data_model(Rml::DataModelConstructor* ref) : base(nullptr)
 			{
 #ifdef VI_RMLUI
-				if (Ref != nullptr)
-					Base = Core::Memory::New<Rml::DataModelConstructor>(*Ref);
+				if (ref != nullptr)
+					base = core::memory::init<Rml::DataModelConstructor>(*ref);
 #endif
 			}
-			DataModel::~DataModel() noexcept
+			data_model::~data_model() noexcept
 			{
 #ifdef VI_RMLUI
-				Detach();
-				for (auto Item : Props)
-					Core::Memory::Delete(Item.second);
+				detach();
+				for (auto item : props)
+					core::memory::deinit(item.second);
 
-				Core::Memory::Delete(Base);
+				core::memory::deinit(base);
 #endif
 			}
-			void DataModel::SetDetachCallback(std::function<void()>&& Callback)
+			void data_model::set_detach_callback(std::function<void()>&& callback)
 			{
-				if (Callback)
-					Callbacks.emplace_back(std::move(Callback));
+				if (callback)
+					callbacks.emplace_back(std::move(callback));
 			}
-			DataNode* DataModel::SetProperty(const std::string_view& Name, const Core::Variant& Value)
+			data_node* data_model::set_property(const std::string_view& name, const core::variant& value)
 			{
 #ifdef VI_RMLUI
-				VI_ASSERT(IsValid(), "data node should be valid");
-				DataNode* Result = GetProperty(Name);
-				if (Result != nullptr)
+				VI_ASSERT(is_valid(), "data node should be valid");
+				data_node* result = get_property(name);
+				if (result != nullptr)
 				{
-					Result->Set(Value);
-					return Result;
+					result->set(value);
+					return result;
 				}
 
-				Core::String Copy = Core::String(Name);
-				Result = Core::Memory::New<DataNode>(this, Name, Value);
-				if (!Value.IsObject())
+				core::string copy = core::string(name);
+				result = core::memory::init<data_node>(this, name, value);
+				if (!value.is_object())
 				{
-					if (Base->BindFunc(Copy, std::bind(&DataNode::GetValue, Result, std::placeholders::_1), std::bind(&DataNode::SetValue, Result, std::placeholders::_1)))
+					if (base->BindFunc(copy, std::bind(&data_node::get_value, result, std::placeholders::_1), std::bind(&data_node::set_value, result, std::placeholders::_1)))
 					{
-						Props[Copy] = Result;
-						return Result;
+						props[copy] = result;
+						return result;
 					}
 				}
-				else if (Base->Bind(Copy, Result))
+				else if (base->Bind(copy, result))
 				{
-					Props[Copy] = Result;
-					return Result;
+					props[copy] = result;
+					return result;
 				}
-				Core::Memory::Delete(Result);
+				core::memory::deinit(result);
 				return nullptr;
 #else
 				return nullptr;
 #endif
 			}
-			DataNode* DataModel::SetProperty(const std::string_view& Name, Core::Variant* Value)
+			data_node* data_model::set_property(const std::string_view& name, core::variant* value)
 			{
 #ifdef VI_RMLUI
-				VI_ASSERT(IsValid(), "data node should be valid");
-				VI_ASSERT(Value != nullptr, "value should be set");
+				VI_ASSERT(is_valid(), "data node should be valid");
+				VI_ASSERT(value != nullptr, "value should be set");
 
-				DataNode* Sub = GetProperty(Name);
-				if (Sub != nullptr)
+				data_node* sub = get_property(name);
+				if (sub != nullptr)
 				{
-					Sub->Set(Value);
-					return Sub;
+					sub->set(value);
+					return sub;
 				}
 
-				Core::String Copy = Core::String(Name);
-				DataNode* Result = Core::Memory::New<DataNode>(this, Name, Value);
-				if (Base->Bind(Copy, Result))
+				core::string copy = core::string(name);
+				data_node* result = core::memory::init<data_node>(this, name, value);
+				if (base->Bind(copy, result))
 				{
-					Props[Copy] = Result;
-					return Result;
+					props[copy] = result;
+					return result;
 				}
 
-				Core::Memory::Delete(Result);
+				core::memory::deinit(result);
 				return nullptr;
 #else
 				return nullptr;
 #endif
 			}
-			DataNode* DataModel::SetArray(const std::string_view& Name)
+			data_node* data_model::set_array(const std::string_view& name)
 			{
-				return SetProperty(Name, Core::Var::Array());
+				return set_property(name, core::var::array());
 			}
-			DataNode* DataModel::SetString(const std::string_view& Name, const std::string_view& Value)
+			data_node* data_model::set_string(const std::string_view& name, const std::string_view& value)
 			{
-				return SetProperty(Name, Core::Var::String(Value));
+				return set_property(name, core::var::string(value));
 			}
-			DataNode* DataModel::SetInteger(const std::string_view& Name, int64_t Value)
+			data_node* data_model::set_integer(const std::string_view& name, int64_t value)
 			{
-				return SetProperty(Name, Core::Var::Integer(Value));
+				return set_property(name, core::var::integer(value));
 			}
-			DataNode* DataModel::SetFloat(const std::string_view& Name, float Value)
+			data_node* data_model::set_float(const std::string_view& name, float value)
 			{
-				return SetProperty(Name, Core::Var::Number(Value));
+				return set_property(name, core::var::number(value));
 			}
-			DataNode* DataModel::SetDouble(const std::string_view& Name, double Value)
+			data_node* data_model::set_double(const std::string_view& name, double value)
 			{
-				return SetProperty(Name, Core::Var::Number(Value));
+				return set_property(name, core::var::number(value));
 			}
-			DataNode* DataModel::SetBoolean(const std::string_view& Name, bool Value)
+			data_node* data_model::set_boolean(const std::string_view& name, bool value)
 			{
-				return SetProperty(Name, Core::Var::Boolean(Value));
+				return set_property(name, core::var::boolean(value));
 			}
-			DataNode* DataModel::SetPointer(const std::string_view& Name, void* Value)
+			data_node* data_model::set_pointer(const std::string_view& name, void* value)
 			{
-				return SetProperty(Name, Core::Var::Pointer(Value));
+				return set_property(name, core::var::pointer(value));
 			}
-			DataNode* DataModel::GetProperty(const std::string_view& Name)
+			data_node* data_model::get_property(const std::string_view& name)
 			{
-				auto It = Props.find(Core::KeyLookupCast(Name));
-				if (It != Props.end())
-					return It->second;
+				auto it = props.find(core::key_lookup_cast(name));
+				if (it != props.end())
+					return it->second;
 
 				return nullptr;
 			}
-			Core::String DataModel::GetString(const std::string_view& Name)
+			core::string data_model::get_string(const std::string_view& name)
 			{
-				DataNode* Result = GetProperty(Name);
-				if (!Result)
+				data_node* result = get_property(name);
+				if (!result)
 					return "";
 
-				return Result->Ref->GetBlob();
+				return result->ref->get_blob();
 			}
-			int64_t DataModel::GetInteger(const std::string_view& Name)
+			int64_t data_model::get_integer(const std::string_view& name)
 			{
-				DataNode* Result = GetProperty(Name);
-				if (!Result)
+				data_node* result = get_property(name);
+				if (!result)
 					return 0;
 
-				return Result->Ref->GetInteger();
+				return result->ref->get_integer();
 			}
-			float DataModel::GetFloat(const std::string_view& Name)
+			float data_model::get_float(const std::string_view& name)
 			{
-				DataNode* Result = GetProperty(Name);
-				if (!Result)
+				data_node* result = get_property(name);
+				if (!result)
 					return 0.0f;
 
-				return (float)Result->Ref->GetNumber();
+				return (float)result->ref->get_number();
 			}
-			double DataModel::GetDouble(const std::string_view& Name)
+			double data_model::get_double(const std::string_view& name)
 			{
-				DataNode* Result = GetProperty(Name);
-				if (!Result)
+				data_node* result = get_property(name);
+				if (!result)
 					return 0.0;
 
-				return Result->Ref->GetNumber();
+				return result->ref->get_number();
 			}
-			bool DataModel::GetBoolean(const std::string_view& Name)
+			bool data_model::get_boolean(const std::string_view& name)
 			{
-				DataNode* Result = GetProperty(Name);
-				if (!Result)
+				data_node* result = get_property(name);
+				if (!result)
 					return false;
 
-				return Result->Ref->GetBoolean();
+				return result->ref->get_boolean();
 			}
-			void* DataModel::GetPointer(const std::string_view& Name)
+			void* data_model::get_pointer(const std::string_view& name)
 			{
-				DataNode* Result = GetProperty(Name);
-				if (!Result)
+				data_node* result = get_property(name);
+				if (!result)
 					return nullptr;
 
-				return Result->Ref->GetPointer();
+				return result->ref->get_pointer();
 			}
-			bool DataModel::SetCallback(const std::string_view& Name, DataCallback&& Callback)
+			bool data_model::set_callback(const std::string_view& name, data_callback&& callback)
 			{
 #ifdef VI_RMLUI
-				VI_ASSERT(IsValid(), "data node should be valid");
-				VI_ASSERT(Callback, "callback should not be empty");
-				return Base->BindEventCallback(Core::String(Name), [Callback = std::move(Callback)](Rml::DataModelHandle Handle, Rml::Event& Event, const Rml::VariantList& Props)
+				VI_ASSERT(is_valid(), "data node should be valid");
+				VI_ASSERT(callback, "callback should not be empty");
+				return base->BindEventCallback(core::string(name), [callback = std::move(callback)](Rml::DataModelHandle handle, Rml::Event& event, const Rml::VariantList& props)
 				{
-					Core::VariantList Args;
-					Args.resize(Props.size());
+					core::variant_list args;
+					args.resize(props.size());
 
 					size_t i = 0;
-					for (auto& Item : Props)
-						IVariant::Convert((Rml::Variant*)&Item, &Args[i++]);
+					for (auto& item : props)
+						ivariant::convert((Rml::Variant*)&item, &args[i++]);
 
-					IEvent Basis(&Event);
-					Callback(Basis, Args);
+					ievent basis(&event);
+					callback(basis, args);
 				});
 #else
 				return false;
 #endif
 			}
-			bool DataModel::SetUnmountCallback(ModelCallback&& Callback)
+			bool data_model::set_unmount_callback(model_callback&& callback)
 			{
-				OnUnmount = std::move(Callback);
+				on_unmount = std::move(callback);
 				return true;
 			}
-			void DataModel::Change(const std::string_view& VariableName)
+			void data_model::change(const std::string_view& variable_name)
 			{
 #ifdef VI_RMLUI
-				VI_ASSERT(IsValid(), "data node should be valid");
-				Base->GetModelHandle().DirtyVariable(Core::String(VariableName));
+				VI_ASSERT(is_valid(), "data node should be valid");
+				base->GetModelHandle().DirtyVariable(core::string(variable_name));
 #endif
 			}
-			bool DataModel::HasChanged(const std::string_view& VariableName) const
+			bool data_model::has_changed(const std::string_view& variable_name) const
 			{
 #ifdef VI_RMLUI
-				VI_ASSERT(IsValid(), "data node should be valid");
-				return Base->GetModelHandle().IsVariableDirty(Core::String(VariableName));
+				VI_ASSERT(is_valid(), "data node should be valid");
+				return base->GetModelHandle().IsVariableDirty(core::string(variable_name));
 #else
 				return false;
 #endif
 			}
-			void DataModel::Detach()
+			void data_model::detach()
 			{
-				for (auto& Item : Callbacks)
-					Item();
-				Callbacks.clear();
+				for (auto& item : callbacks)
+					item();
+				callbacks.clear();
 			}
-			bool DataModel::IsValid() const
+			bool data_model::is_valid() const
 			{
-				return Base != nullptr;
+				return base != nullptr;
 			}
-			Rml::DataModelConstructor* DataModel::Get()
+			Rml::DataModelConstructor* data_model::get()
 			{
-				return Base;
+				return base;
 			}
 
-			DataNode::DataNode(DataModel* Model, const std::string_view& TopName, const Core::Variant& Initial) noexcept : Name(TopName), Handle(Model), Order(nullptr), Depth(0), Safe(true)
+			data_node::data_node(data_model* model, const std::string_view& top_name, const core::variant& initial) noexcept : name(top_name), handle(model), order(nullptr), depth(0), safe(true)
 			{
-				Ref = Core::Memory::New<Core::Variant>(Initial);
+				ref = core::memory::init<core::variant>(initial);
 			}
-			DataNode::DataNode(DataModel* Model, const std::string_view& TopName, Core::Variant* Reference) noexcept : Name(TopName), Ref(Reference), Handle(Model), Order(nullptr), Depth(0), Safe(false)
+			data_node::data_node(data_model* model, const std::string_view& top_name, core::variant* reference) noexcept : name(top_name), ref(reference), handle(model), order(nullptr), depth(0), safe(false)
 			{
 			}
-			DataNode::DataNode(const DataNode& Other) noexcept : Childs(Other.Childs), Name(Other.Name), Handle(Other.Handle), Order(Other.Order), Depth(0), Safe(Other.Safe)
+			data_node::data_node(const data_node& other) noexcept : childs(other.childs), name(other.name), handle(other.handle), order(other.order), depth(0), safe(other.safe)
 			{
-				if (Safe)
-					Ref = Core::Memory::New<Core::Variant>(*Other.Ref);
+				if (safe)
+					ref = core::memory::init<core::variant>(*other.ref);
 				else
-					Ref = Other.Ref;
+					ref = other.ref;
 			}
-			DataNode::DataNode(DataNode&& Other) noexcept : Childs(std::move(Other.Childs)), Name(std::move(Other.Name)), Ref(Other.Ref), Handle(Other.Handle), Order(Other.Order), Depth(Other.Depth), Safe(Other.Safe)
+			data_node::data_node(data_node&& other) noexcept : childs(std::move(other.childs)), name(std::move(other.name)), ref(other.ref), handle(other.handle), order(other.order), depth(other.depth), safe(other.safe)
 			{
-				Other.Ref = nullptr;
+				other.ref = nullptr;
 			}
-			DataNode::~DataNode()
+			data_node::~data_node()
 			{
-				if (Safe)
-					Core::Memory::Delete(Ref);
+				if (safe)
+					core::memory::deinit(ref);
 			}
-			DataNode& DataNode::Insert(size_t Where, const Core::VariantList& Initial, std::pair<void*, size_t>* Top)
+			data_node& data_node::insert(size_t where, const core::variant_list& initial, std::pair<void*, size_t>* top)
 			{
-				VI_ASSERT(Where <= Childs.size(), "index outside of range");
-				DataNode Result(Handle, Name, Core::Var::Array());
-				if (Top != nullptr)
+				VI_ASSERT(where <= childs.size(), "index outside of range");
+				data_node result(handle, name, core::var::array());
+				if (top != nullptr)
 				{
-					Result.Order = Top->first;
-					Result.Depth = Top->second;
+					result.order = top->first;
+					result.depth = top->second;
 				}
 
-				for (auto& Item : Initial)
-					Result.Add(Item);
+				for (auto& item : initial)
+					result.add(item);
 
-				Childs.insert(Childs.begin() + Where, std::move(Result));
-				if (Top != nullptr)
-					SortTree();
-				else if (Handle != nullptr && !Name.empty())
-					Handle->Change(Name);
+				childs.insert(childs.begin() + where, std::move(result));
+				if (top != nullptr)
+					sort_tree();
+				else if (handle != nullptr && !name.empty())
+					handle->change(name);
 
-				return Childs.back();
+				return childs.back();
 			}
-			DataNode& DataNode::Insert(size_t Where, const Core::Variant& Initial, std::pair<void*, size_t>* Top)
+			data_node& data_node::insert(size_t where, const core::variant& initial, std::pair<void*, size_t>* top)
 			{
-				VI_ASSERT(Where <= Childs.size(), "index outside of range");
-				DataNode Result(Handle, Name, Initial);
-				if (Top != nullptr)
+				VI_ASSERT(where <= childs.size(), "index outside of range");
+				data_node result(handle, name, initial);
+				if (top != nullptr)
 				{
-					Result.Order = Top->first;
-					Result.Depth = Top->second;
+					result.order = top->first;
+					result.depth = top->second;
 				}
 
-				Childs.insert(Childs.begin() + Where, std::move(Result));
-				if (Top != nullptr)
-					SortTree();
-				else if (Handle != nullptr && !Name.empty())
-					Handle->Change(Name);
+				childs.insert(childs.begin() + where, std::move(result));
+				if (top != nullptr)
+					sort_tree();
+				else if (handle != nullptr && !name.empty())
+					handle->change(name);
 
-				return Childs.back();
+				return childs.back();
 			}
-			DataNode& DataNode::Insert(size_t Where, Core::Variant* Reference, std::pair<void*, size_t>* Top)
+			data_node& data_node::insert(size_t where, core::variant* reference, std::pair<void*, size_t>* top)
 			{
-				VI_ASSERT(Where <= Childs.size(), "index outside of range");
-				DataNode Result(Handle, Name, Reference);
-				if (Top != nullptr)
+				VI_ASSERT(where <= childs.size(), "index outside of range");
+				data_node result(handle, name, reference);
+				if (top != nullptr)
 				{
-					Result.Order = Top->first;
-					Result.Depth = Top->second;
+					result.order = top->first;
+					result.depth = top->second;
 				}
 
-				Childs.insert(Childs.begin() + Where, std::move(Result));
-				if (Top != nullptr)
-					SortTree();
-				else if (Handle != nullptr && !Name.empty())
-					Handle->Change(Name);
+				childs.insert(childs.begin() + where, std::move(result));
+				if (top != nullptr)
+					sort_tree();
+				else if (handle != nullptr && !name.empty())
+					handle->change(name);
 
-				return Childs.back();
+				return childs.back();
 			}
-			DataNode& DataNode::Add(const Core::VariantList& Initial, std::pair<void*, size_t>* Top)
+			data_node& data_node::add(const core::variant_list& initial, std::pair<void*, size_t>* top)
 			{
-				DataNode Result(Handle, Name, Core::Var::Array());
-				if (Top != nullptr)
+				data_node result(handle, name, core::var::array());
+				if (top != nullptr)
 				{
-					Result.Order = Top->first;
-					Result.Depth = Top->second;
+					result.order = top->first;
+					result.depth = top->second;
 				}
 
-				for (auto& Item : Initial)
-					Result.Add(Item);
+				for (auto& item : initial)
+					result.add(item);
 
-				Childs.emplace_back(std::move(Result));
-				if (Top != nullptr)
-					SortTree();
-				else if (Handle != nullptr && !Name.empty())
-					Handle->Change(Name);
+				childs.emplace_back(std::move(result));
+				if (top != nullptr)
+					sort_tree();
+				else if (handle != nullptr && !name.empty())
+					handle->change(name);
 
-				return Childs.back();
+				return childs.back();
 			}
-			DataNode& DataNode::Add(const Core::Variant& Initial, std::pair<void*, size_t>* Top)
+			data_node& data_node::add(const core::variant& initial, std::pair<void*, size_t>* top)
 			{
-				DataNode Result(Handle, Name, Initial);
-				if (Top != nullptr)
+				data_node result(handle, name, initial);
+				if (top != nullptr)
 				{
-					Result.Order = Top->first;
-					Result.Depth = Top->second;
+					result.order = top->first;
+					result.depth = top->second;
 				}
 
-				Childs.emplace_back(std::move(Result));
-				if (Top != nullptr)
-					SortTree();
-				else if (Handle != nullptr && !Name.empty())
-					Handle->Change(Name);
+				childs.emplace_back(std::move(result));
+				if (top != nullptr)
+					sort_tree();
+				else if (handle != nullptr && !name.empty())
+					handle->change(name);
 
-				return Childs.back();
+				return childs.back();
 			}
-			DataNode& DataNode::Add(Core::Variant* Reference, std::pair<void*, size_t>* Top)
+			data_node& data_node::add(core::variant* reference, std::pair<void*, size_t>* top)
 			{
-				DataNode Result(Handle, Name, Reference);
-				if (Top != nullptr)
+				data_node result(handle, name, reference);
+				if (top != nullptr)
 				{
-					Result.Order = Top->first;
-					Result.Depth = Top->second;
+					result.order = top->first;
+					result.depth = top->second;
 				}
 
-				Childs.emplace_back(std::move(Result));
-				if (Top != nullptr)
-					SortTree();
-				else if (Handle != nullptr && !Name.empty())
-					Handle->Change(Name);
+				childs.emplace_back(std::move(result));
+				if (top != nullptr)
+					sort_tree();
+				else if (handle != nullptr && !name.empty())
+					handle->change(name);
 
-				return Childs.back();
+				return childs.back();
 			}
-			DataNode& DataNode::At(size_t Index)
+			data_node& data_node::at(size_t index)
 			{
-				VI_ASSERT(Index < Childs.size(), "index outside of range");
-				return Childs[Index];
+				VI_ASSERT(index < childs.size(), "index outside of range");
+				return childs[index];
 			}
-			bool DataNode::Remove(size_t Index)
+			bool data_node::remove(size_t index)
 			{
-				VI_ASSERT(Index < Childs.size(), "index outside of range");
-				Childs.erase(Childs.begin() + Index);
+				VI_ASSERT(index < childs.size(), "index outside of range");
+				childs.erase(childs.begin() + index);
 
-				if (Handle != nullptr && !Name.empty())
-					Handle->Change(Name);
+				if (handle != nullptr && !name.empty())
+					handle->change(name);
 
 				return true;
 			}
-			bool DataNode::Clear()
+			bool data_node::clear()
 			{
-				Childs.clear();
-				if (Handle != nullptr && !Name.empty())
-					Handle->Change(Name);
+				childs.clear();
+				if (handle != nullptr && !name.empty())
+					handle->change(name);
 
 				return true;
 			}
-			void DataNode::SortTree()
+			void data_node::sort_tree()
 			{
-				VI_SORT(Childs.begin(), Childs.end(), [](const DataNode& A, const DataNode& B)
+				VI_SORT(childs.begin(), childs.end(), [](const data_node& a, const data_node& b)
 				{
-					double D1 = (double)(uintptr_t)A.GetSeqId() + 0.00000001 * (double)A.GetDepth();
-					double D2 = (double)(uintptr_t)B.GetSeqId() + 0.00000001 * (double)B.GetDepth();
+					double D1 = (double)(uintptr_t)a.get_seq_id() + 0.00000001 * (double)a.get_depth();
+					double D2 = (double)(uintptr_t)b.get_seq_id() + 0.00000001 * (double)b.get_depth();
 					return D1 < D2;
 				});
 
-				if (Handle != nullptr && !Name.empty())
-					Handle->Change(Name);
+				if (handle != nullptr && !name.empty())
+					handle->change(name);
 			}
-			void DataNode::SetTop(void* SeqId, size_t Nesting)
+			void data_node::set_top(void* seq_id, size_t nesting)
 			{
-				Order = SeqId;
-				Depth = Nesting;
+				order = seq_id;
+				depth = nesting;
 			}
-			void DataNode::Set(const Core::Variant& NewValue)
+			void data_node::set(const core::variant& new_value)
 			{
-				if (*Ref == NewValue)
+				if (*ref == new_value)
 					return;
 
-				*Ref = NewValue;
-				if (Handle != nullptr && !Name.empty())
-					Handle->Change(Name);
+				*ref = new_value;
+				if (handle != nullptr && !name.empty())
+					handle->change(name);
 			}
-			void DataNode::Set(Core::Variant* NewReference)
+			void data_node::set(core::variant* new_reference)
 			{
-				if (!NewReference || NewReference == Ref)
+				if (!new_reference || new_reference == ref)
 					return;
 
-				if (Safe)
-					Core::Memory::Delete(Ref);
+				if (safe)
+					core::memory::deinit(ref);
 
-				Ref = NewReference;
-				Safe = false;
+				ref = new_reference;
+				safe = false;
 
-				if (Handle != nullptr && !Name.empty())
-					Handle->Change(Name);
+				if (handle != nullptr && !name.empty())
+					handle->change(name);
 			}
-			void DataNode::Replace(const Core::VariantList& Data, std::pair<void*, size_t>* Top)
+			void data_node::replace(const core::variant_list& data, std::pair<void*, size_t>* top)
 			{
-				Childs.clear();
-				for (auto& Item : Data)
-					Childs.emplace_back(DataNode(Handle, Name, Item));
+				childs.clear();
+				for (auto& item : data)
+					childs.emplace_back(data_node(handle, name, item));
 
-				if (Top != nullptr)
+				if (top != nullptr)
 				{
-					Order = Top->first;
-					Depth = Top->second;
+					order = top->first;
+					depth = top->second;
 				}
 
-				if (Handle != nullptr && !Name.empty())
-					Handle->Change(Name);
+				if (handle != nullptr && !name.empty())
+					handle->change(name);
 			}
-			void DataNode::SetString(const std::string_view& Value)
+			void data_node::set_string(const std::string_view& value)
 			{
-				Set(Core::Var::String(Value));
+				set(core::var::string(value));
 			}
-			void DataNode::SetVector2(const Trigonometry::Vector2& Value)
+			void data_node::set_vector2(const trigonometry::vector2& value)
 			{
-				Set(Core::Var::String(IVariant::FromVector2(Value)));
+				set(core::var::string(ivariant::from_vector2(value)));
 			}
-			void DataNode::SetVector3(const Trigonometry::Vector3& Value)
+			void data_node::set_vector3(const trigonometry::vector3& value)
 			{
-				Set(Core::Var::String(IVariant::FromVector3(Value)));
+				set(core::var::string(ivariant::from_vector3(value)));
 			}
-			void DataNode::SetVector4(const Trigonometry::Vector4& Value)
+			void data_node::set_vector4(const trigonometry::vector4& value)
 			{
-				Set(Core::Var::String(IVariant::FromVector4(Value)));
+				set(core::var::string(ivariant::from_vector4(value)));
 			}
-			void DataNode::SetInteger(int64_t Value)
+			void data_node::set_integer(int64_t value)
 			{
-				Set(Core::Var::Integer(Value));
+				set(core::var::integer(value));
 			}
-			void DataNode::SetFloat(float Value)
+			void data_node::set_float(float value)
 			{
-				Set(Core::Var::Number(Value));
+				set(core::var::number(value));
 			}
-			void DataNode::SetDouble(double Value)
+			void data_node::set_double(double value)
 			{
-				Set(Core::Var::Number(Value));
+				set(core::var::number(value));
 			}
-			void DataNode::SetBoolean(bool Value)
+			void data_node::set_boolean(bool value)
 			{
-				Set(Core::Var::Boolean(Value));
+				set(core::var::boolean(value));
 			}
-			void DataNode::SetPointer(void* Value)
+			void data_node::set_pointer(void* value)
 			{
-				Set(Core::Var::Pointer(Value));
+				set(core::var::pointer(value));
 			}
-			size_t DataNode::Size() const
+			size_t data_node::size() const
 			{
-				return Childs.size();
+				return childs.size();
 			}
-			size_t DataNode::GetDepth() const
+			size_t data_node::get_depth() const
 			{
-				return Depth;
+				return depth;
 			}
-			void* DataNode::GetSeqId() const
+			void* data_node::get_seq_id() const
 			{
-				return Order;
+				return order;
 			}
-			const Core::Variant& DataNode::Get()
+			const core::variant& data_node::get()
 			{
-				return *Ref;
+				return *ref;
 			}
-			Core::String DataNode::GetString()
+			core::string data_node::get_string()
 			{
-				return Ref->GetBlob();
+				return ref->get_blob();
 			}
-			Trigonometry::Vector2 DataNode::GetVector2()
+			trigonometry::vector2 data_node::get_vector2()
 			{
-				return IVariant::ToVector2(Ref->GetBlob());
+				return ivariant::to_vector2(ref->get_blob());
 			}
-			Trigonometry::Vector3 DataNode::GetVector3()
+			trigonometry::vector3 data_node::get_vector3()
 			{
-				return IVariant::ToVector3(Ref->GetBlob());
+				return ivariant::to_vector3(ref->get_blob());
 			}
-			Trigonometry::Vector4 DataNode::GetVector4()
+			trigonometry::vector4 data_node::get_vector4()
 			{
-				return IVariant::ToVector4(Ref->GetBlob());
+				return ivariant::to_vector4(ref->get_blob());
 			}
-			int64_t DataNode::GetInteger()
+			int64_t data_node::get_integer()
 			{
-				return Ref->GetInteger();
+				return ref->get_integer();
 			}
-			float DataNode::GetFloat()
+			float data_node::get_float()
 			{
-				return (float)Ref->GetNumber();
+				return (float)ref->get_number();
 			}
-			double DataNode::GetDouble()
+			double data_node::get_double()
 			{
-				return Ref->GetNumber();
+				return ref->get_number();
 			}
-			bool DataNode::GetBoolean()
+			bool data_node::get_boolean()
 			{
-				return Ref->GetBoolean();
+				return ref->get_boolean();
 			}
-			void* DataNode::GetPointer()
+			void* data_node::get_pointer()
 			{
-				return Ref->GetPointer();
+				return ref->get_pointer();
 			}
-			void DataNode::GetValue(Rml::Variant& Result)
+			void data_node::get_value(Rml::Variant& result)
 			{
-				IVariant::Revert(Ref, &Result);
+				ivariant::revert(ref, &result);
 			}
-			void DataNode::SetValue(const Rml::Variant& Result)
+			void data_node::set_value(const Rml::Variant& result)
 			{
-				IVariant::Convert((Rml::Variant*)&Result, Ref);
+				ivariant::convert((Rml::Variant*)&result, ref);
 			}
-			void DataNode::SetValueStr(const Core::String& Value)
+			void data_node::set_value_str(const core::string& value)
 			{
-				*Ref = Core::Var::String(Value);
+				*ref = core::var::string(value);
 			}
-			void DataNode::SetValueNum(double Value)
+			void data_node::set_value_num(double value)
 			{
-				*Ref = Core::Var::Number(Value);
+				*ref = core::var::number(value);
 			}
-			void DataNode::SetValueInt(int64_t Value)
+			void data_node::set_value_int(int64_t value)
 			{
-				*Ref = Core::Var::Integer(Value);
+				*ref = core::var::integer(value);
 			}
-			int64_t DataNode::GetValueSize()
+			int64_t data_node::get_value_size()
 			{
-				return (int64_t)Size();
+				return (int64_t)size();
 			}
-			DataNode& DataNode::operator= (const DataNode& Other) noexcept
+			data_node& data_node::operator= (const data_node& other) noexcept
 			{
-				if (this == &Other)
+				if (this == &other)
 					return *this;
 
-				this->~DataNode();
-				Childs = Other.Childs;
-				Name = Other.Name;
-				Handle = Other.Handle;
-				Order = Other.Order;
-				Depth = Other.Depth;
-				Safe = Other.Safe;
+				this->~data_node();
+				childs = other.childs;
+				name = other.name;
+				handle = other.handle;
+				order = other.order;
+				depth = other.depth;
+				safe = other.safe;
 
-				if (Safe)
-					Ref = Core::Memory::New<Core::Variant>(*Other.Ref);
+				if (safe)
+					ref = core::memory::init<core::variant>(*other.ref);
 				else
-					Ref = Other.Ref;
+					ref = other.ref;
 
 				return *this;
 			}
-			DataNode& DataNode::operator= (DataNode&& Other) noexcept
+			data_node& data_node::operator= (data_node&& other) noexcept
 			{
-				if (this == &Other)
+				if (this == &other)
 					return *this;
 
-				this->~DataNode();
-				Childs = std::move(Other.Childs);
-				Name = std::move(Other.Name);
-				Ref = Other.Ref;
-				Handle = Other.Handle;
-				Name = Other.Name;
-				Order = Other.Order;
-				Depth = Other.Depth;
-				Safe = Other.Safe;
+				this->~data_node();
+				childs = std::move(other.childs);
+				name = std::move(other.name);
+				ref = other.ref;
+				handle = other.handle;
+				name = other.name;
+				order = other.order;
+				depth = other.depth;
+				safe = other.safe;
 
-				Other.Ref = nullptr;
+				other.ref = nullptr;
 				return *this;
 			}
 
-			Listener::Listener(EventCallback&& NewCallback)
+			listener::listener(event_callback&& new_callback)
 			{
 #ifdef VI_RMLUI
-				Base = Core::Memory::New<EventSubsystem>(std::move(NewCallback));
+				base = core::memory::init<event_subsystem>(std::move(new_callback));
 #endif
 			}
-			Listener::Listener(const std::string_view& FunctionName)
+			listener::listener(const std::string_view& function_name)
 			{
 #ifdef VI_RMLUI
-				Base = Core::Memory::New<ListenerSubsystem>(FunctionName, nullptr);
+				base = core::memory::init<listener_subsystem>(function_name, nullptr);
 #endif
 			}
-			Listener::~Listener() noexcept
+			listener::~listener() noexcept
 			{
 #ifdef VI_RMLUI
-				Base->OnDetach(nullptr);
+				base->OnDetach(nullptr);
 #endif
 			}
 
-			Context::Context(const Trigonometry::Vector2& Size) : Compiler(nullptr), Cursor(-1.0f), System(Subsystem::Get()), Busy(0)
+			context::context(const trigonometry::vector2& size) : compiler(nullptr), cursor(-1.0f), system(subsystem::get()), busy(0), skips(0)
 			{
 #ifdef VI_RMLUI
-				Base = (ScopedContext*)Rml::CreateContext(Core::ToString(Subsystem::Get()->Id++), Rml::Vector2i((int)Size.X, (int)Size.Y));
-				VI_ASSERT(Base != nullptr, "context cannot be created");
-				Base->Basis = this;
-				if (System->Shared.VM != nullptr)
+				base = (scoped_context*)Rml::CreateContext(core::to_string(subsystem::get()->id++), Rml::Vector2i((int)size.x, (int)size.y));
+				VI_ASSERT(base != nullptr, "context cannot be created");
+				base->basis = this;
+				if (system->shared.vm != nullptr)
 				{
-					Compiler = System->Shared.VM->CreateCompiler();
-					ClearScope();
+					compiler = system->shared.vm->create_compiler();
+					clear_scope();
 				}
-				System->AddRef();
+				system->add_ref();
 #endif
 			}
-			Context::Context(Graphics::GraphicsDevice* Device) : Context(Device && Device->GetRenderTarget() ? Trigonometry::Vector2((float)Device->GetRenderTarget()->GetWidth(), (float)Device->GetRenderTarget()->GetHeight()) : Trigonometry::Vector2(512, 512))
+			context::context(graphics::graphics_device* device) : context(device&& device->get_render_target() ? trigonometry::vector2((float)device->get_render_target()->get_width(), (float)device->get_render_target()->get_height()) : trigonometry::vector2(512, 512))
 			{
 			}
-			Context::~Context() noexcept
+			context::~context() noexcept
 			{
 #ifdef VI_RMLUI
-				RemoveDataModels();
-				Rml::RemoveContext(Base->GetName());
-				Core::Memory::Release(Compiler);
-				Core::Memory::Release(System);
+				remove_data_models();
+				Rml::RemoveContext(base->GetName());
+				core::memory::release(compiler);
+				core::memory::release(system);
 #endif
 			}
-			void Context::EmitKey(Graphics::KeyCode Key, Graphics::KeyMod Mod, int Virtual, int Repeat, bool Pressed)
+			void context::emit_key(graphics::key_code key, graphics::key_mod mod, int computed, int repeat, bool pressed)
 			{
 #ifdef VI_RMLUI
-				if (Key == Graphics::KeyCode::CursorLeft)
+				if (key == graphics::key_code::cursor_left)
 				{
-					if (Pressed)
+					if (pressed)
 					{
-						if (Base->ProcessMouseButtonDown(0, GetKeyMod(Mod)))
-							Inputs.Cursor = true;
+						if (base->ProcessMouseButtonDown(0, get_key_mod(mod)))
+							inputs.cursor = true;
 					}
 					else
 					{
-						if (Base->ProcessMouseButtonUp(0, GetKeyMod(Mod)))
-							Inputs.Cursor = true;
+						if (base->ProcessMouseButtonUp(0, get_key_mod(mod)))
+							inputs.cursor = true;
 					}
 				}
-				else if (Key == Graphics::KeyCode::CursorRight)
+				else if (key == graphics::key_code::cursor_right)
 				{
-					if (Pressed)
+					if (pressed)
 					{
-						if (Base->ProcessMouseButtonDown(1, GetKeyMod(Mod)))
-							Inputs.Cursor = true;
+						if (base->ProcessMouseButtonDown(1, get_key_mod(mod)))
+							inputs.cursor = true;
 					}
 					else
 					{
-						if (Base->ProcessMouseButtonUp(1, GetKeyMod(Mod)))
-							Inputs.Cursor = true;
+						if (base->ProcessMouseButtonUp(1, get_key_mod(mod)))
+							inputs.cursor = true;
 					}
 				}
-				else if (Key == Graphics::KeyCode::CursorMiddle)
+				else if (key == graphics::key_code::cursor_middle)
 				{
-					if (Pressed)
+					if (pressed)
 					{
-						if (Base->ProcessMouseButtonDown(2, GetKeyMod(Mod)))
-							Inputs.Cursor = true;
+						if (base->ProcessMouseButtonDown(2, get_key_mod(mod)))
+							inputs.cursor = true;
 					}
 					else
 					{
-						if (Base->ProcessMouseButtonUp(2, GetKeyMod(Mod)))
-							Inputs.Cursor = true;
+						if (base->ProcessMouseButtonUp(2, get_key_mod(mod)))
+							inputs.cursor = true;
 					}
 				}
-				else if (Pressed)
+				else if (pressed)
 				{
-					if (Base->ProcessKeyDown((Rml::Input::KeyIdentifier)GetKeyCode(Key), GetKeyMod(Mod)))
-						Inputs.Keys = true;
+					if (base->ProcessKeyDown((Rml::Input::KeyIdentifier)get_key_code(key), get_key_mod(mod)))
+						inputs.keys = true;
 				}
-				else if (Base->ProcessKeyUp((Rml::Input::KeyIdentifier)GetKeyCode(Key), GetKeyMod(Mod)))
-					Inputs.Keys = true;
+				else if (base->ProcessKeyUp((Rml::Input::KeyIdentifier)get_key_code(key), get_key_mod(mod)))
+					inputs.keys = true;
+				skips = RENDERS_FOR_DATA_EVENT;
 #endif
 			}
-			void Context::EmitInput(const char* Buffer, int Length)
+			void context::emit_input(const char* buffer, int length)
 			{
 #ifdef VI_RMLUI
-				VI_ASSERT(Buffer != nullptr && Length > 0, "buffer should be set");
-				if (Base->ProcessTextInput(Core::String(Buffer, Length)))
-					Inputs.Text = true;
+				VI_ASSERT(buffer != nullptr && length > 0, "buffer should be set");
+				if (base->ProcessTextInput(core::string(buffer, length)))
+					inputs.text = true;
+				skips = RENDERS_FOR_DATA_EVENT;
 #endif
 			}
-			void Context::EmitWheel(int X, int Y, bool Normal, Graphics::KeyMod Mod)
+			void context::emit_wheel(int x, int y, bool normal, graphics::key_mod mod)
 			{
 #ifdef VI_RMLUI
-				if (Base->ProcessMouseWheel((float)-Y, GetKeyMod(Mod)))
-					Inputs.Scroll = true;
+				if (base->ProcessMouseWheel((float)-y, get_key_mod(mod)))
+					inputs.scroll = true;
+				skips = RENDERS_FOR_DATA_EVENT;
 #endif
 			}
-			void Context::EmitResize(int Width, int Height)
+			void context::emit_resize(int width, int height)
 			{
 #ifdef VI_RMLUI
-				RenderSubsystem* Renderer = Subsystem::Get()->GetRenderInterface();
-				if (Renderer != nullptr)
-					Renderer->ResizeBuffers(Width, Height);
+				render_subsystem* renderer = subsystem::get()->get_render_interface();
+				if (renderer != nullptr)
+					renderer->resize_buffers(width, height);
 
-				Base->SetDimensions(Rml::Vector2i(Width, Height));
+				base->SetDimensions(Rml::Vector2i(width, height));
+				skips = RENDERS_FOR_SIZE_EVENT;
 #endif
 			}
-			void Context::UpdateEvents(Graphics::Activity* Activity)
+			void context::update_events(graphics::activity* activity)
 			{
 #ifdef VI_RMLUI
-				Inputs.Keys = false;
-				Inputs.Text = false;
-				Inputs.Scroll = false;
-				Inputs.Cursor = false;
+				inputs.keys = false;
+				inputs.text = false;
+				inputs.scroll = false;
+				inputs.cursor = false;
 
-				if (Activity != nullptr)
+				if (activity != nullptr)
 				{
-					Cursor = Activity->GetCursorPosition();
-					if (Base->ProcessMouseMove((int)Cursor.X, (int)Cursor.Y, GetKeyMod(Activity->GetKeyModState())))
-						Inputs.Cursor = true;
+					cursor = activity->get_cursor_position();
+					if (base->ProcessMouseMove((int)cursor.x, (int)cursor.y, get_key_mod(activity->get_key_mod_state())))
+						inputs.cursor = true;
 				}
 
-				Base->Update();
+				base->Update();
 #endif
 			}
-			void Context::RenderLists(Graphics::Texture2D* Target)
+			void context::render_lists(graphics::texture_2d* target)
 			{
 #ifdef VI_RMLUI
-				VI_ASSERT(Subsystem::Get()->GetRenderInterface() != nullptr, "render interface should be valid");
-				RenderSubsystem* Renderer = Subsystem::Get()->GetRenderInterface();
-				Renderer->Background = Target;
-				Base->Render();
+				VI_ASSERT(subsystem::get()->get_render_interface() != nullptr, "render interface should be valid");
+				render_subsystem* renderer = subsystem::get()->get_render_interface();
+				renderer->background = target;
+				base->Render();
 #endif
 			}
-			void Context::ClearStyles()
+			void context::clear_styles()
 			{
 #ifdef VI_RMLUI
 				Rml::StyleSheetFactory::ClearStyleSheetCache();
 #endif
 			}
-			bool Context::ClearDocuments()
+			bool context::clear_documents()
 			{
 #ifdef VI_RMLUI
-				++Busy;
-				ClearScope();
-				Elements.clear();
-				Base->UnloadAllDocuments();
-				--Busy;
+				++busy;
+				clear_scope();
+				elements.clear();
+				base->UnloadAllDocuments();
+				--busy;
 
 				return true;
 #else
 				return false;
 #endif
 			}
-			bool Context::IsLoading()
+			bool context::is_loading()
 			{
-				return Busy > 0;
+				return busy > 0;
 			}
-			bool Context::IsInputFocused()
+			bool context::is_input_focused()
 			{
 #ifdef VI_RMLUI
-				Rml::Element* Element = Base->GetFocusElement();
-				if (!Element)
+				Rml::Element* element = base->GetFocusElement();
+				if (!element)
 					return false;
 
-				const Rml::String& Tag = Element->GetTagName();
-				return Tag == "input" || Tag == "textarea" || Tag == "select";
+				const Rml::String& tag = element->GetTagName();
+				return tag == "input" || tag == "textarea" || tag == "select";
 #else
 				return false;
 #endif
 			}
-			uint64_t Context::GetIdleTimeoutMs(uint64_t MaxTimeout) const
+			uint64_t context::calculate_idle_timeout_ms(uint64_t max_timeout)
 			{
 #ifdef VI_RMLUI
-				double Timeout = Base->GetNextUpdateDelay();
-				if (Timeout < 0.0)
+				double timeout = base->GetNextUpdateDelay();
+				if (timeout <= 0.0 || (skips > 0 && --skips > 0))
 					return 0;
 
-				if (Timeout > (double)MaxTimeout)
-					return MaxTimeout;
+				if (timeout > (double)max_timeout)
+					return max_timeout;
 
-				return (uint64_t)(1000.0 * Timeout);
+				return (uint64_t)(1000.0 * timeout);
 #else
 				return 0;
 #endif
 			}
-			Core::UnorderedMap<Core::String, Core::Vector<FontInfo>>* Context::GetFontFaces()
+			core::unordered_map<core::string, core::vector<font_info>>* context::get_font_faces()
 			{
 #ifdef VI_RMLUI
-				return Subsystem::Get()->GetSystemInterface()->GetFontFaces();
+				return subsystem::get()->get_system_interface()->get_font_faces();
 #else
 				return nullptr;
 #endif
 			}
-			Rml::Context* Context::GetContext()
+			Rml::Context* context::get_context()
 			{
 #ifdef VI_RMLUI
-				return Base;
+				return base;
 #else
 				return nullptr;
 #endif
 			}
-			Trigonometry::Vector2 Context::GetDimensions() const
+			trigonometry::vector2 context::get_dimensions() const
 			{
 #ifdef VI_RMLUI
-				Rml::Vector2i Size = Base->GetDimensions();
-				return Trigonometry::Vector2((float)Size.x, (float)Size.y);
+				Rml::Vector2i size = base->GetDimensions();
+				return trigonometry::vector2((float)size.x, (float)size.y);
 #else
-				return Trigonometry::Vector2();
+				return trigonometry::vector2();
 #endif
 			}
-			void Context::SetDensityIndependentPixelRatio(float DensityIndependentPixelRatio)
+			void context::set_density_independent_pixel_ratio(float density_independent_pixel_ratio)
 			{
 #ifdef VI_RMLUI
-				Base->SetDensityIndependentPixelRatio(DensityIndependentPixelRatio);
+				base->SetDensityIndependentPixelRatio(density_independent_pixel_ratio);
 #endif
 			}
-			void Context::EnableMouseCursor(bool Enable)
+			void context::enable_mouse_cursor(bool enable)
 			{
 #ifdef VI_RMLUI
-				Base->EnableMouseCursor(Enable);
+				base->EnableMouseCursor(enable);
 #endif
 			}
-			float Context::GetDensityIndependentPixelRatio() const
+			float context::get_density_independent_pixel_ratio() const
 			{
 #ifdef VI_RMLUI
-				return Base->GetDensityIndependentPixelRatio();
+				return base->GetDensityIndependentPixelRatio();
 #else
 				return 0.0f;
 #endif
 			}
-			bool Context::ReplaceHTML(const std::string_view& Selector, const std::string_view& HTML, int Index)
+			bool context::replace_html(const std::string_view& selector, const std::string_view& HTML, int index)
 			{
 #ifdef VI_RMLUI
-				auto* Current = Base->GetDocument(Index);
-				if (!Current)
+				auto* current = base->GetDocument(index);
+				if (!current)
 					return false;
 
-				auto TargetPtr = Current->QuerySelector(Core::String(Selector));
-				if (!TargetPtr)
+				auto target_ptr = current->QuerySelector(core::string(selector));
+				if (!target_ptr)
 					return false;
 
-				TargetPtr->SetInnerRML(Core::String(HTML));
+				target_ptr->SetInnerRML(core::string(HTML));
 				return true;
 #else
 				return false;
 #endif
 			}
-			ExpectsGuiException<void> Context::LoadFontFace(const std::string_view& Path, bool UseAsFallback, FontWeight Weight)
+			expects_gui_exception<void> context::load_font_face(const std::string_view& path, bool use_as_fallback, font_weight weight)
 			{
 #ifdef VI_RMLUI
-				VI_ASSERT(Subsystem::Get()->GetSystemInterface() != nullptr, "system interface should be set");
-				Core::String TargetPath = Core::String(Path);
-				if (!Subsystem::Get()->GetSystemInterface()->AddFontFace(TargetPath, UseAsFallback, Weight))
-					return GuiException("initialize font face error: " + TargetPath);
+				VI_ASSERT(subsystem::get()->get_system_interface() != nullptr, "system interface should be set");
+				core::string target_path = core::string(path);
+				if (!subsystem::get()->get_system_interface()->add_font_face(target_path, use_as_fallback, weight))
+					return gui_exception("initialize font face error: " + target_path);
 
-				return Core::Expectation::Met;
+				return core::expectation::met;
 #else
-				return GuiException("unsupported");
+				return gui_exception("unsupported");
 #endif
 			}
-			ExpectsGuiException<IElementDocument> Context::EvalHTML(const std::string_view& HTML, int Index)
+			expects_gui_exception<ielement_document> context::eval_html(const std::string_view& HTML, int index)
 			{
 #ifdef VI_RMLUI
-				++Busy;
-				auto* Current = Base->GetDocument(Index);
-				if (!Current)
+				++busy;
+				auto* current = base->GetDocument(index);
+				if (!current)
 				{
-					Current = Base->LoadDocumentFromMemory("<html><body>" + Core::String(HTML) + "</body></html>");
-					if (!Current)
+					current = base->LoadDocumentFromMemory("<html><body>" + core::string(HTML) + "</body></html>");
+					if (!current)
 					{
-						--Busy;
-						return GuiException("eval html: invalid argument");
+						--busy;
+						return gui_exception("eval html: invalid argument");
 					}
 				}
 				else
-					Current->SetInnerRML(Core::String(HTML));
+					current->SetInnerRML(core::string(HTML));
 
-				--Busy;
-				return IElementDocument(Current);
+				--busy;
+				return ielement_document(current);
 #else
-				return GuiException("unsupported");
+				return gui_exception("unsupported");
 #endif
 			}
-			ExpectsGuiException<IElementDocument> Context::AddCSS(const std::string_view& CSS, int Index)
+			expects_gui_exception<ielement_document> context::add_css(const std::string_view& CSS, int index)
 			{
 #ifdef VI_RMLUI
-				++Busy;
-				auto* Current = Base->GetDocument(Index);
-				if (Current != nullptr)
+				++busy;
+				auto* current = base->GetDocument(index);
+				if (current != nullptr)
 				{
-					auto HeadPtr = Current->QuerySelector("head");
-					if (HeadPtr != nullptr)
+					auto head_ptr = current->QuerySelector("head");
+					if (head_ptr != nullptr)
 					{
-						auto StylePtr = HeadPtr->QuerySelector("style");
-						if (!StylePtr)
+						auto style_ptr = head_ptr->QuerySelector("style");
+						if (!style_ptr)
 						{
-							auto Style = Current->CreateElement("style");
-							Style->SetInnerRML(Core::String(CSS));
-							HeadPtr->AppendChild(std::move(Style));
+							auto style = current->CreateElement("style");
+							style->SetInnerRML(core::string(CSS));
+							head_ptr->AppendChild(std::move(style));
 						}
 						else
-							StylePtr->SetInnerRML(Core::String(CSS));
+							style_ptr->SetInnerRML(core::string(CSS));
 					}
 					else
 					{
-						auto Head = Current->CreateElement("head");
+						auto head = current->CreateElement("head");
 						{
-							auto Style = Current->CreateElement("style");
-							Style->SetInnerRML(Core::String(CSS));
-							Head->AppendChild(std::move(Style));
+							auto style = current->CreateElement("style");
+							style->SetInnerRML(core::string(CSS));
+							head->AppendChild(std::move(style));
 						}
-						Current->AppendChild(std::move(Head));
+						current->AppendChild(std::move(head));
 					}
 				}
 				else
 				{
-					Current = Base->LoadDocumentFromMemory("<html><head><style>" + Core::String(CSS) + "</style></head></html>");
-					if (!Current)
+					current = base->LoadDocumentFromMemory("<html><head><style>" + core::string(CSS) + "</style></head></html>");
+					if (!current)
 					{
-						--Busy;
-						return GuiException("add css: invalid argument");
+						--busy;
+						return gui_exception("add css: invalid argument");
 					}
 				}
 
-				--Busy;
-				return IElementDocument(Current);
+				--busy;
+				return ielement_document(current);
 #else
-				return GuiException("unsupported");
+				return gui_exception("unsupported");
 #endif
 			}
-			ExpectsGuiException<IElementDocument> Context::LoadCSS(const std::string_view& Path, int Index)
+			expects_gui_exception<ielement_document> context::load_css(const std::string_view& path, int index)
 			{
 #ifdef VI_RMLUI
-				++Busy;
-				auto* Current = Base->GetDocument(Index);
-				if (Current != nullptr)
+				++busy;
+				auto* current = base->GetDocument(index);
+				if (current != nullptr)
 				{
-					auto HeadPtr = Current->QuerySelector("head");
-					if (!HeadPtr)
+					auto head_ptr = current->QuerySelector("head");
+					if (!head_ptr)
 					{
-						auto Head = Current->CreateElement("head");
-						HeadPtr = Current->AppendChild(std::move(Head));
+						auto head = current->CreateElement("head");
+						head_ptr = current->AppendChild(std::move(head));
 					}
 
-					auto Link = Current->CreateElement("link");
-					Link->SetAttribute("type", "text/css");
-					Link->SetAttribute("href", Core::String(Path));
-					HeadPtr = Current->AppendChild(std::move(Link));
+					auto link = current->CreateElement("link");
+					link->SetAttribute("type", "text/css");
+					link->SetAttribute("href", core::string(path));
+					head_ptr = current->AppendChild(std::move(link));
 				}
 				else
 				{
-					Current = Base->LoadDocumentFromMemory("<html><head><link type=\"text/css\" href=\"" + Core::String(Path) + "\" /></head></html>");
-					if (!Current)
+					current = base->LoadDocumentFromMemory("<html><head><link type=\"text/css\" href=\"" + core::string(path) + "\" /></head></html>");
+					if (!current)
 					{
-						--Busy;
-						return GuiException("load css: invalid argument");
+						--busy;
+						return gui_exception("load css: invalid argument");
 					}
 				}
 
-				--Busy;
-				return IElementDocument(Current);
+				--busy;
+				return ielement_document(current);
 #else
-				return GuiException("unsupported");
+				return gui_exception("unsupported");
 #endif
 			}
-			ExpectsGuiException<IElementDocument> Context::LoadDocument(const std::string_view& Path, bool AllowIncludes)
+			expects_gui_exception<ielement_document> context::load_document(const std::string_view& path, bool allow_includes)
 			{
 #ifdef VI_RMLUI
-				++Busy;
-				if (OnMount)
-					OnMount(this);
+				++busy;
+				if (on_mount)
+					on_mount(this);
 
-				HeavyContentManager* Content = (Subsystem::Get()->GetRenderInterface() ? Subsystem::Get()->GetRenderInterface()->GetContent() : nullptr);
-				auto Subpath = (Content ? Core::OS::Path::Resolve(Path, Content->GetEnvironment(), true) : Core::OS::Path::Resolve(Path));
-				auto TargetPath = Subpath ? *Subpath : Path;
-				auto File = Core::OS::File::ReadAsString(TargetPath);
-				if (!File)
+				heavy_content_manager* content = (subsystem::get()->get_render_interface() ? subsystem::get()->get_render_interface()->get_content() : nullptr);
+				auto subpath = (content ? core::os::path::resolve(path, content->get_environment(), true) : core::os::path::resolve(path));
+				auto target_path = subpath ? *subpath : path;
+				auto file = core::os::file::read_as_string(target_path);
+				if (!file)
 				{
-					--Busy;
-					return GuiException("load document: invalid path");
+					--busy;
+					return gui_exception("load document: invalid path");
 				}
 
-				Core::String Data = *File;
-				Decompose(Data);
-				if (AllowIncludes)
+				core::string data = *file;
+				decompose(data);
+				if (allow_includes)
 				{
-					auto Status = Preprocess(TargetPath, Data);
-					if (!Status)
+					auto status = preprocess(target_path, data);
+					if (!status)
 					{
-						--Busy;
-						return Status.Error();
+						--busy;
+						return status.error();
 					}
 				}
 
-				Core::String Location(TargetPath);
-				Core::Stringify::Replace(Location, '\\', '/');
-				auto* Result = Base->LoadDocumentFromMemory(Data, "file:///" + Location);
-				--Busy;
-				if (!Result)
-					return GuiException("load document: invalid argument");
+				core::string location(target_path);
+				core::stringify::replace(location, '\\', '/');
+				auto* result = base->LoadDocumentFromMemory(data, "file:///" + location);
+				--busy;
+				if (!result)
+					return gui_exception("load document: invalid argument");
 
-				return IElementDocument(Result);
+				return ielement_document(result);
 #else
-				return GuiException("unsupported");
+				return gui_exception("unsupported");
 #endif
 			}
-			ExpectsGuiException<IElementDocument> Context::AddDocumentEmpty(const std::string_view& InstancerName)
+			expects_gui_exception<ielement_document> context::add_document_empty(const std::string_view& instancer_name)
 			{
 #ifdef VI_RMLUI
-				auto* Result = Base->CreateDocument(Core::String(InstancerName));
-				if (!Result)
-					return GuiException("add document: invalid argument");
+				auto* result = base->CreateDocument(core::string(instancer_name));
+				if (!result)
+					return gui_exception("add document: invalid argument");
 
-				return IElementDocument(Result);
+				return ielement_document(result);
 #else
-				return GuiException("unsupported");
+				return gui_exception("unsupported");
 #endif
 			}
-			ExpectsGuiException<IElementDocument> Context::AddDocument(const std::string_view& HTML)
+			expects_gui_exception<ielement_document> context::add_document(const std::string_view& HTML)
 			{
 #ifdef VI_RMLUI
-				auto* Result = Base->LoadDocumentFromMemory(Core::String(HTML));
-				if (!Result)
-					return GuiException("add document: invalid argument");
+				auto* result = base->LoadDocumentFromMemory(core::string(HTML));
+				if (!result)
+					return gui_exception("add document: invalid argument");
 
-				return IElementDocument(Result);
+				return ielement_document(result);
 #else
-				return GuiException("unsupported");
+				return gui_exception("unsupported");
 #endif
 			}
-			IElementDocument Context::GetDocument(const std::string_view& Id)
+			ielement_document context::get_document(const std::string_view& id)
 			{
 #ifdef VI_RMLUI
-				return Base->GetDocument(Core::String(Id));
+				return base->GetDocument(core::string(id));
 #else
-				return IElementDocument();
+				return ielement_document();
 #endif
 			}
-			IElementDocument Context::GetDocument(int Index)
+			ielement_document context::get_document(int index)
 			{
 #ifdef VI_RMLUI
-				return Base->GetDocument(Index);
+				return base->GetDocument(index);
 #else
-				return IElementDocument();
+				return ielement_document();
 #endif
 			}
-			int Context::GetNumDocuments() const
+			int context::get_num_documents() const
 			{
 #ifdef VI_RMLUI
-				return Base->GetNumDocuments();
+				return base->GetNumDocuments();
 #else
 				return 0;
 #endif
 			}
-			IElement Context::GetElementById(const std::string_view& Id, int DocIndex)
+			ielement context::get_element_by_id(const std::string_view& id, int doc_index)
 			{
 #ifdef VI_RMLUI
-				Rml::ElementDocument* Root = Base->GetDocument(DocIndex);
-				if (!Root)
+				Rml::ElementDocument* root = base->GetDocument(doc_index);
+				if (!root)
 					return nullptr;
 
-				auto Map = Elements.find(DocIndex);
-				if (Map == Elements.end())
+				auto map = elements.find(doc_index);
+				if (map == elements.end())
 				{
-					Core::String Copy = Core::String(Id);
-					Rml::Element* Element = Root->GetElementById(Copy);
-					if (!Element)
+					core::string copy = core::string(id);
+					Rml::Element* element = root->GetElementById(copy);
+					if (!element)
 						return nullptr;
 
-					Elements[DocIndex].insert(std::make_pair(Copy, Element));
-					return Element;
+					elements[doc_index].insert(std::make_pair(copy, element));
+					return element;
 				}
 
-				auto It = Map->second.find(Core::KeyLookupCast(Id));
-				if (It != Map->second.end())
-					return It->second;
+				auto it = map->second.find(core::key_lookup_cast(id));
+				if (it != map->second.end())
+					return it->second;
 
-				Core::String Copy = Core::String(Id);
-				Rml::Element* Element = Root->GetElementById(Copy);
-				Map->second.insert(std::make_pair(Copy, Element));
+				core::string copy = core::string(id);
+				Rml::Element* element = root->GetElementById(copy);
+				map->second.insert(std::make_pair(copy, element));
 
-				return Element;
+				return element;
 #else
-				return IElement();
+				return ielement();
 #endif
 			}
-			IElement Context::GetHoverElement()
+			ielement context::get_hover_element()
 			{
 #ifdef VI_RMLUI
-				return Base->GetHoverElement();
+				return base->GetHoverElement();
 #else
-				return IElement();
+				return ielement();
 #endif
 			}
-			IElement Context::GetFocusElement()
+			ielement context::get_focus_element()
 			{
 #ifdef VI_RMLUI
-				return Base->GetFocusElement();
+				return base->GetFocusElement();
 #else
-				return IElement();
+				return ielement();
 #endif
 			}
-			IElement Context::GetRootElement()
+			ielement context::get_root_element()
 			{
 #ifdef VI_RMLUI
-				return Base->GetRootElement();
+				return base->GetRootElement();
 #else
-				return IElement();
+				return ielement();
 #endif
 			}
-			IElement Context::GetElementAtPoint(const Trigonometry::Vector2& Point, const IElement& IgnoreElement, const IElement& Element) const
+			ielement context::get_element_at_point(const trigonometry::vector2& point, const ielement& ignore_element, const ielement& element) const
 			{
 #ifdef VI_RMLUI
-				return Base->GetElementAtPoint(Rml::Vector2f(Point.X, Point.Y), IgnoreElement.GetElement(), Element.GetElement());
+				return base->GetElementAtPoint(Rml::Vector2f(point.x, point.y), ignore_element.get_element(), element.get_element());
 #else
-				return IElement();
+				return ielement();
 #endif
 			}
-			void Context::PullDocumentToFront(const IElementDocument& Schema)
+			void context::pull_document_to_front(const ielement_document& schema)
 			{
 #ifdef VI_RMLUI
-				Base->PullDocumentToFront(Schema.GetElementDocument());
+				base->PullDocumentToFront(schema.get_element_document());
 #endif
 			}
-			void Context::PushDocumentToBack(const IElementDocument& Schema)
+			void context::push_document_to_back(const ielement_document& schema)
 			{
 #ifdef VI_RMLUI
-				Base->PushDocumentToBack(Schema.GetElementDocument());
+				base->PushDocumentToBack(schema.get_element_document());
 #endif
 			}
-			void Context::UnfocusDocument(const IElementDocument& Schema)
+			void context::unfocus_document(const ielement_document& schema)
 			{
 #ifdef VI_RMLUI
-				Base->UnfocusDocument(Schema.GetElementDocument());
+				base->UnfocusDocument(schema.get_element_document());
 #endif
 			}
-			void Context::AddEventListener(const std::string_view& Event, Listener* Listener, bool InCapturePhase)
+			void context::add_event_listener(const std::string_view& event, listener* listener, bool in_capture_phase)
 			{
 #ifdef VI_RMLUI
-				VI_ASSERT(Listener != nullptr && Listener->Base != nullptr, "listener should be valid");
-				Base->AddEventListener(Core::String(Event), Listener->Base, InCapturePhase);
+				VI_ASSERT(listener != nullptr && listener->base != nullptr, "listener should be valid");
+				base->AddEventListener(core::string(event), listener->base, in_capture_phase);
 #endif
 			}
-			void Context::RemoveEventListener(const std::string_view& Event, Listener* Listener, bool InCapturePhase)
+			void context::remove_event_listener(const std::string_view& event, listener* listener, bool in_capture_phase)
 			{
 #ifdef VI_RMLUI
-				VI_ASSERT(Listener != nullptr && Listener->Base != nullptr, "listener should be valid");
-				Base->RemoveEventListener(Core::String(Event), Listener->Base, InCapturePhase);
+				VI_ASSERT(listener != nullptr && listener->base != nullptr, "listener should be valid");
+				base->RemoveEventListener(core::string(event), listener->base, in_capture_phase);
 #endif
 			}
-			bool Context::IsMouseInteracting() const
+			bool context::is_mouse_interacting() const
 			{
 #ifdef VI_RMLUI
-				return Base->IsMouseInteracting();
+				return base->IsMouseInteracting();
 #else
 				return false;
 #endif
 			}
-			bool Context::WasInputUsed(uint32_t InputTypeMask)
+			bool context::was_input_used(uint32_t input_type_mask)
 			{
 #ifdef VI_RMLUI
-				bool Result = false;
-				if (InputTypeMask & (uint32_t)InputType::Keys && Inputs.Keys)
-					Result = true;
+				bool result = false;
+				if (input_type_mask & (uint32_t)input_type::keys && inputs.keys)
+					result = true;
 
-				if (InputTypeMask & (uint32_t)InputType::Scroll && Inputs.Scroll)
-					Result = true;
+				if (input_type_mask & (uint32_t)input_type::scroll && inputs.scroll)
+					result = true;
 
-				if (InputTypeMask & (uint32_t)InputType::Text && Inputs.Text)
-					Result = true;
+				if (input_type_mask & (uint32_t)input_type::text && inputs.text)
+					result = true;
 
-				if (InputTypeMask & (uint32_t)InputType::Cursor && Inputs.Cursor)
-					Result = true;
+				if (input_type_mask & (uint32_t)input_type::cursor && inputs.cursor)
+					result = true;
 
-				return Result;
+				return result;
 #else
 				return false;
 #endif
 			}
-			DataModel* Context::SetDataModel(const std::string_view& Name)
+			data_model* context::set_data_model(const std::string_view& name)
 			{
 #ifdef VI_RMLUI
-				Core::String Copy = Core::String(Name);
-				Rml::DataModelConstructor Result = Base->CreateDataModel(Copy);
-				if (!Result)
+				core::string copy = core::string(name);
+				Rml::DataModelConstructor result = base->CreateDataModel(copy);
+				if (!result)
 					return nullptr;
 
-				DataModel* Handle = new DataModel(&Result);
-				if (auto Type = Result.RegisterStruct<DataNode>())
+				data_model* handle = new data_model(&result);
+				if (auto type = result.RegisterStruct<data_node>())
 				{
-					Result.RegisterArray<Core::Vector<DataNode>>();
-					Type.RegisterMember("int", &DataNode::GetInteger, &DataNode::SetValueInt);
-					Type.RegisterMember("num", &DataNode::GetDouble, &DataNode::SetValueNum);
-					Type.RegisterMember("str", &DataNode::GetString, &DataNode::SetValueStr);
-					Type.RegisterMember("at", &DataNode::Childs);
-					Type.RegisterMember("all", &DataNode::Childs);
-					Type.RegisterMember("size", &DataNode::GetValueSize);
+					result.RegisterArray<core::vector<data_node>>();
+					type.RegisterMember("int", &data_node::get_integer, &data_node::set_value_int);
+					type.RegisterMember("num", &data_node::get_double, &data_node::set_value_num);
+					type.RegisterMember("str", &data_node::get_string, &data_node::set_value_str);
+					type.RegisterMember("at", &data_node::childs);
+					type.RegisterMember("all", &data_node::childs);
+					type.RegisterMember("size", &data_node::get_value_size);
 				}
 
-				Models[Copy] = Handle;
-				return Handle;
+				models[copy] = handle;
+				return handle;
 #else
 				return nullptr;
 #endif
 			}
-			DataModel* Context::GetDataModel(const std::string_view& Name)
+			data_model* context::get_data_model(const std::string_view& name)
 			{
-				auto It = Models.find(Core::KeyLookupCast(Name));
-				if (It != Models.end())
-					return It->second;
+				auto it = models.find(core::key_lookup_cast(name));
+				if (it != models.end())
+					return it->second;
 
 				return nullptr;
 			}
-			bool Context::RemoveDataModel(const std::string_view& Name)
+			bool context::remove_data_model(const std::string_view& name)
 			{
 #ifdef VI_RMLUI
-				Core::String Copy = Core::String(Name);
-				if (!Base->RemoveDataModel(Copy))
+				core::string copy = core::string(name);
+				if (!base->RemoveDataModel(copy))
 					return false;
 
-				auto It = Models.find(Copy);
-				if (It != Models.end())
+				auto it = models.find(copy);
+				if (it != models.end())
 				{
-					if (It->second->OnUnmount)
-						It->second->OnUnmount(this);
+					if (it->second->on_unmount)
+						it->second->on_unmount(this);
 
-					Core::Memory::Release(It->second);
-					Models.erase(It);
+					core::memory::release(it->second);
+					models.erase(it);
 				}
 
 				return true;
@@ -4195,414 +4201,414 @@ namespace Vitex
 				return false;
 #endif
 			}
-			bool Context::RemoveDataModels()
+			bool context::remove_data_models()
 			{
 #ifdef VI_RMLUI
-				if (Models.empty())
+				if (models.empty())
 					return false;
 
-				for (auto Item : Models)
+				for (auto item : models)
 				{
-					Base->RemoveDataModel(Item.first);
-					Core::Memory::Release(Item.second);
+					base->RemoveDataModel(item.first);
+					core::memory::release(item.second);
 				}
 
-				Models.clear();
+				models.clear();
 				return true;
 #else
 				return false;
 #endif
 			}
-			void Context::SetDocumentsBaseTag(const std::string_view& Tag)
+			void context::set_documents_base_tag(const std::string_view& tag)
 			{
 #ifdef VI_RMLUI
-				Base->SetDocumentsBaseTag(Core::String(Tag));
+				base->SetDocumentsBaseTag(core::string(tag));
 #endif
 			}
-			void Context::SetMountCallback(ModelCallback&& Callback)
+			void context::set_mount_callback(model_callback&& callback)
 			{
-				OnMount = std::move(Callback);
+				on_mount = std::move(callback);
 			}
-			ExpectsGuiException<void> Context::Preprocess(const std::string_view& Path, Core::String& Buffer)
+			expects_gui_exception<void> context::preprocess(const std::string_view& path, core::string& buffer)
 			{
-				Compute::Preprocessor::Desc Features;
-				Features.Conditions = false;
-				Features.Defines = false;
-				Features.Pragmas = false;
+				compute::preprocessor::desc features;
+				features.conditions = false;
+				features.defines = false;
+				features.pragmas = false;
 
-				Compute::IncludeDesc Desc = Compute::IncludeDesc();
-				Desc.Exts.push_back(".html");
-				Desc.Exts.push_back(".htm");
+				compute::include_desc desc = compute::include_desc();
+				desc.exts.push_back(".html");
+				desc.exts.push_back(".htm");
 
-				auto Directory = Core::OS::Directory::GetWorking();
-				if (Directory)
-					Desc.Root = *Directory;
+				auto directory = core::os::directory::get_working();
+				if (directory)
+					desc.root = *directory;
 
-				Core::UPtr<Compute::Preprocessor> Processor = new Compute::Preprocessor();
-				Processor->SetIncludeOptions(Desc);
-				Processor->SetFeatures(Features);
-				Processor->SetIncludeCallback([this](Compute::Preprocessor* Processor, const Compute::IncludeResult& File, Core::String& Output) -> Compute::ExpectsPreprocessor<Compute::IncludeType>
+				core::uptr<compute::preprocessor> processor = new compute::preprocessor();
+				processor->set_include_options(desc);
+				processor->set_features(features);
+				processor->set_include_callback([this](compute::preprocessor* processor, const compute::include_result& file, core::string& output) -> compute::expects_preprocessor<compute::include_type>
 				{
-					if (File.Module.empty() || (!File.IsFile && !File.IsAbstract))
-						return Compute::IncludeType::Error;
+					if (file.library.empty() || (!file.is_file && !file.is_abstract))
+						return compute::include_type::error;
 
-					if (File.IsAbstract && !File.IsFile)
-						return Compute::IncludeType::Error;
+					if (file.is_abstract && !file.is_file)
+						return compute::include_type::error;
 
-					auto Data = Core::OS::File::ReadAsString(File.Module);
-					if (!Data)
-						return Compute::IncludeType::Error;
+					auto data = core::os::file::read_as_string(file.library);
+					if (!data)
+						return compute::include_type::error;
 
-					Output.assign(*Data);
-					this->Decompose(Output);
-					return Compute::IncludeType::Preprocess;
+					output.assign(*data);
+					this->decompose(output);
+					return compute::include_type::preprocess;
 				});
 #ifdef VI_RMLUI
-				Processor->SetPragmaCallback([](Compute::Preprocessor* Processor, const std::string_view& Name, const Core::Vector<Core::String>& Args) -> Compute::ExpectsPreprocessor<void>
+				processor->set_pragma_callback([](compute::preprocessor* processor, const std::string_view& name, const core::vector<core::string>& args) -> compute::expects_preprocessor<void>
 				{
-					if (Name != "fontface")
-						return Core::Expectation::Met;
+					if (name != "fontface")
+						return core::expectation::met;
 
-					Core::String Path;
-					FontWeight Weight = FontWeight::Auto;
-					bool UseAsFallback = false;
-					for (auto& Item : Args)
+					core::string path;
+					font_weight weight = font_weight::any;
+					bool use_as_fallback = false;
+					for (auto& item : args)
 					{
-						if (Core::Stringify::StartsWith(Item, "path:"))
+						if (core::stringify::starts_with(item, "path:"))
 						{
-							auto Value = Item.substr(5);
-							if ((Value.front() == '\"' && Value.back() == '\"') || (Value.front() == '\'' && Value.back() == '\''))
-								Path = Value.substr(1, Value.size() - 2);
+							auto value = item.substr(5);
+							if ((value.front() == '\"' && value.back() == '\"') || (value.front() == '\'' && value.back() == '\''))
+								path = value.substr(1, value.size() - 2);
 							else
-								Path = Value;
+								path = value;
 						}
-						else if (Core::Stringify::StartsWith(Item, "weight:"))
+						else if (core::stringify::starts_with(item, "weight:"))
 						{
-							auto Value = Core::Var::Auto(Item.substr(7));
-							if (Value.Is(Core::VarType::String))
+							auto value = core::var::any(item.substr(7));
+							if (value.is(core::var_type::string))
 							{
-								if (Value.IsString("auto"))
-									Weight = FontWeight::Auto;
-								else if (Value.IsString("normal"))
-									Weight = FontWeight::Normal;
-								else if (Value.IsString("bold"))
-									Weight = FontWeight::Bold;
+								if (value.is_string("auto"))
+									weight = font_weight::any;
+								else if (value.is_string("normal"))
+									weight = font_weight::normal;
+								else if (value.is_string("bold"))
+									weight = font_weight::bold;
 							}
 							else
-								Weight = (FontWeight)std::min<uint16_t>(1000, (uint16_t)Value.GetInteger());
+								weight = (font_weight)std::min<uint16_t>(1000, (uint16_t)value.get_integer());
 						}
-						else if (Core::Stringify::StartsWith(Item, "fallback:"))
-							UseAsFallback = Core::Var::Auto(Item.substr(9)).GetBoolean();
+						else if (core::stringify::starts_with(item, "fallback:"))
+							use_as_fallback = core::var::any(item.substr(9)).get_boolean();
 					}
 
-					if (Path.empty())
-						return Compute::PreprocessorException(Compute::PreprocessorError::IncludeError, 0, "font face path is invalid");
+					if (path.empty())
+						return compute::preprocessor_exception(compute::preprocessor_error::include_error, 0, "font face path is invalid");
 
-					Rml::String TargetPath;
-					Rml::String CurrentPath = Core::OS::Path::GetDirectory(Processor->GetCurrentFilePath().c_str());
-					Rml::GetSystemInterface()->JoinPath(TargetPath, Rml::StringUtilities::Replace(CurrentPath, '|', ':'), Rml::StringUtilities::Replace(Path, '|', ':'));
-					auto Status = Context::LoadFontFace(TargetPath, UseAsFallback, Weight);
-					if (Status)
-						return Core::Expectation::Met;
+					Rml::String target_path;
+					Rml::String current_path = core::os::path::get_directory(processor->get_current_file_path().c_str());
+					Rml::GetSystemInterface()->JoinPath(target_path, Rml::StringUtilities::Replace(current_path, '|', ':'), Rml::StringUtilities::Replace(path, '|', ':'));
+					auto status = context::load_font_face(target_path, use_as_fallback, weight);
+					if (status)
+						return core::expectation::met;
 
-					return Compute::PreprocessorException(Compute::PreprocessorError::IncludeError, 0, Status.Error().message());
+					return compute::preprocessor_exception(compute::preprocessor_error::include_error, 0, status.error().message());
 				});
 #endif
-				auto Status = Processor->Process(Path, Buffer);
-				if (!Status)
-					return GuiException(std::move(Status.Error().message()));
+				auto status = processor->process(path, buffer);
+				if (!status)
+					return gui_exception(std::move(status.error().message()));
 
-				return Core::Expectation::Met;
+				return core::expectation::met;
 			}
-			void Context::Decompose(Core::String& Data)
+			void context::decompose(core::string& data)
 			{
-				Core::TextSettle Start, End;
-				while (End.End < Data.size())
+				core::text_settle start, end;
+				while (end.end < data.size())
 				{
-					Start = Core::Stringify::Find(Data, "<!--", End.End);
-					if (!Start.Found)
+					start = core::stringify::find(data, "<!--", end.end);
+					if (!start.found)
 						break;
 
-					End = Core::Stringify::Find(Data, "-->", Start.End);
-					if (!End.Found)
+					end = core::stringify::find(data, "-->", start.end);
+					if (!end.found)
 						break;
 
-					if (!End.Start || Data[End.Start - 1] == '-')
+					if (!end.start || data[end.start - 1] == '-')
 						continue;
 
-					if (Start.End > Data.size() || Data[Start.End] == '-')
+					if (start.end > data.size() || data[start.end] == '-')
 					{
-						End.End = Start.End;
+						end.end = start.end;
 						continue;
 					}
 
-					Core::Stringify::RemovePart(Data, Start.Start, End.End);
-					End.End = Start.Start;
+					core::stringify::remove_part(data, start.start, end.end);
+					end.end = start.start;
 				}
 
-				memset(&Start, 0, sizeof(Start));
-				memset(&End, 0, sizeof(End));
-				while (End.End < Data.size())
+				memset(&start, 0, sizeof(start));
+				memset(&end, 0, sizeof(end));
+				while (end.end < data.size())
 				{
-					Start = Core::Stringify::Find(Data, "<!---", End.End);
-					if (!Start.Found)
+					start = core::stringify::find(data, "<!---", end.end);
+					if (!start.found)
 						break;
 
-					End = Core::Stringify::Find(Data, "--->", Start.End);
-					if (!End.Found)
+					end = core::stringify::find(data, "--->", start.end);
+					if (!end.found)
 						break;
 
-					Core::String Expression = Data.substr(Start.End, End.Start - Start.End);
-					Core::Stringify::Trim(Expression);
-					Core::Stringify::ReplacePart(Data, Start.Start, End.End, Expression);
-					End.End = Start.Start;
+					core::string expression = data.substr(start.end, end.start - start.end);
+					core::stringify::trim(expression);
+					core::stringify::replace_part(data, start.start, end.end, expression);
+					end.end = start.start;
 				}
 			}
-			void Context::ClearScope()
+			void context::clear_scope()
 			{
-				if (!Compiler)
+				if (!compiler)
 					return;
 
-				Compiler->Clear();
-				Compiler->Prepare("__scope__", true);
+				compiler->clear();
+				compiler->prepare("__scope__", true);
 			}
-			Core::String Context::ResolveResourcePath(const IElement& Element, const std::string_view& Path)
+			core::string context::resolve_resource_path(const ielement& element, const std::string_view& path)
 			{
 #ifdef VI_RMLUI
-				VI_ASSERT(Subsystem::Get()->GetSystemInterface() != nullptr, "system interface should be set");
-				auto RootElement = Element.GetOwnerDocument();
-				Core::String SourcePath = Core::String(Path);
-				if (!RootElement.IsValid())
-					return SourcePath;
+				VI_ASSERT(subsystem::get()->get_system_interface() != nullptr, "system interface should be set");
+				auto root_element = element.get_owner_document();
+				core::string source_path = core::string(path);
+				if (!root_element.is_valid())
+					return source_path;
 
-				Rml::String TargetPath;
-				Rml::GetSystemInterface()->JoinPath(TargetPath, Rml::StringUtilities::Replace(RootElement.GetSourceURL(), '|', ':'), Rml::StringUtilities::Replace(SourcePath, '|', ':'));
-				return TargetPath;
+				Rml::String target_path;
+				Rml::GetSystemInterface()->JoinPath(target_path, Rml::StringUtilities::Replace(root_element.get_source_url(), '|', ':'), Rml::StringUtilities::Replace(source_path, '|', ':'));
+				return target_path;
 #else
-				return Core::String(Path);
+				return core::string(path);
 #endif
 			}
-			Core::String Context::GetDocumentsBaseTag()
+			core::string context::get_documents_base_tag()
 			{
 #ifdef VI_RMLUI
-				return Base->GetDocumentsBaseTag();
+				return base->GetDocumentsBaseTag();
 #else
-				return Core::String();
+				return core::string();
 #endif
 			}
-			int Context::GetKeyCode(Graphics::KeyCode Key)
+			int context::get_key_code(graphics::key_code key)
 			{
 #ifdef VI_RMLUI
 				using namespace Rml::Input;
-				switch (Key)
+				switch (key)
 				{
-					case Graphics::KeyCode::Space:
+					case graphics::key_code::space:
 						return KI_SPACE;
-					case Graphics::KeyCode::D0:
+					case graphics::key_code::d0:
 						return KI_0;
-					case Graphics::KeyCode::D1:
+					case graphics::key_code::d1:
 						return KI_1;
-					case Graphics::KeyCode::D2:
+					case graphics::key_code::d2:
 						return KI_2;
-					case Graphics::KeyCode::D3:
+					case graphics::key_code::d3:
 						return KI_3;
-					case Graphics::KeyCode::D4:
+					case graphics::key_code::d4:
 						return KI_4;
-					case Graphics::KeyCode::D5:
+					case graphics::key_code::d5:
 						return KI_5;
-					case Graphics::KeyCode::D6:
+					case graphics::key_code::d6:
 						return KI_6;
-					case Graphics::KeyCode::D7:
+					case graphics::key_code::d7:
 						return KI_7;
-					case Graphics::KeyCode::D8:
+					case graphics::key_code::d8:
 						return KI_8;
-					case Graphics::KeyCode::D9:
+					case graphics::key_code::d9:
 						return KI_9;
-					case Graphics::KeyCode::A:
+					case graphics::key_code::a:
 						return KI_A;
-					case Graphics::KeyCode::B:
+					case graphics::key_code::b:
 						return KI_B;
-					case Graphics::KeyCode::C:
+					case graphics::key_code::c:
 						return KI_C;
-					case Graphics::KeyCode::D:
+					case graphics::key_code::d:
 						return KI_D;
-					case Graphics::KeyCode::E:
+					case graphics::key_code::e:
 						return KI_E;
-					case Graphics::KeyCode::F:
+					case graphics::key_code::f:
 						return KI_F;
-					case Graphics::KeyCode::G:
+					case graphics::key_code::g:
 						return KI_G;
-					case Graphics::KeyCode::H:
+					case graphics::key_code::h:
 						return KI_H;
-					case Graphics::KeyCode::I:
+					case graphics::key_code::i:
 						return KI_I;
-					case Graphics::KeyCode::J:
+					case graphics::key_code::j:
 						return KI_J;
-					case Graphics::KeyCode::K:
+					case graphics::key_code::k:
 						return KI_K;
-					case Graphics::KeyCode::L:
+					case graphics::key_code::l:
 						return KI_L;
-					case Graphics::KeyCode::M:
+					case graphics::key_code::m:
 						return KI_M;
-					case Graphics::KeyCode::N:
+					case graphics::key_code::n:
 						return KI_N;
-					case Graphics::KeyCode::O:
+					case graphics::key_code::o:
 						return KI_O;
-					case Graphics::KeyCode::P:
+					case graphics::key_code::p:
 						return KI_P;
-					case Graphics::KeyCode::Q:
+					case graphics::key_code::q:
 						return KI_Q;
-					case Graphics::KeyCode::R:
+					case graphics::key_code::r:
 						return KI_R;
-					case Graphics::KeyCode::S:
+					case graphics::key_code::s:
 						return KI_S;
-					case Graphics::KeyCode::T:
+					case graphics::key_code::t:
 						return KI_T;
-					case Graphics::KeyCode::U:
+					case graphics::key_code::u:
 						return KI_U;
-					case Graphics::KeyCode::V:
+					case graphics::key_code::v:
 						return KI_V;
-					case Graphics::KeyCode::W:
+					case graphics::key_code::w:
 						return KI_W;
-					case Graphics::KeyCode::X:
+					case graphics::key_code::x:
 						return KI_X;
-					case Graphics::KeyCode::Y:
+					case graphics::key_code::y:
 						return KI_Y;
-					case Graphics::KeyCode::Z:
+					case graphics::key_code::z:
 						return KI_Z;
-					case Graphics::KeyCode::Semicolon:
+					case graphics::key_code::semicolon:
 						return KI_OEM_1;
-					case Graphics::KeyCode::Comma:
+					case graphics::key_code::comma:
 						return KI_OEM_COMMA;
-					case Graphics::KeyCode::Minus:
+					case graphics::key_code::minus:
 						return KI_OEM_MINUS;
-					case Graphics::KeyCode::Period:
+					case graphics::key_code::period:
 						return KI_OEM_PERIOD;
-					case Graphics::KeyCode::Slash:
+					case graphics::key_code::slash:
 						return KI_OEM_2;
-					case Graphics::KeyCode::LeftBracket:
+					case graphics::key_code::left_bracket:
 						return KI_OEM_4;
-					case Graphics::KeyCode::Backslash:
+					case graphics::key_code::backslash:
 						return KI_OEM_5;
-					case Graphics::KeyCode::RightBracket:
+					case graphics::key_code::right_bracket:
 						return KI_OEM_6;
-					case Graphics::KeyCode::Kp0:
+					case graphics::key_code::kp0:
 						return KI_NUMPAD0;
-					case Graphics::KeyCode::Kp1:
+					case graphics::key_code::kp1:
 						return KI_NUMPAD1;
-					case Graphics::KeyCode::Kp2:
+					case graphics::key_code::kp2:
 						return KI_NUMPAD2;
-					case Graphics::KeyCode::Kp3:
+					case graphics::key_code::kp3:
 						return KI_NUMPAD3;
-					case Graphics::KeyCode::Kp4:
+					case graphics::key_code::kp4:
 						return KI_NUMPAD4;
-					case Graphics::KeyCode::Kp5:
+					case graphics::key_code::kp5:
 						return KI_NUMPAD5;
-					case Graphics::KeyCode::Kp6:
+					case graphics::key_code::kp6:
 						return KI_NUMPAD6;
-					case Graphics::KeyCode::Kp7:
+					case graphics::key_code::kp7:
 						return KI_NUMPAD7;
-					case Graphics::KeyCode::Kp8:
+					case graphics::key_code::kp8:
 						return KI_NUMPAD8;
-					case Graphics::KeyCode::Kp9:
+					case graphics::key_code::kp9:
 						return KI_NUMPAD9;
-					case Graphics::KeyCode::KpEnter:
+					case graphics::key_code::kp_enter:
 						return KI_NUMPADENTER;
-					case Graphics::KeyCode::KpMultiply:
+					case graphics::key_code::kp_multiply:
 						return KI_MULTIPLY;
-					case Graphics::KeyCode::KpPlus:
+					case graphics::key_code::kp_plus:
 						return KI_ADD;
-					case Graphics::KeyCode::KpMinus:
+					case graphics::key_code::kp_minus:
 						return KI_SUBTRACT;
-					case Graphics::KeyCode::KpPeriod:
+					case graphics::key_code::kp_period:
 						return KI_DECIMAL;
-					case Graphics::KeyCode::KpDivide:
+					case graphics::key_code::kp_divide:
 						return KI_DIVIDE;
-					case Graphics::KeyCode::KpEquals:
+					case graphics::key_code::kp_equals:
 						return KI_OEM_NEC_EQUAL;
-					case Graphics::KeyCode::Backspace:
+					case graphics::key_code::backspace:
 						return KI_BACK;
-					case Graphics::KeyCode::Tab:
+					case graphics::key_code::tab:
 						return KI_TAB;
-					case Graphics::KeyCode::Clear:
+					case graphics::key_code::clear:
 						return KI_CLEAR;
-					case Graphics::KeyCode::Return:
+					case graphics::key_code::defer:
 						return KI_RETURN;
-					case Graphics::KeyCode::Pause:
+					case graphics::key_code::pause:
 						return KI_PAUSE;
-					case Graphics::KeyCode::Capslock:
+					case graphics::key_code::capslock:
 						return KI_CAPITAL;
-					case Graphics::KeyCode::PageUp:
+					case graphics::key_code::page_up:
 						return KI_PRIOR;
-					case Graphics::KeyCode::PageDown:
+					case graphics::key_code::page_down:
 						return KI_NEXT;
-					case Graphics::KeyCode::End:
+					case graphics::key_code::end:
 						return KI_END;
-					case Graphics::KeyCode::Home:
+					case graphics::key_code::home:
 						return KI_HOME;
-					case Graphics::KeyCode::Left:
+					case graphics::key_code::left:
 						return KI_LEFT;
-					case Graphics::KeyCode::Up:
+					case graphics::key_code::up:
 						return KI_UP;
-					case Graphics::KeyCode::Right:
+					case graphics::key_code::right:
 						return KI_RIGHT;
-					case Graphics::KeyCode::Down:
+					case graphics::key_code::down:
 						return KI_DOWN;
-					case Graphics::KeyCode::Insert:
+					case graphics::key_code::insert:
 						return KI_INSERT;
-					case Graphics::KeyCode::Delete:
+					case graphics::key_code::deinit:
 						return KI_DELETE;
-					case Graphics::KeyCode::Help:
+					case graphics::key_code::help:
 						return KI_HELP;
-					case Graphics::KeyCode::F1:
+					case graphics::key_code::f1:
 						return KI_F1;
-					case Graphics::KeyCode::F2:
+					case graphics::key_code::f2:
 						return KI_F2;
-					case Graphics::KeyCode::F3:
+					case graphics::key_code::f3:
 						return KI_F3;
-					case Graphics::KeyCode::F4:
+					case graphics::key_code::f4:
 						return KI_F4;
-					case Graphics::KeyCode::F5:
+					case graphics::key_code::f5:
 						return KI_F5;
-					case Graphics::KeyCode::F6:
+					case graphics::key_code::f6:
 						return KI_F6;
-					case Graphics::KeyCode::F7:
+					case graphics::key_code::f7:
 						return KI_F7;
-					case Graphics::KeyCode::F8:
+					case graphics::key_code::f8:
 						return KI_F8;
-					case Graphics::KeyCode::F9:
+					case graphics::key_code::f9:
 						return KI_F9;
-					case Graphics::KeyCode::F10:
+					case graphics::key_code::f10:
 						return KI_F10;
-					case Graphics::KeyCode::F11:
+					case graphics::key_code::f11:
 						return KI_F11;
-					case Graphics::KeyCode::F12:
+					case graphics::key_code::f12:
 						return KI_F12;
-					case Graphics::KeyCode::F13:
+					case graphics::key_code::f13:
 						return KI_F13;
-					case Graphics::KeyCode::F14:
+					case graphics::key_code::f14:
 						return KI_F14;
-					case Graphics::KeyCode::F15:
+					case graphics::key_code::f15:
 						return KI_F15;
-					case Graphics::KeyCode::NumLockClear:
+					case graphics::key_code::num_lock_clear:
 						return KI_NUMLOCK;
-					case Graphics::KeyCode::ScrollLock:
+					case graphics::key_code::scroll_lock:
 						return KI_SCROLL;
-					case Graphics::KeyCode::LeftShift:
+					case graphics::key_code::left_shift:
 						return KI_LSHIFT;
-					case Graphics::KeyCode::RightShift:
+					case graphics::key_code::right_shift:
 						return KI_RSHIFT;
-					case Graphics::KeyCode::LeftControl:
+					case graphics::key_code::left_control:
 						return KI_LCONTROL;
-					case Graphics::KeyCode::RightControl:
+					case graphics::key_code::right_control:
 						return KI_RCONTROL;
-					case Graphics::KeyCode::LeftAlt:
+					case graphics::key_code::left_alt:
 						return KI_LMENU;
-					case Graphics::KeyCode::RightAlt:
+					case graphics::key_code::right_alt:
 						return KI_RMENU;
-					case Graphics::KeyCode::LeftGUI:
+					case graphics::key_code::left_gui:
 						return KI_LMETA;
-					case Graphics::KeyCode::RightGUI:
+					case graphics::key_code::right_gui:
 						return KI_RMETA;
 					default:
 						return KI_UNKNOWN;
@@ -4611,20 +4617,20 @@ namespace Vitex
 				return 0;
 #endif
 			}
-			int Context::GetKeyMod(Graphics::KeyMod Mod)
+			int context::get_key_mod(graphics::key_mod mod)
 			{
 #ifdef VI_RMLUI
-				int Result = 0;
-				if ((size_t)Mod & (size_t)Graphics::KeyMod::Control)
-					Result |= Rml::Input::KM_CTRL;
+				int result = 0;
+				if ((size_t)mod & (size_t)graphics::key_mod::control)
+					result |= Rml::Input::KM_CTRL;
 
-				if ((size_t)Mod & (size_t)Graphics::KeyMod::Shift)
-					Result |= Rml::Input::KM_SHIFT;
+				if ((size_t)mod & (size_t)graphics::key_mod::shift)
+					result |= Rml::Input::KM_SHIFT;
 
-				if ((size_t)Mod & (size_t)Graphics::KeyMod::Alt)
-					Result |= Rml::Input::KM_ALT;
+				if ((size_t)mod & (size_t)graphics::key_mod::alt)
+					result |= Rml::Input::KM_ALT;
 
-				return Result;
+				return result;
 #else
 				return 0;
 #endif

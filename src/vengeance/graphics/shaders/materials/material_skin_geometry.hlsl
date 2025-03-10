@@ -7,7 +7,7 @@
 VOutput vs_main(VInput V)
 {
 	VOutput Result = (VOutput)0;
-	Result.TexCoord = V.TexCoord * ob_TexCoord.xy;
+	Result.Texcoord = V.Texcoord * ob_Texcoord.xy;
 
 	float4 Position = float4(V.Position, 1.0);
 	[branch] if (ab_Animated > 0)
@@ -33,7 +33,7 @@ VOutput vs_main(VInput V)
 	}
 
 	[branch] if (ob_Height > 0)
-		Result.Direction = GetDirection(Result.Tangent, Result.Bitangent, Result.Normal, mul(Position, ob_World), ob_TexCoord.xy);
+		Result.Direction = GetDirection(Result.Tangent, Result.Bitangent, Result.Normal, mul(Position, ob_World), ob_Texcoord.xy);
 
 	return Result;
 }
@@ -41,7 +41,7 @@ VOutput vs_main(VInput V)
 GBuffer ps_main(VOutput V)
 {
 	Material Mat = Materials[ob_MaterialId];
-	float2 Coord = V.TexCoord;
+	float2 Coord = V.Texcoord;
 
 	[branch] if (ob_Height > 0)
 		Coord = GetParallax(Coord, V.Direction, Mat.Height, Mat.Bias);

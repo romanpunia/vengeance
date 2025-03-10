@@ -11,2031 +11,2031 @@
 #ifdef VI_VECTORCLASS
 #include "internal/vectorclass.hpp"
 #endif
-#define V3_TO_BT(V) btVector3(V.X, V.Y, V.Z)
-#define BT_TO_V3(V) Vitex::Trigonometry::Vector3(V.getX(), V.getY(), V.getZ())
-#define Q4_TO_BT(V) btQuaternion(V.X, V.Y, V.Z, V.W)
-#define BT_TO_Q4(V) Vitex::Trigonometry::Quaternion(V.getX(), V.getY(), V.getZ(), V.getW())
+#define V3_TO_BT(v) btVector3(v.x, v.y, v.z)
+#define BT_TO_V3(v) vitex::trigonometry::vector3(v.getX(), v.getY(), v.getZ())
+#define Q4_TO_BT(v) btQuaternion(v.x, v.y, v.z, v.w)
+#define BT_TO_Q4(v) vitex::trigonometry::quaternion(v.getX(), v.getY(), v.getZ(), v.getW())
 
 namespace
 {
 #ifdef VI_BULLET3
-	class FindContactsHandler : public btCollisionWorld::ContactResultCallback
+	class find_contacts_handler : public btCollisionWorld::ContactResultCallback
 	{
 	public:
-		int(*Callback)(Vitex::Physics::ShapeContact*, const Vitex::Physics::CollisionBody&, const Vitex::Physics::CollisionBody&) = nullptr;
+		int(*callback)(vitex::physics::shape_contact*, const vitex::physics::collision_body&, const vitex::physics::collision_body&) = nullptr;
 
 	public:
-		btScalar addSingleResult(btManifoldPoint& Point, const btCollisionObjectWrapper* Object1, int PartId0, int Index0, const btCollisionObjectWrapper* Object2, int PartId1, int Index1) override
+		btScalar addSingleResult(btManifoldPoint& point, const btCollisionObjectWrapper* object1, int part_id0, int index0, const btCollisionObjectWrapper* object2, int part_id1, int index1) override
 		{
-			using namespace Vitex::Physics;
-			using namespace Vitex::Trigonometry;
-			VI_ASSERT(Callback && Object1 && Object1->getCollisionObject() && Object2 && Object2->getCollisionObject(), "collision objects are not in available condition");
+			using namespace vitex::physics;
+			using namespace vitex::trigonometry;
+			VI_ASSERT(callback && object1 && object1->getCollisionObject() && object2 && object2->getCollisionObject(), "collision objects are not in available condition");
 
-			auto& PWOA = Point.getPositionWorldOnA();
-			auto& PWOB = Point.getPositionWorldOnB();
-			ShapeContact Contact;
-			Contact.LocalPoint1 = Vector3(Point.m_localPointA.getX(), Point.m_localPointA.getY(), Point.m_localPointA.getZ());
-			Contact.LocalPoint2 = Vector3(Point.m_localPointB.getX(), Point.m_localPointB.getY(), Point.m_localPointB.getZ());
-			Contact.PositionWorld1 = Vector3(PWOA.getX(), PWOA.getY(), PWOA.getZ());
-			Contact.PositionWorld2 = Vector3(PWOB.getX(), PWOB.getY(), PWOB.getZ());
-			Contact.NormalWorld = Vector3(Point.m_normalWorldOnB.getX(), Point.m_normalWorldOnB.getY(), Point.m_normalWorldOnB.getZ());
-			Contact.LateralFrictionDirection1 = Vector3(Point.m_lateralFrictionDir1.getX(), Point.m_lateralFrictionDir1.getY(), Point.m_lateralFrictionDir1.getZ());
-			Contact.LateralFrictionDirection2 = Vector3(Point.m_lateralFrictionDir2.getX(), Point.m_lateralFrictionDir2.getY(), Point.m_lateralFrictionDir2.getZ());
-			Contact.Distance = Point.m_distance1;
-			Contact.CombinedFriction = Point.m_combinedFriction;
-			Contact.CombinedRollingFriction = Point.m_combinedRollingFriction;
-			Contact.CombinedSpinningFriction = Point.m_combinedSpinningFriction;
-			Contact.CombinedRestitution = Point.m_combinedRestitution;
-			Contact.AppliedImpulse = Point.m_appliedImpulse;
-			Contact.AppliedImpulseLateral1 = Point.m_appliedImpulseLateral1;
-			Contact.AppliedImpulseLateral2 = Point.m_appliedImpulseLateral2;
-			Contact.ContactMotion1 = Point.m_contactMotion1;
-			Contact.ContactMotion2 = Point.m_contactMotion2;
-			Contact.ContactCFM = Point.m_contactCFM;
-			Contact.CombinedContactStiffness = Point.m_combinedContactStiffness1;
-			Contact.ContactERP = Point.m_contactERP;
-			Contact.CombinedContactDamping = Point.m_combinedContactDamping1;
-			Contact.FrictionCFM = Point.m_frictionCFM;
-			Contact.PartId1 = Point.m_partId0;
-			Contact.PartId2 = Point.m_partId1;
-			Contact.Index1 = Point.m_index0;
-			Contact.Index2 = Point.m_index1;
-			Contact.ContactPointFlags = Point.m_contactPointFlags;
-			Contact.LifeTime = Point.m_lifeTime;
+			auto& PWOA = point.getPositionWorldOnA();
+			auto& PWOB = point.getPositionWorldOnB();
+			shape_contact contact;
+			contact.local_point1 = vector3(point.m_localPointA.getX(), point.m_localPointA.getY(), point.m_localPointA.getZ());
+			contact.local_point2 = vector3(point.m_localPointB.getX(), point.m_localPointB.getY(), point.m_localPointB.getZ());
+			contact.position_world1 = vector3(PWOA.getX(), PWOA.getY(), PWOA.getZ());
+			contact.position_world2 = vector3(PWOB.getX(), PWOB.getY(), PWOB.getZ());
+			contact.normal_world = vector3(point.m_normalWorldOnB.getX(), point.m_normalWorldOnB.getY(), point.m_normalWorldOnB.getZ());
+			contact.lateral_friction_direction1 = vector3(point.m_lateralFrictionDir1.getX(), point.m_lateralFrictionDir1.getY(), point.m_lateralFrictionDir1.getZ());
+			contact.lateral_friction_direction2 = vector3(point.m_lateralFrictionDir2.getX(), point.m_lateralFrictionDir2.getY(), point.m_lateralFrictionDir2.getZ());
+			contact.distance = point.m_distance1;
+			contact.combined_friction = point.m_combinedFriction;
+			contact.combined_rolling_friction = point.m_combinedRollingFriction;
+			contact.combined_spinning_friction = point.m_combinedSpinningFriction;
+			contact.combined_restitution = point.m_combinedRestitution;
+			contact.applied_impulse = point.m_appliedImpulse;
+			contact.applied_impulse_lateral1 = point.m_appliedImpulseLateral1;
+			contact.applied_impulse_lateral2 = point.m_appliedImpulseLateral2;
+			contact.contact_motion1 = point.m_contactMotion1;
+			contact.contact_motion2 = point.m_contactMotion2;
+			contact.contact_cfm = point.m_contactCFM;
+			contact.combined_contact_stiffness = point.m_combinedContactStiffness1;
+			contact.contact_erp = point.m_contactERP;
+			contact.combined_contact_damping = point.m_combinedContactDamping1;
+			contact.friction_cfm = point.m_frictionCFM;
+			contact.part_id1 = point.m_partId0;
+			contact.part_id2 = point.m_partId1;
+			contact.index1 = point.m_index0;
+			contact.index2 = point.m_index1;
+			contact.contact_point_flags = point.m_contactPointFlags;
+			contact.life_time = point.m_lifeTime;
 
-			btCollisionObject* Body1 = (btCollisionObject*)Object1->getCollisionObject();
-			btCollisionObject* Body2 = (btCollisionObject*)Object2->getCollisionObject();
-			return (btScalar)Callback(&Contact, CollisionBody(Body1), CollisionBody(Body2));
+			btCollisionObject* body1 = (btCollisionObject*)object1->getCollisionObject();
+			btCollisionObject* body2 = (btCollisionObject*)object2->getCollisionObject();
+			return (btScalar)callback(&contact, collision_body(body1), collision_body(body2));
 		}
 	};
 
-	class FindRayContactsHandler : public btCollisionWorld::RayResultCallback
+	class find_ray_contacts_handler : public btCollisionWorld::RayResultCallback
 	{
 	public:
-		int(*Callback)(Vitex::Physics::RayContact*, const Vitex::Physics::CollisionBody&) = nullptr;
+		int(*callback)(vitex::physics::ray_contact*, const vitex::physics::collision_body&) = nullptr;
 
 	public:
-		btScalar addSingleResult(btCollisionWorld::LocalRayResult& RayResult, bool NormalInWorldSpace) override
+		btScalar addSingleResult(btCollisionWorld::LocalRayResult& ray_result, bool normal_in_world_space) override
 		{
-			using namespace Vitex::Physics;
-			using namespace Vitex::Trigonometry;
-			VI_ASSERT(Callback && RayResult.m_collisionObject, "collision objects are not in available condition");
+			using namespace vitex::physics;
+			using namespace vitex::trigonometry;
+			VI_ASSERT(callback && ray_result.m_collisionObject, "collision objects are not in available condition");
 
-			RayContact Contact;
-			Contact.HitNormalLocal = BT_TO_V3(RayResult.m_hitNormalLocal);
-			Contact.NormalInWorldSpace = NormalInWorldSpace;
-			Contact.HitFraction = RayResult.m_hitFraction;
-			Contact.ClosestHitFraction = m_closestHitFraction;
+			ray_contact contact;
+			contact.hit_normal_local = BT_TO_V3(ray_result.m_hitNormalLocal);
+			contact.normal_in_world_space = normal_in_world_space;
+			contact.hit_fraction = ray_result.m_hitFraction;
+			contact.closest_hit_fraction = m_closestHitFraction;
 
-			btCollisionObject* Body1 = (btCollisionObject*)RayResult.m_collisionObject;
-			return (btScalar)Callback(&Contact, CollisionBody(Body1));
+			btCollisionObject* body1 = (btCollisionObject*)ray_result.m_collisionObject;
+			return (btScalar)callback(&contact, collision_body(body1));
 		}
 	};
 
-	btTransform M16_TO_BT(const Vitex::Trigonometry::Matrix4x4& In)
+	btTransform M16_TO_BT(const vitex::trigonometry::matrix4x4& in)
 	{
-		btMatrix3x3 Offset;
-		Offset[0][0] = In.Row[0];
-		Offset[1][0] = In.Row[1];
-		Offset[2][0] = In.Row[2];
-		Offset[0][1] = In.Row[4];
-		Offset[1][1] = In.Row[5];
-		Offset[2][1] = In.Row[6];
-		Offset[0][2] = In.Row[8];
-		Offset[1][2] = In.Row[9];
-		Offset[2][2] = In.Row[10];
+		btMatrix3x3 offset;
+		offset[0][0] = in.row[0];
+		offset[1][0] = in.row[1];
+		offset[2][0] = in.row[2];
+		offset[0][1] = in.row[4];
+		offset[1][1] = in.row[5];
+		offset[2][1] = in.row[6];
+		offset[0][2] = in.row[8];
+		offset[1][2] = in.row[9];
+		offset[2][2] = in.row[10];
 
-		btTransform Result;
-		Result.setBasis(Offset);
+		btTransform result;
+		result.setBasis(offset);
 
-		Vitex::Trigonometry::Vector3 Position = In.Position();
-		Result.setOrigin(V3_TO_BT(Position));
+		vitex::trigonometry::vector3 position = in.position();
+		result.setOrigin(V3_TO_BT(position));
 
-		return Result;
+		return result;
 	}
 #endif
-	size_t OffsetOf64(const char* Source, char Dest)
+	size_t offset_of64(const char* source, char dest)
 	{
-		VI_ASSERT(Source != nullptr, "source should be set");
+		VI_ASSERT(source != nullptr, "source should be set");
 		for (size_t i = 0; i < 64; i++)
 		{
-			if (Source[i] == Dest)
+			if (source[i] == dest)
 				return i;
 		}
 
 		return 63;
 	}
-	Vitex::Core::String EscapeText(const Vitex::Core::String& Data)
+	vitex::core::string escape_text(const vitex::core::string& data)
 	{
-		Vitex::Core::String Result = "\"";
-		Result.append(Data).append("\"");
-		return Result;
+		vitex::core::string result = "\"";
+		result.append(data).append("\"");
+		return result;
 	}
 }
 
-namespace Vitex
+namespace vitex
 {
-	namespace Physics
+	namespace physics
 	{
-		CollisionBody::CollisionBody(btCollisionObject* Object) noexcept
+		collision_body::collision_body(btCollisionObject* object) noexcept
 		{
 #ifdef VI_BULLET3
-			btRigidBody* RigidObject = btRigidBody::upcast(Object);
-			if (RigidObject != nullptr)
-				Rigid = (RigidBody*)RigidObject->getUserPointer();
+			btRigidBody* rigid_object = btRigidBody::upcast(object);
+			if (rigid_object != nullptr)
+				rigid = (rigid_body*)rigid_object->getUserPointer();
 
-			btSoftBody* SoftObject = btSoftBody::upcast(Object);
-			if (SoftObject != nullptr)
-				Soft = (SoftBody*)SoftObject->getUserPointer();
+			btSoftBody* soft_object = btSoftBody::upcast(object);
+			if (soft_object != nullptr)
+				soft = (soft_body*)soft_object->getUserPointer();
 #endif
 		}
 
-		HullShape::HullShape(Core::Vector<Trigonometry::Vertex>&& NewVertices, Core::Vector<int>&& NewIndices) noexcept : Vertices(std::move(NewVertices)), Indices(std::move(NewIndices)), Shape(nullptr)
+		hull_shape::hull_shape(core::vector<trigonometry::vertex>&& new_vertices, core::vector<int>&& new_indices) noexcept : vertices(std::move(new_vertices)), indices(std::move(new_indices)), shape(nullptr)
 		{
 #ifdef VI_BULLET3
-			Shape = Core::Memory::New<btConvexHullShape>();
-			btConvexHullShape* Hull = (btConvexHullShape*)Shape;
-			for (auto& Item : Vertices)
-				Hull->addPoint(btVector3(Item.PositionX, Item.PositionY, Item.PositionZ), false);
+			shape = core::memory::init<btConvexHullShape>();
+			btConvexHullShape* hull = (btConvexHullShape*)shape;
+			for (auto& item : vertices)
+				hull->addPoint(btVector3(item.position_x, item.position_y, item.position_z), false);
 
-			Hull->recalcLocalAabb();
-			Hull->optimizeConvexHull();
-			Hull->setMargin(0);
+			hull->recalcLocalAabb();
+			hull->optimizeConvexHull();
+			hull->setMargin(0);
 #endif
 		}
-		HullShape::HullShape(Core::Vector<Trigonometry::Vertex>&& NewVertices) noexcept : Vertices(std::move(NewVertices)), Shape(nullptr)
+		hull_shape::hull_shape(core::vector<trigonometry::vertex>&& new_vertices) noexcept : vertices(std::move(new_vertices)), shape(nullptr)
 		{
 #ifdef VI_BULLET3
-			Shape = Core::Memory::New<btConvexHullShape>();
-			btConvexHullShape* Hull = (btConvexHullShape*)Shape;
-			Indices.reserve(Vertices.size());
+			shape = core::memory::init<btConvexHullShape>();
+			btConvexHullShape* hull = (btConvexHullShape*)shape;
+			indices.reserve(vertices.size());
 
-			for (auto& Item : Vertices)
+			for (auto& item : vertices)
 			{
-				Hull->addPoint(btVector3(Item.PositionX, Item.PositionY, Item.PositionZ), false);
-				Indices.push_back((int)Indices.size());
+				hull->addPoint(btVector3(item.position_x, item.position_y, item.position_z), false);
+				indices.push_back((int)indices.size());
 			}
 
-			Hull->recalcLocalAabb();
-			Hull->optimizeConvexHull();
-			Hull->setMargin(0);
+			hull->recalcLocalAabb();
+			hull->optimizeConvexHull();
+			hull->setMargin(0);
 #endif
 		}
-		HullShape::HullShape(btCollisionShape* From) noexcept : Shape(nullptr)
+		hull_shape::hull_shape(btCollisionShape* from) noexcept : shape(nullptr)
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(From != nullptr, "shape should be set");
-			VI_ASSERT(From->getShapeType() == (int)Shape::Convex_Hull, "shape type should be convex hull");
+			VI_ASSERT(from != nullptr, "shape should be set");
+			VI_ASSERT(from->getShapeType() == (int)shape::convex_hull, "shape type should be convex hull");
 
-			btConvexHullShape* Hull = Core::Memory::New<btConvexHullShape>();
-			btConvexHullShape* Base = (btConvexHullShape*)From;
-			Vertices.reserve((size_t)Base->getNumPoints());
-			Indices.reserve((size_t)Base->getNumPoints());
+			btConvexHullShape* hull = core::memory::init<btConvexHullShape>();
+			btConvexHullShape* base = (btConvexHullShape*)from;
+			vertices.reserve((size_t)base->getNumPoints());
+			indices.reserve((size_t)base->getNumPoints());
 
-			for (size_t i = 0; i < (size_t)Base->getNumPoints(); i++)
+			for (size_t i = 0; i < (size_t)base->getNumPoints(); i++)
 			{
-				auto& Position = *(Base->getUnscaledPoints() + i);
-				Hull->addPoint(Position, false);
-				Vertices.push_back({ Position.x(), Position.y(), Position.z() });
-				Indices.push_back((int)i);
+				auto& position = *(base->getUnscaledPoints() + i);
+				hull->addPoint(position, false);
+				vertices.push_back({ position.x(), position.y(), position.z() });
+				indices.push_back((int)i);
 			}
 
-			Hull->recalcLocalAabb();
-			Hull->optimizeConvexHull();
-			Hull->setMargin(0);
+			hull->recalcLocalAabb();
+			hull->optimizeConvexHull();
+			hull->setMargin(0);
 #endif
 		}
-		HullShape::~HullShape() noexcept
+		hull_shape::~hull_shape() noexcept
 		{
 #ifdef VI_BULLET3
-			Core::Memory::Delete(Shape);
+			core::memory::deinit(shape);
 #endif
 		}
-		const Core::Vector<Trigonometry::Vertex>& HullShape::GetVertices() const
+		const core::vector<trigonometry::vertex>& hull_shape::get_vertices() const
 		{
-			return Vertices;
+			return vertices;
 		}
-		const Core::Vector<int>& HullShape::GetIndices() const
+		const core::vector<int>& hull_shape::get_indices() const
 		{
-			return Indices;
+			return indices;
 		}
-		btCollisionShape* HullShape::GetShape() const
+		btCollisionShape* hull_shape::get_shape() const
 		{
-			return Shape;
+			return shape;
 		}
 
-		RigidBody::RigidBody(Simulator* Refer, const Desc& I) noexcept : Instance(nullptr), Engine(Refer), Initial(I), UserPointer(nullptr)
+		rigid_body::rigid_body(simulator* refer, const desc& i) noexcept : instance(nullptr), engine(refer), initial(i), user_pointer(nullptr)
 		{
-			VI_ASSERT(Initial.Shape, "collision shape should be set");
-			VI_ASSERT(Engine != nullptr, "simulator should be set");
+			VI_ASSERT(initial.shape, "collision shape should be set");
+			VI_ASSERT(engine != nullptr, "simulator should be set");
 #ifdef VI_BULLET3
-			Initial.Shape = Engine->ReuseShape(Initial.Shape);
-			if (!Initial.Shape)
+			initial.shape = engine->reuse_shape(initial.shape);
+			if (!initial.shape)
 			{
-				Initial.Shape = Engine->TryCloneShape(I.Shape);
-				if (!Initial.Shape)
+				initial.shape = engine->try_clone_shape(i.shape);
+				if (!initial.shape)
 					return;
 			}
 
-			btVector3 LocalInertia(0, 0, 0);
-			Initial.Shape->setLocalScaling(V3_TO_BT(Initial.Scale));
-			if (Initial.Mass > 0)
-				Initial.Shape->calculateLocalInertia(Initial.Mass, LocalInertia);
+			btVector3 local_inertia(0, 0, 0);
+			initial.shape->setLocalScaling(V3_TO_BT(initial.scale));
+			if (initial.mass > 0)
+				initial.shape->calculateLocalInertia(initial.mass, local_inertia);
 
-			btQuaternion Rotation;
-			Rotation.setEulerZYX(Initial.Rotation.Z, Initial.Rotation.Y, Initial.Rotation.X);
+			btQuaternion rotation;
+			rotation.setEulerZYX(initial.rotation.z, initial.rotation.y, initial.rotation.x);
 
-			btTransform BtTransform(Rotation, btVector3(Initial.Position.X, Initial.Position.Y, Initial.Position.Z));
-			btRigidBody::btRigidBodyConstructionInfo Info(Initial.Mass, Core::Memory::New<btDefaultMotionState>(BtTransform), Initial.Shape, LocalInertia);
-			Instance = Core::Memory::New<btRigidBody>(Info);
-			Instance->setUserPointer(this);
-			Instance->setGravity(Engine->GetWorld()->getGravity());
+			btTransform bt_transform(rotation, btVector3(initial.position.x, initial.position.y, initial.position.z));
+			btRigidBody::btRigidBodyConstructionInfo info(initial.mass, core::memory::init<btDefaultMotionState>(bt_transform), initial.shape, local_inertia);
+			instance = core::memory::init<btRigidBody>(info);
+			instance->setUserPointer(this);
+			instance->setGravity(engine->get_world()->getGravity());
 
-			if (Initial.Anticipation > 0 && Initial.Mass > 0)
+			if (initial.anticipation > 0 && initial.mass > 0)
 			{
-				Instance->setCcdMotionThreshold(Initial.Anticipation);
-				Instance->setCcdSweptSphereRadius(Initial.Scale.Length() / 15.0f);
+				instance->setCcdMotionThreshold(initial.anticipation);
+				instance->setCcdSweptSphereRadius(initial.scale.length() / 15.0f);
 			}
 
-			if (Instance->getWorldArrayIndex() == -1)
-				Engine->GetWorld()->addRigidBody(Instance);
+			if (instance->getWorldArrayIndex() == -1)
+				engine->get_world()->addRigidBody(instance);
 #endif
 		}
-		RigidBody::~RigidBody() noexcept
+		rigid_body::~rigid_body() noexcept
 		{
 #ifdef VI_BULLET3
-			if (!Instance)
+			if (!instance)
 				return;
 
-			int Constraints = Instance->getNumConstraintRefs();
-			for (int i = 0; i < Constraints; i++)
+			int constraints = instance->getNumConstraintRefs();
+			for (int i = 0; i < constraints; i++)
 			{
-				btTypedConstraint* Constraint = Instance->getConstraintRef(i);
-				if (Constraint != nullptr)
+				btTypedConstraint* constraint = instance->getConstraintRef(i);
+				if (constraint != nullptr)
 				{
-					void* Ptr = Constraint->getUserConstraintPtr();
-					if (Ptr != nullptr)
+					void* ptr = constraint->getUserConstraintPtr();
+					if (ptr != nullptr)
 					{
-						btTypedConstraintType Type = Constraint->getConstraintType();
-						switch (Type)
+						btTypedConstraintType type = constraint->getConstraintType();
+						switch (type)
 						{
 							case SLIDER_CONSTRAINT_TYPE:
-								if (((SConstraint*)Ptr)->First == Instance)
-									((SConstraint*)Ptr)->First = nullptr;
-								else if (((SConstraint*)Ptr)->Second == Instance)
-									((SConstraint*)Ptr)->Second = nullptr;
+								if (((sconstraint*)ptr)->first == instance)
+									((sconstraint*)ptr)->first = nullptr;
+								else if (((sconstraint*)ptr)->second == instance)
+									((sconstraint*)ptr)->second = nullptr;
 								break;
 							default:
 								break;
 						}
 					}
 
-					Instance->removeConstraintRef(Constraint);
-					Constraints--; i--;
+					instance->removeConstraintRef(constraint);
+					constraints--; i--;
 				}
 			}
 
-			if (Instance->getMotionState())
+			if (instance->getMotionState())
 			{
-				btMotionState* Object = Instance->getMotionState();
-				Core::Memory::Delete(Object);
-				Instance->setMotionState(nullptr);
+				btMotionState* object = instance->getMotionState();
+				core::memory::deinit(object);
+				instance->setMotionState(nullptr);
 			}
 
-			Instance->setCollisionShape(nullptr);
-			Instance->setUserPointer(nullptr);
-			if (Instance->getWorldArrayIndex() >= 0)
-				Engine->GetWorld()->removeRigidBody(Instance);
+			instance->setCollisionShape(nullptr);
+			instance->setUserPointer(nullptr);
+			if (instance->getWorldArrayIndex() >= 0)
+				engine->get_world()->removeRigidBody(instance);
 
-			if (Initial.Shape)
-				Engine->FreeShape(&Initial.Shape);
+			if (initial.shape)
+				engine->free_shape(&initial.shape);
 
-			Core::Memory::Delete(Instance);
+			core::memory::deinit(instance);
 #endif
 		}
-		RigidBody* RigidBody::Copy()
+		rigid_body* rigid_body::copy()
 		{
-			VI_ASSERT(Instance != nullptr, "rigidbody should be initialized");
+			VI_ASSERT(instance != nullptr, "rigidbody should be initialized");
 
-			Desc I(Initial);
-			I.Position = GetPosition();
-			I.Rotation = GetRotation();
-			I.Scale = GetScale();
-			I.Mass = GetMass();
-			I.Shape = Engine->TryCloneShape(I.Shape);
+			desc i(initial);
+			i.position = get_position();
+			i.rotation = get_rotation();
+			i.scale = get_scale();
+			i.mass = get_mass();
+			i.shape = engine->try_clone_shape(i.shape);
 
-			RigidBody* Target = new RigidBody(Engine, I);
-			Target->SetSpinningFriction(GetSpinningFriction());
-			Target->SetContactDamping(GetContactDamping());
-			Target->SetContactStiffness(GetContactStiffness());
-			Target->SetActivationState(GetActivationState());
-			Target->SetAngularDamping(GetAngularDamping());
-			Target->SetAngularSleepingThreshold(GetAngularSleepingThreshold());
-			Target->SetFriction(GetFriction());
-			Target->SetRestitution(GetRestitution());
-			Target->SetHitFraction(GetHitFraction());
-			Target->SetLinearDamping(GetLinearDamping());
-			Target->SetLinearSleepingThreshold(GetLinearSleepingThreshold());
-			Target->SetCcdMotionThreshold(GetCcdMotionThreshold());
-			Target->SetCcdSweptSphereRadius(GetCcdSweptSphereRadius());
-			Target->SetContactProcessingThreshold(GetContactProcessingThreshold());
-			Target->SetDeactivationTime(GetDeactivationTime());
-			Target->SetRollingFriction(GetRollingFriction());
-			Target->SetAngularFactor(GetAngularFactor());
-			Target->SetAnisotropicFriction(GetAnisotropicFriction());
-			Target->SetGravity(GetGravity());
-			Target->SetLinearFactor(GetLinearFactor());
-			Target->SetLinearVelocity(GetLinearVelocity());
-			Target->SetAngularVelocity(GetAngularVelocity());
-			Target->SetCollisionFlags(GetCollisionFlags());
+			rigid_body* target = new rigid_body(engine, i);
+			target->set_spinning_friction(get_spinning_friction());
+			target->set_contact_damping(get_contact_damping());
+			target->set_contact_stiffness(get_contact_stiffness());
+			target->set_activation_state(get_activation_state());
+			target->set_angular_damping(get_angular_damping());
+			target->set_angular_sleeping_threshold(get_angular_sleeping_threshold());
+			target->set_friction(get_friction());
+			target->set_restitution(get_restitution());
+			target->set_hit_fraction(get_hit_fraction());
+			target->set_linear_damping(get_linear_damping());
+			target->set_linear_sleeping_threshold(get_linear_sleeping_threshold());
+			target->set_ccd_motion_threshold(get_ccd_motion_threshold());
+			target->set_ccd_swept_sphere_radius(get_ccd_swept_sphere_radius());
+			target->set_contact_processing_threshold(get_contact_processing_threshold());
+			target->set_deactivation_time(get_deactivation_time());
+			target->set_rolling_friction(get_rolling_friction());
+			target->set_angular_factor(get_angular_factor());
+			target->set_anisotropic_friction(get_anisotropic_friction());
+			target->set_gravity(get_gravity());
+			target->set_linear_factor(get_linear_factor());
+			target->set_linear_velocity(get_linear_velocity());
+			target->set_angular_velocity(get_angular_velocity());
+			target->set_collision_flags(get_collision_flags());
 
-			return Target;
+			return target;
 		}
-		void RigidBody::Push(const Trigonometry::Vector3& Velocity)
+		void rigid_body::push(const trigonometry::vector3& velocity)
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "rigidbody should be initialized");
-			Instance->applyCentralImpulse(V3_TO_BT(Velocity));
+			VI_ASSERT(instance != nullptr, "rigidbody should be initialized");
+			instance->applyCentralImpulse(V3_TO_BT(velocity));
 #endif
 		}
-		void RigidBody::Push(const Trigonometry::Vector3& Velocity, const Trigonometry::Vector3& Torque)
+		void rigid_body::push(const trigonometry::vector3& velocity, const trigonometry::vector3& torque)
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "rigidbody should be initialized");
-			Instance->applyCentralImpulse(V3_TO_BT(Velocity));
-			Instance->applyTorqueImpulse(V3_TO_BT(Torque));
+			VI_ASSERT(instance != nullptr, "rigidbody should be initialized");
+			instance->applyCentralImpulse(V3_TO_BT(velocity));
+			instance->applyTorqueImpulse(V3_TO_BT(torque));
 #endif
 		}
-		void RigidBody::Push(const Trigonometry::Vector3& Velocity, const Trigonometry::Vector3& Torque, const Trigonometry::Vector3& Center)
+		void rigid_body::push(const trigonometry::vector3& velocity, const trigonometry::vector3& torque, const trigonometry::vector3& center)
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "rigidbody should be initialized");
-			Instance->applyImpulse(V3_TO_BT(Velocity), V3_TO_BT(Center));
-			Instance->applyTorqueImpulse(V3_TO_BT(Torque));
+			VI_ASSERT(instance != nullptr, "rigidbody should be initialized");
+			instance->applyImpulse(V3_TO_BT(velocity), V3_TO_BT(center));
+			instance->applyTorqueImpulse(V3_TO_BT(torque));
 #endif
 		}
-		void RigidBody::PushKinematic(const Trigonometry::Vector3& Velocity)
+		void rigid_body::push_kinematic(const trigonometry::vector3& velocity)
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "rigidbody should be initialized");
+			VI_ASSERT(instance != nullptr, "rigidbody should be initialized");
 
-			btTransform Offset;
-			Instance->getMotionState()->getWorldTransform(Offset);
+			btTransform offset;
+			instance->getMotionState()->getWorldTransform(offset);
 
-			btVector3 Origin = Offset.getOrigin();
-			Origin.setX(Origin.getX() + Velocity.X);
-			Origin.setY(Origin.getY() + Velocity.Y);
-			Origin.setZ(Origin.getZ() + Velocity.Z);
+			btVector3 origin = offset.getOrigin();
+			origin.setX(origin.getX() + velocity.x);
+			origin.setY(origin.getY() + velocity.y);
+			origin.setZ(origin.getZ() + velocity.z);
 
-			Offset.setOrigin(Origin);
-			Instance->getMotionState()->setWorldTransform(Offset);
+			offset.setOrigin(origin);
+			instance->getMotionState()->setWorldTransform(offset);
 #endif
 		}
-		void RigidBody::PushKinematic(const Trigonometry::Vector3& Velocity, const Trigonometry::Vector3& Torque)
+		void rigid_body::push_kinematic(const trigonometry::vector3& velocity, const trigonometry::vector3& torque)
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "rigidbody should be initialized");
+			VI_ASSERT(instance != nullptr, "rigidbody should be initialized");
 
-			btTransform Offset;
-			Instance->getMotionState()->getWorldTransform(Offset);
+			btTransform offset;
+			instance->getMotionState()->getWorldTransform(offset);
 
-			btScalar X, Y, Z;
-			Offset.getRotation().getEulerZYX(Z, Y, X);
+			btScalar x, y, z;
+			offset.getRotation().getEulerZYX(z, y, x);
 
-			Trigonometry::Vector3 Rotation(-X, -Y, Z);
-			Offset.getBasis().setEulerZYX(Rotation.X + Torque.X, Rotation.Y + Torque.Y, Rotation.Z + Torque.Z);
+			trigonometry::vector3 rotation(-x, -y, z);
+			offset.getBasis().setEulerZYX(rotation.x + torque.x, rotation.y + torque.y, rotation.z + torque.z);
 
-			btVector3 Origin = Offset.getOrigin();
-			Origin.setX(Origin.getX() + Velocity.X);
-			Origin.setY(Origin.getY() + Velocity.Y);
-			Origin.setZ(Origin.getZ() + Velocity.Z);
+			btVector3 origin = offset.getOrigin();
+			origin.setX(origin.getX() + velocity.x);
+			origin.setY(origin.getY() + velocity.y);
+			origin.setZ(origin.getZ() + velocity.z);
 
-			Offset.setOrigin(Origin);
-			Instance->getMotionState()->setWorldTransform(Offset);
+			offset.setOrigin(origin);
+			instance->getMotionState()->setWorldTransform(offset);
 #endif
 		}
-		void RigidBody::Synchronize(Trigonometry::Transform* Transform, bool Kinematic)
+		void rigid_body::synchronize(trigonometry::transform* transform, bool kinematic)
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "rigidbody should be initialized");
-			btTransform& Base = Instance->getWorldTransform();
-			if (!Kinematic)
+			VI_ASSERT(instance != nullptr, "rigidbody should be initialized");
+			btTransform& base = instance->getWorldTransform();
+			if (!kinematic)
 			{
-				btScalar X, Y, Z;
-				const btVector3& Position = Base.getOrigin();
-				const btVector3& Scale = Instance->getCollisionShape()->getLocalScaling();
-				Base.getRotation().getEulerZYX(Z, Y, X);
-				Transform->SetPosition(BT_TO_V3(Position));
-				Transform->SetRotation(Trigonometry::Vector3(X, Y, Z));
-				Transform->SetScale(BT_TO_V3(Scale));
+				btScalar x, y, z;
+				const btVector3& position = base.getOrigin();
+				const btVector3& scale = instance->getCollisionShape()->getLocalScaling();
+				base.getRotation().getEulerZYX(z, y, x);
+				transform->set_position(BT_TO_V3(position));
+				transform->set_rotation(trigonometry::vector3(x, y, z));
+				transform->set_scale(BT_TO_V3(scale));
 			}
 			else
 			{
-				Trigonometry::Transform::Spacing& Space = Transform->GetSpacing(Trigonometry::Positioning::Global);
-				Base.setOrigin(V3_TO_BT(Space.Position));
-				Base.getBasis().setEulerZYX(Space.Rotation.X, Space.Rotation.Y, Space.Rotation.Z);
-				Instance->getCollisionShape()->setLocalScaling(V3_TO_BT(Space.Scale));
+				trigonometry::transform::spacing& space = transform->get_spacing(trigonometry::positioning::global);
+				base.setOrigin(V3_TO_BT(space.position));
+				base.getBasis().setEulerZYX(space.rotation.x, space.rotation.y, space.rotation.z);
+				instance->getCollisionShape()->setLocalScaling(V3_TO_BT(space.scale));
 			}
 #endif
 		}
-		void RigidBody::SetActivity(bool Active)
+		void rigid_body::set_activity(bool active)
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "rigidbody should be initialized");
-			if (GetActivationState() == MotionState::Disable_Deactivation)
+			VI_ASSERT(instance != nullptr, "rigidbody should be initialized");
+			if (get_activation_state() == motion_state::disable_deactivation)
 				return;
 
-			if (Active)
+			if (active)
 			{
-				Instance->forceActivationState((int)MotionState::Active);
-				Instance->activate(true);
+				instance->forceActivationState((int)motion_state::active);
+				instance->activate(true);
 			}
 			else
-				Instance->forceActivationState((int)MotionState::Deactivation_Needed);
+				instance->forceActivationState((int)motion_state::deactivation_needed);
 #endif
 		}
-		void RigidBody::SetAsGhost()
+		void rigid_body::set_as_ghost()
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "rigidbody should be initialized");
-			Instance->setCollisionFlags(btCollisionObject::CF_NO_CONTACT_RESPONSE);
+			VI_ASSERT(instance != nullptr, "rigidbody should be initialized");
+			instance->setCollisionFlags(btCollisionObject::CF_NO_CONTACT_RESPONSE);
 #endif
 		}
-		void RigidBody::SetAsNormal()
+		void rigid_body::set_as_normal()
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "rigidbody should be initialized");
-			Instance->setCollisionFlags(0);
+			VI_ASSERT(instance != nullptr, "rigidbody should be initialized");
+			instance->setCollisionFlags(0);
 #endif
 		}
-		void RigidBody::SetSelfPointer()
+		void rigid_body::set_self_pointer()
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "rigidbody should be initialized");
-			Instance->setUserPointer(this);
+			VI_ASSERT(instance != nullptr, "rigidbody should be initialized");
+			instance->setUserPointer(this);
 #endif
 		}
-		void RigidBody::SetWorldTransform(btTransform* Value)
+		void rigid_body::set_world_transform(btTransform* value)
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "rigidbody should be initialized");
-			VI_ASSERT(Value != nullptr, "transform should be set");
-			Instance->setWorldTransform(*Value);
+			VI_ASSERT(instance != nullptr, "rigidbody should be initialized");
+			VI_ASSERT(value != nullptr, "transform should be set");
+			instance->setWorldTransform(*value);
 #endif
 		}
-		void RigidBody::SetActivationState(MotionState Value)
+		void rigid_body::set_activation_state(motion_state value)
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "rigidbody should be initialized");
-			Instance->forceActivationState((int)Value);
+			VI_ASSERT(instance != nullptr, "rigidbody should be initialized");
+			instance->forceActivationState((int)value);
 #endif
 		}
-		void RigidBody::SetAngularDamping(float Value)
+		void rigid_body::set_angular_damping(float value)
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "rigidbody should be initialized");
-			Instance->setDamping(Instance->getLinearDamping(), Value);
+			VI_ASSERT(instance != nullptr, "rigidbody should be initialized");
+			instance->setDamping(instance->getLinearDamping(), value);
 #endif
 		}
-		void RigidBody::SetAngularSleepingThreshold(float Value)
+		void rigid_body::set_angular_sleeping_threshold(float value)
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "rigidbody should be initialized");
-			Instance->setSleepingThresholds(Instance->getLinearSleepingThreshold(), Value);
+			VI_ASSERT(instance != nullptr, "rigidbody should be initialized");
+			instance->setSleepingThresholds(instance->getLinearSleepingThreshold(), value);
 #endif
 		}
-		void RigidBody::SetFriction(float Value)
+		void rigid_body::set_friction(float value)
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "rigidbody should be initialized");
-			Instance->setFriction(Value);
+			VI_ASSERT(instance != nullptr, "rigidbody should be initialized");
+			instance->setFriction(value);
 #endif
 		}
-		void RigidBody::SetRestitution(float Value)
+		void rigid_body::set_restitution(float value)
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "rigidbody should be initialized");
-			Instance->setRestitution(Value);
+			VI_ASSERT(instance != nullptr, "rigidbody should be initialized");
+			instance->setRestitution(value);
 #endif
 		}
-		void RigidBody::SetSpinningFriction(float Value)
+		void rigid_body::set_spinning_friction(float value)
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "rigidbody should be initialized");
-			Instance->setSpinningFriction(Value);
+			VI_ASSERT(instance != nullptr, "rigidbody should be initialized");
+			instance->setSpinningFriction(value);
 #endif
 		}
-		void RigidBody::SetContactStiffness(float Value)
+		void rigid_body::set_contact_stiffness(float value)
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "rigidbody should be initialized");
-			Instance->setContactStiffnessAndDamping(Value, Instance->getContactDamping());
+			VI_ASSERT(instance != nullptr, "rigidbody should be initialized");
+			instance->setContactStiffnessAndDamping(value, instance->getContactDamping());
 #endif
 		}
-		void RigidBody::SetContactDamping(float Value)
+		void rigid_body::set_contact_damping(float value)
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "rigidbody should be initialized");
-			Instance->setContactStiffnessAndDamping(Instance->getContactStiffness(), Value);
+			VI_ASSERT(instance != nullptr, "rigidbody should be initialized");
+			instance->setContactStiffnessAndDamping(instance->getContactStiffness(), value);
 #endif
 		}
-		void RigidBody::SetHitFraction(float Value)
+		void rigid_body::set_hit_fraction(float value)
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "rigidbody should be initialized");
-			Instance->setHitFraction(Value);
+			VI_ASSERT(instance != nullptr, "rigidbody should be initialized");
+			instance->setHitFraction(value);
 #endif
 		}
-		void RigidBody::SetLinearDamping(float Value)
+		void rigid_body::set_linear_damping(float value)
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "rigidbody should be initialized");
-			Instance->setDamping(Value, Instance->getAngularDamping());
+			VI_ASSERT(instance != nullptr, "rigidbody should be initialized");
+			instance->setDamping(value, instance->getAngularDamping());
 #endif
 		}
-		void RigidBody::SetLinearSleepingThreshold(float Value)
+		void rigid_body::set_linear_sleeping_threshold(float value)
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "rigidbody should be initialized");
-			Instance->setSleepingThresholds(Value, Instance->getAngularSleepingThreshold());
+			VI_ASSERT(instance != nullptr, "rigidbody should be initialized");
+			instance->setSleepingThresholds(value, instance->getAngularSleepingThreshold());
 #endif
 		}
-		void RigidBody::SetCcdMotionThreshold(float Value)
+		void rigid_body::set_ccd_motion_threshold(float value)
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "rigidbody should be initialized");
-			Instance->setCcdMotionThreshold(Value);
+			VI_ASSERT(instance != nullptr, "rigidbody should be initialized");
+			instance->setCcdMotionThreshold(value);
 #endif
 		}
-		void RigidBody::SetCcdSweptSphereRadius(float Value)
+		void rigid_body::set_ccd_swept_sphere_radius(float value)
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "rigidbody should be initialized");
-			Instance->setCcdSweptSphereRadius(Value);
+			VI_ASSERT(instance != nullptr, "rigidbody should be initialized");
+			instance->setCcdSweptSphereRadius(value);
 #endif
 		}
-		void RigidBody::SetContactProcessingThreshold(float Value)
+		void rigid_body::set_contact_processing_threshold(float value)
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "rigidbody should be initialized");
-			Instance->setContactProcessingThreshold(Value);
+			VI_ASSERT(instance != nullptr, "rigidbody should be initialized");
+			instance->setContactProcessingThreshold(value);
 #endif
 		}
-		void RigidBody::SetDeactivationTime(float Value)
+		void rigid_body::set_deactivation_time(float value)
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "rigidbody should be initialized");
-			Instance->setDeactivationTime(Value);
+			VI_ASSERT(instance != nullptr, "rigidbody should be initialized");
+			instance->setDeactivationTime(value);
 #endif
 		}
-		void RigidBody::SetRollingFriction(float Value)
+		void rigid_body::set_rolling_friction(float value)
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "rigidbody should be initialized");
-			Instance->setRollingFriction(Value);
+			VI_ASSERT(instance != nullptr, "rigidbody should be initialized");
+			instance->setRollingFriction(value);
 #endif
 		}
-		void RigidBody::SetAngularFactor(const Trigonometry::Vector3& Value)
+		void rigid_body::set_angular_factor(const trigonometry::vector3& value)
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "rigidbody should be initialized");
-			Instance->setAngularFactor(V3_TO_BT(Value));
+			VI_ASSERT(instance != nullptr, "rigidbody should be initialized");
+			instance->setAngularFactor(V3_TO_BT(value));
 #endif
 		}
-		void RigidBody::SetAnisotropicFriction(const Trigonometry::Vector3& Value)
+		void rigid_body::set_anisotropic_friction(const trigonometry::vector3& value)
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "rigidbody should be initialized");
-			Instance->setAnisotropicFriction(V3_TO_BT(Value));
+			VI_ASSERT(instance != nullptr, "rigidbody should be initialized");
+			instance->setAnisotropicFriction(V3_TO_BT(value));
 #endif
 		}
-		void RigidBody::SetGravity(const Trigonometry::Vector3& Value)
+		void rigid_body::set_gravity(const trigonometry::vector3& value)
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "rigidbody should be initialized");
-			Instance->setGravity(V3_TO_BT(Value));
+			VI_ASSERT(instance != nullptr, "rigidbody should be initialized");
+			instance->setGravity(V3_TO_BT(value));
 #endif
 		}
-		void RigidBody::SetLinearFactor(const Trigonometry::Vector3& Value)
+		void rigid_body::set_linear_factor(const trigonometry::vector3& value)
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "rigidbody should be initialized");
-			Instance->setLinearFactor(V3_TO_BT(Value));
+			VI_ASSERT(instance != nullptr, "rigidbody should be initialized");
+			instance->setLinearFactor(V3_TO_BT(value));
 #endif
 		}
-		void RigidBody::SetLinearVelocity(const Trigonometry::Vector3& Value)
+		void rigid_body::set_linear_velocity(const trigonometry::vector3& value)
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "rigidbody should be initialized");
-			Instance->setLinearVelocity(V3_TO_BT(Value));
+			VI_ASSERT(instance != nullptr, "rigidbody should be initialized");
+			instance->setLinearVelocity(V3_TO_BT(value));
 #endif
 		}
-		void RigidBody::SetAngularVelocity(const Trigonometry::Vector3& Value)
+		void rigid_body::set_angular_velocity(const trigonometry::vector3& value)
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "rigidbody should be initialized");
-			Instance->setAngularVelocity(V3_TO_BT(Value));
+			VI_ASSERT(instance != nullptr, "rigidbody should be initialized");
+			instance->setAngularVelocity(V3_TO_BT(value));
 #endif
 		}
-		void RigidBody::SetCollisionShape(btCollisionShape* Shape, Trigonometry::Transform* Transform)
+		void rigid_body::set_collision_shape(btCollisionShape* shape, trigonometry::transform* transform)
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "rigidbody should be initialized");
-			btCollisionShape* Collision = Instance->getCollisionShape();
-			Core::Memory::Delete(Collision);
+			VI_ASSERT(instance != nullptr, "rigidbody should be initialized");
+			btCollisionShape* collision = instance->getCollisionShape();
+			core::memory::deinit(collision);
 
-			Instance->setCollisionShape(Shape);
-			if (Transform)
-				Synchronize(Transform, true);
+			instance->setCollisionShape(shape);
+			if (transform)
+				synchronize(transform, true);
 #endif
 		}
-		void RigidBody::SetMass(float Mass)
+		void rigid_body::set_mass(float mass)
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr && Engine != nullptr, "rigidbody should be initialized");
-			btVector3 Inertia = Engine->GetWorld()->getGravity();
-			if (Instance->getWorldArrayIndex() >= 0)
-				Engine->GetWorld()->removeRigidBody(Instance);
+			VI_ASSERT(instance != nullptr && engine != nullptr, "rigidbody should be initialized");
+			btVector3 inertia = engine->get_world()->getGravity();
+			if (instance->getWorldArrayIndex() >= 0)
+				engine->get_world()->removeRigidBody(instance);
 
-			Instance->setGravity(Inertia);
-			Instance->getCollisionShape()->calculateLocalInertia(Mass, Inertia);
-			Instance->setMassProps(Mass, Inertia);
-			if (Instance->getWorldArrayIndex() == -1)
-				Engine->GetWorld()->addRigidBody(Instance);
+			instance->setGravity(inertia);
+			instance->getCollisionShape()->calculateLocalInertia(mass, inertia);
+			instance->setMassProps(mass, inertia);
+			if (instance->getWorldArrayIndex() == -1)
+				engine->get_world()->addRigidBody(instance);
 
-			SetActivity(true);
+			set_activity(true);
 #endif
 		}
-		void RigidBody::SetCollisionFlags(size_t Flags)
+		void rigid_body::set_collision_flags(size_t flags)
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "rigidbody should be initialized");
-			Instance->setCollisionFlags((int)Flags);
+			VI_ASSERT(instance != nullptr, "rigidbody should be initialized");
+			instance->setCollisionFlags((int)flags);
 #endif
 		}
-		MotionState RigidBody::GetActivationState() const
+		motion_state rigid_body::get_activation_state() const
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "rigidbody should be initialized");
-			return (MotionState)Instance->getActivationState();
+			VI_ASSERT(instance != nullptr, "rigidbody should be initialized");
+			return (motion_state)instance->getActivationState();
 #else
-			return MotionState::Island_Sleeping;
+			return motion_state::island_sleeping;
 #endif
 		}
-		Shape RigidBody::GetCollisionShapeType() const
+		shape rigid_body::get_collision_shape_type() const
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr && Instance->getCollisionShape() != nullptr, "rigidbody should be initialized");
-			return (Shape)Instance->getCollisionShape()->getShapeType();
+			VI_ASSERT(instance != nullptr && instance->getCollisionShape() != nullptr, "rigidbody should be initialized");
+			return (shape)instance->getCollisionShape()->getShapeType();
 #else
-			return Shape::Invalid;
+			return shape::invalid;
 #endif
 		}
-		Trigonometry::Vector3 RigidBody::GetAngularFactor() const
+		trigonometry::vector3 rigid_body::get_angular_factor() const
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "rigidbody should be initialized");
-			btVector3 Value = Instance->getAngularFactor();
-			return Trigonometry::Vector3(Value.getX(), Value.getY(), Value.getZ());
-#else
-			return 0;
-#endif
-		}
-		Trigonometry::Vector3 RigidBody::GetAnisotropicFriction() const
-		{
-#ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "rigidbody should be initialized");
-			btVector3 Value = Instance->getAnisotropicFriction();
-			return Trigonometry::Vector3(Value.getX(), Value.getY(), Value.getZ());
+			VI_ASSERT(instance != nullptr, "rigidbody should be initialized");
+			btVector3 value = instance->getAngularFactor();
+			return trigonometry::vector3(value.getX(), value.getY(), value.getZ());
 #else
 			return 0;
 #endif
 		}
-		Trigonometry::Vector3 RigidBody::GetGravity() const
+		trigonometry::vector3 rigid_body::get_anisotropic_friction() const
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "rigidbody should be initialized");
-			btVector3 Value = Instance->getGravity();
-			return Trigonometry::Vector3(Value.getX(), Value.getY(), Value.getZ());
+			VI_ASSERT(instance != nullptr, "rigidbody should be initialized");
+			btVector3 value = instance->getAnisotropicFriction();
+			return trigonometry::vector3(value.getX(), value.getY(), value.getZ());
 #else
 			return 0;
 #endif
 		}
-		Trigonometry::Vector3 RigidBody::GetLinearFactor() const
+		trigonometry::vector3 rigid_body::get_gravity() const
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "rigidbody should be initialized");
-			btVector3 Value = Instance->getLinearFactor();
-			return Trigonometry::Vector3(Value.getX(), Value.getY(), Value.getZ());
+			VI_ASSERT(instance != nullptr, "rigidbody should be initialized");
+			btVector3 value = instance->getGravity();
+			return trigonometry::vector3(value.getX(), value.getY(), value.getZ());
 #else
 			return 0;
 #endif
 		}
-		Trigonometry::Vector3 RigidBody::GetLinearVelocity() const
+		trigonometry::vector3 rigid_body::get_linear_factor() const
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "rigidbody should be initialized");
-			btVector3 Value = Instance->getLinearVelocity();
-			return Trigonometry::Vector3(Value.getX(), Value.getY(), Value.getZ());
+			VI_ASSERT(instance != nullptr, "rigidbody should be initialized");
+			btVector3 value = instance->getLinearFactor();
+			return trigonometry::vector3(value.getX(), value.getY(), value.getZ());
 #else
 			return 0;
 #endif
 		}
-		Trigonometry::Vector3 RigidBody::GetAngularVelocity() const
+		trigonometry::vector3 rigid_body::get_linear_velocity() const
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "rigidbody should be initialized");
-			btVector3 Value = Instance->getAngularVelocity();
-			return Trigonometry::Vector3(Value.getX(), Value.getY(), Value.getZ());
+			VI_ASSERT(instance != nullptr, "rigidbody should be initialized");
+			btVector3 value = instance->getLinearVelocity();
+			return trigonometry::vector3(value.getX(), value.getY(), value.getZ());
 #else
 			return 0;
 #endif
 		}
-		Trigonometry::Vector3 RigidBody::GetScale() const
+		trigonometry::vector3 rigid_body::get_angular_velocity() const
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr && Instance->getCollisionShape() != nullptr, "rigidbody should be initialized");
-			btVector3 Value = Instance->getCollisionShape()->getLocalScaling();
-			return Trigonometry::Vector3(Value.getX(), Value.getY(), Value.getZ());
+			VI_ASSERT(instance != nullptr, "rigidbody should be initialized");
+			btVector3 value = instance->getAngularVelocity();
+			return trigonometry::vector3(value.getX(), value.getY(), value.getZ());
 #else
 			return 0;
 #endif
 		}
-		Trigonometry::Vector3 RigidBody::GetPosition() const
+		trigonometry::vector3 rigid_body::get_scale() const
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "rigidbody should be initialized");
-			btVector3 Value = Instance->getWorldTransform().getOrigin();
-			return Trigonometry::Vector3(Value.getX(), Value.getY(), Value.getZ());
+			VI_ASSERT(instance != nullptr && instance->getCollisionShape() != nullptr, "rigidbody should be initialized");
+			btVector3 value = instance->getCollisionShape()->getLocalScaling();
+			return trigonometry::vector3(value.getX(), value.getY(), value.getZ());
 #else
 			return 0;
 #endif
 		}
-		Trigonometry::Vector3 RigidBody::GetRotation() const
+		trigonometry::vector3 rigid_body::get_position() const
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "rigidbody should be initialized");
-			btScalar X, Y, Z;
-			Instance->getWorldTransform().getBasis().getEulerZYX(Z, Y, X);
-			return Trigonometry::Vector3(-X, -Y, Z);
+			VI_ASSERT(instance != nullptr, "rigidbody should be initialized");
+			btVector3 value = instance->getWorldTransform().getOrigin();
+			return trigonometry::vector3(value.getX(), value.getY(), value.getZ());
 #else
 			return 0;
 #endif
 		}
-		btTransform* RigidBody::GetWorldTransform() const
+		trigonometry::vector3 rigid_body::get_rotation() const
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "rigidbody should be initialized");
-			return &Instance->getWorldTransform();
+			VI_ASSERT(instance != nullptr, "rigidbody should be initialized");
+			btScalar x, y, z;
+			instance->getWorldTransform().getBasis().getEulerZYX(z, y, x);
+			return trigonometry::vector3(-x, -y, z);
+#else
+			return 0;
+#endif
+		}
+		btTransform* rigid_body::get_world_transform() const
+		{
+#ifdef VI_BULLET3
+			VI_ASSERT(instance != nullptr, "rigidbody should be initialized");
+			return &instance->getWorldTransform();
 #else
 			return nullptr;
 #endif
 		}
-		btCollisionShape* RigidBody::GetCollisionShape() const
+		btCollisionShape* rigid_body::get_collision_shape() const
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "rigidbody should be initialized");
-			return Instance->getCollisionShape();
+			VI_ASSERT(instance != nullptr, "rigidbody should be initialized");
+			return instance->getCollisionShape();
 #else
 			return nullptr;
 #endif
 		}
-		btRigidBody* RigidBody::Get() const
+		btRigidBody* rigid_body::get() const
 		{
 #ifdef VI_BULLET3
-			return Instance;
+			return instance;
 #else
 			return nullptr;
 #endif
 		}
-		bool RigidBody::IsGhost() const
+		bool rigid_body::is_ghost() const
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "rigidbody should be initialized");
-			return (Instance->getCollisionFlags() & btCollisionObject::CF_NO_CONTACT_RESPONSE) != 0;
+			VI_ASSERT(instance != nullptr, "rigidbody should be initialized");
+			return (instance->getCollisionFlags() & btCollisionObject::CF_NO_CONTACT_RESPONSE) != 0;
 #else
 			return false;
 #endif
 		}
-		bool RigidBody::IsActive() const
+		bool rigid_body::is_active() const
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "rigidbody should be initialized");
-			return Instance->isActive();
+			VI_ASSERT(instance != nullptr, "rigidbody should be initialized");
+			return instance->isActive();
 #else
 			return false;
 #endif
 		}
-		bool RigidBody::IsStatic() const
+		bool rigid_body::is_static() const
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "rigidbody should be initialized");
-			return Instance->isStaticObject();
+			VI_ASSERT(instance != nullptr, "rigidbody should be initialized");
+			return instance->isStaticObject();
 #else
 			return true;
 #endif
 		}
-		bool RigidBody::IsColliding() const
+		bool rigid_body::is_colliding() const
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "rigidbody should be initialized");
-			return Instance->hasContactResponse();
+			VI_ASSERT(instance != nullptr, "rigidbody should be initialized");
+			return instance->hasContactResponse();
 #else
 			return false;
 #endif
 		}
-		float RigidBody::GetSpinningFriction() const
+		float rigid_body::get_spinning_friction() const
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "rigidbody should be initialized");
-			return Instance->getSpinningFriction();
+			VI_ASSERT(instance != nullptr, "rigidbody should be initialized");
+			return instance->getSpinningFriction();
 #else
 			return 0;
 #endif
 		}
-		float RigidBody::GetContactStiffness() const
+		float rigid_body::get_contact_stiffness() const
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "rigidbody should be initialized");
-			return Instance->getContactStiffness();
+			VI_ASSERT(instance != nullptr, "rigidbody should be initialized");
+			return instance->getContactStiffness();
 #else
 			return 0;
 #endif
 		}
-		float RigidBody::GetContactDamping() const
+		float rigid_body::get_contact_damping() const
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "rigidbody should be initialized");
-			return Instance->getContactDamping();
+			VI_ASSERT(instance != nullptr, "rigidbody should be initialized");
+			return instance->getContactDamping();
 #else
 			return 0;
 #endif
 		}
-		float RigidBody::GetAngularDamping() const
+		float rigid_body::get_angular_damping() const
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "rigidbody should be initialized");
-			return Instance->getAngularDamping();
+			VI_ASSERT(instance != nullptr, "rigidbody should be initialized");
+			return instance->getAngularDamping();
 #else
 			return 0;
 #endif
 		}
-		float RigidBody::GetAngularSleepingThreshold() const
+		float rigid_body::get_angular_sleeping_threshold() const
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "rigidbody should be initialized");
-			return Instance->getAngularSleepingThreshold();
+			VI_ASSERT(instance != nullptr, "rigidbody should be initialized");
+			return instance->getAngularSleepingThreshold();
 #else
 			return 0;
 #endif
 		}
-		float RigidBody::GetFriction() const
+		float rigid_body::get_friction() const
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "rigidbody should be initialized");
-			return Instance->getFriction();
+			VI_ASSERT(instance != nullptr, "rigidbody should be initialized");
+			return instance->getFriction();
 #else
 			return 0;
 #endif
 		}
-		float RigidBody::GetRestitution() const
+		float rigid_body::get_restitution() const
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "rigidbody should be initialized");
-			return Instance->getRestitution();
+			VI_ASSERT(instance != nullptr, "rigidbody should be initialized");
+			return instance->getRestitution();
 #else
 			return 0;
 #endif
 		}
-		float RigidBody::GetHitFraction() const
+		float rigid_body::get_hit_fraction() const
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "rigidbody should be initialized");
-			return Instance->getHitFraction();
+			VI_ASSERT(instance != nullptr, "rigidbody should be initialized");
+			return instance->getHitFraction();
 #else
 			return 0;
 #endif
 		}
-		float RigidBody::GetLinearDamping() const
+		float rigid_body::get_linear_damping() const
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "rigidbody should be initialized");
-			return Instance->getLinearDamping();
+			VI_ASSERT(instance != nullptr, "rigidbody should be initialized");
+			return instance->getLinearDamping();
 #else
 			return 0;
 #endif
 		}
-		float RigidBody::GetLinearSleepingThreshold() const
+		float rigid_body::get_linear_sleeping_threshold() const
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "rigidbody should be initialized");
-			return Instance->getLinearSleepingThreshold();
+			VI_ASSERT(instance != nullptr, "rigidbody should be initialized");
+			return instance->getLinearSleepingThreshold();
 #else
 			return 0;
 #endif
 		}
-		float RigidBody::GetCcdMotionThreshold() const
+		float rigid_body::get_ccd_motion_threshold() const
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "rigidbody should be initialized");
-			return Instance->getCcdMotionThreshold();
+			VI_ASSERT(instance != nullptr, "rigidbody should be initialized");
+			return instance->getCcdMotionThreshold();
 #else
 			return 0;
 #endif
 		}
-		float RigidBody::GetCcdSweptSphereRadius() const
+		float rigid_body::get_ccd_swept_sphere_radius() const
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "rigidbody should be initialized");
-			return Instance->getCcdSweptSphereRadius();
+			VI_ASSERT(instance != nullptr, "rigidbody should be initialized");
+			return instance->getCcdSweptSphereRadius();
 #else
 			return 0;
 #endif
 		}
-		float RigidBody::GetContactProcessingThreshold() const
+		float rigid_body::get_contact_processing_threshold() const
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "rigidbody should be initialized");
-			return Instance->getContactProcessingThreshold();
+			VI_ASSERT(instance != nullptr, "rigidbody should be initialized");
+			return instance->getContactProcessingThreshold();
 #else
 			return 0;
 #endif
 		}
-		float RigidBody::GetDeactivationTime() const
+		float rigid_body::get_deactivation_time() const
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "rigidbody should be initialized");
-			return Instance->getDeactivationTime();
+			VI_ASSERT(instance != nullptr, "rigidbody should be initialized");
+			return instance->getDeactivationTime();
 #else
 			return 0;
 #endif
 		}
-		float RigidBody::GetRollingFriction() const
+		float rigid_body::get_rolling_friction() const
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "rigidbody should be initialized");
-			return Instance->getRollingFriction();
+			VI_ASSERT(instance != nullptr, "rigidbody should be initialized");
+			return instance->getRollingFriction();
 #else
 			return 0;
 #endif
 		}
-		float RigidBody::GetMass() const
+		float rigid_body::get_mass() const
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "rigidbody should be initialized");
-			float Mass = Instance->getInvMass();
-			return (Mass != 0.0f ? 1.0f / Mass : 0.0f);
+			VI_ASSERT(instance != nullptr, "rigidbody should be initialized");
+			float mass = instance->getInvMass();
+			return (mass != 0.0f ? 1.0f / mass : 0.0f);
 #else
 			return 0;
 #endif
 		}
-		size_t RigidBody::GetCollisionFlags() const
+		size_t rigid_body::get_collision_flags() const
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "rigidbody should be initialized");
-			return Instance->getCollisionFlags();
+			VI_ASSERT(instance != nullptr, "rigidbody should be initialized");
+			return instance->getCollisionFlags();
 #else
 			return 0;
 #endif
 		}
-		RigidBody::Desc& RigidBody::GetInitialState()
+		rigid_body::desc& rigid_body::get_initial_state()
 		{
-			return Initial;
+			return initial;
 		}
-		Simulator* RigidBody::GetSimulator() const
+		simulator* rigid_body::get_simulator() const
 		{
-			return Engine;
+			return engine;
 		}
-		RigidBody* RigidBody::Get(btRigidBody* From)
+		rigid_body* rigid_body::get(btRigidBody* from)
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(From != nullptr, "rigidbody should be initialized");
-			return (RigidBody*)From->getUserPointer();
+			VI_ASSERT(from != nullptr, "rigidbody should be initialized");
+			return (rigid_body*)from->getUserPointer();
 #else
 			return nullptr;
 #endif
 		}
 
-		SoftBody::SoftBody(Simulator* Refer, const Desc& I) noexcept : Instance(nullptr), Engine(Refer), Initial(I), UserPointer(nullptr)
+		soft_body::soft_body(simulator* refer, const desc& i) noexcept : instance(nullptr), engine(refer), initial(i), user_pointer(nullptr)
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Engine != nullptr, "engine should be set");
-			VI_ASSERT(Engine->HasSoftBodySupport(), "soft body should be supported");
+			VI_ASSERT(engine != nullptr, "engine should be set");
+			VI_ASSERT(engine->has_soft_body_support(), "soft body should be supported");
 
-			btQuaternion Rotation;
-			Rotation.setEulerZYX(Initial.Rotation.Z, Initial.Rotation.Y, Initial.Rotation.X);
+			btQuaternion rotation;
+			rotation.setEulerZYX(initial.rotation.z, initial.rotation.y, initial.rotation.x);
 
-			btTransform BtTransform(Rotation, btVector3(Initial.Position.X, Initial.Position.Y, -Initial.Position.Z));
-			btSoftRigidDynamicsWorld* World = (btSoftRigidDynamicsWorld*)Engine->GetWorld();
-			btSoftBodyWorldInfo& Info = World->getWorldInfo();
-			HullShape* Hull = Initial.Shape.Convex.Hull;
+			btTransform bt_transform(rotation, btVector3(initial.position.x, initial.position.y, -initial.position.z));
+			btSoftRigidDynamicsWorld* world = (btSoftRigidDynamicsWorld*)engine->get_world();
+			btSoftBodyWorldInfo& info = world->getWorldInfo();
+			hull_shape* hull = initial.shape.convex.hull;
 
-			if (Initial.Shape.Convex.Enabled && Hull != nullptr)
+			if (initial.shape.convex.enabled && hull != nullptr)
 			{
-				auto& Positions = Hull->GetVertices();
-				Core::Vector<btScalar> Vertices;
-				Vertices.resize(Positions.size() * 3);
+				auto& positions = hull->get_vertices();
+				core::vector<btScalar> vertices;
+				vertices.resize(positions.size() * 3);
 
-				for (size_t i = 0; i < Hull->GetVertices().size(); i++)
+				for (size_t i = 0; i < hull->get_vertices().size(); i++)
 				{
-					const Trigonometry::Vertex& V = Positions[i];
-					Vertices[i * 3 + 0] = (btScalar)V.PositionX;
-					Vertices[i * 3 + 1] = (btScalar)V.PositionY;
-					Vertices[i * 3 + 2] = (btScalar)V.PositionZ;
+					const trigonometry::vertex& v = positions[i];
+					vertices[i * 3 + 0] = (btScalar)v.position_x;
+					vertices[i * 3 + 1] = (btScalar)v.position_y;
+					vertices[i * 3 + 2] = (btScalar)v.position_z;
 				}
 
-				auto& Indices = Hull->GetIndices();
-				Instance = btSoftBodyHelpers::CreateFromTriMesh(Info, Vertices.data(), Indices.data(), (int)Indices.size() / 3, false);
+				auto& indices = hull->get_indices();
+				instance = btSoftBodyHelpers::CreateFromTriMesh(info, vertices.data(), indices.data(), (int)indices.size() / 3, false);
 			}
-			else if (Initial.Shape.Ellipsoid.Enabled)
+			else if (initial.shape.ellipsoid.enabled)
 			{
-				Instance = btSoftBodyHelpers::CreateEllipsoid(Info, V3_TO_BT(Initial.Shape.Ellipsoid.Center), V3_TO_BT(Initial.Shape.Ellipsoid.Radius), Initial.Shape.Ellipsoid.Count);
+				instance = btSoftBodyHelpers::CreateEllipsoid(info, V3_TO_BT(initial.shape.ellipsoid.center), V3_TO_BT(initial.shape.ellipsoid.radius), initial.shape.ellipsoid.count);
 			}
-			else if (Initial.Shape.Rope.Enabled)
+			else if (initial.shape.rope.enabled)
 			{
-				int FixedAnchors = 0;
-				if (Initial.Shape.Rope.StartFixed)
-					FixedAnchors |= 1;
+				int fixed_anchors = 0;
+				if (initial.shape.rope.start_fixed)
+					fixed_anchors |= 1;
 
-				if (Initial.Shape.Rope.EndFixed)
-					FixedAnchors |= 2;
+				if (initial.shape.rope.end_fixed)
+					fixed_anchors |= 2;
 
-				Instance = btSoftBodyHelpers::CreateRope(Info, V3_TO_BT(Initial.Shape.Rope.Start), V3_TO_BT(Initial.Shape.Rope.End), Initial.Shape.Rope.Count, FixedAnchors);
+				instance = btSoftBodyHelpers::CreateRope(info, V3_TO_BT(initial.shape.rope.start), V3_TO_BT(initial.shape.rope.end), initial.shape.rope.count, fixed_anchors);
 			}
 			else
 			{
-				int FixedCorners = 0;
-				if (Initial.Shape.Patch.Corner00Fixed)
-					FixedCorners |= 1;
+				int fixed_corners = 0;
+				if (initial.shape.patch.corner00_fixed)
+					fixed_corners |= 1;
 
-				if (Initial.Shape.Patch.Corner01Fixed)
-					FixedCorners |= 2;
+				if (initial.shape.patch.corner01_fixed)
+					fixed_corners |= 2;
 
-				if (Initial.Shape.Patch.Corner10Fixed)
-					FixedCorners |= 4;
+				if (initial.shape.patch.corner10_fixed)
+					fixed_corners |= 4;
 
-				if (Initial.Shape.Patch.Corner11Fixed)
-					FixedCorners |= 8;
+				if (initial.shape.patch.corner11_fixed)
+					fixed_corners |= 8;
 
-				Instance = btSoftBodyHelpers::CreatePatch(Info, V3_TO_BT(Initial.Shape.Patch.Corner00), V3_TO_BT(Initial.Shape.Patch.Corner10), V3_TO_BT(Initial.Shape.Patch.Corner01), V3_TO_BT(Initial.Shape.Patch.Corner11), Initial.Shape.Patch.CountX, Initial.Shape.Patch.CountY, FixedCorners, Initial.Shape.Patch.GenerateDiagonals);
+				instance = btSoftBodyHelpers::CreatePatch(info, V3_TO_BT(initial.shape.patch.corner00), V3_TO_BT(initial.shape.patch.corner10), V3_TO_BT(initial.shape.patch.corner01), V3_TO_BT(initial.shape.patch.corner11), initial.shape.patch.count_x, initial.shape.patch.count_y, fixed_corners, initial.shape.patch.generate_diagonals);
 			}
 
-			if (Initial.Anticipation > 0)
+			if (initial.anticipation > 0)
 			{
-				Instance->setCcdMotionThreshold(Initial.Anticipation);
-				Instance->setCcdSweptSphereRadius(Initial.Scale.Length() / 15.0f);
+				instance->setCcdMotionThreshold(initial.anticipation);
+				instance->setCcdSweptSphereRadius(initial.scale.length() / 15.0f);
 			}
 
-			SetConfig(Initial.Config);
-			Instance->randomizeConstraints();
-			Instance->setPose(true, true);
-			Instance->getCollisionShape()->setMargin(0.04f);
-			Instance->transform(BtTransform);
-			Instance->setUserPointer(this);
-			Instance->setTotalMass(100.0f, true);
+			set_config(initial.config);
+			instance->randomizeConstraints();
+			instance->setPose(true, true);
+			instance->getCollisionShape()->setMargin(0.04f);
+			instance->transform(bt_transform);
+			instance->setUserPointer(this);
+			instance->setTotalMass(100.0f, true);
 
-			if (Instance->getWorldArrayIndex() == -1)
-				World->addSoftBody(Instance);
+			if (instance->getWorldArrayIndex() == -1)
+				world->addSoftBody(instance);
 #endif
 		}
-		SoftBody::~SoftBody() noexcept
+		soft_body::~soft_body() noexcept
 		{
 #ifdef VI_BULLET3
-			if (!Instance)
+			if (!instance)
 				return;
 
-			btSoftRigidDynamicsWorld* World = (btSoftRigidDynamicsWorld*)Engine->GetWorld();
-			if (Instance->getWorldArrayIndex() >= 0)
-				World->removeSoftBody(Instance);
+			btSoftRigidDynamicsWorld* world = (btSoftRigidDynamicsWorld*)engine->get_world();
+			if (instance->getWorldArrayIndex() >= 0)
+				world->removeSoftBody(instance);
 
-			Instance->setUserPointer(nullptr);
-			Core::Memory::Delete(Instance);
+			instance->setUserPointer(nullptr);
+			core::memory::deinit(instance);
 #endif
 		}
-		SoftBody* SoftBody::Copy()
+		soft_body* soft_body::copy()
 		{
-			VI_ASSERT(Instance != nullptr, "softbody should be initialized");
+			VI_ASSERT(instance != nullptr, "softbody should be initialized");
 
-			Desc I(Initial);
-			I.Position = GetCenterPosition();
-			I.Rotation = GetRotation();
-			I.Scale = GetScale();
+			desc i(initial);
+			i.position = get_center_position();
+			i.rotation = get_rotation();
+			i.scale = get_scale();
 
-			SoftBody* Target = new SoftBody(Engine, I);
-			Target->SetSpinningFriction(GetSpinningFriction());
-			Target->SetContactDamping(GetContactDamping());
-			Target->SetContactStiffness(GetContactStiffness());
-			Target->SetActivationState(GetActivationState());
-			Target->SetFriction(GetFriction());
-			Target->SetRestitution(GetRestitution());
-			Target->SetHitFraction(GetHitFraction());
-			Target->SetCcdMotionThreshold(GetCcdMotionThreshold());
-			Target->SetCcdSweptSphereRadius(GetCcdSweptSphereRadius());
-			Target->SetContactProcessingThreshold(GetContactProcessingThreshold());
-			Target->SetDeactivationTime(GetDeactivationTime());
-			Target->SetRollingFriction(GetRollingFriction());
-			Target->SetAnisotropicFriction(GetAnisotropicFriction());
-			Target->SetWindVelocity(GetWindVelocity());
-			Target->SetContactStiffnessAndDamping(GetContactStiffness(), GetContactDamping());
-			Target->SetTotalMass(GetTotalMass());
-			Target->SetRestLengthScale(GetRestLengthScale());
-			Target->SetVelocity(GetLinearVelocity());
+			soft_body* target = new soft_body(engine, i);
+			target->set_spinning_friction(get_spinning_friction());
+			target->set_contact_damping(get_contact_damping());
+			target->set_contact_stiffness(get_contact_stiffness());
+			target->set_activation_state(get_activation_state());
+			target->set_friction(get_friction());
+			target->set_restitution(get_restitution());
+			target->set_hit_fraction(get_hit_fraction());
+			target->set_ccd_motion_threshold(get_ccd_motion_threshold());
+			target->set_ccd_swept_sphere_radius(get_ccd_swept_sphere_radius());
+			target->set_contact_processing_threshold(get_contact_processing_threshold());
+			target->set_deactivation_time(get_deactivation_time());
+			target->set_rolling_friction(get_rolling_friction());
+			target->set_anisotropic_friction(get_anisotropic_friction());
+			target->set_wind_velocity(get_wind_velocity());
+			target->set_contact_stiffness_and_damping(get_contact_stiffness(), get_contact_damping());
+			target->set_total_mass(get_total_mass());
+			target->set_rest_length_scale(get_rest_length_scale());
+			target->set_velocity(get_linear_velocity());
 
-			return Target;
+			return target;
 		}
-		void SoftBody::Activate(bool Force)
+		void soft_body::activate(bool force)
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "softbody should be initialized");
-			Instance->activate(Force);
+			VI_ASSERT(instance != nullptr, "softbody should be initialized");
+			instance->activate(force);
 #endif
 		}
-		void SoftBody::Synchronize(Trigonometry::Transform* Transform, bool Kinematic)
+		void soft_body::synchronize(trigonometry::transform* transform, bool kinematic)
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "softbody should be initialized");
-			VI_ASSERT(Transform != nullptr, "transform should be set");
+			VI_ASSERT(instance != nullptr, "softbody should be initialized");
+			VI_ASSERT(transform != nullptr, "transform should be set");
 #ifdef VI_VECTORCLASS
 			LOAD_VAL(_r1, 0.0f); LOAD_VAL(_r2, 0.0f);
-			for (int i = 0; i < Instance->m_nodes.size(); i++)
+			for (int i = 0; i < instance->m_nodes.size(); i++)
 			{
-				auto& Node = Instance->m_nodes[i];
-				_r2.store(Node.m_x.m_floats);
+				auto& node = instance->m_nodes[i];
+				_r2.store(node.m_x.m_floats);
 				_r1 += _r2;
 			}
 
-			_r1 /= (float)Instance->m_nodes.size();
-			_r1.store_partial(3, (float*)&Center);
+			_r1 /= (float)instance->m_nodes.size();
+			_r1.store_partial(3, (float*)&center);
 #else
-			Center.Set(0);
-			for (int i = 0; i < Instance->m_nodes.size(); i++)
+			center.set(0);
+			for (int i = 0; i < instance->m_nodes.size(); i++)
 			{
-				auto& Node = Instance->m_nodes[i];
-				Center.X += Node.m_x.x();
-				Center.Y += Node.m_x.y();
-				Center.Z += Node.m_x.z();
+				auto& node = instance->m_nodes[i];
+				center.x += node.m_x.x();
+				center.y += node.m_x.y();
+				center.z += node.m_x.z();
 			}
-			Center /= (float)Instance->m_nodes.size();
+			center /= (float)instance->m_nodes.size();
 #endif
-			if (!Kinematic)
+			if (!kinematic)
 			{
-				btScalar X, Y, Z;
-				Instance->getWorldTransform().getRotation().getEulerZYX(Z, Y, X);
-				Transform->SetPosition(Center.InvZ());
-				Transform->SetRotation(Trigonometry::Vector3(X, Y, Z));
+				btScalar x, y, z;
+				instance->getWorldTransform().getRotation().getEulerZYX(z, y, x);
+				transform->set_position(center.inv_z());
+				transform->set_rotation(trigonometry::vector3(x, y, z));
 			}
 			else
 			{
-				Trigonometry::Vector3 Position = Transform->GetPosition().InvZ() - Center;
-				if (Position.Length() > 0.005f)
-					Instance->translate(V3_TO_BT(Position));
+				trigonometry::vector3 position = transform->get_position().inv_z() - center;
+				if (position.length() > 0.005f)
+					instance->translate(V3_TO_BT(position));
 			}
 #endif
 		}
-		void SoftBody::GetIndices(Core::Vector<int>* Result) const
+		void soft_body::get_indices(core::vector<int>* result) const
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "softbody should be initialized");
-			VI_ASSERT(Result != nullptr, "result should be set");
+			VI_ASSERT(instance != nullptr, "softbody should be initialized");
+			VI_ASSERT(result != nullptr, "result should be set");
 
-			Core::UnorderedMap<btSoftBody::Node*, int> Nodes;
-			for (int i = 0; i < Instance->m_nodes.size(); i++)
-				Nodes.insert(std::make_pair(&Instance->m_nodes[i], i));
+			core::unordered_map<btSoftBody::Node*, int> nodes;
+			for (int i = 0; i < instance->m_nodes.size(); i++)
+				nodes.insert(std::make_pair(&instance->m_nodes[i], i));
 
-			for (int i = 0; i < Instance->m_faces.size(); i++)
+			for (int i = 0; i < instance->m_faces.size(); i++)
 			{
-				btSoftBody::Face& Face = Instance->m_faces[i];
+				btSoftBody::Face& face = instance->m_faces[i];
 				for (uint32_t j = 0; j < 3; j++)
 				{
-					auto It = Nodes.find(Face.m_n[j]);
-					if (It != Nodes.end())
-						Result->push_back(It->second);
+					auto it = nodes.find(face.m_n[j]);
+					if (it != nodes.end())
+						result->push_back(it->second);
 				}
 			}
 #endif
 		}
-		void SoftBody::GetVertices(Core::Vector<Trigonometry::Vertex>* Result) const
+		void soft_body::get_vertices(core::vector<trigonometry::vertex>* result) const
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "softbody should be initialized");
-			VI_ASSERT(Result != nullptr, "result should be set");
+			VI_ASSERT(instance != nullptr, "softbody should be initialized");
+			VI_ASSERT(result != nullptr, "result should be set");
 
-			static size_t PositionX = offsetof(Trigonometry::Vertex, PositionX);
-			static size_t NormalX = offsetof(Trigonometry::Vertex, NormalX);
+			static size_t position_x = offsetof(trigonometry::vertex, position_x);
+			static size_t normal_x = offsetof(trigonometry::vertex, normal_x);
 
-			size_t Size = (size_t)Instance->m_nodes.size();
-			if (Result->size() != Size)
+			size_t size = (size_t)instance->m_nodes.size();
+			if (result->size() != size)
 			{
-				if (Initial.Shape.Convex.Enabled)
-					*Result = Initial.Shape.Convex.Hull->GetVertices();
+				if (initial.shape.convex.enabled)
+					*result = initial.shape.convex.hull->get_vertices();
 				else
-					Result->resize(Size);
+					result->resize(size);
 			}
 
-			for (size_t i = 0; i < Size; i++)
+			for (size_t i = 0; i < size; i++)
 			{
-				auto* Node = &Instance->m_nodes[(int)i]; Trigonometry::Vertex& Position = Result->at(i);
-				memcpy(&Position + PositionX, Node->m_x.m_floats, sizeof(float) * 3);
-				memcpy(&Position + NormalX, Node->m_n.m_floats, sizeof(float) * 3);
+				auto* node = &instance->m_nodes[(int)i]; trigonometry::vertex& position = result->at(i);
+				memcpy(&position + position_x, node->m_x.m_floats, sizeof(float) * 3);
+				memcpy(&position + normal_x, node->m_n.m_floats, sizeof(float) * 3);
 			}
 #endif
 		}
-		void SoftBody::GetBoundingBox(Trigonometry::Vector3* Min, Trigonometry::Vector3* Max) const
+		void soft_body::get_bounding_box(trigonometry::vector3* min, trigonometry::vector3* max) const
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "softbody should be initialized");
+			VI_ASSERT(instance != nullptr, "softbody should be initialized");
 
 			btVector3 bMin, bMax;
-			Instance->getAabb(bMin, bMax);
-			if (Min != nullptr)
-				*Min = BT_TO_V3(bMin).InvZ();
+			instance->getAabb(bMin, bMax);
+			if (min != nullptr)
+				*min = BT_TO_V3(bMin).inv_z();
 
-			if (Max != nullptr)
-				*Max = BT_TO_V3(bMax).InvZ();
+			if (max != nullptr)
+				*max = BT_TO_V3(bMax).inv_z();
 #endif
 		}
-		void SoftBody::SetContactStiffnessAndDamping(float Stiffness, float Damping)
+		void soft_body::set_contact_stiffness_and_damping(float stiffness, float damping)
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "softbody should be initialized");
-			Instance->setContactStiffnessAndDamping(Stiffness, Damping);
+			VI_ASSERT(instance != nullptr, "softbody should be initialized");
+			instance->setContactStiffnessAndDamping(stiffness, damping);
 #endif
 		}
-		void SoftBody::AddAnchor(int Node, RigidBody* Body, bool DisableCollisionBetweenLinkedBodies, float Influence)
+		void soft_body::add_anchor(int node, rigid_body* body, bool disable_collision_between_linked_bodies, float influence)
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "softbody should be initialized");
-			VI_ASSERT(Body != nullptr, "body should be set");
-			Instance->appendAnchor(Node, Body->Get(), DisableCollisionBetweenLinkedBodies, Influence);
+			VI_ASSERT(instance != nullptr, "softbody should be initialized");
+			VI_ASSERT(body != nullptr, "body should be set");
+			instance->appendAnchor(node, body->get(), disable_collision_between_linked_bodies, influence);
 #endif
 		}
-		void SoftBody::AddAnchor(int Node, RigidBody* Body, const Trigonometry::Vector3& LocalPivot, bool DisableCollisionBetweenLinkedBodies, float Influence)
+		void soft_body::add_anchor(int node, rigid_body* body, const trigonometry::vector3& local_pivot, bool disable_collision_between_linked_bodies, float influence)
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "softbody should be initialized");
-			VI_ASSERT(Body != nullptr, "body should be set");
-			Instance->appendAnchor(Node, Body->Get(), V3_TO_BT(LocalPivot), DisableCollisionBetweenLinkedBodies, Influence);
+			VI_ASSERT(instance != nullptr, "softbody should be initialized");
+			VI_ASSERT(body != nullptr, "body should be set");
+			instance->appendAnchor(node, body->get(), V3_TO_BT(local_pivot), disable_collision_between_linked_bodies, influence);
 #endif
 		}
-		void SoftBody::AddForce(const Trigonometry::Vector3& Force)
+		void soft_body::add_force(const trigonometry::vector3& force)
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "softbody should be initialized");
-			Instance->addForce(V3_TO_BT(Force));
+			VI_ASSERT(instance != nullptr, "softbody should be initialized");
+			instance->addForce(V3_TO_BT(force));
 #endif
 		}
-		void SoftBody::AddForce(const Trigonometry::Vector3& Force, int Node)
+		void soft_body::add_force(const trigonometry::vector3& force, int node)
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "softbody should be initialized");
-			Instance->addForce(V3_TO_BT(Force), Node);
+			VI_ASSERT(instance != nullptr, "softbody should be initialized");
+			instance->addForce(V3_TO_BT(force), node);
 #endif
 		}
-		void SoftBody::AddAeroForceToNode(const Trigonometry::Vector3& WindVelocity, int NodeIndex)
+		void soft_body::add_aero_force_to_node(const trigonometry::vector3& wind_velocity, int node_index)
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "softbody should be initialized");
-			Instance->addAeroForceToNode(V3_TO_BT(WindVelocity), NodeIndex);
+			VI_ASSERT(instance != nullptr, "softbody should be initialized");
+			instance->addAeroForceToNode(V3_TO_BT(wind_velocity), node_index);
 #endif
 		}
-		void SoftBody::AddAeroForceToFace(const Trigonometry::Vector3& WindVelocity, int FaceIndex)
+		void soft_body::add_aero_force_to_face(const trigonometry::vector3& wind_velocity, int face_index)
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "softbody should be initialized");
-			Instance->addAeroForceToFace(V3_TO_BT(WindVelocity), FaceIndex);
+			VI_ASSERT(instance != nullptr, "softbody should be initialized");
+			instance->addAeroForceToFace(V3_TO_BT(wind_velocity), face_index);
 #endif
 		}
-		void SoftBody::AddVelocity(const Trigonometry::Vector3& Velocity)
+		void soft_body::add_velocity(const trigonometry::vector3& velocity)
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "softbody should be initialized");
-			Instance->addVelocity(V3_TO_BT(Velocity));
+			VI_ASSERT(instance != nullptr, "softbody should be initialized");
+			instance->addVelocity(V3_TO_BT(velocity));
 #endif
 		}
-		void SoftBody::SetVelocity(const Trigonometry::Vector3& Velocity)
+		void soft_body::set_velocity(const trigonometry::vector3& velocity)
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "softbody should be initialized");
-			Instance->setVelocity(V3_TO_BT(Velocity));
+			VI_ASSERT(instance != nullptr, "softbody should be initialized");
+			instance->setVelocity(V3_TO_BT(velocity));
 #endif
 		}
-		void SoftBody::AddVelocity(const Trigonometry::Vector3& Velocity, int Node)
+		void soft_body::add_velocity(const trigonometry::vector3& velocity, int node)
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "softbody should be initialized");
-			Instance->addVelocity(V3_TO_BT(Velocity), Node);
+			VI_ASSERT(instance != nullptr, "softbody should be initialized");
+			instance->addVelocity(V3_TO_BT(velocity), node);
 #endif
 		}
-		void SoftBody::SetMass(int Node, float Mass)
+		void soft_body::set_mass(int node, float mass)
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "softbody should be initialized");
-			Instance->setMass(Node, Mass);
+			VI_ASSERT(instance != nullptr, "softbody should be initialized");
+			instance->setMass(node, mass);
 #endif
 		}
-		void SoftBody::SetTotalMass(float Mass, bool FromFaces)
+		void soft_body::set_total_mass(float mass, bool from_faces)
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "softbody should be initialized");
-			Instance->setTotalMass(Mass, FromFaces);
+			VI_ASSERT(instance != nullptr, "softbody should be initialized");
+			instance->setTotalMass(mass, from_faces);
 #endif
 		}
-		void SoftBody::SetTotalDensity(float Density)
+		void soft_body::set_total_density(float density)
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "softbody should be initialized");
-			Instance->setTotalDensity(Density);
+			VI_ASSERT(instance != nullptr, "softbody should be initialized");
+			instance->setTotalDensity(density);
 #endif
 		}
-		void SoftBody::SetVolumeMass(float Mass)
+		void soft_body::set_volume_mass(float mass)
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "softbody should be initialized");
-			Instance->setVolumeMass(Mass);
+			VI_ASSERT(instance != nullptr, "softbody should be initialized");
+			instance->setVolumeMass(mass);
 #endif
 		}
-		void SoftBody::SetVolumeDensity(float Density)
+		void soft_body::set_volume_density(float density)
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "softbody should be initialized");
-			Instance->setVolumeDensity(Density);
+			VI_ASSERT(instance != nullptr, "softbody should be initialized");
+			instance->setVolumeDensity(density);
 #endif
 		}
-		void SoftBody::Translate(const Trigonometry::Vector3& Position)
+		void soft_body::translate(const trigonometry::vector3& position)
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "softbody should be initialized");
-			Instance->translate(btVector3(Position.X, Position.Y, -Position.Z));
+			VI_ASSERT(instance != nullptr, "softbody should be initialized");
+			instance->translate(btVector3(position.x, position.y, -position.z));
 #endif
 		}
-		void SoftBody::Rotate(const Trigonometry::Vector3& Rotation)
+		void soft_body::rotate(const trigonometry::vector3& rotation)
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "softbody should be initialized");
-			btQuaternion Value;
-			Value.setEulerZYX(Rotation.X, Rotation.Y, Rotation.Z);
-			Instance->rotate(Value);
+			VI_ASSERT(instance != nullptr, "softbody should be initialized");
+			btQuaternion value;
+			value.setEulerZYX(rotation.x, rotation.y, rotation.z);
+			instance->rotate(value);
 #endif
 		}
-		void SoftBody::Scale(const Trigonometry::Vector3& Scale)
+		void soft_body::scale(const trigonometry::vector3& scale)
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "softbody should be initialized");
-			Instance->scale(V3_TO_BT(Scale));
+			VI_ASSERT(instance != nullptr, "softbody should be initialized");
+			instance->scale(V3_TO_BT(scale));
 #endif
 		}
-		void SoftBody::SetRestLengthScale(float RestLength)
+		void soft_body::set_rest_length_scale(float rest_length)
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "softbody should be initialized");
-			Instance->setRestLengthScale(RestLength);
+			VI_ASSERT(instance != nullptr, "softbody should be initialized");
+			instance->setRestLengthScale(rest_length);
 #endif
 		}
-		void SoftBody::SetPose(bool Volume, bool Frame)
+		void soft_body::set_pose(bool volume, bool frame)
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "softbody should be initialized");
-			Instance->setPose(Volume, Frame);
+			VI_ASSERT(instance != nullptr, "softbody should be initialized");
+			instance->setPose(volume, frame);
 #endif
 		}
-		float SoftBody::GetMass(int Node) const
+		float soft_body::get_mass(int node) const
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "softbody should be initialized");
-			return Instance->getMass(Node);
+			VI_ASSERT(instance != nullptr, "softbody should be initialized");
+			return instance->getMass(node);
 #else
 			return 0;
 #endif
 		}
-		float SoftBody::GetTotalMass() const
+		float soft_body::get_total_mass() const
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "softbody should be initialized");
-			return Instance->getTotalMass();
+			VI_ASSERT(instance != nullptr, "softbody should be initialized");
+			return instance->getTotalMass();
 #else
 			return 0;
 #endif
 		}
-		float SoftBody::GetRestLengthScale() const
+		float soft_body::get_rest_length_scale() const
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "softbody should be initialized");
-			return Instance->getRestLengthScale();
+			VI_ASSERT(instance != nullptr, "softbody should be initialized");
+			return instance->getRestLengthScale();
 #else
 			return 0;
 #endif
 		}
-		float SoftBody::GetVolume() const
+		float soft_body::get_volume() const
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "softbody should be initialized");
-			return Instance->getVolume();
+			VI_ASSERT(instance != nullptr, "softbody should be initialized");
+			return instance->getVolume();
 #else
 			return 0;
 #endif
 		}
-		int SoftBody::GenerateBendingConstraints(int Distance)
+		int soft_body::generate_bending_constraints(int distance)
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "softbody should be initialized");
-			return Instance->generateBendingConstraints(Distance);
+			VI_ASSERT(instance != nullptr, "softbody should be initialized");
+			return instance->generateBendingConstraints(distance);
 #else
 			return 0;
 #endif
 		}
-		void SoftBody::RandomizeConstraints()
+		void soft_body::randomize_constraints()
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "softbody should be initialized");
-			Instance->randomizeConstraints();
+			VI_ASSERT(instance != nullptr, "softbody should be initialized");
+			instance->randomizeConstraints();
 #endif
 		}
-		bool SoftBody::CutLink(int Node0, int Node1, float Position)
+		bool soft_body::cut_link(int node0, int node1, float position)
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "softbody should be initialized");
-			return Instance->cutLink(Node0, Node1, Position);
+			VI_ASSERT(instance != nullptr, "softbody should be initialized");
+			return instance->cutLink(node0, node1, position);
 #else
 			return false;
 #endif
 		}
-		bool SoftBody::RayTest(const Trigonometry::Vector3& From, const Trigonometry::Vector3& To, RayCast& Result)
+		bool soft_body::ray_test(const trigonometry::vector3& from, const trigonometry::vector3& to, ray_cast& result)
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "softbody should be initialized");
-			btSoftBody::sRayCast Cast;
-			bool R = Instance->rayTest(V3_TO_BT(From), V3_TO_BT(To), Cast);
-			Result.Body = Get(Cast.body);
-			Result.Feature = (SoftFeature)Cast.feature;
-			Result.Index = Cast.index;
-			Result.Fraction = Cast.fraction;
+			VI_ASSERT(instance != nullptr, "softbody should be initialized");
+			btSoftBody::sRayCast cast;
+			bool r = instance->rayTest(V3_TO_BT(from), V3_TO_BT(to), cast);
+			result.body = get(cast.body);
+			result.feature = (soft_feature)cast.feature;
+			result.index = cast.index;
+			result.fraction = cast.fraction;
 
-			return R;
+			return r;
 #else
 			return false;
 #endif
 		}
-		void SoftBody::SetWindVelocity(const Trigonometry::Vector3& Velocity)
+		void soft_body::set_wind_velocity(const trigonometry::vector3& velocity)
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "softbody should be initialized");
-			Instance->setWindVelocity(V3_TO_BT(Velocity));
+			VI_ASSERT(instance != nullptr, "softbody should be initialized");
+			instance->setWindVelocity(V3_TO_BT(velocity));
 #endif
 		}
-		Trigonometry::Vector3 SoftBody::GetWindVelocity() const
+		trigonometry::vector3 soft_body::get_wind_velocity() const
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "softbody should be initialized");
-			btVector3 Value = Instance->getWindVelocity();
-			return BT_TO_V3(Value);
+			VI_ASSERT(instance != nullptr, "softbody should be initialized");
+			btVector3 value = instance->getWindVelocity();
+			return BT_TO_V3(value);
 #else
 			return 0;
 #endif
 		}
-		void SoftBody::GetAabb(Trigonometry::Vector3& Min, Trigonometry::Vector3& Max) const
+		void soft_body::get_aabb(trigonometry::vector3& min, trigonometry::vector3& max) const
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "softbody should be initialized");
-			btVector3 BMin, BMax;
-			Instance->getAabb(BMin, BMax);
-			Min = BT_TO_V3(BMin);
-			Max = BT_TO_V3(BMax);
+			VI_ASSERT(instance != nullptr, "softbody should be initialized");
+			btVector3 bmin, bmax;
+			instance->getAabb(bmin, bmax);
+			min = BT_TO_V3(bmin);
+			max = BT_TO_V3(bmax);
 #endif
 		}
-		void SoftBody::IndicesToPointers(const int* Map)
+		void soft_body::indices_to_pointers(const int* map)
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "softbody should be initialized");
-			VI_ASSERT(Map != nullptr, "map should be set");
-			Instance->indicesToPointers(Map);
+			VI_ASSERT(instance != nullptr, "softbody should be initialized");
+			VI_ASSERT(map != nullptr, "map should be set");
+			instance->indicesToPointers(map);
 #endif
 		}
-		void SoftBody::SetSpinningFriction(float Value)
+		void soft_body::set_spinning_friction(float value)
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "softbody should be initialized");
-			Instance->setSpinningFriction(Value);
+			VI_ASSERT(instance != nullptr, "softbody should be initialized");
+			instance->setSpinningFriction(value);
 #endif
 		}
-		Trigonometry::Vector3 SoftBody::GetLinearVelocity() const
+		trigonometry::vector3 soft_body::get_linear_velocity() const
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "softbody should be initialized");
-			btVector3 Value = Instance->getInterpolationLinearVelocity();
-			return Trigonometry::Vector3(Value.getX(), Value.getY(), Value.getZ());
+			VI_ASSERT(instance != nullptr, "softbody should be initialized");
+			btVector3 value = instance->getInterpolationLinearVelocity();
+			return trigonometry::vector3(value.getX(), value.getY(), value.getZ());
 #else
 			return 0;
 #endif
 		}
-		Trigonometry::Vector3 SoftBody::GetAngularVelocity() const
+		trigonometry::vector3 soft_body::get_angular_velocity() const
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "softbody should be initialized");
-			btVector3 Value = Instance->getInterpolationAngularVelocity();
-			return Trigonometry::Vector3(Value.getX(), Value.getY(), Value.getZ());
+			VI_ASSERT(instance != nullptr, "softbody should be initialized");
+			btVector3 value = instance->getInterpolationAngularVelocity();
+			return trigonometry::vector3(value.getX(), value.getY(), value.getZ());
 #else
 			return 0;
 #endif
 		}
-		Trigonometry::Vector3 SoftBody::GetCenterPosition() const
+		trigonometry::vector3 soft_body::get_center_position() const
 		{
 #ifdef VI_BULLET3
-			return Center;
+			return center;
 #else
 			return 0;
 #endif
 		}
-		void SoftBody::SetActivity(bool Active)
+		void soft_body::set_activity(bool active)
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "softbody should be initialized");
-			if (GetActivationState() == MotionState::Disable_Deactivation)
+			VI_ASSERT(instance != nullptr, "softbody should be initialized");
+			if (get_activation_state() == motion_state::disable_deactivation)
 				return;
 
-			if (Active)
-				Instance->forceActivationState((int)MotionState::Active);
+			if (active)
+				instance->forceActivationState((int)motion_state::active);
 			else
-				Instance->forceActivationState((int)MotionState::Deactivation_Needed);
+				instance->forceActivationState((int)motion_state::deactivation_needed);
 #endif
 		}
-		void SoftBody::SetAsGhost()
+		void soft_body::set_as_ghost()
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "softbody should be initialized");
-			Instance->setCollisionFlags(btCollisionObject::CF_NO_CONTACT_RESPONSE);
+			VI_ASSERT(instance != nullptr, "softbody should be initialized");
+			instance->setCollisionFlags(btCollisionObject::CF_NO_CONTACT_RESPONSE);
 #endif
 		}
-		void SoftBody::SetAsNormal()
+		void soft_body::set_as_normal()
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "softbody should be initialized");
-			Instance->setCollisionFlags(0);
+			VI_ASSERT(instance != nullptr, "softbody should be initialized");
+			instance->setCollisionFlags(0);
 #endif
 		}
-		void SoftBody::SetSelfPointer()
+		void soft_body::set_self_pointer()
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "softbody should be initialized");
-			Instance->setUserPointer(this);
+			VI_ASSERT(instance != nullptr, "softbody should be initialized");
+			instance->setUserPointer(this);
 #endif
 		}
-		void SoftBody::SetWorldTransform(btTransform* Value)
+		void soft_body::set_world_transform(btTransform* value)
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "softbody should be initialized");
-			VI_ASSERT(Value != nullptr, "transform should be set");
-			Instance->setWorldTransform(*Value);
+			VI_ASSERT(instance != nullptr, "softbody should be initialized");
+			VI_ASSERT(value != nullptr, "transform should be set");
+			instance->setWorldTransform(*value);
 #endif
 		}
-		void SoftBody::SetActivationState(MotionState Value)
+		void soft_body::set_activation_state(motion_state value)
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "softbody should be initialized");
-			Instance->forceActivationState((int)Value);
+			VI_ASSERT(instance != nullptr, "softbody should be initialized");
+			instance->forceActivationState((int)value);
 #endif
 		}
-		void SoftBody::SetFriction(float Value)
+		void soft_body::set_friction(float value)
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "softbody should be initialized");
-			Instance->setFriction(Value);
+			VI_ASSERT(instance != nullptr, "softbody should be initialized");
+			instance->setFriction(value);
 #endif
 		}
-		void SoftBody::SetRestitution(float Value)
+		void soft_body::set_restitution(float value)
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "softbody should be initialized");
-			Instance->setRestitution(Value);
+			VI_ASSERT(instance != nullptr, "softbody should be initialized");
+			instance->setRestitution(value);
 #endif
 		}
-		void SoftBody::SetContactStiffness(float Value)
+		void soft_body::set_contact_stiffness(float value)
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "softbody should be initialized");
-			Instance->setContactStiffnessAndDamping(Value, Instance->getContactDamping());
+			VI_ASSERT(instance != nullptr, "softbody should be initialized");
+			instance->setContactStiffnessAndDamping(value, instance->getContactDamping());
 #endif
 		}
-		void SoftBody::SetContactDamping(float Value)
+		void soft_body::set_contact_damping(float value)
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "softbody should be initialized");
-			Instance->setContactStiffnessAndDamping(Instance->getContactStiffness(), Value);
+			VI_ASSERT(instance != nullptr, "softbody should be initialized");
+			instance->setContactStiffnessAndDamping(instance->getContactStiffness(), value);
 #endif
 		}
-		void SoftBody::SetHitFraction(float Value)
+		void soft_body::set_hit_fraction(float value)
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "softbody should be initialized");
-			Instance->setHitFraction(Value);
+			VI_ASSERT(instance != nullptr, "softbody should be initialized");
+			instance->setHitFraction(value);
 #endif
 		}
-		void SoftBody::SetCcdMotionThreshold(float Value)
+		void soft_body::set_ccd_motion_threshold(float value)
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "softbody should be initialized");
-			Instance->setCcdMotionThreshold(Value);
+			VI_ASSERT(instance != nullptr, "softbody should be initialized");
+			instance->setCcdMotionThreshold(value);
 #endif
 		}
-		void SoftBody::SetCcdSweptSphereRadius(float Value)
+		void soft_body::set_ccd_swept_sphere_radius(float value)
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "softbody should be initialized");
-			Instance->setCcdSweptSphereRadius(Value);
+			VI_ASSERT(instance != nullptr, "softbody should be initialized");
+			instance->setCcdSweptSphereRadius(value);
 #endif
 		}
-		void SoftBody::SetContactProcessingThreshold(float Value)
+		void soft_body::set_contact_processing_threshold(float value)
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "softbody should be initialized");
-			Instance->setContactProcessingThreshold(Value);
+			VI_ASSERT(instance != nullptr, "softbody should be initialized");
+			instance->setContactProcessingThreshold(value);
 #endif
 		}
-		void SoftBody::SetDeactivationTime(float Value)
+		void soft_body::set_deactivation_time(float value)
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "softbody should be initialized");
-			Instance->setDeactivationTime(Value);
+			VI_ASSERT(instance != nullptr, "softbody should be initialized");
+			instance->setDeactivationTime(value);
 #endif
 		}
-		void SoftBody::SetRollingFriction(float Value)
+		void soft_body::set_rolling_friction(float value)
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "softbody should be initialized");
-			Instance->setRollingFriction(Value);
+			VI_ASSERT(instance != nullptr, "softbody should be initialized");
+			instance->setRollingFriction(value);
 #endif
 		}
-		void SoftBody::SetAnisotropicFriction(const Trigonometry::Vector3& Value)
+		void soft_body::set_anisotropic_friction(const trigonometry::vector3& value)
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "softbody should be initialized");
-			Instance->setAnisotropicFriction(V3_TO_BT(Value));
+			VI_ASSERT(instance != nullptr, "softbody should be initialized");
+			instance->setAnisotropicFriction(V3_TO_BT(value));
 #endif
 		}
-		void SoftBody::SetConfig(const Desc::SConfig& Conf)
+		void soft_body::set_config(const desc::sconfig& conf)
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "softbody should be initialized");
-			Initial.Config = Conf;
-			Instance->m_cfg.aeromodel = (btSoftBody::eAeroModel::_)Initial.Config.AeroModel;
-			Instance->m_cfg.kVCF = Initial.Config.VCF;
-			Instance->m_cfg.kDP = Initial.Config.DP;
-			Instance->m_cfg.kDG = Initial.Config.DG;
-			Instance->m_cfg.kLF = Initial.Config.LF;
-			Instance->m_cfg.kPR = Initial.Config.PR;
-			Instance->m_cfg.kVC = Initial.Config.VC;
-			Instance->m_cfg.kDF = Initial.Config.DF;
-			Instance->m_cfg.kMT = Initial.Config.MT;
-			Instance->m_cfg.kCHR = Initial.Config.CHR;
-			Instance->m_cfg.kKHR = Initial.Config.KHR;
-			Instance->m_cfg.kSHR = Initial.Config.SHR;
-			Instance->m_cfg.kAHR = Initial.Config.AHR;
-			Instance->m_cfg.kSRHR_CL = Initial.Config.SRHR_CL;
-			Instance->m_cfg.kSKHR_CL = Initial.Config.SKHR_CL;
-			Instance->m_cfg.kSSHR_CL = Initial.Config.SSHR_CL;
-			Instance->m_cfg.kSR_SPLT_CL = Initial.Config.SR_SPLT_CL;
-			Instance->m_cfg.kSK_SPLT_CL = Initial.Config.SK_SPLT_CL;
-			Instance->m_cfg.kSS_SPLT_CL = Initial.Config.SS_SPLT_CL;
-			Instance->m_cfg.maxvolume = Initial.Config.MaxVolume;
-			Instance->m_cfg.timescale = Initial.Config.TimeScale;
-			Instance->m_cfg.viterations = Initial.Config.VIterations;
-			Instance->m_cfg.piterations = Initial.Config.PIterations;
-			Instance->m_cfg.diterations = Initial.Config.DIterations;
-			Instance->m_cfg.citerations = Initial.Config.CIterations;
-			Instance->m_cfg.collisions = Initial.Config.Collisions;
-			Instance->m_cfg.m_maxStress = Initial.Config.MaxStress;
-			Instance->m_cfg.drag = Initial.Config.Drag;
+			VI_ASSERT(instance != nullptr, "softbody should be initialized");
+			initial.config = conf;
+			instance->m_cfg.aeromodel = (btSoftBody::eAeroModel::_)initial.config.aero_model;
+			instance->m_cfg.kVCF = initial.config.vcf;
+			instance->m_cfg.kDP = initial.config.dp;
+			instance->m_cfg.kDG = initial.config.dg;
+			instance->m_cfg.kLF = initial.config.lf;
+			instance->m_cfg.kPR = initial.config.pr;
+			instance->m_cfg.kVC = initial.config.vc;
+			instance->m_cfg.kDF = initial.config.df;
+			instance->m_cfg.kMT = initial.config.mt;
+			instance->m_cfg.kCHR = initial.config.chr;
+			instance->m_cfg.kKHR = initial.config.khr;
+			instance->m_cfg.kSHR = initial.config.shr;
+			instance->m_cfg.kAHR = initial.config.ahr;
+			instance->m_cfg.kSRHR_CL = initial.config.srhr_cl;
+			instance->m_cfg.kSKHR_CL = initial.config.skhr_cl;
+			instance->m_cfg.kSSHR_CL = initial.config.sshr_cl;
+			instance->m_cfg.kSR_SPLT_CL = initial.config.sr_splt_cl;
+			instance->m_cfg.kSK_SPLT_CL = initial.config.sk_splt_cl;
+			instance->m_cfg.kSS_SPLT_CL = initial.config.ss_splt_cl;
+			instance->m_cfg.maxvolume = initial.config.max_volume;
+			instance->m_cfg.timescale = initial.config.time_scale;
+			instance->m_cfg.viterations = initial.config.viterations;
+			instance->m_cfg.piterations = initial.config.piterations;
+			instance->m_cfg.diterations = initial.config.diterations;
+			instance->m_cfg.citerations = initial.config.citerations;
+			instance->m_cfg.collisions = initial.config.collisions;
+			instance->m_cfg.m_maxStress = initial.config.max_stress;
+			instance->m_cfg.drag = initial.config.drag;
 
-			if (Initial.Config.Constraints > 0)
-				Instance->generateBendingConstraints(Initial.Config.Constraints);
+			if (initial.config.constraints > 0)
+				instance->generateBendingConstraints(initial.config.constraints);
 
-			if (Initial.Config.Clusters > 0)
-				Instance->generateClusters(Initial.Config.Clusters);
+			if (initial.config.clusters > 0)
+				instance->generateClusters(initial.config.clusters);
 #endif
 		}
-		MotionState SoftBody::GetActivationState() const
+		motion_state soft_body::get_activation_state() const
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "softbody should be initialized");
-			return (MotionState)Instance->getActivationState();
+			VI_ASSERT(instance != nullptr, "softbody should be initialized");
+			return (motion_state)instance->getActivationState();
 #else
-			return MotionState::Island_Sleeping;
+			return motion_state::island_sleeping;
 #endif
 		}
-		Shape SoftBody::GetCollisionShapeType() const
+		shape soft_body::get_collision_shape_type() const
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "softbody should be initialized");
-			if (!Initial.Shape.Convex.Enabled)
-				return Shape::Invalid;
+			VI_ASSERT(instance != nullptr, "softbody should be initialized");
+			if (!initial.shape.convex.enabled)
+				return shape::invalid;
 
-			return Shape::Convex_Hull;
+			return shape::convex_hull;
 #else
-			return Shape::Invalid;
+			return shape::invalid;
 #endif
 		}
-		Trigonometry::Vector3 SoftBody::GetAnisotropicFriction() const
+		trigonometry::vector3 soft_body::get_anisotropic_friction() const
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "softbody should be initialized");
-			btVector3 Value = Instance->getAnisotropicFriction();
-			return Trigonometry::Vector3(Value.getX(), Value.getY(), Value.getZ());
+			VI_ASSERT(instance != nullptr, "softbody should be initialized");
+			btVector3 value = instance->getAnisotropicFriction();
+			return trigonometry::vector3(value.getX(), value.getY(), value.getZ());
 #else
 			return 0;
 #endif
 		}
-		Trigonometry::Vector3 SoftBody::GetScale() const
+		trigonometry::vector3 soft_body::get_scale() const
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "softbody should be initialized");
+			VI_ASSERT(instance != nullptr, "softbody should be initialized");
 			btVector3 bMin, bMax;
-			Instance->getAabb(bMin, bMax);
+			instance->getAabb(bMin, bMax);
 			btVector3 bScale = bMax - bMin;
-			Trigonometry::Vector3 Scale = BT_TO_V3(bScale);
+			trigonometry::vector3 scale = BT_TO_V3(bScale);
 
-			return Scale.Div(2.0f).Abs();
+			return scale.div(2.0f).abs();
 #else
 			return 0;
 #endif
 		}
-		Trigonometry::Vector3 SoftBody::GetPosition() const
+		trigonometry::vector3 soft_body::get_position() const
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "softbody should be initialized");
-			btVector3 Value = Instance->getWorldTransform().getOrigin();
-			return Trigonometry::Vector3(Value.getX(), Value.getY(), Value.getZ());
+			VI_ASSERT(instance != nullptr, "softbody should be initialized");
+			btVector3 value = instance->getWorldTransform().getOrigin();
+			return trigonometry::vector3(value.getX(), value.getY(), value.getZ());
 #else
 			return 0;
 #endif
 		}
-		Trigonometry::Vector3 SoftBody::GetRotation() const
+		trigonometry::vector3 soft_body::get_rotation() const
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "softbody should be initialized");
-			btScalar X, Y, Z;
-			Instance->getWorldTransform().getBasis().getEulerZYX(Z, Y, X);
-			return Trigonometry::Vector3(-X, -Y, Z);
+			VI_ASSERT(instance != nullptr, "softbody should be initialized");
+			btScalar x, y, z;
+			instance->getWorldTransform().getBasis().getEulerZYX(z, y, x);
+			return trigonometry::vector3(-x, -y, z);
 #else
 			return 0;
 #endif
 		}
-		btTransform* SoftBody::GetWorldTransform() const
+		btTransform* soft_body::get_world_transform() const
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "softbody should be initialized");
-			return &Instance->getWorldTransform();
+			VI_ASSERT(instance != nullptr, "softbody should be initialized");
+			return &instance->getWorldTransform();
 #else
 			return nullptr;
 #endif
 		}
-		btSoftBody* SoftBody::Get() const
+		btSoftBody* soft_body::get() const
 		{
 #ifdef VI_BULLET3
-			return Instance;
+			return instance;
 #else
 			return nullptr;
 #endif
 		}
-		bool SoftBody::IsGhost() const
+		bool soft_body::is_ghost() const
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "softbody should be initialized");
-			return (Instance->getCollisionFlags() & btCollisionObject::CF_NO_CONTACT_RESPONSE) != 0;
+			VI_ASSERT(instance != nullptr, "softbody should be initialized");
+			return (instance->getCollisionFlags() & btCollisionObject::CF_NO_CONTACT_RESPONSE) != 0;
 #else
 			return false;
 #endif
 		}
-		bool SoftBody::IsActive() const
+		bool soft_body::is_active() const
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "softbody should be initialized");
-			return Instance->isActive();
+			VI_ASSERT(instance != nullptr, "softbody should be initialized");
+			return instance->isActive();
 #else
 			return false;
 #endif
 		}
-		bool SoftBody::IsStatic() const
+		bool soft_body::is_static() const
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "softbody should be initialized");
-			return Instance->isStaticObject();
+			VI_ASSERT(instance != nullptr, "softbody should be initialized");
+			return instance->isStaticObject();
 #else
 			return true;
 #endif
 		}
-		bool SoftBody::IsColliding() const
+		bool soft_body::is_colliding() const
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "softbody should be initialized");
-			return Instance->hasContactResponse();
+			VI_ASSERT(instance != nullptr, "softbody should be initialized");
+			return instance->hasContactResponse();
 #else
 			return false;
 #endif
 		}
-		float SoftBody::GetSpinningFriction() const
+		float soft_body::get_spinning_friction() const
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "softbody should be initialized");
-			return Instance->getSpinningFriction();
+			VI_ASSERT(instance != nullptr, "softbody should be initialized");
+			return instance->getSpinningFriction();
 #else
 			return 0;
 #endif
 		}
-		float SoftBody::GetContactStiffness() const
+		float soft_body::get_contact_stiffness() const
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "softbody should be initialized");
-			return Instance->getContactStiffness();
+			VI_ASSERT(instance != nullptr, "softbody should be initialized");
+			return instance->getContactStiffness();
 #else
 			return 0;
 #endif
 		}
-		float SoftBody::GetContactDamping() const
+		float soft_body::get_contact_damping() const
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "softbody should be initialized");
-			return Instance->getContactDamping();
+			VI_ASSERT(instance != nullptr, "softbody should be initialized");
+			return instance->getContactDamping();
 #else
 			return 0;
 #endif
 		}
-		float SoftBody::GetFriction() const
+		float soft_body::get_friction() const
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "softbody should be initialized");
-			return Instance->getFriction();
+			VI_ASSERT(instance != nullptr, "softbody should be initialized");
+			return instance->getFriction();
 #else
 			return 0;
 #endif
 		}
-		float SoftBody::GetRestitution() const
+		float soft_body::get_restitution() const
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "softbody should be initialized");
-			return Instance->getRestitution();
+			VI_ASSERT(instance != nullptr, "softbody should be initialized");
+			return instance->getRestitution();
 #else
 			return 0;
 #endif
 		}
-		float SoftBody::GetHitFraction() const
+		float soft_body::get_hit_fraction() const
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "softbody should be initialized");
-			return Instance->getHitFraction();
+			VI_ASSERT(instance != nullptr, "softbody should be initialized");
+			return instance->getHitFraction();
 #else
 			return 0;
 #endif
 		}
-		float SoftBody::GetCcdMotionThreshold() const
+		float soft_body::get_ccd_motion_threshold() const
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "softbody should be initialized");
-			return Instance->getCcdMotionThreshold();
+			VI_ASSERT(instance != nullptr, "softbody should be initialized");
+			return instance->getCcdMotionThreshold();
 #else
 			return 0;
 #endif
 		}
-		float SoftBody::GetCcdSweptSphereRadius() const
+		float soft_body::get_ccd_swept_sphere_radius() const
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "softbody should be initialized");
-			return Instance->getCcdSweptSphereRadius();
+			VI_ASSERT(instance != nullptr, "softbody should be initialized");
+			return instance->getCcdSweptSphereRadius();
 #else
 			return 0;
 #endif
 		}
-		float SoftBody::GetContactProcessingThreshold() const
+		float soft_body::get_contact_processing_threshold() const
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "softbody should be initialized");
-			return Instance->getContactProcessingThreshold();
+			VI_ASSERT(instance != nullptr, "softbody should be initialized");
+			return instance->getContactProcessingThreshold();
 #else
 			return 0;
 #endif
 		}
-		float SoftBody::GetDeactivationTime() const
+		float soft_body::get_deactivation_time() const
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "softbody should be initialized");
-			return Instance->getDeactivationTime();
+			VI_ASSERT(instance != nullptr, "softbody should be initialized");
+			return instance->getDeactivationTime();
 #else
 			return 0;
 #endif
 		}
-		float SoftBody::GetRollingFriction() const
+		float soft_body::get_rolling_friction() const
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "softbody should be initialized");
-			return Instance->getRollingFriction();
+			VI_ASSERT(instance != nullptr, "softbody should be initialized");
+			return instance->getRollingFriction();
 #else
 			return 0;
 #endif
 		}
-		size_t SoftBody::GetCollisionFlags() const
+		size_t soft_body::get_collision_flags() const
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "softbody should be initialized");
-			return Instance->getCollisionFlags();
+			VI_ASSERT(instance != nullptr, "softbody should be initialized");
+			return instance->getCollisionFlags();
 #else
 			return 0;
 #endif
 		}
-		size_t SoftBody::GetVerticesCount() const
+		size_t soft_body::get_vertices_count() const
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "softbody should be initialized");
-			return Instance->m_nodes.size();
+			VI_ASSERT(instance != nullptr, "softbody should be initialized");
+			return instance->m_nodes.size();
 #else
 			return 0;
 #endif
 		}
-		SoftBody::Desc& SoftBody::GetInitialState()
+		soft_body::desc& soft_body::get_initial_state()
 		{
-			return Initial;
+			return initial;
 		}
-		Simulator* SoftBody::GetSimulator() const
+		simulator* soft_body::get_simulator() const
 		{
 #ifdef VI_BULLET3
-			return Engine;
+			return engine;
 #else
 			return nullptr;
 #endif
 		}
-		SoftBody* SoftBody::Get(btSoftBody* From)
+		soft_body* soft_body::get(btSoftBody* from)
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(From != nullptr, "softbody should be set");
-			return (SoftBody*)From->getUserPointer();
+			VI_ASSERT(from != nullptr, "softbody should be set");
+			return (soft_body*)from->getUserPointer();
 #else
 			return nullptr;
 #endif
 		}
 
-		Constraint::Constraint(Simulator* Refer) noexcept : First(nullptr), Second(nullptr), Engine(Refer), UserPointer(nullptr)
+		constraint::constraint(simulator* refer) noexcept : first(nullptr), second(nullptr), engine(refer), user_pointer(nullptr)
 		{
 		}
-		void Constraint::SetBreakingImpulseThreshold(float Value)
+		void constraint::set_breaking_impulse_threshold(float value)
 		{
 #ifdef VI_BULLET3
-			btTypedConstraint* Base = Get();
-			VI_ASSERT(Base != nullptr, "typed constraint should be initialized");
-			Base->setBreakingImpulseThreshold(Value);
+			btTypedConstraint* base = get();
+			VI_ASSERT(base != nullptr, "typed constraint should be initialized");
+			base->setBreakingImpulseThreshold(value);
 #endif
 		}
-		void Constraint::SetEnabled(bool Value)
+		void constraint::set_enabled(bool value)
 		{
 #ifdef VI_BULLET3
-			btTypedConstraint* Base = Get();
-			VI_ASSERT(Base != nullptr, "typed constraint should be initialized");
-			Base->setEnabled(Value);
+			btTypedConstraint* base = get();
+			VI_ASSERT(base != nullptr, "typed constraint should be initialized");
+			base->setEnabled(value);
 #endif
 		}
-		btRigidBody* Constraint::GetFirst() const
+		btRigidBody* constraint::get_first() const
 		{
 #ifdef VI_BULLET3
-			return First;
+			return first;
 #else
 			return nullptr;
 #endif
 		}
-		btRigidBody* Constraint::GetSecond() const
+		btRigidBody* constraint::get_second() const
 		{
 #ifdef VI_BULLET3
-			return Second;
+			return second;
 #else
 			return nullptr;
 #endif
 		}
-		float Constraint::GetBreakingImpulseThreshold() const
+		float constraint::get_breaking_impulse_threshold() const
 		{
 #ifdef VI_BULLET3
-			btTypedConstraint* Base = Get();
-			VI_ASSERT(Base != nullptr, "typed constraint should be initialized");
-			return Base->getBreakingImpulseThreshold();
+			btTypedConstraint* base = get();
+			VI_ASSERT(base != nullptr, "typed constraint should be initialized");
+			return base->getBreakingImpulseThreshold();
 #else
 			return 0;
 #endif
 		}
-		bool Constraint::IsActive() const
+		bool constraint::is_active() const
 		{
 #ifdef VI_BULLET3
-			btTypedConstraint* Base = Get();
-			if (!Base || !First || !Second)
+			btTypedConstraint* base = get();
+			if (!base || !first || !second)
 				return false;
 
-			if (First != nullptr)
+			if (first != nullptr)
 			{
-				for (int i = 0; i < First->getNumConstraintRefs(); i++)
+				for (int i = 0; i < first->getNumConstraintRefs(); i++)
 				{
-					if (First->getConstraintRef(i) == Base)
+					if (first->getConstraintRef(i) == base)
 						return true;
 				}
 			}
 
-			if (Second != nullptr)
+			if (second != nullptr)
 			{
-				for (int i = 0; i < Second->getNumConstraintRefs(); i++)
+				for (int i = 0; i < second->getNumConstraintRefs(); i++)
 				{
-					if (Second->getConstraintRef(i) == Base)
+					if (second->getConstraintRef(i) == base)
 						return true;
 				}
 			}
@@ -2045,2194 +2045,2194 @@ namespace Vitex
 			return false;
 #endif
 		}
-		bool Constraint::IsEnabled() const
+		bool constraint::is_enabled() const
 		{
 #ifdef VI_BULLET3
-			btTypedConstraint* Base = Get();
-			VI_ASSERT(Base != nullptr, "typed constraint should be initialized");
-			return Base->isEnabled();
+			btTypedConstraint* base = get();
+			VI_ASSERT(base != nullptr, "typed constraint should be initialized");
+			return base->isEnabled();
 #else
 			return false;
 #endif
 		}
-		Simulator* Constraint::GetSimulator() const
+		simulator* constraint::get_simulator() const
 		{
-			return Engine;
+			return engine;
 		}
 
-		PConstraint::PConstraint(Simulator* Refer, const Desc& I) noexcept : Constraint(Refer), Instance(nullptr), State(I)
+		pconstraint::pconstraint(simulator* refer, const desc& i) noexcept : constraint(refer), instance(nullptr), state(i)
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(I.TargetA != nullptr, "target A rigidbody should be set");
-			VI_ASSERT(Engine != nullptr, "simulator should be set");
+			VI_ASSERT(i.target_a != nullptr, "target a rigidbody should be set");
+			VI_ASSERT(engine != nullptr, "simulator should be set");
 
-			First = I.TargetA->Get();
-			Second = (I.TargetB ? I.TargetB->Get() : nullptr);
+			first = i.target_a->get();
+			second = (i.target_b ? i.target_b->get() : nullptr);
 
-			if (Second != nullptr)
-				Instance = Core::Memory::New<btPoint2PointConstraint>(*First, *Second, V3_TO_BT(I.PivotA), V3_TO_BT(I.PivotB));
+			if (second != nullptr)
+				instance = core::memory::init<btPoint2PointConstraint>(*first, *second, V3_TO_BT(i.pivot_a), V3_TO_BT(i.pivot_b));
 			else
-				Instance = Core::Memory::New<btPoint2PointConstraint>(*First, V3_TO_BT(I.PivotA));
+				instance = core::memory::init<btPoint2PointConstraint>(*first, V3_TO_BT(i.pivot_a));
 
-			Instance->setUserConstraintPtr(this);
-			Engine->AddConstraint(this);
+			instance->setUserConstraintPtr(this);
+			engine->add_constraint(this);
 #endif
 		}
-		PConstraint::~PConstraint() noexcept
+		pconstraint::~pconstraint() noexcept
 		{
 #ifdef VI_BULLET3
-			Engine->RemoveConstraint(this);
-			Core::Memory::Delete(Instance);
+			engine->remove_constraint(this);
+			core::memory::deinit(instance);
 #endif
 		}
-		Constraint* PConstraint::Copy() const
+		constraint* pconstraint::copy() const
 		{
-			VI_ASSERT(Instance != nullptr, "p2p constraint should be initialized");
-			PConstraint* Target = new PConstraint(Engine, State);
-			Target->SetBreakingImpulseThreshold(GetBreakingImpulseThreshold());
-			Target->SetEnabled(IsEnabled());
-			Target->SetPivotA(GetPivotA());
-			Target->SetPivotB(GetPivotB());
+			VI_ASSERT(instance != nullptr, "p2p constraint should be initialized");
+			pconstraint* target = new pconstraint(engine, state);
+			target->set_breaking_impulse_threshold(get_breaking_impulse_threshold());
+			target->set_enabled(is_enabled());
+			target->set_pivot_a(get_pivot_a());
+			target->set_pivot_b(get_pivot_b());
 
-			return Target;
+			return target;
 		}
-		btTypedConstraint* PConstraint::Get() const
+		btTypedConstraint* pconstraint::get() const
 		{
 #ifdef VI_BULLET3
-			return Instance;
+			return instance;
 #else
 			return nullptr;
 #endif
 		}
-		bool PConstraint::HasCollisions() const
+		bool pconstraint::has_collisions() const
 		{
-			return State.Collisions;
+			return state.collisions;
 		}
-		void PConstraint::SetPivotA(const Trigonometry::Vector3& Value)
+		void pconstraint::set_pivot_a(const trigonometry::vector3& value)
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "p2p constraint should be initialized");
-			Instance->setPivotA(V3_TO_BT(Value));
-			State.PivotA = Value;
+			VI_ASSERT(instance != nullptr, "p2p constraint should be initialized");
+			instance->setPivotA(V3_TO_BT(value));
+			state.pivot_a = value;
 #endif
 		}
-		void PConstraint::SetPivotB(const Trigonometry::Vector3& Value)
+		void pconstraint::set_pivot_b(const trigonometry::vector3& value)
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "p2p constraint should be initialized");
-			Instance->setPivotB(V3_TO_BT(Value));
-			State.PivotB = Value;
+			VI_ASSERT(instance != nullptr, "p2p constraint should be initialized");
+			instance->setPivotB(V3_TO_BT(value));
+			state.pivot_b = value;
 #endif
 		}
-		Trigonometry::Vector3 PConstraint::GetPivotA() const
+		trigonometry::vector3 pconstraint::get_pivot_a() const
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "p2p constraint should be initialized");
-			const btVector3& Value = Instance->getPivotInA();
-			return BT_TO_V3(Value);
+			VI_ASSERT(instance != nullptr, "p2p constraint should be initialized");
+			const btVector3& value = instance->getPivotInA();
+			return BT_TO_V3(value);
 #else
 			return 0;
 #endif
 		}
-		Trigonometry::Vector3 PConstraint::GetPivotB() const
+		trigonometry::vector3 pconstraint::get_pivot_b() const
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "p2p constraint should be initialized");
-			const btVector3& Value = Instance->getPivotInB();
-			return BT_TO_V3(Value);
+			VI_ASSERT(instance != nullptr, "p2p constraint should be initialized");
+			const btVector3& value = instance->getPivotInB();
+			return BT_TO_V3(value);
 #else
 			return 0;
 #endif
 		}
-		PConstraint::Desc& PConstraint::GetState()
+		pconstraint::desc& pconstraint::get_state()
 		{
-			return State;
+			return state;
 		}
 
-		HConstraint::HConstraint(Simulator* Refer, const Desc& I) noexcept : Constraint(Refer), Instance(nullptr), State(I)
+		hconstraint::hconstraint(simulator* refer, const desc& i) noexcept : constraint(refer), instance(nullptr), state(i)
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(I.TargetA != nullptr, "target A rigidbody should be set");
-			VI_ASSERT(Engine != nullptr, "simulator should be set");
+			VI_ASSERT(i.target_a != nullptr, "target a rigidbody should be set");
+			VI_ASSERT(engine != nullptr, "simulator should be set");
 
-			First = I.TargetA->Get();
-			Second = (I.TargetB ? I.TargetB->Get() : nullptr);
+			first = i.target_a->get();
+			second = (i.target_b ? i.target_b->get() : nullptr);
 
-			if (Second != nullptr)
-				Instance = Core::Memory::New<btHingeConstraint>(*First, *Second, btTransform::getIdentity(), btTransform::getIdentity(), I.References);
+			if (second != nullptr)
+				instance = core::memory::init<btHingeConstraint>(*first, *second, btTransform::getIdentity(), btTransform::getIdentity(), i.references);
 			else
-				Instance = Core::Memory::New<btHingeConstraint>(*First, btTransform::getIdentity(), I.References);
+				instance = core::memory::init<btHingeConstraint>(*first, btTransform::getIdentity(), i.references);
 
-			Instance->setUserConstraintPtr(this);
-			Engine->AddConstraint(this);
+			instance->setUserConstraintPtr(this);
+			engine->add_constraint(this);
 #endif
 		}
-		HConstraint::~HConstraint() noexcept
+		hconstraint::~hconstraint() noexcept
 		{
 #ifdef VI_BULLET3
-			Engine->RemoveConstraint(this);
-			Core::Memory::Delete(Instance);
+			engine->remove_constraint(this);
+			core::memory::deinit(instance);
 #endif
 		}
-		Constraint* HConstraint::Copy() const
+		constraint* hconstraint::copy() const
 		{
-			VI_ASSERT(Instance != nullptr, "hinge constraint should be initialized");
-			HConstraint* Target = new HConstraint(Engine, State);
-			Target->SetBreakingImpulseThreshold(GetBreakingImpulseThreshold());
-			Target->SetEnabled(IsEnabled());
-			Target->EnableAngularMotor(IsAngularMotorEnabled(), GetMotorTargetVelocity(), GetMaxMotorImpulse());
-			Target->SetAngularOnly(IsAngularOnly());
-			Target->SetLimit(GetLowerLimit(), GetUpperLimit(), GetLimitSoftness(), GetLimitBiasFactor(), GetLimitRelaxationFactor());
-			Target->SetOffset(IsOffset());
+			VI_ASSERT(instance != nullptr, "hinge constraint should be initialized");
+			hconstraint* target = new hconstraint(engine, state);
+			target->set_breaking_impulse_threshold(get_breaking_impulse_threshold());
+			target->set_enabled(is_enabled());
+			target->enable_angular_motor(is_angular_motor_enabled(), get_motor_target_velocity(), get_max_motor_impulse());
+			target->set_angular_only(is_angular_only());
+			target->set_limit(get_lower_limit(), get_upper_limit(), get_limit_softness(), get_limit_bias_factor(), get_limit_relaxation_factor());
+			target->set_offset(is_offset());
 
-			return Target;
+			return target;
 		}
-		btTypedConstraint* HConstraint::Get() const
+		btTypedConstraint* hconstraint::get() const
 		{
 #ifdef VI_BULLET3
-			return Instance;
+			return instance;
 #else
 			return nullptr;
 #endif
 		}
-		bool HConstraint::HasCollisions() const
+		bool hconstraint::has_collisions() const
 		{
-			return State.Collisions;
+			return state.collisions;
 		}
-		void HConstraint::EnableAngularMotor(bool Enable, float TargetVelocity, float MaxMotorImpulse)
+		void hconstraint::enable_angular_motor(bool enable, float target_velocity, float max_motor_impulse)
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "hinge constraint should be initialized");
-			Instance->enableAngularMotor(Enable, TargetVelocity, MaxMotorImpulse);
+			VI_ASSERT(instance != nullptr, "hinge constraint should be initialized");
+			instance->enableAngularMotor(enable, target_velocity, max_motor_impulse);
 #endif
 		}
-		void HConstraint::EnableMotor(bool Enable)
+		void hconstraint::enable_motor(bool enable)
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "hinge constraint should be initialized");
-			Instance->enableMotor(Enable);
+			VI_ASSERT(instance != nullptr, "hinge constraint should be initialized");
+			instance->enableMotor(enable);
 #endif
 		}
-		void HConstraint::TestLimit(const Trigonometry::Matrix4x4& A, const Trigonometry::Matrix4x4& B)
+		void hconstraint::test_limit(const trigonometry::matrix4x4& a, const trigonometry::matrix4x4& b)
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "hinge constraint should be initialized");
-			Instance->testLimit(M16_TO_BT(A), M16_TO_BT(B));
+			VI_ASSERT(instance != nullptr, "hinge constraint should be initialized");
+			instance->testLimit(M16_TO_BT(a), M16_TO_BT(b));
 #endif
 		}
-		void HConstraint::SetFrames(const Trigonometry::Matrix4x4& A, const Trigonometry::Matrix4x4& B)
+		void hconstraint::set_frames(const trigonometry::matrix4x4& a, const trigonometry::matrix4x4& b)
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "hinge constraint should be initialized");
-			Instance->setFrames(M16_TO_BT(A), M16_TO_BT(B));
+			VI_ASSERT(instance != nullptr, "hinge constraint should be initialized");
+			instance->setFrames(M16_TO_BT(a), M16_TO_BT(b));
 #endif
 		}
-		void HConstraint::SetAngularOnly(bool Value)
+		void hconstraint::set_angular_only(bool value)
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "hinge constraint should be initialized");
-			Instance->setAngularOnly(Value);
+			VI_ASSERT(instance != nullptr, "hinge constraint should be initialized");
+			instance->setAngularOnly(value);
 #endif
 		}
-		void HConstraint::SetMaxMotorImpulse(float Value)
+		void hconstraint::set_max_motor_impulse(float value)
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "hinge constraint should be initialized");
-			Instance->setMaxMotorImpulse(Value);
+			VI_ASSERT(instance != nullptr, "hinge constraint should be initialized");
+			instance->setMaxMotorImpulse(value);
 #endif
 		}
-		void HConstraint::SetMotorTargetVelocity(float Value)
+		void hconstraint::set_motor_target_velocity(float value)
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "hinge constraint should be initialized");
-			Instance->setMotorTargetVelocity(Value);
+			VI_ASSERT(instance != nullptr, "hinge constraint should be initialized");
+			instance->setMotorTargetVelocity(value);
 #endif
 		}
-		void HConstraint::SetMotorTarget(float TargetAngle, float Delta)
+		void hconstraint::set_motor_target(float target_angle, float delta)
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "hinge constraint should be initialized");
-			Instance->setMotorTarget(TargetAngle, Delta);
+			VI_ASSERT(instance != nullptr, "hinge constraint should be initialized");
+			instance->setMotorTarget(target_angle, delta);
 #endif
 		}
-		void HConstraint::SetLimit(float Low, float High, float Softness, float BiasFactor, float RelaxationFactor)
+		void hconstraint::set_limit(float low, float high, float softness, float bias_factor, float relaxation_factor)
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "hinge constraint should be initialized");
-			Instance->setLimit(Low, High, Softness, BiasFactor, RelaxationFactor);
+			VI_ASSERT(instance != nullptr, "hinge constraint should be initialized");
+			instance->setLimit(low, high, softness, bias_factor, relaxation_factor);
 #endif
 		}
-		void HConstraint::SetOffset(bool Value)
+		void hconstraint::set_offset(bool value)
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "hinge constraint should be initialized");
-			Instance->setUseFrameOffset(Value);
+			VI_ASSERT(instance != nullptr, "hinge constraint should be initialized");
+			instance->setUseFrameOffset(value);
 #endif
 		}
-		void HConstraint::SetReferenceToA(bool Value)
+		void hconstraint::set_reference_to_a(bool value)
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "hinge constraint should be initialized");
-			Instance->setUseReferenceFrameA(Value);
+			VI_ASSERT(instance != nullptr, "hinge constraint should be initialized");
+			instance->setUseReferenceFrameA(value);
 #endif
 		}
-		void HConstraint::SetAxis(const Trigonometry::Vector3& Value)
+		void hconstraint::set_axis(const trigonometry::vector3& value)
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "hinge constraint should be initialized");
-			btVector3 Axis = V3_TO_BT(Value);
-			Instance->setAxis(Axis);
+			VI_ASSERT(instance != nullptr, "hinge constraint should be initialized");
+			btVector3 axis = V3_TO_BT(value);
+			instance->setAxis(axis);
 #endif
 		}
-		int HConstraint::GetSolveLimit() const
+		int hconstraint::get_solve_limit() const
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "hinge constraint should be initialized");
-			return Instance->getSolveLimit();
+			VI_ASSERT(instance != nullptr, "hinge constraint should be initialized");
+			return instance->getSolveLimit();
 #else
 			return 0;
 #endif
 		}
-		float HConstraint::GetMotorTargetVelocity() const
+		float hconstraint::get_motor_target_velocity() const
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "hinge constraint should be initialized");
-			return Instance->getMotorTargetVelocity();
+			VI_ASSERT(instance != nullptr, "hinge constraint should be initialized");
+			return instance->getMotorTargetVelocity();
 #else
 			return 0;
 #endif
 		}
-		float HConstraint::GetMaxMotorImpulse() const
+		float hconstraint::get_max_motor_impulse() const
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "hinge constraint should be initialized");
-			return Instance->getMaxMotorImpulse();
+			VI_ASSERT(instance != nullptr, "hinge constraint should be initialized");
+			return instance->getMaxMotorImpulse();
 #else
 			return 0;
 #endif
 		}
-		float HConstraint::GetLimitSign() const
+		float hconstraint::get_limit_sign() const
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "hinge constraint should be initialized");
-			return Instance->getLimitSign();
+			VI_ASSERT(instance != nullptr, "hinge constraint should be initialized");
+			return instance->getLimitSign();
 #else
 			return 0;
 #endif
 		}
-		float HConstraint::GetHingeAngle() const
+		float hconstraint::get_hinge_angle() const
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "hinge constraint should be initialized");
-			return Instance->getHingeAngle();
+			VI_ASSERT(instance != nullptr, "hinge constraint should be initialized");
+			return instance->getHingeAngle();
 #else
 			return 0;
 #endif
 		}
-		float HConstraint::GetHingeAngle(const Trigonometry::Matrix4x4& A, const Trigonometry::Matrix4x4& B) const
+		float hconstraint::get_hinge_angle(const trigonometry::matrix4x4& a, const trigonometry::matrix4x4& b) const
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "hinge constraint should be initialized");
-			return Instance->getHingeAngle(M16_TO_BT(A), M16_TO_BT(B));
+			VI_ASSERT(instance != nullptr, "hinge constraint should be initialized");
+			return instance->getHingeAngle(M16_TO_BT(a), M16_TO_BT(b));
 #else
 			return 0;
 #endif
 		}
-		float HConstraint::GetLowerLimit() const
+		float hconstraint::get_lower_limit() const
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "hinge constraint should be initialized");
-			return Instance->getLowerLimit();
+			VI_ASSERT(instance != nullptr, "hinge constraint should be initialized");
+			return instance->getLowerLimit();
 #else
 			return 0;
 #endif
 		}
-		float HConstraint::GetUpperLimit() const
+		float hconstraint::get_upper_limit() const
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "hinge constraint should be initialized");
-			return Instance->getUpperLimit();
+			VI_ASSERT(instance != nullptr, "hinge constraint should be initialized");
+			return instance->getUpperLimit();
 #else
 			return 0;
 #endif
 		}
-		float HConstraint::GetLimitSoftness() const
+		float hconstraint::get_limit_softness() const
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "hinge constraint should be initialized");
-			return Instance->getLimitSoftness();
+			VI_ASSERT(instance != nullptr, "hinge constraint should be initialized");
+			return instance->getLimitSoftness();
 #else
 			return 0;
 #endif
 		}
-		float HConstraint::GetLimitBiasFactor() const
+		float hconstraint::get_limit_bias_factor() const
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "hinge constraint should be initialized");
-			return Instance->getLimitBiasFactor();
+			VI_ASSERT(instance != nullptr, "hinge constraint should be initialized");
+			return instance->getLimitBiasFactor();
 #else
 			return 0;
 #endif
 		}
-		float HConstraint::GetLimitRelaxationFactor() const
+		float hconstraint::get_limit_relaxation_factor() const
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "hinge constraint should be initialized");
-			return Instance->getLimitRelaxationFactor();
+			VI_ASSERT(instance != nullptr, "hinge constraint should be initialized");
+			return instance->getLimitRelaxationFactor();
 #else
 			return 0;
 #endif
 		}
-		bool HConstraint::HasLimit() const
+		bool hconstraint::has_limit() const
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "hinge constraint should be initialized");
-			return Instance->hasLimit();
+			VI_ASSERT(instance != nullptr, "hinge constraint should be initialized");
+			return instance->hasLimit();
 #else
 			return 0;
 #endif
 		}
-		bool HConstraint::IsOffset() const
+		bool hconstraint::is_offset() const
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "hinge constraint should be initialized");
-			return Instance->getUseFrameOffset();
+			VI_ASSERT(instance != nullptr, "hinge constraint should be initialized");
+			return instance->getUseFrameOffset();
 #else
 			return 0;
 #endif
 		}
-		bool HConstraint::IsReferenceToA() const
+		bool hconstraint::is_reference_to_a() const
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "hinge constraint should be initialized");
-			return Instance->getUseReferenceFrameA();
+			VI_ASSERT(instance != nullptr, "hinge constraint should be initialized");
+			return instance->getUseReferenceFrameA();
 #else
 			return 0;
 #endif
 		}
-		bool HConstraint::IsAngularOnly() const
+		bool hconstraint::is_angular_only() const
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "hinge constraint should be initialized");
-			return Instance->getAngularOnly();
+			VI_ASSERT(instance != nullptr, "hinge constraint should be initialized");
+			return instance->getAngularOnly();
 #else
 			return 0;
 #endif
 		}
-		bool HConstraint::IsAngularMotorEnabled() const
+		bool hconstraint::is_angular_motor_enabled() const
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "hinge constraint should be initialized");
-			return Instance->getEnableAngularMotor();
+			VI_ASSERT(instance != nullptr, "hinge constraint should be initialized");
+			return instance->getEnableAngularMotor();
 #else
 			return 0;
 #endif
 		}
-		HConstraint::Desc& HConstraint::GetState()
+		hconstraint::desc& hconstraint::get_state()
 		{
-			return State;
+			return state;
 		}
 
-		SConstraint::SConstraint(Simulator* Refer, const Desc& I) noexcept : Constraint(Refer), Instance(nullptr), State(I)
+		sconstraint::sconstraint(simulator* refer, const desc& i) noexcept : constraint(refer), instance(nullptr), state(i)
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(I.TargetA != nullptr, "target A rigidbody should be set");
-			VI_ASSERT(Engine != nullptr, "simulator should be set");
+			VI_ASSERT(i.target_a != nullptr, "target a rigidbody should be set");
+			VI_ASSERT(engine != nullptr, "simulator should be set");
 
-			First = I.TargetA->Get();
-			Second = (I.TargetB ? I.TargetB->Get() : nullptr);
+			first = i.target_a->get();
+			second = (i.target_b ? i.target_b->get() : nullptr);
 
-			if (Second != nullptr)
-				Instance = Core::Memory::New<btSliderConstraint>(*First, *Second, btTransform::getIdentity(), btTransform::getIdentity(), I.Linear);
+			if (second != nullptr)
+				instance = core::memory::init<btSliderConstraint>(*first, *second, btTransform::getIdentity(), btTransform::getIdentity(), i.linear);
 			else
-				Instance = Core::Memory::New<btSliderConstraint>(*First, btTransform::getIdentity(), I.Linear);
+				instance = core::memory::init<btSliderConstraint>(*first, btTransform::getIdentity(), i.linear);
 
-			Instance->setUserConstraintPtr(this);
-			Engine->AddConstraint(this);
+			instance->setUserConstraintPtr(this);
+			engine->add_constraint(this);
 #endif
 		}
-		SConstraint::~SConstraint() noexcept
+		sconstraint::~sconstraint() noexcept
 		{
 #ifdef VI_BULLET3
-			Engine->RemoveConstraint(this);
-			Core::Memory::Delete(Instance);
+			engine->remove_constraint(this);
+			core::memory::deinit(instance);
 #endif
 		}
-		Constraint* SConstraint::Copy() const
+		constraint* sconstraint::copy() const
 		{
-			VI_ASSERT(Instance != nullptr, "slider constraint should be initialized");
-			SConstraint* Target = new SConstraint(Engine, State);
-			Target->SetBreakingImpulseThreshold(GetBreakingImpulseThreshold());
-			Target->SetEnabled(IsEnabled());
-			Target->SetAngularMotorVelocity(GetAngularMotorVelocity());
-			Target->SetLinearMotorVelocity(GetLinearMotorVelocity());
-			Target->SetUpperLinearLimit(GetUpperLinearLimit());
-			Target->SetLowerLinearLimit(GetLowerLinearLimit());
-			Target->SetAngularDampingDirection(GetAngularDampingDirection());
-			Target->SetLinearDampingDirection(GetLinearDampingDirection());
-			Target->SetAngularDampingLimit(GetAngularDampingLimit());
-			Target->SetLinearDampingLimit(GetLinearDampingLimit());
-			Target->SetAngularDampingOrtho(GetAngularDampingOrtho());
-			Target->SetLinearDampingOrtho(GetLinearDampingOrtho());
-			Target->SetUpperAngularLimit(GetUpperAngularLimit());
-			Target->SetLowerAngularLimit(GetLowerAngularLimit());
-			Target->SetMaxAngularMotorForce(GetMaxAngularMotorForce());
-			Target->SetMaxLinearMotorForce(GetMaxLinearMotorForce());
-			Target->SetAngularRestitutionDirection(GetAngularRestitutionDirection());
-			Target->SetLinearRestitutionDirection(GetLinearRestitutionDirection());
-			Target->SetAngularRestitutionLimit(GetAngularRestitutionLimit());
-			Target->SetLinearRestitutionLimit(GetLinearRestitutionLimit());
-			Target->SetAngularRestitutionOrtho(GetAngularRestitutionOrtho());
-			Target->SetLinearRestitutionOrtho(GetLinearRestitutionOrtho());
-			Target->SetAngularSoftnessDirection(GetAngularSoftnessDirection());
-			Target->SetLinearSoftnessDirection(GetLinearSoftnessDirection());
-			Target->SetAngularSoftnessLimit(GetAngularSoftnessLimit());
-			Target->SetLinearSoftnessLimit(GetLinearSoftnessLimit());
-			Target->SetAngularSoftnessOrtho(GetAngularSoftnessOrtho());
-			Target->SetLinearSoftnessOrtho(GetLinearSoftnessOrtho());
-			Target->SetPoweredAngularMotor(GetPoweredAngularMotor());
-			Target->SetPoweredLinearMotor(GetPoweredLinearMotor());
+			VI_ASSERT(instance != nullptr, "slider constraint should be initialized");
+			sconstraint* target = new sconstraint(engine, state);
+			target->set_breaking_impulse_threshold(get_breaking_impulse_threshold());
+			target->set_enabled(is_enabled());
+			target->set_angular_motor_velocity(get_angular_motor_velocity());
+			target->set_linear_motor_velocity(get_linear_motor_velocity());
+			target->set_upper_linear_limit(get_upper_linear_limit());
+			target->set_lower_linear_limit(get_lower_linear_limit());
+			target->set_angular_damping_direction(get_angular_damping_direction());
+			target->set_linear_damping_direction(get_linear_damping_direction());
+			target->set_angular_damping_limit(get_angular_damping_limit());
+			target->set_linear_damping_limit(get_linear_damping_limit());
+			target->set_angular_damping_ortho(get_angular_damping_ortho());
+			target->set_linear_damping_ortho(get_linear_damping_ortho());
+			target->set_upper_angular_limit(get_upper_angular_limit());
+			target->set_lower_angular_limit(get_lower_angular_limit());
+			target->set_max_angular_motor_force(get_max_angular_motor_force());
+			target->set_max_linear_motor_force(get_max_linear_motor_force());
+			target->set_angular_restitution_direction(get_angular_restitution_direction());
+			target->set_linear_restitution_direction(get_linear_restitution_direction());
+			target->set_angular_restitution_limit(get_angular_restitution_limit());
+			target->set_linear_restitution_limit(get_linear_restitution_limit());
+			target->set_angular_restitution_ortho(get_angular_restitution_ortho());
+			target->set_linear_restitution_ortho(get_linear_restitution_ortho());
+			target->set_angular_softness_direction(get_angular_softness_direction());
+			target->set_linear_softness_direction(get_linear_softness_direction());
+			target->set_angular_softness_limit(get_angular_softness_limit());
+			target->set_linear_softness_limit(get_linear_softness_limit());
+			target->set_angular_softness_ortho(get_angular_softness_ortho());
+			target->set_linear_softness_ortho(get_linear_softness_ortho());
+			target->set_powered_angular_motor(get_powered_angular_motor());
+			target->set_powered_linear_motor(get_powered_linear_motor());
 
-			return Target;
+			return target;
 		}
-		btTypedConstraint* SConstraint::Get() const
+		btTypedConstraint* sconstraint::get() const
 		{
 #ifdef VI_BULLET3
-			return Instance;
+			return instance;
 #else
 			return nullptr;
 #endif
 		}
-		bool SConstraint::HasCollisions() const
+		bool sconstraint::has_collisions() const
 		{
-			return State.Collisions;
+			return state.collisions;
 		}
-		void SConstraint::SetAngularMotorVelocity(float Value)
+		void sconstraint::set_angular_motor_velocity(float value)
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "slider constraint should be initialized");
-			Instance->setTargetAngMotorVelocity(Value);
+			VI_ASSERT(instance != nullptr, "slider constraint should be initialized");
+			instance->setTargetAngMotorVelocity(value);
 #endif
 		}
-		void SConstraint::SetLinearMotorVelocity(float Value)
+		void sconstraint::set_linear_motor_velocity(float value)
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "slider constraint should be initialized");
-			Instance->setTargetLinMotorVelocity(Value);
+			VI_ASSERT(instance != nullptr, "slider constraint should be initialized");
+			instance->setTargetLinMotorVelocity(value);
 #endif
 		}
-		void SConstraint::SetUpperLinearLimit(float Value)
+		void sconstraint::set_upper_linear_limit(float value)
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "slider constraint should be initialized");
-			Instance->setUpperLinLimit(Value);
+			VI_ASSERT(instance != nullptr, "slider constraint should be initialized");
+			instance->setUpperLinLimit(value);
 #endif
 		}
-		void SConstraint::SetLowerLinearLimit(float Value)
+		void sconstraint::set_lower_linear_limit(float value)
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "slider constraint should be initialized");
-			Instance->setLowerLinLimit(Value);
+			VI_ASSERT(instance != nullptr, "slider constraint should be initialized");
+			instance->setLowerLinLimit(value);
 #endif
 		}
-		void SConstraint::SetAngularDampingDirection(float Value)
+		void sconstraint::set_angular_damping_direction(float value)
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "slider constraint should be initialized");
-			Instance->setDampingDirAng(Value);
+			VI_ASSERT(instance != nullptr, "slider constraint should be initialized");
+			instance->setDampingDirAng(value);
 #endif
 		}
-		void SConstraint::SetLinearDampingDirection(float Value)
+		void sconstraint::set_linear_damping_direction(float value)
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "slider constraint should be initialized");
-			Instance->setDampingDirLin(Value);
+			VI_ASSERT(instance != nullptr, "slider constraint should be initialized");
+			instance->setDampingDirLin(value);
 #endif
 		}
-		void SConstraint::SetAngularDampingLimit(float Value)
+		void sconstraint::set_angular_damping_limit(float value)
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "slider constraint should be initialized");
-			Instance->setDampingLimAng(Value);
+			VI_ASSERT(instance != nullptr, "slider constraint should be initialized");
+			instance->setDampingLimAng(value);
 #endif
 		}
-		void SConstraint::SetLinearDampingLimit(float Value)
+		void sconstraint::set_linear_damping_limit(float value)
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "slider constraint should be initialized");
-			Instance->setDampingLimLin(Value);
+			VI_ASSERT(instance != nullptr, "slider constraint should be initialized");
+			instance->setDampingLimLin(value);
 #endif
 		}
-		void SConstraint::SetAngularDampingOrtho(float Value)
+		void sconstraint::set_angular_damping_ortho(float value)
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "slider constraint should be initialized");
-			Instance->setDampingOrthoAng(Value);
+			VI_ASSERT(instance != nullptr, "slider constraint should be initialized");
+			instance->setDampingOrthoAng(value);
 #endif
 		}
-		void SConstraint::SetLinearDampingOrtho(float Value)
+		void sconstraint::set_linear_damping_ortho(float value)
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "slider constraint should be initialized");
-			Instance->setDampingOrthoLin(Value);
+			VI_ASSERT(instance != nullptr, "slider constraint should be initialized");
+			instance->setDampingOrthoLin(value);
 #endif
 		}
-		void SConstraint::SetUpperAngularLimit(float Value)
+		void sconstraint::set_upper_angular_limit(float value)
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "slider constraint should be initialized");
-			Instance->setUpperAngLimit(Value);
+			VI_ASSERT(instance != nullptr, "slider constraint should be initialized");
+			instance->setUpperAngLimit(value);
 #endif
 		}
-		void SConstraint::SetLowerAngularLimit(float Value)
+		void sconstraint::set_lower_angular_limit(float value)
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "slider constraint should be initialized");
-			Instance->setLowerAngLimit(Value);
+			VI_ASSERT(instance != nullptr, "slider constraint should be initialized");
+			instance->setLowerAngLimit(value);
 #endif
 		}
-		void SConstraint::SetMaxAngularMotorForce(float Value)
+		void sconstraint::set_max_angular_motor_force(float value)
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "slider constraint should be initialized");
-			Instance->setMaxAngMotorForce(Value);
+			VI_ASSERT(instance != nullptr, "slider constraint should be initialized");
+			instance->setMaxAngMotorForce(value);
 #endif
 		}
-		void SConstraint::SetMaxLinearMotorForce(float Value)
+		void sconstraint::set_max_linear_motor_force(float value)
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "slider constraint should be initialized");
-			Instance->setMaxLinMotorForce(Value);
+			VI_ASSERT(instance != nullptr, "slider constraint should be initialized");
+			instance->setMaxLinMotorForce(value);
 #endif
 		}
-		void SConstraint::SetAngularRestitutionDirection(float Value)
+		void sconstraint::set_angular_restitution_direction(float value)
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "slider constraint should be initialized");
-			Instance->setRestitutionDirAng(Value);
+			VI_ASSERT(instance != nullptr, "slider constraint should be initialized");
+			instance->setRestitutionDirAng(value);
 #endif
 		}
-		void SConstraint::SetLinearRestitutionDirection(float Value)
+		void sconstraint::set_linear_restitution_direction(float value)
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "slider constraint should be initialized");
-			Instance->setRestitutionDirLin(Value);
+			VI_ASSERT(instance != nullptr, "slider constraint should be initialized");
+			instance->setRestitutionDirLin(value);
 #endif
 		}
-		void SConstraint::SetAngularRestitutionLimit(float Value)
+		void sconstraint::set_angular_restitution_limit(float value)
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "slider constraint should be initialized");
-			Instance->setRestitutionLimAng(Value);
+			VI_ASSERT(instance != nullptr, "slider constraint should be initialized");
+			instance->setRestitutionLimAng(value);
 #endif
 		}
-		void SConstraint::SetLinearRestitutionLimit(float Value)
+		void sconstraint::set_linear_restitution_limit(float value)
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "slider constraint should be initialized");
-			Instance->setRestitutionLimLin(Value);
+			VI_ASSERT(instance != nullptr, "slider constraint should be initialized");
+			instance->setRestitutionLimLin(value);
 #endif
 		}
-		void SConstraint::SetAngularRestitutionOrtho(float Value)
+		void sconstraint::set_angular_restitution_ortho(float value)
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "slider constraint should be initialized");
-			Instance->setRestitutionOrthoAng(Value);
+			VI_ASSERT(instance != nullptr, "slider constraint should be initialized");
+			instance->setRestitutionOrthoAng(value);
 #endif
 		}
-		void SConstraint::SetLinearRestitutionOrtho(float Value)
+		void sconstraint::set_linear_restitution_ortho(float value)
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "slider constraint should be initialized");
-			Instance->setRestitutionOrthoLin(Value);
+			VI_ASSERT(instance != nullptr, "slider constraint should be initialized");
+			instance->setRestitutionOrthoLin(value);
 #endif
 		}
-		void SConstraint::SetAngularSoftnessDirection(float Value)
+		void sconstraint::set_angular_softness_direction(float value)
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "slider constraint should be initialized");
-			Instance->setSoftnessDirAng(Value);
+			VI_ASSERT(instance != nullptr, "slider constraint should be initialized");
+			instance->setSoftnessDirAng(value);
 #endif
 		}
-		void SConstraint::SetLinearSoftnessDirection(float Value)
+		void sconstraint::set_linear_softness_direction(float value)
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "slider constraint should be initialized");
-			Instance->setSoftnessDirLin(Value);
+			VI_ASSERT(instance != nullptr, "slider constraint should be initialized");
+			instance->setSoftnessDirLin(value);
 #endif
 		}
-		void SConstraint::SetAngularSoftnessLimit(float Value)
+		void sconstraint::set_angular_softness_limit(float value)
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "slider constraint should be initialized");
-			Instance->setSoftnessLimAng(Value);
+			VI_ASSERT(instance != nullptr, "slider constraint should be initialized");
+			instance->setSoftnessLimAng(value);
 #endif
 		}
-		void SConstraint::SetLinearSoftnessLimit(float Value)
+		void sconstraint::set_linear_softness_limit(float value)
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "slider constraint should be initialized");
-			Instance->setSoftnessLimLin(Value);
+			VI_ASSERT(instance != nullptr, "slider constraint should be initialized");
+			instance->setSoftnessLimLin(value);
 #endif
 		}
-		void SConstraint::SetAngularSoftnessOrtho(float Value)
+		void sconstraint::set_angular_softness_ortho(float value)
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "slider constraint should be initialized");
-			Instance->setSoftnessOrthoAng(Value);
+			VI_ASSERT(instance != nullptr, "slider constraint should be initialized");
+			instance->setSoftnessOrthoAng(value);
 #endif
 		}
-		void SConstraint::SetLinearSoftnessOrtho(float Value)
+		void sconstraint::set_linear_softness_ortho(float value)
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "slider constraint should be initialized");
-			Instance->setSoftnessOrthoLin(Value);
+			VI_ASSERT(instance != nullptr, "slider constraint should be initialized");
+			instance->setSoftnessOrthoLin(value);
 #endif
 		}
-		void SConstraint::SetPoweredAngularMotor(bool Value)
+		void sconstraint::set_powered_angular_motor(bool value)
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "slider constraint should be initialized");
-			Instance->setPoweredAngMotor(Value);
+			VI_ASSERT(instance != nullptr, "slider constraint should be initialized");
+			instance->setPoweredAngMotor(value);
 #endif
 		}
-		void SConstraint::SetPoweredLinearMotor(bool Value)
+		void sconstraint::set_powered_linear_motor(bool value)
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "slider constraint should be initialized");
-			Instance->setPoweredLinMotor(Value);
+			VI_ASSERT(instance != nullptr, "slider constraint should be initialized");
+			instance->setPoweredLinMotor(value);
 #endif
 		}
-		float SConstraint::GetAngularMotorVelocity() const
+		float sconstraint::get_angular_motor_velocity() const
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "slider constraint should be initialized");
-			return Instance->getTargetAngMotorVelocity();
+			VI_ASSERT(instance != nullptr, "slider constraint should be initialized");
+			return instance->getTargetAngMotorVelocity();
 #else
 			return 0;
 #endif
 		}
-		float SConstraint::GetLinearMotorVelocity() const
+		float sconstraint::get_linear_motor_velocity() const
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "slider constraint should be initialized");
-			return Instance->getTargetLinMotorVelocity();
+			VI_ASSERT(instance != nullptr, "slider constraint should be initialized");
+			return instance->getTargetLinMotorVelocity();
 #else
 			return 0;
 #endif
 		}
-		float SConstraint::GetUpperLinearLimit() const
+		float sconstraint::get_upper_linear_limit() const
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "slider constraint should be initialized");
-			return Instance->getUpperLinLimit();
+			VI_ASSERT(instance != nullptr, "slider constraint should be initialized");
+			return instance->getUpperLinLimit();
 #else
 			return 0;
 #endif
 		}
-		float SConstraint::GetLowerLinearLimit() const
+		float sconstraint::get_lower_linear_limit() const
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "slider constraint should be initialized");
-			return Instance->getLowerLinLimit();
+			VI_ASSERT(instance != nullptr, "slider constraint should be initialized");
+			return instance->getLowerLinLimit();
 #else
 			return 0;
 #endif
 		}
-		float SConstraint::GetAngularDampingDirection() const
+		float sconstraint::get_angular_damping_direction() const
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "slider constraint should be initialized");
-			return Instance->getDampingDirAng();
+			VI_ASSERT(instance != nullptr, "slider constraint should be initialized");
+			return instance->getDampingDirAng();
 #else
 			return 0;
 #endif
 		}
-		float SConstraint::GetLinearDampingDirection() const
+		float sconstraint::get_linear_damping_direction() const
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "slider constraint should be initialized");
-			return Instance->getDampingDirLin();
+			VI_ASSERT(instance != nullptr, "slider constraint should be initialized");
+			return instance->getDampingDirLin();
 #else
 			return 0;
 #endif
 		}
-		float SConstraint::GetAngularDampingLimit() const
+		float sconstraint::get_angular_damping_limit() const
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "slider constraint should be initialized");
-			return Instance->getDampingLimAng();
+			VI_ASSERT(instance != nullptr, "slider constraint should be initialized");
+			return instance->getDampingLimAng();
 #else
 			return 0;
 #endif
 		}
-		float SConstraint::GetLinearDampingLimit() const
+		float sconstraint::get_linear_damping_limit() const
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "slider constraint should be initialized");
-			return Instance->getDampingLimLin();
+			VI_ASSERT(instance != nullptr, "slider constraint should be initialized");
+			return instance->getDampingLimLin();
 #else
 			return 0;
 #endif
 		}
-		float SConstraint::GetAngularDampingOrtho() const
+		float sconstraint::get_angular_damping_ortho() const
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "slider constraint should be initialized");
-			return Instance->getDampingOrthoAng();
+			VI_ASSERT(instance != nullptr, "slider constraint should be initialized");
+			return instance->getDampingOrthoAng();
 #else
 			return 0;
 #endif
 		}
-		float SConstraint::GetLinearDampingOrtho() const
+		float sconstraint::get_linear_damping_ortho() const
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "slider constraint should be initialized");
-			return Instance->getDampingOrthoLin();
+			VI_ASSERT(instance != nullptr, "slider constraint should be initialized");
+			return instance->getDampingOrthoLin();
 #else
 			return 0;
 #endif
 		}
-		float SConstraint::GetUpperAngularLimit() const
+		float sconstraint::get_upper_angular_limit() const
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "slider constraint should be initialized");
-			return Instance->getUpperAngLimit();
+			VI_ASSERT(instance != nullptr, "slider constraint should be initialized");
+			return instance->getUpperAngLimit();
 #else
 			return 0;
 #endif
 		}
-		float SConstraint::GetLowerAngularLimit() const
+		float sconstraint::get_lower_angular_limit() const
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "slider constraint should be initialized");
-			return Instance->getLowerAngLimit();
+			VI_ASSERT(instance != nullptr, "slider constraint should be initialized");
+			return instance->getLowerAngLimit();
 #else
 			return 0;
 #endif
 		}
-		float SConstraint::GetMaxAngularMotorForce() const
+		float sconstraint::get_max_angular_motor_force() const
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "slider constraint should be initialized");
-			return Instance->getMaxAngMotorForce();
+			VI_ASSERT(instance != nullptr, "slider constraint should be initialized");
+			return instance->getMaxAngMotorForce();
 #else
 			return 0;
 #endif
 		}
-		float SConstraint::GetMaxLinearMotorForce() const
+		float sconstraint::get_max_linear_motor_force() const
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "slider constraint should be initialized");
-			return Instance->getMaxLinMotorForce();
+			VI_ASSERT(instance != nullptr, "slider constraint should be initialized");
+			return instance->getMaxLinMotorForce();
 #else
 			return 0;
 #endif
 		}
-		float SConstraint::GetAngularRestitutionDirection() const
+		float sconstraint::get_angular_restitution_direction() const
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "slider constraint should be initialized");
-			return Instance->getRestitutionDirAng();
+			VI_ASSERT(instance != nullptr, "slider constraint should be initialized");
+			return instance->getRestitutionDirAng();
 #else
 			return 0;
 #endif
 		}
-		float SConstraint::GetLinearRestitutionDirection() const
+		float sconstraint::get_linear_restitution_direction() const
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "slider constraint should be initialized");
-			return Instance->getRestitutionDirLin();
+			VI_ASSERT(instance != nullptr, "slider constraint should be initialized");
+			return instance->getRestitutionDirLin();
 #else
 			return 0;
 #endif
 		}
-		float SConstraint::GetAngularRestitutionLimit() const
+		float sconstraint::get_angular_restitution_limit() const
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "slider constraint should be initialized");
-			return Instance->getRestitutionLimAng();
+			VI_ASSERT(instance != nullptr, "slider constraint should be initialized");
+			return instance->getRestitutionLimAng();
 #else
 			return 0;
 #endif
 		}
-		float SConstraint::GetLinearRestitutionLimit() const
+		float sconstraint::get_linear_restitution_limit() const
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "slider constraint should be initialized");
-			return Instance->getRestitutionLimLin();
+			VI_ASSERT(instance != nullptr, "slider constraint should be initialized");
+			return instance->getRestitutionLimLin();
 #else
 			return 0;
 #endif
 		}
-		float SConstraint::GetAngularRestitutionOrtho() const
+		float sconstraint::get_angular_restitution_ortho() const
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "slider constraint should be initialized");
-			return Instance->getRestitutionOrthoAng();
+			VI_ASSERT(instance != nullptr, "slider constraint should be initialized");
+			return instance->getRestitutionOrthoAng();
 #else
 			return 0;
 #endif
 		}
-		float SConstraint::GetLinearRestitutionOrtho() const
+		float sconstraint::get_linear_restitution_ortho() const
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "slider constraint should be initialized");
-			return Instance->getRestitutionOrthoLin();
+			VI_ASSERT(instance != nullptr, "slider constraint should be initialized");
+			return instance->getRestitutionOrthoLin();
 #else
 			return 0;
 #endif
 		}
-		float SConstraint::GetAngularSoftnessDirection() const
+		float sconstraint::get_angular_softness_direction() const
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "slider constraint should be initialized");
-			return Instance->getSoftnessDirAng();
+			VI_ASSERT(instance != nullptr, "slider constraint should be initialized");
+			return instance->getSoftnessDirAng();
 #else
 			return 0;
 #endif
 		}
-		float SConstraint::GetLinearSoftnessDirection() const
+		float sconstraint::get_linear_softness_direction() const
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "slider constraint should be initialized");
-			return Instance->getSoftnessDirLin();
+			VI_ASSERT(instance != nullptr, "slider constraint should be initialized");
+			return instance->getSoftnessDirLin();
 #else
 			return 0;
 #endif
 		}
-		float SConstraint::GetAngularSoftnessLimit() const
+		float sconstraint::get_angular_softness_limit() const
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "slider constraint should be initialized");
-			return Instance->getSoftnessLimAng();
+			VI_ASSERT(instance != nullptr, "slider constraint should be initialized");
+			return instance->getSoftnessLimAng();
 #else
 			return 0;
 #endif
 		}
-		float SConstraint::GetLinearSoftnessLimit() const
+		float sconstraint::get_linear_softness_limit() const
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "slider constraint should be initialized");
-			return Instance->getSoftnessLimLin();
+			VI_ASSERT(instance != nullptr, "slider constraint should be initialized");
+			return instance->getSoftnessLimLin();
 #else
 			return 0;
 #endif
 		}
-		float SConstraint::GetAngularSoftnessOrtho() const
+		float sconstraint::get_angular_softness_ortho() const
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "slider constraint should be initialized");
-			return Instance->getSoftnessOrthoAng();
+			VI_ASSERT(instance != nullptr, "slider constraint should be initialized");
+			return instance->getSoftnessOrthoAng();
 #else
 			return 0;
 #endif
 		}
-		float SConstraint::GetLinearSoftnessOrtho() const
+		float sconstraint::get_linear_softness_ortho() const
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "slider constraint should be initialized");
-			return Instance->getSoftnessOrthoLin();
+			VI_ASSERT(instance != nullptr, "slider constraint should be initialized");
+			return instance->getSoftnessOrthoLin();
 #else
 			return 0;
 #endif
 		}
-		bool SConstraint::GetPoweredAngularMotor() const
+		bool sconstraint::get_powered_angular_motor() const
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "slider constraint should be initialized");
-			return Instance->getPoweredAngMotor();
+			VI_ASSERT(instance != nullptr, "slider constraint should be initialized");
+			return instance->getPoweredAngMotor();
 #else
 			return false;
 #endif
 		}
-		bool SConstraint::GetPoweredLinearMotor() const
+		bool sconstraint::get_powered_linear_motor() const
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "slider constraint should be initialized");
-			return Instance->getPoweredLinMotor();
+			VI_ASSERT(instance != nullptr, "slider constraint should be initialized");
+			return instance->getPoweredLinMotor();
 #else
 			return false;
 #endif
 		}
-		SConstraint::Desc& SConstraint::GetState()
+		sconstraint::desc& sconstraint::get_state()
 		{
-			return State;
+			return state;
 		}
 
-		CTConstraint::CTConstraint(Simulator* Refer, const Desc& I) noexcept : Constraint(Refer), Instance(nullptr), State(I)
+		ct_constraint::ct_constraint(simulator* refer, const desc& i) noexcept : constraint(refer), instance(nullptr), state(i)
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(I.TargetA != nullptr, "target A rigidbody should be set");
-			VI_ASSERT(Engine != nullptr, "simulator should be set");
+			VI_ASSERT(i.target_a != nullptr, "target a rigidbody should be set");
+			VI_ASSERT(engine != nullptr, "simulator should be set");
 
-			First = I.TargetA->Get();
-			Second = (I.TargetB ? I.TargetB->Get() : nullptr);
+			first = i.target_a->get();
+			second = (i.target_b ? i.target_b->get() : nullptr);
 
-			if (Second != nullptr)
-				Instance = Core::Memory::New<btConeTwistConstraint>(*First, *Second, btTransform::getIdentity(), btTransform::getIdentity());
+			if (second != nullptr)
+				instance = core::memory::init<btConeTwistConstraint>(*first, *second, btTransform::getIdentity(), btTransform::getIdentity());
 			else
-				Instance = Core::Memory::New<btConeTwistConstraint>(*First, btTransform::getIdentity());
+				instance = core::memory::init<btConeTwistConstraint>(*first, btTransform::getIdentity());
 
-			Instance->setUserConstraintPtr(this);
-			Engine->AddConstraint(this);
+			instance->setUserConstraintPtr(this);
+			engine->add_constraint(this);
 #endif
 		}
-		CTConstraint::~CTConstraint() noexcept
+		ct_constraint::~ct_constraint() noexcept
 		{
 #ifdef VI_BULLET3
-			Engine->RemoveConstraint(this);
-			Core::Memory::Delete(Instance);
+			engine->remove_constraint(this);
+			core::memory::deinit(instance);
 #endif
 		}
-		Constraint* CTConstraint::Copy() const
+		constraint* ct_constraint::copy() const
 		{
-			VI_ASSERT(Instance != nullptr, "cone-twist constraint should be initialized");
-			CTConstraint* Target = new CTConstraint(Engine, State);
-			Target->SetBreakingImpulseThreshold(GetBreakingImpulseThreshold());
-			Target->SetEnabled(IsEnabled());
-			Target->EnableMotor(IsMotorEnabled());
-			Target->SetAngularOnly(IsAngularOnly());
-			Target->SetLimit(GetSwingSpan1(), GetSwingSpan2(), GetTwistSpan(), GetLimitSoftness(), GetBiasFactor(), GetRelaxationFactor());
-			Target->SetDamping(GetDamping());
-			Target->SetFixThresh(GetFixThresh());
-			Target->SetMotorTarget(GetMotorTarget());
+			VI_ASSERT(instance != nullptr, "cone-twist constraint should be initialized");
+			ct_constraint* target = new ct_constraint(engine, state);
+			target->set_breaking_impulse_threshold(get_breaking_impulse_threshold());
+			target->set_enabled(is_enabled());
+			target->enable_motor(is_motor_enabled());
+			target->set_angular_only(is_angular_only());
+			target->set_limit(get_swing_span1(), get_swing_span2(), get_twist_span(), get_limit_softness(), get_bias_factor(), get_relaxation_factor());
+			target->set_damping(get_damping());
+			target->set_fix_thresh(get_fix_thresh());
+			target->set_motor_target(get_motor_target());
 
-			if (IsMaxMotorImpulseNormalized())
-				Target->SetMaxMotorImpulseNormalized(GetMaxMotorImpulse());
+			if (is_max_motor_impulse_normalized())
+				target->set_max_motor_impulse_normalized(get_max_motor_impulse());
 			else
-				Target->SetMaxMotorImpulse(GetMaxMotorImpulse());
+				target->set_max_motor_impulse(get_max_motor_impulse());
 
-			return Target;
+			return target;
 		}
-		btTypedConstraint* CTConstraint::Get() const
+		btTypedConstraint* ct_constraint::get() const
 		{
 #ifdef VI_BULLET3
-			return Instance;
+			return instance;
 #else
 			return nullptr;
 #endif
 		}
-		bool CTConstraint::HasCollisions() const
+		bool ct_constraint::has_collisions() const
 		{
-			return State.Collisions;
+			return state.collisions;
 		}
-		void CTConstraint::EnableMotor(bool Value)
+		void ct_constraint::enable_motor(bool value)
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "cone-twist constraint should be initialized");
-			Instance->enableMotor(Value);
+			VI_ASSERT(instance != nullptr, "cone-twist constraint should be initialized");
+			instance->enableMotor(value);
 #endif
 		}
-		void CTConstraint::SetFrames(const Trigonometry::Matrix4x4& A, const Trigonometry::Matrix4x4& B)
+		void ct_constraint::set_frames(const trigonometry::matrix4x4& a, const trigonometry::matrix4x4& b)
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "cone-twist constraint should be initialized");
-			Instance->setFrames(M16_TO_BT(A), M16_TO_BT(B));
+			VI_ASSERT(instance != nullptr, "cone-twist constraint should be initialized");
+			instance->setFrames(M16_TO_BT(a), M16_TO_BT(b));
 #endif
 		}
-		void CTConstraint::SetAngularOnly(bool Value)
+		void ct_constraint::set_angular_only(bool value)
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "cone-twist constraint should be initialized");
-			Instance->setAngularOnly(Value);
+			VI_ASSERT(instance != nullptr, "cone-twist constraint should be initialized");
+			instance->setAngularOnly(value);
 #endif
 		}
-		void CTConstraint::SetLimit(int LimitIndex, float LimitValue)
+		void ct_constraint::set_limit(int limit_index, float limit_value)
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "cone-twist constraint should be initialized");
-			Instance->setLimit(LimitIndex, LimitValue);
+			VI_ASSERT(instance != nullptr, "cone-twist constraint should be initialized");
+			instance->setLimit(limit_index, limit_value);
 #endif
 		}
-		void CTConstraint::SetLimit(float SwingSpan1, float SwingSpan2, float TwistSpan, float Softness, float BiasFactor, float RelaxationFactor)
+		void ct_constraint::set_limit(float swing_span1, float swing_span2, float twist_span, float softness, float bias_factor, float relaxation_factor)
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "cone-twist constraint should be initialized");
-			Instance->setLimit(SwingSpan1, SwingSpan2, TwistSpan, Softness, BiasFactor, RelaxationFactor);
+			VI_ASSERT(instance != nullptr, "cone-twist constraint should be initialized");
+			instance->setLimit(swing_span1, swing_span2, twist_span, softness, bias_factor, relaxation_factor);
 #endif
 		}
-		void CTConstraint::SetDamping(float Value)
+		void ct_constraint::set_damping(float value)
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "cone-twist constraint should be initialized");
-			Instance->setDamping(Value);
+			VI_ASSERT(instance != nullptr, "cone-twist constraint should be initialized");
+			instance->setDamping(value);
 #endif
 		}
-		void CTConstraint::SetMaxMotorImpulse(float Value)
+		void ct_constraint::set_max_motor_impulse(float value)
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "cone-twist constraint should be initialized");
-			Instance->setMaxMotorImpulse(Value);
+			VI_ASSERT(instance != nullptr, "cone-twist constraint should be initialized");
+			instance->setMaxMotorImpulse(value);
 #endif
 		}
-		void CTConstraint::SetMaxMotorImpulseNormalized(float Value)
+		void ct_constraint::set_max_motor_impulse_normalized(float value)
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "cone-twist constraint should be initialized");
-			Instance->setMaxMotorImpulseNormalized(Value);
+			VI_ASSERT(instance != nullptr, "cone-twist constraint should be initialized");
+			instance->setMaxMotorImpulseNormalized(value);
 #endif
 		}
-		void CTConstraint::SetFixThresh(float Value)
+		void ct_constraint::set_fix_thresh(float value)
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "cone-twist constraint should be initialized");
-			Instance->setFixThresh(Value);
+			VI_ASSERT(instance != nullptr, "cone-twist constraint should be initialized");
+			instance->setFixThresh(value);
 #endif
 		}
-		void CTConstraint::SetMotorTarget(const Trigonometry::Quaternion& Value)
+		void ct_constraint::set_motor_target(const trigonometry::quaternion& value)
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "cone-twist constraint should be initialized");
-			Instance->setMotorTarget(Q4_TO_BT(Value));
+			VI_ASSERT(instance != nullptr, "cone-twist constraint should be initialized");
+			instance->setMotorTarget(Q4_TO_BT(value));
 #endif
 		}
-		void CTConstraint::SetMotorTargetInConstraintSpace(const Trigonometry::Quaternion& Value)
+		void ct_constraint::set_motor_target_in_constraint_space(const trigonometry::quaternion& value)
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "cone-twist constraint should be initialized");
-			Instance->setMotorTargetInConstraintSpace(Q4_TO_BT(Value));
+			VI_ASSERT(instance != nullptr, "cone-twist constraint should be initialized");
+			instance->setMotorTargetInConstraintSpace(Q4_TO_BT(value));
 #endif
 		}
-		Trigonometry::Vector3 CTConstraint::GetPointForAngle(float AngleInRadians, float Length) const
+		trigonometry::vector3 ct_constraint::get_point_for_angle(float angle_in_radians, float length) const
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "cone-twist constraint should be initialized");
-			btVector3 Value = Instance->GetPointForAngle(AngleInRadians, Length);
-			return BT_TO_V3(Value);
+			VI_ASSERT(instance != nullptr, "cone-twist constraint should be initialized");
+			btVector3 value = instance->GetPointForAngle(angle_in_radians, length);
+			return BT_TO_V3(value);
 #else
 			return 0;
 #endif
 		}
-		Trigonometry::Quaternion CTConstraint::GetMotorTarget() const
+		trigonometry::quaternion ct_constraint::get_motor_target() const
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "hinge constraint should be initialized");
-			btQuaternion Value = Instance->getMotorTarget();
-			return BT_TO_Q4(Value);
+			VI_ASSERT(instance != nullptr, "hinge constraint should be initialized");
+			btQuaternion value = instance->getMotorTarget();
+			return BT_TO_Q4(value);
 #else
-			return Trigonometry::Quaternion();
+			return trigonometry::quaternion();
 #endif
 		}
-		int CTConstraint::GetSolveTwistLimit() const
+		int ct_constraint::get_solve_twist_limit() const
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "hinge constraint should be initialized");
-			return Instance->getSolveTwistLimit();
-#else
-			return 0;
-#endif
-		}
-		int CTConstraint::GetSolveSwingLimit() const
-		{
-#ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "hinge constraint should be initialized");
-			return Instance->getSolveSwingLimit();
+			VI_ASSERT(instance != nullptr, "hinge constraint should be initialized");
+			return instance->getSolveTwistLimit();
 #else
 			return 0;
 #endif
 		}
-		float CTConstraint::GetTwistLimitSign() const
+		int ct_constraint::get_solve_swing_limit() const
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "hinge constraint should be initialized");
-			return Instance->getTwistLimitSign();
+			VI_ASSERT(instance != nullptr, "hinge constraint should be initialized");
+			return instance->getSolveSwingLimit();
 #else
 			return 0;
 #endif
 		}
-		float CTConstraint::GetSwingSpan1() const
+		float ct_constraint::get_twist_limit_sign() const
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "hinge constraint should be initialized");
-			return Instance->getSwingSpan1();
+			VI_ASSERT(instance != nullptr, "hinge constraint should be initialized");
+			return instance->getTwistLimitSign();
 #else
 			return 0;
 #endif
 		}
-		float CTConstraint::GetSwingSpan2() const
+		float ct_constraint::get_swing_span1() const
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "hinge constraint should be initialized");
-			return Instance->getSwingSpan2();
+			VI_ASSERT(instance != nullptr, "hinge constraint should be initialized");
+			return instance->getSwingSpan1();
 #else
 			return 0;
 #endif
 		}
-		float CTConstraint::GetTwistSpan() const
+		float ct_constraint::get_swing_span2() const
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "hinge constraint should be initialized");
-			return Instance->getTwistSpan();
+			VI_ASSERT(instance != nullptr, "hinge constraint should be initialized");
+			return instance->getSwingSpan2();
 #else
 			return 0;
 #endif
 		}
-		float CTConstraint::GetLimitSoftness() const
+		float ct_constraint::get_twist_span() const
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "hinge constraint should be initialized");
-			return Instance->getLimitSoftness();
+			VI_ASSERT(instance != nullptr, "hinge constraint should be initialized");
+			return instance->getTwistSpan();
 #else
 			return 0;
 #endif
 		}
-		float CTConstraint::GetBiasFactor() const
+		float ct_constraint::get_limit_softness() const
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "hinge constraint should be initialized");
-			return Instance->getBiasFactor();
+			VI_ASSERT(instance != nullptr, "hinge constraint should be initialized");
+			return instance->getLimitSoftness();
 #else
 			return 0;
 #endif
 		}
-		float CTConstraint::GetRelaxationFactor() const
+		float ct_constraint::get_bias_factor() const
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "hinge constraint should be initialized");
-			return Instance->getRelaxationFactor();
+			VI_ASSERT(instance != nullptr, "hinge constraint should be initialized");
+			return instance->getBiasFactor();
 #else
 			return 0;
 #endif
 		}
-		float CTConstraint::GetTwistAngle() const
+		float ct_constraint::get_relaxation_factor() const
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "hinge constraint should be initialized");
-			return Instance->getTwistAngle();
+			VI_ASSERT(instance != nullptr, "hinge constraint should be initialized");
+			return instance->getRelaxationFactor();
 #else
 			return 0;
 #endif
 		}
-		float CTConstraint::GetLimit(int Value) const
+		float ct_constraint::get_twist_angle() const
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "hinge constraint should be initialized");
-			return Instance->getLimit(Value);
+			VI_ASSERT(instance != nullptr, "hinge constraint should be initialized");
+			return instance->getTwistAngle();
 #else
 			return 0;
 #endif
 		}
-		float CTConstraint::GetDamping() const
+		float ct_constraint::get_limit(int value) const
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "hinge constraint should be initialized");
-			return Instance->getDamping();
+			VI_ASSERT(instance != nullptr, "hinge constraint should be initialized");
+			return instance->getLimit(value);
 #else
 			return 0;
 #endif
 		}
-		float CTConstraint::GetMaxMotorImpulse() const
+		float ct_constraint::get_damping() const
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "hinge constraint should be initialized");
-			return Instance->getMaxMotorImpulse();
+			VI_ASSERT(instance != nullptr, "hinge constraint should be initialized");
+			return instance->getDamping();
 #else
 			return 0;
 #endif
 		}
-		float CTConstraint::GetFixThresh() const
+		float ct_constraint::get_max_motor_impulse() const
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "hinge constraint should be initialized");
-			return Instance->getFixThresh();
+			VI_ASSERT(instance != nullptr, "hinge constraint should be initialized");
+			return instance->getMaxMotorImpulse();
 #else
 			return 0;
 #endif
 		}
-		bool CTConstraint::IsMotorEnabled() const
+		float ct_constraint::get_fix_thresh() const
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "hinge constraint should be initialized");
-			return Instance->isMotorEnabled();
+			VI_ASSERT(instance != nullptr, "hinge constraint should be initialized");
+			return instance->getFixThresh();
 #else
 			return 0;
 #endif
 		}
-		bool CTConstraint::IsMaxMotorImpulseNormalized() const
+		bool ct_constraint::is_motor_enabled() const
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "hinge constraint should be initialized");
-			return Instance->isMaxMotorImpulseNormalized();
+			VI_ASSERT(instance != nullptr, "hinge constraint should be initialized");
+			return instance->isMotorEnabled();
 #else
 			return 0;
 #endif
 		}
-		bool CTConstraint::IsPastSwingLimit() const
+		bool ct_constraint::is_max_motor_impulse_normalized() const
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "hinge constraint should be initialized");
-			return Instance->isPastSwingLimit();
+			VI_ASSERT(instance != nullptr, "hinge constraint should be initialized");
+			return instance->isMaxMotorImpulseNormalized();
 #else
 			return 0;
 #endif
 		}
-		bool CTConstraint::IsAngularOnly() const
+		bool ct_constraint::is_past_swing_limit() const
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "hinge constraint should be initialized");
-			return Instance->getAngularOnly();
+			VI_ASSERT(instance != nullptr, "hinge constraint should be initialized");
+			return instance->isPastSwingLimit();
 #else
 			return 0;
 #endif
 		}
-		CTConstraint::Desc& CTConstraint::GetState()
+		bool ct_constraint::is_angular_only() const
 		{
-			return State;
+#ifdef VI_BULLET3
+			VI_ASSERT(instance != nullptr, "hinge constraint should be initialized");
+			return instance->getAngularOnly();
+#else
+			return 0;
+#endif
+		}
+		ct_constraint::desc& ct_constraint::get_state()
+		{
+			return state;
 		}
 
-		DF6Constraint::DF6Constraint(Simulator* Refer, const Desc& I) noexcept : Constraint(Refer), Instance(nullptr), State(I)
+		df6_constraint::df6_constraint(simulator* refer, const desc& i) noexcept : constraint(refer), instance(nullptr), state(i)
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(I.TargetA != nullptr, "target A rigidbody should be set");
-			VI_ASSERT(Engine != nullptr, "simulator should be set");
+			VI_ASSERT(i.target_a != nullptr, "target a rigidbody should be set");
+			VI_ASSERT(engine != nullptr, "simulator should be set");
 
-			First = I.TargetA->Get();
-			Second = (I.TargetB ? I.TargetB->Get() : nullptr);
+			first = i.target_a->get();
+			second = (i.target_b ? i.target_b->get() : nullptr);
 
-			if (Second != nullptr)
-				Instance = Core::Memory::New<btGeneric6DofSpring2Constraint>(*First, *Second, btTransform::getIdentity(), btTransform::getIdentity());
+			if (second != nullptr)
+				instance = core::memory::init<btGeneric6DofSpring2Constraint>(*first, *second, btTransform::getIdentity(), btTransform::getIdentity());
 			else
-				Instance = Core::Memory::New<btGeneric6DofSpring2Constraint>(*First, btTransform::getIdentity());
+				instance = core::memory::init<btGeneric6DofSpring2Constraint>(*first, btTransform::getIdentity());
 
-			Instance->setUserConstraintPtr(this);
-			Engine->AddConstraint(this);
+			instance->setUserConstraintPtr(this);
+			engine->add_constraint(this);
 #endif
 		}
-		DF6Constraint::~DF6Constraint() noexcept
+		df6_constraint::~df6_constraint() noexcept
 		{
 #ifdef VI_BULLET3
-			Engine->RemoveConstraint(this);
-			Core::Memory::Delete(Instance);
+			engine->remove_constraint(this);
+			core::memory::deinit(instance);
 #endif
 		}
-		Constraint* DF6Constraint::Copy() const
+		constraint* df6_constraint::copy() const
 		{
-			VI_ASSERT(Instance != nullptr, "6-dof constraint should be initialized");
-			DF6Constraint* Target = new DF6Constraint(Engine, State);
-			Target->SetBreakingImpulseThreshold(GetBreakingImpulseThreshold());
-			Target->SetEnabled(IsEnabled());
-			Target->SetLinearLowerLimit(GetLinearLowerLimit());
-			Target->SetLinearUpperLimit(GetLinearUpperLimit());
-			Target->SetAngularLowerLimit(GetAngularLowerLimit());
-			Target->SetAngularUpperLimit(GetAngularUpperLimit());
-			Target->SetRotationOrder(GetRotationOrder());
-			Target->SetAxis(GetAxis(0), GetAxis(1));
+			VI_ASSERT(instance != nullptr, "6-dof constraint should be initialized");
+			df6_constraint* target = new df6_constraint(engine, state);
+			target->set_breaking_impulse_threshold(get_breaking_impulse_threshold());
+			target->set_enabled(is_enabled());
+			target->set_linear_lower_limit(get_linear_lower_limit());
+			target->set_linear_upper_limit(get_linear_upper_limit());
+			target->set_angular_lower_limit(get_angular_lower_limit());
+			target->set_angular_upper_limit(get_angular_upper_limit());
+			target->set_rotation_order(get_rotation_order());
+			target->set_axis(get_axis(0), get_axis(1));
 
-			return Target;
+			return target;
 		}
-		btTypedConstraint* DF6Constraint::Get() const
+		btTypedConstraint* df6_constraint::get() const
 		{
 #ifdef VI_BULLET3
-			return Instance;
+			return instance;
 #else
 			return nullptr;
 #endif
 		}
-		bool DF6Constraint::HasCollisions() const
+		bool df6_constraint::has_collisions() const
 		{
-			return State.Collisions;
+			return state.collisions;
 		}
-		void DF6Constraint::EnableMotor(int Index, bool OnOff)
+		void df6_constraint::enable_motor(int index, bool on_off)
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "6-dof constraint should be initialized");
-			Instance->enableMotor(Index, OnOff);
+			VI_ASSERT(instance != nullptr, "6-dof constraint should be initialized");
+			instance->enableMotor(index, on_off);
 #endif
 		}
-		void DF6Constraint::EnableSpring(int Index, bool OnOff)
+		void df6_constraint::enable_spring(int index, bool on_off)
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "6-dof constraint should be initialized");
-			Instance->enableSpring(Index, OnOff);
+			VI_ASSERT(instance != nullptr, "6-dof constraint should be initialized");
+			instance->enableSpring(index, on_off);
 #endif
 		}
-		void DF6Constraint::SetFrames(const Trigonometry::Matrix4x4& A, const Trigonometry::Matrix4x4& B)
+		void df6_constraint::set_frames(const trigonometry::matrix4x4& a, const trigonometry::matrix4x4& b)
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "6-dof constraint should be initialized");
-			Instance->setFrames(M16_TO_BT(A), M16_TO_BT(B));
+			VI_ASSERT(instance != nullptr, "6-dof constraint should be initialized");
+			instance->setFrames(M16_TO_BT(a), M16_TO_BT(b));
 #endif
 		}
-		void DF6Constraint::SetLinearLowerLimit(const Trigonometry::Vector3& Value)
+		void df6_constraint::set_linear_lower_limit(const trigonometry::vector3& value)
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "6-dof constraint should be initialized");
-			Instance->setLinearLowerLimit(V3_TO_BT(Value));
+			VI_ASSERT(instance != nullptr, "6-dof constraint should be initialized");
+			instance->setLinearLowerLimit(V3_TO_BT(value));
 #endif
 		}
-		void DF6Constraint::SetLinearUpperLimit(const Trigonometry::Vector3& Value)
+		void df6_constraint::set_linear_upper_limit(const trigonometry::vector3& value)
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "6-dof constraint should be initialized");
-			Instance->setLinearUpperLimit(V3_TO_BT(Value));
+			VI_ASSERT(instance != nullptr, "6-dof constraint should be initialized");
+			instance->setLinearUpperLimit(V3_TO_BT(value));
 #endif
 		}
-		void DF6Constraint::SetAngularLowerLimit(const Trigonometry::Vector3& Value)
+		void df6_constraint::set_angular_lower_limit(const trigonometry::vector3& value)
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "6-dof constraint should be initialized");
-			Instance->setAngularLowerLimit(V3_TO_BT(Value));
+			VI_ASSERT(instance != nullptr, "6-dof constraint should be initialized");
+			instance->setAngularLowerLimit(V3_TO_BT(value));
 #endif
 		}
-		void DF6Constraint::SetAngularLowerLimitReversed(const Trigonometry::Vector3& Value)
+		void df6_constraint::set_angular_lower_limit_reversed(const trigonometry::vector3& value)
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "6-dof constraint should be initialized");
-			Instance->setAngularLowerLimitReversed(V3_TO_BT(Value));
+			VI_ASSERT(instance != nullptr, "6-dof constraint should be initialized");
+			instance->setAngularLowerLimitReversed(V3_TO_BT(value));
 #endif
 		}
-		void DF6Constraint::SetAngularUpperLimit(const Trigonometry::Vector3& Value)
+		void df6_constraint::set_angular_upper_limit(const trigonometry::vector3& value)
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "6-dof constraint should be initialized");
-			Instance->setAngularUpperLimit(V3_TO_BT(Value));
+			VI_ASSERT(instance != nullptr, "6-dof constraint should be initialized");
+			instance->setAngularUpperLimit(V3_TO_BT(value));
 #endif
 		}
-		void DF6Constraint::SetAngularUpperLimitReversed(const Trigonometry::Vector3& Value)
+		void df6_constraint::set_angular_upper_limit_reversed(const trigonometry::vector3& value)
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "6-dof constraint should be initialized");
-			Instance->setAngularUpperLimitReversed(V3_TO_BT(Value));
+			VI_ASSERT(instance != nullptr, "6-dof constraint should be initialized");
+			instance->setAngularUpperLimitReversed(V3_TO_BT(value));
 #endif
 		}
-		void DF6Constraint::SetLimit(int Axis, float Low, float High)
+		void df6_constraint::set_limit(int axis, float low, float high)
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "6-dof constraint should be initialized");
-			Instance->setLimit(Axis, Low, High);
+			VI_ASSERT(instance != nullptr, "6-dof constraint should be initialized");
+			instance->setLimit(axis, low, high);
 #endif
 		}
-		void DF6Constraint::SetLimitReversed(int Axis, float Low, float High)
+		void df6_constraint::set_limit_reversed(int axis, float low, float high)
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "6-dof constraint should be initialized");
-			Instance->setLimitReversed(Axis, Low, High);
+			VI_ASSERT(instance != nullptr, "6-dof constraint should be initialized");
+			instance->setLimitReversed(axis, low, high);
 #endif
 		}
-		void DF6Constraint::SetRotationOrder(Trigonometry::Rotator Order)
+		void df6_constraint::set_rotation_order(trigonometry::rotator order)
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "6-dof constraint should be initialized");
-			Instance->setRotationOrder((RotateOrder)Order);
+			VI_ASSERT(instance != nullptr, "6-dof constraint should be initialized");
+			instance->setRotationOrder((RotateOrder)order);
 #endif
 		}
-		void DF6Constraint::SetAxis(const Trigonometry::Vector3& A, const Trigonometry::Vector3& B)
+		void df6_constraint::set_axis(const trigonometry::vector3& a, const trigonometry::vector3& b)
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "6-dof constraint should be initialized");
-			Instance->setAxis(V3_TO_BT(A), V3_TO_BT(B));
+			VI_ASSERT(instance != nullptr, "6-dof constraint should be initialized");
+			instance->setAxis(V3_TO_BT(a), V3_TO_BT(b));
 #endif
 		}
-		void DF6Constraint::SetBounce(int Index, float Bounce)
+		void df6_constraint::set_bounce(int index, float bounce)
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "6-dof constraint should be initialized");
-			Instance->setBounce(Index, Bounce);
+			VI_ASSERT(instance != nullptr, "6-dof constraint should be initialized");
+			instance->setBounce(index, bounce);
 #endif
 		}
-		void DF6Constraint::SetServo(int Index, bool OnOff)
+		void df6_constraint::set_servo(int index, bool on_off)
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "6-dof constraint should be initialized");
-			Instance->setServo(Index, OnOff);
+			VI_ASSERT(instance != nullptr, "6-dof constraint should be initialized");
+			instance->setServo(index, on_off);
 #endif
 		}
-		void DF6Constraint::SetTargetVelocity(int Index, float Velocity)
+		void df6_constraint::set_target_velocity(int index, float velocity)
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "6-dof constraint should be initialized");
-			Instance->setTargetVelocity(Index, Velocity);
+			VI_ASSERT(instance != nullptr, "6-dof constraint should be initialized");
+			instance->setTargetVelocity(index, velocity);
 #endif
 		}
-		void DF6Constraint::SetServoTarget(int Index, float Target)
+		void df6_constraint::set_servo_target(int index, float target)
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "6-dof constraint should be initialized");
-			Instance->setServoTarget(Index, Target);
+			VI_ASSERT(instance != nullptr, "6-dof constraint should be initialized");
+			instance->setServoTarget(index, target);
 #endif
 		}
-		void DF6Constraint::SetMaxMotorForce(int Index, float Force)
+		void df6_constraint::set_max_motor_force(int index, float force)
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "6-dof constraint should be initialized");
-			Instance->setMaxMotorForce(Index, Force);
+			VI_ASSERT(instance != nullptr, "6-dof constraint should be initialized");
+			instance->setMaxMotorForce(index, force);
 #endif
 		}
-		void DF6Constraint::SetStiffness(int Index, float Stiffness, bool LimitIfNeeded)
+		void df6_constraint::set_stiffness(int index, float stiffness, bool limit_if_needed)
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "6-dof constraint should be initialized");
-			Instance->setStiffness(Index, Stiffness, LimitIfNeeded);
+			VI_ASSERT(instance != nullptr, "6-dof constraint should be initialized");
+			instance->setStiffness(index, stiffness, limit_if_needed);
 #endif
 		}
-		void DF6Constraint::SetEquilibriumPoint()
+		void df6_constraint::set_equilibrium_point()
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "6-dof constraint should be initialized");
-			Instance->setEquilibriumPoint();
+			VI_ASSERT(instance != nullptr, "6-dof constraint should be initialized");
+			instance->setEquilibriumPoint();
 #endif
 		}
-		void DF6Constraint::SetEquilibriumPoint(int Index)
+		void df6_constraint::set_equilibrium_point(int index)
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "6-dof constraint should be initialized");
-			Instance->setEquilibriumPoint(Index);
+			VI_ASSERT(instance != nullptr, "6-dof constraint should be initialized");
+			instance->setEquilibriumPoint(index);
 #endif
 		}
-		void DF6Constraint::SetEquilibriumPoint(int Index, float Value)
+		void df6_constraint::set_equilibrium_point(int index, float value)
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "6-dof constraint should be initialized");
-			Instance->setEquilibriumPoint(Index, Value);
+			VI_ASSERT(instance != nullptr, "6-dof constraint should be initialized");
+			instance->setEquilibriumPoint(index, value);
 #endif
 		}
-		Trigonometry::Vector3 DF6Constraint::GetAngularUpperLimit() const
+		trigonometry::vector3 df6_constraint::get_angular_upper_limit() const
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "6-dof constraint should be initialized");
-			btVector3 Result;
-			Instance->getAngularUpperLimit(Result);
-			return BT_TO_V3(Result);
+			VI_ASSERT(instance != nullptr, "6-dof constraint should be initialized");
+			btVector3 result;
+			instance->getAngularUpperLimit(result);
+			return BT_TO_V3(result);
 #else
 			return 0;
 #endif
 		}
-		Trigonometry::Vector3 DF6Constraint::GetAngularUpperLimitReversed() const
+		trigonometry::vector3 df6_constraint::get_angular_upper_limit_reversed() const
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "6-dof constraint should be initialized");
-			btVector3 Result;
-			Instance->getAngularUpperLimitReversed(Result);
-			return BT_TO_V3(Result);
+			VI_ASSERT(instance != nullptr, "6-dof constraint should be initialized");
+			btVector3 result;
+			instance->getAngularUpperLimitReversed(result);
+			return BT_TO_V3(result);
 #else
 			return 0;
 #endif
 		}
-		Trigonometry::Vector3 DF6Constraint::GetAngularLowerLimit() const
+		trigonometry::vector3 df6_constraint::get_angular_lower_limit() const
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "6-dof constraint should be initialized");
-			btVector3 Result;
-			Instance->getAngularLowerLimit(Result);
-			return BT_TO_V3(Result);
+			VI_ASSERT(instance != nullptr, "6-dof constraint should be initialized");
+			btVector3 result;
+			instance->getAngularLowerLimit(result);
+			return BT_TO_V3(result);
 #else
 			return 0;
 #endif
 		}
-		Trigonometry::Vector3 DF6Constraint::GetAngularLowerLimitReversed() const
+		trigonometry::vector3 df6_constraint::get_angular_lower_limit_reversed() const
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "6-dof constraint should be initialized");
-			btVector3 Result;
-			Instance->getAngularLowerLimitReversed(Result);
-			return BT_TO_V3(Result);
+			VI_ASSERT(instance != nullptr, "6-dof constraint should be initialized");
+			btVector3 result;
+			instance->getAngularLowerLimitReversed(result);
+			return BT_TO_V3(result);
 #else
 			return 0;
 #endif
 		}
-		Trigonometry::Vector3 DF6Constraint::GetLinearUpperLimit() const
+		trigonometry::vector3 df6_constraint::get_linear_upper_limit() const
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "6-dof constraint should be initialized");
-			btVector3 Result;
-			Instance->getLinearUpperLimit(Result);
-			return BT_TO_V3(Result);
+			VI_ASSERT(instance != nullptr, "6-dof constraint should be initialized");
+			btVector3 result;
+			instance->getLinearUpperLimit(result);
+			return BT_TO_V3(result);
 #else
 			return 0;
 #endif
 		}
-		Trigonometry::Vector3 DF6Constraint::GetLinearLowerLimit() const
+		trigonometry::vector3 df6_constraint::get_linear_lower_limit() const
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "6-dof constraint should be initialized");
-			btVector3 Result;
-			Instance->getLinearLowerLimit(Result);
-			return BT_TO_V3(Result);
+			VI_ASSERT(instance != nullptr, "6-dof constraint should be initialized");
+			btVector3 result;
+			instance->getLinearLowerLimit(result);
+			return BT_TO_V3(result);
 #else
 			return 0;
 #endif
 		}
-		Trigonometry::Vector3 DF6Constraint::GetAxis(int Value) const
+		trigonometry::vector3 df6_constraint::get_axis(int value) const
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "6-dof constraint should be initialized");
-			btVector3 Result = Instance->getAxis(Value);
-			return BT_TO_V3(Result);
+			VI_ASSERT(instance != nullptr, "6-dof constraint should be initialized");
+			btVector3 result = instance->getAxis(value);
+			return BT_TO_V3(result);
 #else
 			return 0;
 #endif
 		}
-		Trigonometry::Rotator DF6Constraint::GetRotationOrder() const
+		trigonometry::rotator df6_constraint::get_rotation_order() const
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "6-dof constraint should be initialized");
-			return (Trigonometry::Rotator)Instance->getRotationOrder();
+			VI_ASSERT(instance != nullptr, "6-dof constraint should be initialized");
+			return (trigonometry::rotator)instance->getRotationOrder();
 #else
-			return Trigonometry::Rotator::XYZ;
+			return trigonometry::rotator::XYZ;
 #endif
 		}
-		float DF6Constraint::GetAngle(int Value) const
+		float df6_constraint::get_angle(int value) const
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "6-dof constraint should be initialized");
-			return Instance->getAngle(Value);
-#else
-			return 0;
-#endif
-		}
-		float DF6Constraint::GetRelativePivotPosition(int Value) const
-		{
-#ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "6-dof constraint should be initialized");
-			return Instance->getRelativePivotPosition(Value);
+			VI_ASSERT(instance != nullptr, "6-dof constraint should be initialized");
+			return instance->getAngle(value);
 #else
 			return 0;
 #endif
 		}
-		bool DF6Constraint::IsLimited(int LimitIndex) const
+		float df6_constraint::get_relative_pivot_position(int value) const
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Instance != nullptr, "6-dof constraint should be initialized");
-			return Instance->isLimited(LimitIndex);
+			VI_ASSERT(instance != nullptr, "6-dof constraint should be initialized");
+			return instance->getRelativePivotPosition(value);
 #else
 			return 0;
 #endif
 		}
-		DF6Constraint::Desc& DF6Constraint::GetState()
+		bool df6_constraint::is_limited(int limit_index) const
 		{
-			return State;
+#ifdef VI_BULLET3
+			VI_ASSERT(instance != nullptr, "6-dof constraint should be initialized");
+			return instance->isLimited(limit_index);
+#else
+			return 0;
+#endif
+		}
+		df6_constraint::desc& df6_constraint::get_state()
+		{
+			return state;
 		}
 
-		Simulator::Simulator(const Desc& I) noexcept : SoftSolver(nullptr), Speedup(1.0f), Active(true)
+		simulator::simulator(const desc& i) noexcept : soft_solver(nullptr), speedup(1.0f), active(true)
 		{
 #ifdef VI_BULLET3
-			Broadphase = Core::Memory::New<btDbvtBroadphase>();
-			Solver = Core::Memory::New<btSequentialImpulseConstraintSolver>();
+			broadphase = core::memory::init<btDbvtBroadphase>();
+			solver = core::memory::init<btSequentialImpulseConstraintSolver>();
 
-			if (I.EnableSoftBody)
+			if (i.enable_soft_body)
 			{
-				SoftSolver = Core::Memory::New<btDefaultSoftBodySolver>();
-				Collision = Core::Memory::New<btSoftBodyRigidBodyCollisionConfiguration>();
-				Dispatcher = Core::Memory::New<btCollisionDispatcher>(Collision);
-				World = Core::Memory::New<btSoftRigidDynamicsWorld>(Dispatcher, Broadphase, Solver, Collision, SoftSolver);
-				btSoftRigidDynamicsWorld* SoftWorld = (btSoftRigidDynamicsWorld*)World;
-				SoftWorld->getDispatchInfo().m_enableSPU = true;
+				soft_solver = core::memory::init<btDefaultSoftBodySolver>();
+				collision = core::memory::init<btSoftBodyRigidBodyCollisionConfiguration>();
+				dispatcher = core::memory::init<btCollisionDispatcher>(collision);
+				world = core::memory::init<btSoftRigidDynamicsWorld>(dispatcher, broadphase, solver, collision, soft_solver);
+				btSoftRigidDynamicsWorld* soft_world = (btSoftRigidDynamicsWorld*)world;
+				soft_world->getDispatchInfo().m_enableSPU = true;
 
-				btSoftBodyWorldInfo& Info = SoftWorld->getWorldInfo();
-				Info.m_gravity = V3_TO_BT(I.Gravity);
-				Info.water_normal = V3_TO_BT(I.WaterNormal);
-				Info.water_density = I.WaterDensity;
-				Info.water_offset = I.WaterOffset;
-				Info.air_density = I.AirDensity;
-				Info.m_maxDisplacement = I.MaxDisplacement;
+				btSoftBodyWorldInfo& info = soft_world->getWorldInfo();
+				info.m_gravity = V3_TO_BT(i.gravity);
+				info.water_normal = V3_TO_BT(i.water_normal);
+				info.water_density = i.water_density;
+				info.water_offset = i.water_offset;
+				info.air_density = i.air_density;
+				info.m_maxDisplacement = i.max_displacement;
 			}
 			else
 			{
-				Collision = Core::Memory::New<btDefaultCollisionConfiguration>();
-				Dispatcher = Core::Memory::New<btCollisionDispatcher>(Collision);
-				World = Core::Memory::New<btDiscreteDynamicsWorld>(Dispatcher, Broadphase, Solver, Collision);
+				collision = core::memory::init<btDefaultCollisionConfiguration>();
+				dispatcher = core::memory::init<btCollisionDispatcher>(collision);
+				world = core::memory::init<btDiscreteDynamicsWorld>(dispatcher, broadphase, solver, collision);
 			}
 
-			World->setWorldUserInfo(this);
-			World->setGravity(V3_TO_BT(I.Gravity));
+			world->setWorldUserInfo(this);
+			world->setGravity(V3_TO_BT(i.gravity));
 			gContactAddedCallback = nullptr;
 			gContactDestroyedCallback = nullptr;
 			gContactProcessedCallback = nullptr;
-			gContactStartedCallback = [](btPersistentManifold* const& Manifold) -> void
+			gContactStartedCallback = [](btPersistentManifold* const& manifold) -> void
 			{
-				btCollisionObject* Body1 = (btCollisionObject*)Manifold->getBody0();
-				btRigidBody* Rigid1 = btRigidBody::upcast(Body1);
-				btSoftBody* Soft1 = btSoftBody::upcast(Body1);
+				btCollisionObject* body1 = (btCollisionObject*)manifold->getBody0();
+				btRigidBody* rigid1 = btRigidBody::upcast(body1);
+				btSoftBody* soft1 = btSoftBody::upcast(body1);
 
-				if (Rigid1 != nullptr)
+				if (rigid1 != nullptr)
 				{
-					RigidBody* Body = (RigidBody*)Rigid1->getUserPointer();
-					if (Body != nullptr && Body->OnCollisionEnter)
-						Body->OnCollisionEnter(CollisionBody((btCollisionObject*)Manifold->getBody1()));
+					rigid_body* body = (rigid_body*)rigid1->getUserPointer();
+					if (body != nullptr && body->on_collision_enter)
+						body->on_collision_enter(collision_body((btCollisionObject*)manifold->getBody1()));
 				}
-				else if (Soft1 != nullptr)
+				else if (soft1 != nullptr)
 				{
-					SoftBody* Body = (SoftBody*)Soft1->getUserPointer();
-					if (Body != nullptr && Body->OnCollisionEnter)
-						Body->OnCollisionEnter(CollisionBody((btCollisionObject*)Manifold->getBody1()));
+					soft_body* body = (soft_body*)soft1->getUserPointer();
+					if (body != nullptr && body->on_collision_enter)
+						body->on_collision_enter(collision_body((btCollisionObject*)manifold->getBody1()));
 				}
 			};
-			gContactEndedCallback = [](btPersistentManifold* const& Manifold) -> void
+			gContactEndedCallback = [](btPersistentManifold* const& manifold) -> void
 			{
-				btCollisionObject* Body1 = (btCollisionObject*)Manifold->getBody0();
-				btRigidBody* Rigid1 = btRigidBody::upcast(Body1);
-				btSoftBody* Soft1 = btSoftBody::upcast(Body1);
+				btCollisionObject* body1 = (btCollisionObject*)manifold->getBody0();
+				btRigidBody* rigid1 = btRigidBody::upcast(body1);
+				btSoftBody* soft1 = btSoftBody::upcast(body1);
 
-				if (Rigid1 != nullptr)
+				if (rigid1 != nullptr)
 				{
-					RigidBody* Body = (RigidBody*)Rigid1->getUserPointer();
-					if (Body != nullptr && Body->OnCollisionEnter)
-						Body->OnCollisionExit(CollisionBody((btCollisionObject*)Manifold->getBody1()));
+					rigid_body* body = (rigid_body*)rigid1->getUserPointer();
+					if (body != nullptr && body->on_collision_enter)
+						body->on_collision_exit(collision_body((btCollisionObject*)manifold->getBody1()));
 				}
-				else if (Soft1 != nullptr)
+				else if (soft1 != nullptr)
 				{
-					SoftBody* Body = (SoftBody*)Soft1->getUserPointer();
-					if (Body != nullptr && Body->OnCollisionEnter)
-						Body->OnCollisionExit(CollisionBody((btCollisionObject*)Manifold->getBody1()));
+					soft_body* body = (soft_body*)soft1->getUserPointer();
+					if (body != nullptr && body->on_collision_enter)
+						body->on_collision_exit(collision_body((btCollisionObject*)manifold->getBody1()));
 				}
 			};
 #endif
 		}
-		Simulator::~Simulator() noexcept
+		simulator::~simulator() noexcept
 		{
 #ifdef VI_BULLET3
-			RemoveAll();
-			for (auto It = Shapes.begin(); It != Shapes.end(); ++It)
+			remove_all();
+			for (auto it = shapes.begin(); it != shapes.end(); ++it)
 			{
-				btCollisionShape* Item = (btCollisionShape*)It->first;
-				Core::Memory::Delete(Item);
+				btCollisionShape* item = (btCollisionShape*)it->first;
+				core::memory::deinit(item);
 			}
 
-			Core::Memory::Delete(Dispatcher);
-			Core::Memory::Delete(Collision);
-			Core::Memory::Delete(Solver);
-			Core::Memory::Delete(Broadphase);
-			Core::Memory::Delete(SoftSolver);
-			Core::Memory::Delete(World);
+			core::memory::deinit(dispatcher);
+			core::memory::deinit(collision);
+			core::memory::deinit(solver);
+			core::memory::deinit(broadphase);
+			core::memory::deinit(soft_solver);
+			core::memory::deinit(world);
 #endif
 		}
-		void Simulator::SetGravity(const Trigonometry::Vector3& Gravity)
+		void simulator::set_gravity(const trigonometry::vector3& gravity)
 		{
 #ifdef VI_BULLET3
-			World->setGravity(V3_TO_BT(Gravity));
+			world->setGravity(V3_TO_BT(gravity));
 #endif
 		}
-		void Simulator::SetLinearImpulse(const Trigonometry::Vector3& Impulse, bool RandomFactor)
+		void simulator::set_linear_impulse(const trigonometry::vector3& impulse, bool random_factor)
 		{
 #ifdef VI_BULLET3
-			for (int i = 0; i < World->getNumCollisionObjects(); i++)
+			for (int i = 0; i < world->getNumCollisionObjects(); i++)
 			{
-				Trigonometry::Vector3 Velocity = Impulse * (RandomFactor ? Trigonometry::Vector3::Random() : 1);
-				btRigidBody::upcast(World->getCollisionObjectArray()[i])->setLinearVelocity(V3_TO_BT(Velocity));
+				trigonometry::vector3 velocity = impulse * (random_factor ? trigonometry::vector3::random() : 1);
+				btRigidBody::upcast(world->getCollisionObjectArray()[i])->setLinearVelocity(V3_TO_BT(velocity));
 			}
 #endif
 		}
-		void Simulator::SetLinearImpulse(const Trigonometry::Vector3& Impulse, int Start, int End, bool RandomFactor)
+		void simulator::set_linear_impulse(const trigonometry::vector3& impulse, int start, int end, bool random_factor)
 		{
 #ifdef VI_BULLET3
-			if (Start >= 0 && Start < World->getNumCollisionObjects() && End >= 0 && End < World->getNumCollisionObjects())
+			if (start >= 0 && start < world->getNumCollisionObjects() && end >= 0 && end < world->getNumCollisionObjects())
 			{
-				for (int i = Start; i < End; i++)
+				for (int i = start; i < end; i++)
 				{
-					Trigonometry::Vector3 Velocity = Impulse * (RandomFactor ? Trigonometry::Vector3::Random() : 1);
-					btRigidBody::upcast(World->getCollisionObjectArray()[i])->setLinearVelocity(V3_TO_BT(Velocity));
+					trigonometry::vector3 velocity = impulse * (random_factor ? trigonometry::vector3::random() : 1);
+					btRigidBody::upcast(world->getCollisionObjectArray()[i])->setLinearVelocity(V3_TO_BT(velocity));
 				}
 			}
 #endif
 		}
-		void Simulator::SetAngularImpulse(const Trigonometry::Vector3& Impulse, bool RandomFactor)
+		void simulator::set_angular_impulse(const trigonometry::vector3& impulse, bool random_factor)
 		{
 #ifdef VI_BULLET3
-			for (int i = 0; i < World->getNumCollisionObjects(); i++)
+			for (int i = 0; i < world->getNumCollisionObjects(); i++)
 			{
-				Trigonometry::Vector3 Velocity = Impulse * (RandomFactor ? Trigonometry::Vector3::Random() : 1);
-				btRigidBody::upcast(World->getCollisionObjectArray()[i])->setAngularVelocity(V3_TO_BT(Velocity));
+				trigonometry::vector3 velocity = impulse * (random_factor ? trigonometry::vector3::random() : 1);
+				btRigidBody::upcast(world->getCollisionObjectArray()[i])->setAngularVelocity(V3_TO_BT(velocity));
 			}
 #endif
 		}
-		void Simulator::SetAngularImpulse(const Trigonometry::Vector3& Impulse, int Start, int End, bool RandomFactor)
+		void simulator::set_angular_impulse(const trigonometry::vector3& impulse, int start, int end, bool random_factor)
 		{
 #ifdef VI_BULLET3
-			if (Start >= 0 && Start < World->getNumCollisionObjects() && End >= 0 && End < World->getNumCollisionObjects())
+			if (start >= 0 && start < world->getNumCollisionObjects() && end >= 0 && end < world->getNumCollisionObjects())
 			{
-				for (int i = Start; i < End; i++)
+				for (int i = start; i < end; i++)
 				{
-					Trigonometry::Vector3 Velocity = Impulse * (RandomFactor ? Trigonometry::Vector3::Random() : 1);
-					btRigidBody::upcast(World->getCollisionObjectArray()[i])->setAngularVelocity(V3_TO_BT(Velocity));
+					trigonometry::vector3 velocity = impulse * (random_factor ? trigonometry::vector3::random() : 1);
+					btRigidBody::upcast(world->getCollisionObjectArray()[i])->setAngularVelocity(V3_TO_BT(velocity));
 				}
 			}
 #endif
 		}
-		void Simulator::SetOnCollisionEnter(ContactStartedCallback Callback)
+		void simulator::set_on_collision_enter(contact_started_callback callback)
 		{
 #ifdef VI_BULLET3
-			gContactStartedCallback = Callback;
+			gContactStartedCallback = callback;
 #endif
 		}
-		void Simulator::SetOnCollisionExit(ContactEndedCallback Callback)
+		void simulator::set_on_collision_exit(contact_ended_callback callback)
 		{
 #ifdef VI_BULLET3
-			gContactEndedCallback = Callback;
+			gContactEndedCallback = callback;
 #endif
 		}
-		void Simulator::CreateLinearImpulse(const Trigonometry::Vector3& Impulse, bool RandomFactor)
+		void simulator::create_linear_impulse(const trigonometry::vector3& impulse, bool random_factor)
 		{
 #ifdef VI_BULLET3
-			for (int i = 0; i < World->getNumCollisionObjects(); i++)
+			for (int i = 0; i < world->getNumCollisionObjects(); i++)
 			{
-				btRigidBody* Body = btRigidBody::upcast(World->getCollisionObjectArray()[i]);
-				btVector3 Velocity = Body->getLinearVelocity();
-				Velocity.setX(Velocity.getX() + Impulse.X * (RandomFactor ? Compute::Mathf::Random() : 1));
-				Velocity.setY(Velocity.getY() + Impulse.Y * (RandomFactor ? Compute::Mathf::Random() : 1));
-				Velocity.setZ(Velocity.getZ() + Impulse.Z * (RandomFactor ? Compute::Mathf::Random() : 1));
-				btRigidBody::upcast(World->getCollisionObjectArray()[i])->setLinearVelocity(Velocity);
+				btRigidBody* body = btRigidBody::upcast(world->getCollisionObjectArray()[i]);
+				btVector3 velocity = body->getLinearVelocity();
+				velocity.setX(velocity.getX() + impulse.x * (random_factor ? compute::mathf::random() : 1));
+				velocity.setY(velocity.getY() + impulse.y * (random_factor ? compute::mathf::random() : 1));
+				velocity.setZ(velocity.getZ() + impulse.z * (random_factor ? compute::mathf::random() : 1));
+				btRigidBody::upcast(world->getCollisionObjectArray()[i])->setLinearVelocity(velocity);
 			}
 #endif
 		}
-		void Simulator::CreateLinearImpulse(const Trigonometry::Vector3& Impulse, int Start, int End, bool RandomFactor)
+		void simulator::create_linear_impulse(const trigonometry::vector3& impulse, int start, int end, bool random_factor)
 		{
 #ifdef VI_BULLET3
-			if (Start >= 0 && Start < World->getNumCollisionObjects() && End >= 0 && End < World->getNumCollisionObjects())
+			if (start >= 0 && start < world->getNumCollisionObjects() && end >= 0 && end < world->getNumCollisionObjects())
 			{
-				for (int i = Start; i < End; i++)
+				for (int i = start; i < end; i++)
 				{
-					btRigidBody* Body = btRigidBody::upcast(World->getCollisionObjectArray()[i]);
-					btVector3 Velocity = Body->getLinearVelocity();
-					Velocity.setX(Velocity.getX() + Impulse.X * (RandomFactor ? Compute::Mathf::Random() : 1));
-					Velocity.setY(Velocity.getY() + Impulse.Y * (RandomFactor ? Compute::Mathf::Random() : 1));
-					Velocity.setZ(Velocity.getZ() + Impulse.Z * (RandomFactor ? Compute::Mathf::Random() : 1));
-					btRigidBody::upcast(World->getCollisionObjectArray()[i])->setLinearVelocity(Velocity);
+					btRigidBody* body = btRigidBody::upcast(world->getCollisionObjectArray()[i]);
+					btVector3 velocity = body->getLinearVelocity();
+					velocity.setX(velocity.getX() + impulse.x * (random_factor ? compute::mathf::random() : 1));
+					velocity.setY(velocity.getY() + impulse.y * (random_factor ? compute::mathf::random() : 1));
+					velocity.setZ(velocity.getZ() + impulse.z * (random_factor ? compute::mathf::random() : 1));
+					btRigidBody::upcast(world->getCollisionObjectArray()[i])->setLinearVelocity(velocity);
 				}
 			}
 #endif
 		}
-		void Simulator::CreateAngularImpulse(const Trigonometry::Vector3& Impulse, bool RandomFactor)
+		void simulator::create_angular_impulse(const trigonometry::vector3& impulse, bool random_factor)
 		{
 #ifdef VI_BULLET3
-			for (int i = 0; i < World->getNumCollisionObjects(); i++)
+			for (int i = 0; i < world->getNumCollisionObjects(); i++)
 			{
-				btRigidBody* Body = btRigidBody::upcast(World->getCollisionObjectArray()[i]);
-				btVector3 Velocity = Body->getAngularVelocity();
-				Velocity.setX(Velocity.getX() + Impulse.X * (RandomFactor ? Compute::Mathf::Random() : 1));
-				Velocity.setY(Velocity.getY() + Impulse.Y * (RandomFactor ? Compute::Mathf::Random() : 1));
-				Velocity.setZ(Velocity.getZ() + Impulse.Z * (RandomFactor ? Compute::Mathf::Random() : 1));
-				btRigidBody::upcast(World->getCollisionObjectArray()[i])->setAngularVelocity(Velocity);
+				btRigidBody* body = btRigidBody::upcast(world->getCollisionObjectArray()[i]);
+				btVector3 velocity = body->getAngularVelocity();
+				velocity.setX(velocity.getX() + impulse.x * (random_factor ? compute::mathf::random() : 1));
+				velocity.setY(velocity.getY() + impulse.y * (random_factor ? compute::mathf::random() : 1));
+				velocity.setZ(velocity.getZ() + impulse.z * (random_factor ? compute::mathf::random() : 1));
+				btRigidBody::upcast(world->getCollisionObjectArray()[i])->setAngularVelocity(velocity);
 			}
 #endif
 		}
-		void Simulator::CreateAngularImpulse(const Trigonometry::Vector3& Impulse, int Start, int End, bool RandomFactor)
+		void simulator::create_angular_impulse(const trigonometry::vector3& impulse, int start, int end, bool random_factor)
 		{
 #ifdef VI_BULLET3
-			if (Start >= 0 && Start < World->getNumCollisionObjects() && End >= 0 && End < World->getNumCollisionObjects())
+			if (start >= 0 && start < world->getNumCollisionObjects() && end >= 0 && end < world->getNumCollisionObjects())
 			{
-				for (int i = Start; i < End; i++)
+				for (int i = start; i < end; i++)
 				{
-					btRigidBody* Body = btRigidBody::upcast(World->getCollisionObjectArray()[i]);
-					btVector3 Velocity = Body->getAngularVelocity();
-					Velocity.setX(Velocity.getX() + Impulse.X * (RandomFactor ? Compute::Mathf::Random() : 1));
-					Velocity.setY(Velocity.getY() + Impulse.Y * (RandomFactor ? Compute::Mathf::Random() : 1));
-					Velocity.setZ(Velocity.getZ() + Impulse.Z * (RandomFactor ? Compute::Mathf::Random() : 1));
-					btRigidBody::upcast(World->getCollisionObjectArray()[i])->setAngularVelocity(Velocity);
+					btRigidBody* body = btRigidBody::upcast(world->getCollisionObjectArray()[i]);
+					btVector3 velocity = body->getAngularVelocity();
+					velocity.setX(velocity.getX() + impulse.x * (random_factor ? compute::mathf::random() : 1));
+					velocity.setY(velocity.getY() + impulse.y * (random_factor ? compute::mathf::random() : 1));
+					velocity.setZ(velocity.getZ() + impulse.z * (random_factor ? compute::mathf::random() : 1));
+					btRigidBody::upcast(world->getCollisionObjectArray()[i])->setAngularVelocity(velocity);
 				}
 			}
 #endif
 		}
-		void Simulator::AddSoftBody(SoftBody* Body)
+		void simulator::add_soft_body(soft_body* body)
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Body != nullptr, "softbody should be set");
-			VI_ASSERT(Body->Instance != nullptr, "softbody instance should be set");
-			VI_ASSERT(Body->Instance->getWorldArrayIndex() == -1, "softbody should not be attached to other world");
-			VI_ASSERT(HasSoftBodySupport(), "softbodies should be supported");
-			VI_TRACE("[sim] add soft-body 0x%" PRIXPTR " on 0x%" PRIXPTR, (void*)Body, (void*)this);
+			VI_ASSERT(body != nullptr, "softbody should be set");
+			VI_ASSERT(body->instance != nullptr, "softbody instance should be set");
+			VI_ASSERT(body->instance->getWorldArrayIndex() == -1, "softbody should not be attached to other world");
+			VI_ASSERT(has_soft_body_support(), "softbodies should be supported");
+			VI_TRACE("[sim] add soft-body 0x%" PRIXPTR " on 0x%" PRIXPTR, (void*)body, (void*)this);
 
-			btSoftRigidDynamicsWorld* SoftWorld = (btSoftRigidDynamicsWorld*)World;
-			SoftWorld->addSoftBody(Body->Instance);
+			btSoftRigidDynamicsWorld* soft_world = (btSoftRigidDynamicsWorld*)world;
+			soft_world->addSoftBody(body->instance);
 #endif
 		}
-		void Simulator::RemoveSoftBody(SoftBody* Body)
+		void simulator::remove_soft_body(soft_body* body)
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Body != nullptr, "softbody should be set");
-			VI_ASSERT(Body->Instance != nullptr, "softbody instance should be set");
-			VI_ASSERT(Body->Instance->getWorldArrayIndex() >= 0, "softbody should be attached to world");
-			VI_ASSERT(HasSoftBodySupport(), "softbodies should be supported");
-			VI_TRACE("[sim] remove soft-body 0x%" PRIXPTR " on 0x%" PRIXPTR, (void*)Body, (void*)this);
+			VI_ASSERT(body != nullptr, "softbody should be set");
+			VI_ASSERT(body->instance != nullptr, "softbody instance should be set");
+			VI_ASSERT(body->instance->getWorldArrayIndex() >= 0, "softbody should be attached to world");
+			VI_ASSERT(has_soft_body_support(), "softbodies should be supported");
+			VI_TRACE("[sim] remove soft-body 0x%" PRIXPTR " on 0x%" PRIXPTR, (void*)body, (void*)this);
 
-			btSoftRigidDynamicsWorld* SoftWorld = (btSoftRigidDynamicsWorld*)World;
-			SoftWorld->removeSoftBody(Body->Instance);
+			btSoftRigidDynamicsWorld* soft_world = (btSoftRigidDynamicsWorld*)world;
+			soft_world->removeSoftBody(body->instance);
 #endif
 		}
-		void Simulator::AddRigidBody(RigidBody* Body)
+		void simulator::add_rigid_body(rigid_body* body)
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Body != nullptr, "rigidbody should be set");
-			VI_ASSERT(Body->Instance != nullptr, "rigidbody instance should be set");
-			VI_ASSERT(Body->Instance->getWorldArrayIndex() == -1, "rigidbody should not be attached to other world");
-			VI_TRACE("[sim] add rigid-body 0x%" PRIXPTR " on 0x%" PRIXPTR, (void*)Body, (void*)this);
-			World->addRigidBody(Body->Instance);
+			VI_ASSERT(body != nullptr, "rigidbody should be set");
+			VI_ASSERT(body->instance != nullptr, "rigidbody instance should be set");
+			VI_ASSERT(body->instance->getWorldArrayIndex() == -1, "rigidbody should not be attached to other world");
+			VI_TRACE("[sim] add rigid-body 0x%" PRIXPTR " on 0x%" PRIXPTR, (void*)body, (void*)this);
+			world->addRigidBody(body->instance);
 #endif
 		}
-		void Simulator::RemoveRigidBody(RigidBody* Body)
+		void simulator::remove_rigid_body(rigid_body* body)
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Body != nullptr, "rigidbody should be set");
-			VI_ASSERT(Body->Instance != nullptr, "rigidbody instance should be set");
-			VI_ASSERT(Body->Instance->getWorldArrayIndex() >= 0, "rigidbody should be attached to other world");
-			VI_TRACE("[sim] remove rigid-body 0x%" PRIXPTR " on 0x%" PRIXPTR, (void*)Body, (void*)this);
-			World->removeRigidBody(Body->Instance);
+			VI_ASSERT(body != nullptr, "rigidbody should be set");
+			VI_ASSERT(body->instance != nullptr, "rigidbody instance should be set");
+			VI_ASSERT(body->instance->getWorldArrayIndex() >= 0, "rigidbody should be attached to other world");
+			VI_TRACE("[sim] remove rigid-body 0x%" PRIXPTR " on 0x%" PRIXPTR, (void*)body, (void*)this);
+			world->removeRigidBody(body->instance);
 #endif
 		}
-		void Simulator::AddConstraint(Constraint* Constraint)
+		void simulator::add_constraint(constraint* constraint)
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Constraint != nullptr, "slider constraint should be set");
-			VI_ASSERT(Constraint->Get() != nullptr, "slider constraint instance should be set");
-			VI_TRACE("[sim] add constraint 0x%" PRIXPTR " on 0x%" PRIXPTR, (void*)Constraint, (void*)this);
-			World->addConstraint(Constraint->Get(), !Constraint->HasCollisions());
+			VI_ASSERT(constraint != nullptr, "slider constraint should be set");
+			VI_ASSERT(constraint->get() != nullptr, "slider constraint instance should be set");
+			VI_TRACE("[sim] add constraint 0x%" PRIXPTR " on 0x%" PRIXPTR, (void*)constraint, (void*)this);
+			world->addConstraint(constraint->get(), !constraint->has_collisions());
 #endif
 		}
-		void Simulator::RemoveConstraint(Constraint* Constraint)
+		void simulator::remove_constraint(constraint* constraint)
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Constraint != nullptr, "slider constraint should be set");
-			VI_ASSERT(Constraint->Get() != nullptr, "slider constraint instance should be set");
-			VI_TRACE("[sim] remove constraint 0x%" PRIXPTR " on 0x%" PRIXPTR, (void*)Constraint, (void*)this);
-			World->removeConstraint(Constraint->Get());
+			VI_ASSERT(constraint != nullptr, "slider constraint should be set");
+			VI_ASSERT(constraint->get() != nullptr, "slider constraint instance should be set");
+			VI_TRACE("[sim] remove constraint 0x%" PRIXPTR " on 0x%" PRIXPTR, (void*)constraint, (void*)this);
+			world->removeConstraint(constraint->get());
 #endif
 		}
-		void Simulator::RemoveAll()
+		void simulator::remove_all()
 		{
 #ifdef VI_BULLET3
 			VI_TRACE("[sim] remove all collision objects on 0x%" PRIXPTR, (void*)this);
-			for (int i = 0; i < World->getNumCollisionObjects(); i++)
+			for (int i = 0; i < world->getNumCollisionObjects(); i++)
 			{
-				btCollisionObject* Object = World->getCollisionObjectArray()[i];
-				btRigidBody* Body = btRigidBody::upcast(Object);
-				if (Body != nullptr)
+				btCollisionObject* object = world->getCollisionObjectArray()[i];
+				btRigidBody* body = btRigidBody::upcast(object);
+				if (body != nullptr)
 				{
-					auto* State = Body->getMotionState();
-					Core::Memory::Delete(State);
-					Body->setMotionState(nullptr);
+					auto* state = body->getMotionState();
+					core::memory::deinit(state);
+					body->setMotionState(nullptr);
 
-					auto* Shape = Body->getCollisionShape();
-					Core::Memory::Delete(Shape);
-					Body->setCollisionShape(nullptr);
+					auto* shape = body->getCollisionShape();
+					core::memory::deinit(shape);
+					body->setCollisionShape(nullptr);
 				}
 
-				World->removeCollisionObject(Object);
-				Core::Memory::Delete(Object);
+				world->removeCollisionObject(object);
+				core::memory::deinit(object);
 			}
 #endif
 		}
-		void Simulator::SimulateStep(float ElapsedTime)
+		void simulator::simulate_step(float elapsed_time)
 		{
 #ifdef VI_BULLET3
-			if (!Active || Speedup <= 0.0f)
+			if (!active || speedup <= 0.0f)
 				return;
 
-			VI_MEASURE(Core::Timings::Frame);
-			float TimeStep = (Timing.LastElapsedTime > 0.0 ? std::max(0.0f, ElapsedTime - Timing.LastElapsedTime) : 0.0f);
-			World->stepSimulation(TimeStep * Speedup, 0);
-			Timing.LastElapsedTime = ElapsedTime;
+			VI_MEASURE(core::timings::frame);
+			float time_step = (timing.last_elapsed_time > 0.0 ? std::max(0.0f, elapsed_time - timing.last_elapsed_time) : 0.0f);
+			world->stepSimulation(time_step * speedup, 0);
+			timing.last_elapsed_time = elapsed_time;
 #endif
 		}
-		void Simulator::FindContacts(RigidBody* Body, int(*Callback)(ShapeContact*, const CollisionBody&, const CollisionBody&))
+		void simulator::find_contacts(rigid_body* body, int(*callback)(shape_contact*, const collision_body&, const collision_body&))
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Callback != nullptr, "callback should not be empty");
-			VI_ASSERT(Body != nullptr, "body should be set");
-			VI_MEASURE(Core::Timings::Pass);
+			VI_ASSERT(callback != nullptr, "callback should not be empty");
+			VI_ASSERT(body != nullptr, "body should be set");
+			VI_MEASURE(core::timings::pass);
 
-			FindContactsHandler Handler;
-			Handler.Callback = Callback;
-			World->contactTest(Body->Get(), Handler);
+			find_contacts_handler handler;
+			handler.callback = callback;
+			world->contactTest(body->get(), handler);
 #endif
 		}
-		bool Simulator::FindRayContacts(const Trigonometry::Vector3& Start, const Trigonometry::Vector3& End, int(*Callback)(RayContact*, const CollisionBody&))
+		bool simulator::find_ray_contacts(const trigonometry::vector3& start, const trigonometry::vector3& end, int(*callback)(ray_contact*, const collision_body&))
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Callback != nullptr, "callback should not be empty");
-			VI_MEASURE(Core::Timings::Pass);
+			VI_ASSERT(callback != nullptr, "callback should not be empty");
+			VI_MEASURE(core::timings::pass);
 
-			FindRayContactsHandler Handler;
-			Handler.Callback = Callback;
+			find_ray_contacts_handler handler;
+			handler.callback = callback;
 
-			World->rayTest(btVector3(Start.X, Start.Y, Start.Z), btVector3(End.X, End.Y, End.Z), Handler);
-			return Handler.m_collisionObject != nullptr;
+			world->rayTest(btVector3(start.x, start.y, start.z), btVector3(end.x, end.y, end.z), handler);
+			return handler.m_collisionObject != nullptr;
 #else
 			return false;
 #endif
 		}
-		RigidBody* Simulator::CreateRigidBody(const RigidBody::Desc& I, Trigonometry::Transform* Transform)
+		rigid_body* simulator::create_rigid_body(const rigid_body::desc& i, trigonometry::transform* transform)
 		{
 #ifdef VI_BULLET3
-			if (!Transform)
-				return CreateRigidBody(I);
+			if (!transform)
+				return create_rigid_body(i);
 
-			RigidBody::Desc F(I);
-			F.Position = Transform->GetPosition();
-			F.Rotation = Transform->GetRotation();
-			F.Scale = Transform->GetScale();
-			return CreateRigidBody(F);
+			rigid_body::desc f(i);
+			f.position = transform->get_position();
+			f.rotation = transform->get_rotation();
+			f.scale = transform->get_scale();
+			return create_rigid_body(f);
 #else
 			return nullptr;
 #endif
 		}
-		RigidBody* Simulator::CreateRigidBody(const RigidBody::Desc& I)
+		rigid_body* simulator::create_rigid_body(const rigid_body::desc& i)
 		{
 #ifdef VI_BULLET3
-			return new RigidBody(this, I);
+			return new rigid_body(this, i);
 #else
 			return nullptr;
 #endif
 		}
-		SoftBody* Simulator::CreateSoftBody(const SoftBody::Desc& I, Trigonometry::Transform* Transform)
+		soft_body* simulator::create_soft_body(const soft_body::desc& i, trigonometry::transform* transform)
 		{
 #ifdef VI_BULLET3
-			if (!Transform)
-				return CreateSoftBody(I);
+			if (!transform)
+				return create_soft_body(i);
 
-			SoftBody::Desc F(I);
-			F.Position = Transform->GetPosition();
-			F.Rotation = Transform->GetRotation();
-			F.Scale = Transform->GetScale();
-			return CreateSoftBody(F);
+			soft_body::desc f(i);
+			f.position = transform->get_position();
+			f.rotation = transform->get_rotation();
+			f.scale = transform->get_scale();
+			return create_soft_body(f);
 #else
 			return nullptr;
 #endif
 		}
-		SoftBody* Simulator::CreateSoftBody(const SoftBody::Desc& I)
+		soft_body* simulator::create_soft_body(const soft_body::desc& i)
 		{
 #ifdef VI_BULLET3
-			if (!HasSoftBodySupport())
+			if (!has_soft_body_support())
 				return nullptr;
 
-			return new SoftBody(this, I);
+			return new soft_body(this, i);
 #else
 			return nullptr;
 #endif
 		}
-		PConstraint* Simulator::CreatePoint2PointConstraint(const PConstraint::Desc& I)
+		pconstraint* simulator::create_point2_point_constraint(const pconstraint::desc& i)
 		{
 #ifdef VI_BULLET3
-			return new PConstraint(this, I);
+			return new pconstraint(this, i);
 #else
 			return nullptr;
 #endif
 		}
-		HConstraint* Simulator::CreateHingeConstraint(const HConstraint::Desc& I)
+		hconstraint* simulator::create_hinge_constraint(const hconstraint::desc& i)
 		{
 #ifdef VI_BULLET3
-			return new HConstraint(this, I);
+			return new hconstraint(this, i);
 #else
 			return nullptr;
 #endif
 		}
-		SConstraint* Simulator::CreateSliderConstraint(const SConstraint::Desc& I)
+		sconstraint* simulator::create_slider_constraint(const sconstraint::desc& i)
 		{
 #ifdef VI_BULLET3
-			return new SConstraint(this, I);
+			return new sconstraint(this, i);
 #else
 			return nullptr;
 #endif
 		}
-		CTConstraint* Simulator::CreateConeTwistConstraint(const CTConstraint::Desc& I)
+		ct_constraint* simulator::create_cone_twist_constraint(const ct_constraint::desc& i)
 		{
 #ifdef VI_BULLET3
-			return new CTConstraint(this, I);
+			return new ct_constraint(this, i);
 #else
 			return nullptr;
 #endif
 		}
-		DF6Constraint* Simulator::Create6DoFConstraint(const DF6Constraint::Desc& I)
+		df6_constraint* simulator::create_6dof_constraint(const df6_constraint::desc& i)
 		{
 #ifdef VI_BULLET3
-			return new DF6Constraint(this, I);
+			return new df6_constraint(this, i);
 #else
 			return nullptr;
 #endif
 		}
-		btCollisionShape* Simulator::CreateCube(const Trigonometry::Vector3& Scale)
+		btCollisionShape* simulator::create_cube(const trigonometry::vector3& scale)
 		{
 #ifdef VI_BULLET3
-			btCollisionShape* Shape = Core::Memory::New<btBoxShape>(V3_TO_BT(Scale));
-			VI_TRACE("[sim] save cube shape 0x%" PRIXPTR, (void*)Shape);
-			Core::UMutex<std::mutex> Unique(Exclusive);
-			Shapes[Shape] = 1;
-			return Shape;
+			btCollisionShape* shape = core::memory::init<btBoxShape>(V3_TO_BT(scale));
+			VI_TRACE("[sim] save cube shape 0x%" PRIXPTR, (void*)shape);
+			core::umutex<std::mutex> unique(exclusive);
+			shapes[shape] = 1;
+			return shape;
 #else
 			return nullptr;
 #endif
 		}
-		btCollisionShape* Simulator::CreateSphere(float Radius)
+		btCollisionShape* simulator::create_sphere(float radius)
 		{
 #ifdef VI_BULLET3
-			btCollisionShape* Shape = Core::Memory::New<btSphereShape>(Radius);
-			VI_TRACE("[sim] save sphere shape 0x%" PRIXPTR, (void*)Shape);
-			Core::UMutex<std::mutex> Unique(Exclusive);
-			Shapes[Shape] = 1;
-			return Shape;
+			btCollisionShape* shape = core::memory::init<btSphereShape>(radius);
+			VI_TRACE("[sim] save sphere shape 0x%" PRIXPTR, (void*)shape);
+			core::umutex<std::mutex> unique(exclusive);
+			shapes[shape] = 1;
+			return shape;
 #else
 			return nullptr;
 #endif
 		}
-		btCollisionShape* Simulator::CreateCapsule(float Radius, float Height)
+		btCollisionShape* simulator::create_capsule(float radius, float height)
 		{
 #ifdef VI_BULLET3
-			btCollisionShape* Shape = Core::Memory::New<btCapsuleShape>(Radius, Height);
-			VI_TRACE("[sim] save capsule shape 0x%" PRIXPTR, (void*)Shape);
-			Core::UMutex<std::mutex> Unique(Exclusive);
-			Shapes[Shape] = 1;
-			return Shape;
+			btCollisionShape* shape = core::memory::init<btCapsuleShape>(radius, height);
+			VI_TRACE("[sim] save capsule shape 0x%" PRIXPTR, (void*)shape);
+			core::umutex<std::mutex> unique(exclusive);
+			shapes[shape] = 1;
+			return shape;
 #else
 			return nullptr;
 #endif
 		}
-		btCollisionShape* Simulator::CreateCone(float Radius, float Height)
+		btCollisionShape* simulator::create_cone(float radius, float height)
 		{
 #ifdef VI_BULLET3
-			btCollisionShape* Shape = Core::Memory::New<btConeShape>(Radius, Height);
-			VI_TRACE("[sim] save cone shape 0x%" PRIXPTR, (void*)Shape);
-			Core::UMutex<std::mutex> Unique(Exclusive);
-			Shapes[Shape] = 1;
-			return Shape;
+			btCollisionShape* shape = core::memory::init<btConeShape>(radius, height);
+			VI_TRACE("[sim] save cone shape 0x%" PRIXPTR, (void*)shape);
+			core::umutex<std::mutex> unique(exclusive);
+			shapes[shape] = 1;
+			return shape;
 #else
 			return nullptr;
 #endif
 		}
-		btCollisionShape* Simulator::CreateCylinder(const Trigonometry::Vector3& Scale)
+		btCollisionShape* simulator::create_cylinder(const trigonometry::vector3& scale)
 		{
 #ifdef VI_BULLET3
-			btCollisionShape* Shape = Core::Memory::New<btCylinderShape>(V3_TO_BT(Scale));
-			VI_TRACE("[sim] save cylinder shape 0x%" PRIXPTR, (void*)Shape);
-			Core::UMutex<std::mutex> Unique(Exclusive);
-			Shapes[Shape] = 1;
-			return Shape;
+			btCollisionShape* shape = core::memory::init<btCylinderShape>(V3_TO_BT(scale));
+			VI_TRACE("[sim] save cylinder shape 0x%" PRIXPTR, (void*)shape);
+			core::umutex<std::mutex> unique(exclusive);
+			shapes[shape] = 1;
+			return shape;
 #else
 			return nullptr;
 #endif
 		}
-		btCollisionShape* Simulator::CreateConvexHull(Core::Vector<Trigonometry::SkinVertex>& Vertices)
+		btCollisionShape* simulator::create_convex_hull(core::vector<trigonometry::skin_vertex>& vertices)
 		{
 #ifdef VI_BULLET3
-			btConvexHullShape* Shape = Core::Memory::New<btConvexHullShape>();
-			for (auto It = Vertices.begin(); It != Vertices.end(); ++It)
-				Shape->addPoint(btVector3(It->PositionX, It->PositionY, It->PositionZ), false);
+			btConvexHullShape* shape = core::memory::init<btConvexHullShape>();
+			for (auto it = vertices.begin(); it != vertices.end(); ++it)
+				shape->addPoint(btVector3(it->position_x, it->position_y, it->position_z), false);
 
-			Shape->recalcLocalAabb();
-			Shape->optimizeConvexHull();
-			Shape->setMargin(0);
+			shape->recalcLocalAabb();
+			shape->optimizeConvexHull();
+			shape->setMargin(0);
 
-			VI_TRACE("[sim] save convext-hull shape 0x%" PRIXPTR " (%" PRIu64 " vertices)", (void*)Shape, (uint64_t)Vertices.size());
-			Core::UMutex<std::mutex> Unique(Exclusive);
-			Shapes[Shape] = 1;
-			return Shape;
+			VI_TRACE("[sim] save convext-hull shape 0x%" PRIXPTR " (%" PRIu64 " vertices)", (void*)shape, (uint64_t)vertices.size());
+			core::umutex<std::mutex> unique(exclusive);
+			shapes[shape] = 1;
+			return shape;
 #else
 			return nullptr;
 #endif
 		}
-		btCollisionShape* Simulator::CreateConvexHull(Core::Vector<Trigonometry::Vertex>& Vertices)
+		btCollisionShape* simulator::create_convex_hull(core::vector<trigonometry::vertex>& vertices)
 		{
 #ifdef VI_BULLET3
-			btConvexHullShape* Shape = Core::Memory::New<btConvexHullShape>();
-			for (auto It = Vertices.begin(); It != Vertices.end(); ++It)
-				Shape->addPoint(btVector3(It->PositionX, It->PositionY, It->PositionZ), false);
+			btConvexHullShape* shape = core::memory::init<btConvexHullShape>();
+			for (auto it = vertices.begin(); it != vertices.end(); ++it)
+				shape->addPoint(btVector3(it->position_x, it->position_y, it->position_z), false);
 
-			Shape->recalcLocalAabb();
-			Shape->optimizeConvexHull();
-			Shape->setMargin(0);
+			shape->recalcLocalAabb();
+			shape->optimizeConvexHull();
+			shape->setMargin(0);
 
-			VI_TRACE("[sim] save convext-hull shape 0x%" PRIXPTR " (%" PRIu64 " vertices)", (void*)Shape, (uint64_t)Vertices.size());
-			Core::UMutex<std::mutex> Unique(Exclusive);
-			Shapes[Shape] = 1;
-			return Shape;
+			VI_TRACE("[sim] save convext-hull shape 0x%" PRIXPTR " (%" PRIu64 " vertices)", (void*)shape, (uint64_t)vertices.size());
+			core::umutex<std::mutex> unique(exclusive);
+			shapes[shape] = 1;
+			return shape;
 #else
 			return nullptr;
 #endif
 		}
-		btCollisionShape* Simulator::CreateConvexHull(Core::Vector<Trigonometry::Vector2>& Vertices)
+		btCollisionShape* simulator::create_convex_hull(core::vector<trigonometry::vector2>& vertices)
 		{
 #ifdef VI_BULLET3
-			btConvexHullShape* Shape = Core::Memory::New<btConvexHullShape>();
-			for (auto It = Vertices.begin(); It != Vertices.end(); ++It)
-				Shape->addPoint(btVector3(It->X, It->Y, 0), false);
+			btConvexHullShape* shape = core::memory::init<btConvexHullShape>();
+			for (auto it = vertices.begin(); it != vertices.end(); ++it)
+				shape->addPoint(btVector3(it->x, it->y, 0), false);
 
-			Shape->recalcLocalAabb();
-			Shape->optimizeConvexHull();
-			Shape->setMargin(0);
+			shape->recalcLocalAabb();
+			shape->optimizeConvexHull();
+			shape->setMargin(0);
 
-			VI_TRACE("[sim] save convext-hull shape 0x%" PRIXPTR " (%" PRIu64 " vertices)", (void*)Shape, (uint64_t)Vertices.size());
-			Core::UMutex<std::mutex> Unique(Exclusive);
-			Shapes[Shape] = 1;
-			return Shape;
+			VI_TRACE("[sim] save convext-hull shape 0x%" PRIXPTR " (%" PRIu64 " vertices)", (void*)shape, (uint64_t)vertices.size());
+			core::umutex<std::mutex> unique(exclusive);
+			shapes[shape] = 1;
+			return shape;
 #else
 			return nullptr;
 #endif
 		}
-		btCollisionShape* Simulator::CreateConvexHull(Core::Vector<Trigonometry::Vector3>& Vertices)
+		btCollisionShape* simulator::create_convex_hull(core::vector<trigonometry::vector3>& vertices)
 		{
 #ifdef VI_BULLET3
-			btConvexHullShape* Shape = Core::Memory::New<btConvexHullShape>();
-			for (auto It = Vertices.begin(); It != Vertices.end(); ++It)
-				Shape->addPoint(btVector3(It->X, It->Y, It->Z), false);
+			btConvexHullShape* shape = core::memory::init<btConvexHullShape>();
+			for (auto it = vertices.begin(); it != vertices.end(); ++it)
+				shape->addPoint(btVector3(it->x, it->y, it->z), false);
 
-			Shape->recalcLocalAabb();
-			Shape->optimizeConvexHull();
-			Shape->setMargin(0);
+			shape->recalcLocalAabb();
+			shape->optimizeConvexHull();
+			shape->setMargin(0);
 
-			VI_TRACE("[sim] save convext-hull shape 0x%" PRIXPTR " (%" PRIu64 " vertices)", (void*)Shape, (uint64_t)Vertices.size());
-			Core::UMutex<std::mutex> Unique(Exclusive);
-			Shapes[Shape] = 1;
-			return Shape;
+			VI_TRACE("[sim] save convext-hull shape 0x%" PRIXPTR " (%" PRIu64 " vertices)", (void*)shape, (uint64_t)vertices.size());
+			core::umutex<std::mutex> unique(exclusive);
+			shapes[shape] = 1;
+			return shape;
 #else
 			return nullptr;
 #endif
 		}
-		btCollisionShape* Simulator::CreateConvexHull(Core::Vector<Trigonometry::Vector4>& Vertices)
+		btCollisionShape* simulator::create_convex_hull(core::vector<trigonometry::vector4>& vertices)
 		{
 #ifdef VI_BULLET3
-			btConvexHullShape* Shape = Core::Memory::New<btConvexHullShape>();
-			for (auto It = Vertices.begin(); It != Vertices.end(); ++It)
-				Shape->addPoint(btVector3(It->X, It->Y, It->Z), false);
+			btConvexHullShape* shape = core::memory::init<btConvexHullShape>();
+			for (auto it = vertices.begin(); it != vertices.end(); ++it)
+				shape->addPoint(btVector3(it->x, it->y, it->z), false);
 
-			Shape->recalcLocalAabb();
-			Shape->optimizeConvexHull();
-			Shape->setMargin(0);
+			shape->recalcLocalAabb();
+			shape->optimizeConvexHull();
+			shape->setMargin(0);
 
-			VI_TRACE("[sim] save convext-hull shape 0x%" PRIXPTR " (%" PRIu64 " vertices)", (void*)Shape, (uint64_t)Vertices.size());
-			Core::UMutex<std::mutex> Unique(Exclusive);
-			Shapes[Shape] = 1;
-			return Shape;
+			VI_TRACE("[sim] save convext-hull shape 0x%" PRIXPTR " (%" PRIu64 " vertices)", (void*)shape, (uint64_t)vertices.size());
+			core::umutex<std::mutex> unique(exclusive);
+			shapes[shape] = 1;
+			return shape;
 #else
 			return nullptr;
 #endif
 		}
-		btCollisionShape* Simulator::CreateConvexHull(btCollisionShape* From)
+		btCollisionShape* simulator::create_convex_hull(btCollisionShape* from)
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(From != nullptr, "shape should be set");
-			VI_ASSERT(From->getShapeType() == (int)Shape::Convex_Hull, "shape type should be convex hull");
+			VI_ASSERT(from != nullptr, "shape should be set");
+			VI_ASSERT(from->getShapeType() == (int)shape::convex_hull, "shape type should be convex hull");
 
-			btConvexHullShape* Hull = Core::Memory::New<btConvexHullShape>();
-			btConvexHullShape* Base = (btConvexHullShape*)From;
+			btConvexHullShape* hull = core::memory::init<btConvexHullShape>();
+			btConvexHullShape* base = (btConvexHullShape*)from;
 
-			for (size_t i = 0; i < (size_t)Base->getNumPoints(); i++)
-				Hull->addPoint(*(Base->getUnscaledPoints() + i), false);
+			for (size_t i = 0; i < (size_t)base->getNumPoints(); i++)
+				hull->addPoint(*(base->getUnscaledPoints() + i), false);
 
-			Hull->recalcLocalAabb();
-			Hull->optimizeConvexHull();
-			Hull->setMargin(0);
+			hull->recalcLocalAabb();
+			hull->optimizeConvexHull();
+			hull->setMargin(0);
 
-			VI_TRACE("[sim] save convext-hull shape 0x%" PRIXPTR " (%" PRIu64 " vertices)", (void*)Hull, (uint64_t)Base->getNumPoints());
-			Core::UMutex<std::mutex> Unique(Exclusive);
-			Shapes[Hull] = 1;
-			return Hull;
+			VI_TRACE("[sim] save convext-hull shape 0x%" PRIXPTR " (%" PRIu64 " vertices)", (void*)hull, (uint64_t)base->getNumPoints());
+			core::umutex<std::mutex> unique(exclusive);
+			shapes[hull] = 1;
+			return hull;
 #else
 			return nullptr;
 #endif
 		}
-		btCollisionShape* Simulator::CreateShape(Shape Wanted)
+		btCollisionShape* simulator::create_shape(shape wanted)
 		{
 #ifdef VI_BULLET3
-			switch (Wanted)
+			switch (wanted)
 			{
-				case Shape::Box:
-					return CreateCube();
-				case Shape::Sphere:
-					return CreateSphere();
-				case Shape::Capsule:
-					return CreateCapsule();
-				case Shape::Cone:
-					return CreateCone();
-				case Shape::Cylinder:
-					return CreateCylinder();
+				case shape::box:
+					return create_cube();
+				case shape::sphere:
+					return create_sphere();
+				case shape::capsule:
+					return create_capsule();
+				case shape::cone:
+					return create_cone();
+				case shape::cylinder:
+					return create_cylinder();
 				default:
 					return nullptr;
 			}
@@ -4240,190 +4240,190 @@ namespace Vitex
 			return nullptr;
 #endif
 		}
-		btCollisionShape* Simulator::TryCloneShape(btCollisionShape* Value)
+		btCollisionShape* simulator::try_clone_shape(btCollisionShape* value)
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Value != nullptr, "shape should be set");
-			Shape Type = (Shape)Value->getShapeType();
-			if (Type == Shape::Box)
+			VI_ASSERT(value != nullptr, "shape should be set");
+			shape type = (shape)value->getShapeType();
+			if (type == shape::box)
 			{
-				btBoxShape* Box = (btBoxShape*)Value;
-				btVector3 Size = Box->getHalfExtentsWithMargin() / Box->getLocalScaling();
-				return CreateCube(BT_TO_V3(Size));
+				btBoxShape* box = (btBoxShape*)value;
+				btVector3 size = box->getHalfExtentsWithMargin() / box->getLocalScaling();
+				return create_cube(BT_TO_V3(size));
 			}
-			else if (Type == Shape::Sphere)
+			else if (type == shape::sphere)
 			{
-				btSphereShape* Sphere = (btSphereShape*)Value;
-				return CreateSphere(Sphere->getRadius());
+				btSphereShape* sphere = (btSphereShape*)value;
+				return create_sphere(sphere->getRadius());
 			}
-			else if (Type == Shape::Capsule)
+			else if (type == shape::capsule)
 			{
-				btCapsuleShape* Capsule = (btCapsuleShape*)Value;
-				return CreateCapsule(Capsule->getRadius(), Capsule->getHalfHeight() * 2.0f);
+				btCapsuleShape* capsule = (btCapsuleShape*)value;
+				return create_capsule(capsule->getRadius(), capsule->getHalfHeight() * 2.0f);
 			}
-			else if (Type == Shape::Cone)
+			else if (type == shape::cone)
 			{
-				btConeShape* Cone = (btConeShape*)Value;
-				return CreateCone(Cone->getRadius(), Cone->getHeight());
+				btConeShape* cone = (btConeShape*)value;
+				return create_cone(cone->getRadius(), cone->getHeight());
 			}
-			else if (Type == Shape::Cylinder)
+			else if (type == shape::cylinder)
 			{
-				btCylinderShape* Cylinder = (btCylinderShape*)Value;
-				btVector3 Size = Cylinder->getHalfExtentsWithMargin() / Cylinder->getLocalScaling();
-				return CreateCylinder(BT_TO_V3(Size));
+				btCylinderShape* cylinder = (btCylinderShape*)value;
+				btVector3 size = cylinder->getHalfExtentsWithMargin() / cylinder->getLocalScaling();
+				return create_cylinder(BT_TO_V3(size));
 			}
-			else if (Type == Shape::Convex_Hull)
-				return CreateConvexHull(Value);
+			else if (type == shape::convex_hull)
+				return create_convex_hull(value);
 
 			return nullptr;
 #else
 			return nullptr;
 #endif
 		}
-		btCollisionShape* Simulator::ReuseShape(btCollisionShape* Value)
+		btCollisionShape* simulator::reuse_shape(btCollisionShape* value)
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Value != nullptr, "shape should be set");
-			Core::UMutex<std::mutex> Unique(Exclusive);
-			auto It = Shapes.find(Value);
-			if (It == Shapes.end())
+			VI_ASSERT(value != nullptr, "shape should be set");
+			core::umutex<std::mutex> unique(exclusive);
+			auto it = shapes.find(value);
+			if (it == shapes.end())
 				return nullptr;
 
-			It->second++;
-			return Value;
+			it->second++;
+			return value;
 #else
 			return nullptr;
 #endif
 		}
-		void Simulator::FreeShape(btCollisionShape** Value)
+		void simulator::free_shape(btCollisionShape** value)
 		{
 #ifdef VI_BULLET3
-			if (!Value || !*Value)
+			if (!value || !*value)
 				return;
 
-			Core::UMutex<std::mutex> Unique(Exclusive);
-			auto It = Shapes.find(*Value);
-			if (It == Shapes.end())
+			core::umutex<std::mutex> unique(exclusive);
+			auto it = shapes.find(*value);
+			if (it == shapes.end())
 				return;
 
-			*Value = nullptr;
-			if (It->second-- > 1)
+			*value = nullptr;
+			if (it->second-- > 1)
 				return;
 
-			btCollisionShape* Item = (btCollisionShape*)It->first;
-			VI_TRACE("[sim] free shape 0x%" PRIXPTR, (void*)Item);
-			Core::Memory::Delete(Item);
-			Shapes.erase(It);
+			btCollisionShape* item = (btCollisionShape*)it->first;
+			VI_TRACE("[sim] free shape 0x%" PRIXPTR, (void*)item);
+			core::memory::deinit(item);
+			shapes.erase(it);
 #endif
 		}
-		Core::Vector<Trigonometry::Vector3> Simulator::GetShapeVertices(btCollisionShape* Value) const
+		core::vector<trigonometry::vector3> simulator::get_shape_vertices(btCollisionShape* value) const
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Value != nullptr, "shape should be set");
-			auto Type = (Shape)Value->getShapeType();
-			if (Type != Shape::Convex_Hull)
-				return Core::Vector<Trigonometry::Vector3>();
+			VI_ASSERT(value != nullptr, "shape should be set");
+			auto type = (shape)value->getShapeType();
+			if (type != shape::convex_hull)
+				return core::vector<trigonometry::vector3>();
 
-			btConvexHullShape* Hull = (btConvexHullShape*)Value;
-			btVector3* Points = Hull->getUnscaledPoints();
-			size_t Count = Hull->getNumPoints();
-			Core::Vector<Trigonometry::Vector3> Vertices;
-			Vertices.reserve(Count);
+			btConvexHullShape* hull = (btConvexHullShape*)value;
+			btVector3* points = hull->getUnscaledPoints();
+			size_t count = hull->getNumPoints();
+			core::vector<trigonometry::vector3> vertices;
+			vertices.reserve(count);
 
-			for (size_t i = 0; i < Count; i++)
+			for (size_t i = 0; i < count; i++)
 			{
-				btVector3& It = Points[i];
-				Vertices.emplace_back(It.getX(), It.getY(), It.getZ());
+				btVector3& it = points[i];
+				vertices.emplace_back(it.getX(), it.getY(), it.getZ());
 			}
 
-			return Vertices;
+			return vertices;
 #else
-			return Core::Vector<Trigonometry::Vector3>();
+			return core::vector<trigonometry::vector3>();
 #endif
 		}
-		size_t Simulator::GetShapeVerticesCount(btCollisionShape* Value) const
+		size_t simulator::get_shape_vertices_count(btCollisionShape* value) const
 		{
 #ifdef VI_BULLET3
-			VI_ASSERT(Value != nullptr, "shape should be set");
-			auto Type = (Shape)Value->getShapeType();
-			if (Type != Shape::Convex_Hull)
+			VI_ASSERT(value != nullptr, "shape should be set");
+			auto type = (shape)value->getShapeType();
+			if (type != shape::convex_hull)
 				return 0;
 
-			btConvexHullShape* Hull = (btConvexHullShape*)Value;
-			return Hull->getNumPoints();
+			btConvexHullShape* hull = (btConvexHullShape*)value;
+			return hull->getNumPoints();
 #else
 			return 0;
 #endif
 		}
-		float Simulator::GetMaxDisplacement() const
+		float simulator::get_max_displacement() const
 		{
 #ifdef VI_BULLET3
-			if (!SoftSolver || !World)
+			if (!soft_solver || !world)
 				return 1000;
 
-			return ((btSoftRigidDynamicsWorld*)World)->getWorldInfo().m_maxDisplacement;
+			return ((btSoftRigidDynamicsWorld*)world)->getWorldInfo().m_maxDisplacement;
 #else
 			return 1000;
 #endif
 		}
-		float Simulator::GetAirDensity() const
+		float simulator::get_air_density() const
 		{
 #ifdef VI_BULLET3
-			if (!SoftSolver || !World)
+			if (!soft_solver || !world)
 				return 1.2f;
 
-			return ((btSoftRigidDynamicsWorld*)World)->getWorldInfo().air_density;
+			return ((btSoftRigidDynamicsWorld*)world)->getWorldInfo().air_density;
 #else
 			return 1.2f;
 #endif
 		}
-		float Simulator::GetWaterOffset() const
+		float simulator::get_water_offset() const
 		{
 #ifdef VI_BULLET3
-			if (!SoftSolver || !World)
+			if (!soft_solver || !world)
 				return 0;
 
-			return ((btSoftRigidDynamicsWorld*)World)->getWorldInfo().water_offset;
+			return ((btSoftRigidDynamicsWorld*)world)->getWorldInfo().water_offset;
 #else
 			return 0;
 #endif
 		}
-		float Simulator::GetWaterDensity() const
+		float simulator::get_water_density() const
 		{
 #ifdef VI_BULLET3
-			if (!SoftSolver || !World)
+			if (!soft_solver || !world)
 				return 0;
 
-			return ((btSoftRigidDynamicsWorld*)World)->getWorldInfo().water_density;
+			return ((btSoftRigidDynamicsWorld*)world)->getWorldInfo().water_density;
 #else
 			return 0;
 #endif
 		}
-		Trigonometry::Vector3 Simulator::GetWaterNormal() const
+		trigonometry::vector3 simulator::get_water_normal() const
 		{
 #ifdef VI_BULLET3
-			if (!SoftSolver || !World)
+			if (!soft_solver || !world)
 				return 0;
 
-			btVector3 Value = ((btSoftRigidDynamicsWorld*)World)->getWorldInfo().water_normal;
-			return BT_TO_V3(Value);
+			btVector3 value = ((btSoftRigidDynamicsWorld*)world)->getWorldInfo().water_normal;
+			return BT_TO_V3(value);
 #else
 			return 0;
 #endif
 		}
-		Trigonometry::Vector3 Simulator::GetGravity() const
+		trigonometry::vector3 simulator::get_gravity() const
 		{
 #ifdef VI_BULLET3
-			if (!World)
+			if (!world)
 				return 0;
 
-			btVector3 Value = World->getGravity();
-			return BT_TO_V3(Value);
+			btVector3 value = world->getGravity();
+			return BT_TO_V3(value);
 #else
 			return 0;
 #endif
 		}
-		ContactStartedCallback Simulator::GetOnCollisionEnter() const
+		contact_started_callback simulator::get_on_collision_enter() const
 		{
 #ifdef VI_BULLET3
 			return gContactStartedCallback;
@@ -4431,7 +4431,7 @@ namespace Vitex
 			return nullptr;
 #endif
 		}
-		ContactEndedCallback Simulator::GetOnCollisionExit() const
+		contact_ended_callback simulator::get_on_collision_exit() const
 		{
 #ifdef VI_BULLET3
 			return gContactEndedCallback;
@@ -4439,80 +4439,80 @@ namespace Vitex
 			return nullptr;
 #endif
 		}
-		btCollisionConfiguration* Simulator::GetCollision() const
+		btCollisionConfiguration* simulator::get_collision() const
 		{
 #ifdef VI_BULLET3
-			return Collision;
+			return collision;
 #else
 			return nullptr;
 #endif
 		}
-		btBroadphaseInterface* Simulator::GetBroadphase() const
+		btBroadphaseInterface* simulator::get_broadphase() const
 		{
 #ifdef VI_BULLET3
-			return Broadphase;
+			return broadphase;
 #else
 			return nullptr;
 #endif
 		}
-		btConstraintSolver* Simulator::GetSolver() const
+		btConstraintSolver* simulator::get_solver() const
 		{
 #ifdef VI_BULLET3
-			return Solver;
+			return solver;
 #else
 			return nullptr;
 #endif
 		}
-		btDiscreteDynamicsWorld* Simulator::GetWorld() const
+		btDiscreteDynamicsWorld* simulator::get_world() const
 		{
 #ifdef VI_BULLET3
-			return World;
+			return world;
 #else
 			return nullptr;
 #endif
 		}
-		btCollisionDispatcher* Simulator::GetDispatcher() const
+		btCollisionDispatcher* simulator::get_dispatcher() const
 		{
 #ifdef VI_BULLET3
-			return Dispatcher;
+			return dispatcher;
 #else
 			return nullptr;
 #endif
 		}
-		btSoftBodySolver* Simulator::GetSoftSolver() const
+		btSoftBodySolver* simulator::get_soft_solver() const
 		{
 #ifdef VI_BULLET3
-			return SoftSolver;
+			return soft_solver;
 #else
 			return nullptr;
 #endif
 		}
-		bool Simulator::HasSoftBodySupport() const
+		bool simulator::has_soft_body_support() const
 		{
 #ifdef VI_BULLET3
-			return SoftSolver != nullptr;
+			return soft_solver != nullptr;
 #else
 			return false;
 #endif
 		}
-		int Simulator::GetContactManifoldCount() const
+		int simulator::get_contact_manifold_count() const
 		{
 #ifdef VI_BULLET3
-			if (!Dispatcher)
+			if (!dispatcher)
 				return 0;
 
-			return Dispatcher->getNumManifolds();
+			return dispatcher->getNumManifolds();
 #else
 			return 0;
 #endif
 		}
-		Simulator* Simulator::Get(btDiscreteDynamicsWorld* From)
+		simulator* simulator::get(btDiscreteDynamicsWorld* from)
 		{
 #ifdef VI_BULLET3
-			if (!From)
+			if (!from)
 				return nullptr;
 
-			return (Simulator*)From->getWorldUserInfo();
+			return (simulator*)from->getWorldUserInfo();
 #else
 			return nullptr;
 #endif

@@ -10,14 +10,14 @@ VOutput vs_main(VInput V)
 	Result.Normal = normalize(mul(V.Normal, (float3x3)V.OB_World));
 	Result.Tangent = normalize(mul(V.Tangent, (float3x3)V.OB_World));
 	Result.Bitangent = normalize(mul(V.Bitangent, (float3x3)V.OB_World));
-	Result.TexCoord = V.TexCoord * V.OB_TexCoord;
+	Result.Texcoord = V.Texcoord * V.OB_Texcoord;
     Result.OB_Diffuse = V.OB_Material.x;
     Result.OB_Normal = V.OB_Material.y;
     Result.OB_Height = V.OB_Material.z;
     Result.OB_MaterialId = V.OB_Material.w;
     
 	[branch] if (Result.OB_Height > 0)
-		Result.Direction = GetDirection(Result.Tangent, Result.Bitangent, Result.Normal, mul(float4(V.Position, 1.0), ob_World), ob_TexCoord.xy);
+		Result.Direction = GetDirection(Result.Tangent, Result.Bitangent, Result.Normal, mul(float4(V.Position, 1.0), ob_World), ob_Texcoord.xy);
 
 	return Result;
 }
@@ -25,7 +25,7 @@ VOutput vs_main(VInput V)
 GBuffer ps_main(VOutput V)
 {
 	Material Mat = Materials[V.OB_MaterialId];
-	float2 Coord = V.TexCoord;
+	float2 Coord = V.Texcoord;
 
 	[branch] if (V.OB_Height > 0)
 		Coord = GetParallax(Coord, V.Direction, Mat.Height, Mat.Bias);

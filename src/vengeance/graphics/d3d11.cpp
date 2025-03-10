@@ -8,107 +8,112 @@
 #define SHADER_COMPUTE ".asm.compute.gz"
 #define SHADER_HULL ".asm.hull.gz"
 #define SHADER_DOMAIN ".asm.domain.gz"
-#define REG_EXCHANGE(Name, Value) { if (Register.Name == Value) return; Register.Name = Value; }
-#define REG_EXCHANGE_T2(Name, Value1, Value2) { if (std::get<0>(Register.Name) == Value1 && std::get<1>(Register.Name) == Value2) return; Register.Name = std::make_tuple(Value1, Value2); }
-#define REG_EXCHANGE_T3(Name, Value1, Value2, Value3) { if (std::get<0>(Register.Name) == Value1 && std::get<1>(Register.Name) == Value2 && std::get<2>(Register.Name) == Value3) return; Register.Name = std::make_tuple(Value1, Value2, Value3); }
-#define REG_EXCHANGE_RS(Name, Value1, Value2, Value3) { auto& __vregrs = Register.Name[Value2]; if (__vregrs.first == Value1 && __vregrs.second == Value3) return; __vregrs = std::make_pair(Value1, Value3); }
-#define D3D_INLINE(Code) #Code
+#define REG_EXCHANGE(name, value) { if (regs.name == value) return; regs.name = value; }
+#define REG_EXCHANGE_T2(name, value1, value2) { if (std::get<0>(regs.name) == value1 && std::get<1>(regs.name) == value2) return; regs.name = std::make_tuple(value1, value2); }
+#define REG_EXCHANGE_T3(name, value1, value2, value3) { if (std::get<0>(regs.name) == value1 && std::get<1>(regs.name) == value2 && std::get<2>(regs.name) == value3) return; regs.name = std::make_tuple(value1, value2, value3); }
+#define REG_EXCHANGE_RS(name, value1, value2, value3) { auto& __vregrs = regs.name[value2]; if (__vregrs.first == value1 && __vregrs.second == value3) return; __vregrs = std::make_pair(value1, value3); }
+#define D3D_INLINE(code) #code
 
 namespace
 {
-	static DXGI_FORMAT GetNonDepthFormat(Vitex::Graphics::Format Format)
+	static void d3d11_release(IUnknown* value)
 	{
-		switch (Format)
+		if (value != nullptr)
+			value->Release();
+	}
+	static DXGI_FORMAT get_non_depth_format(vitex::graphics::format format)
+	{
+		switch (format)
 		{
-			case Vitex::Graphics::Format::D32_Float:
+			case vitex::graphics::format::d32_float:
 				return DXGI_FORMAT_R32_FLOAT;
-			case Vitex::Graphics::Format::D16_Unorm:
+			case vitex::graphics::format::d16_unorm:
 				return DXGI_FORMAT_R16_UNORM;
-			case Vitex::Graphics::Format::D24_Unorm_S8_Uint:
+			case vitex::graphics::format::d24_unorm_s8_uint:
 				return DXGI_FORMAT_R24G8_TYPELESS;
 			default:
-				return (DXGI_FORMAT)Format;
+				return (DXGI_FORMAT)format;
 		}
 	}
-	static DXGI_FORMAT GetBaseDepthFormat(Vitex::Graphics::Format Format)
+	static DXGI_FORMAT get_base_depth_format(vitex::graphics::format format)
 	{
-		switch (Format)
+		switch (format)
 		{
-			case Vitex::Graphics::Format::R32_Float:
-			case Vitex::Graphics::Format::D32_Float:
+			case vitex::graphics::format::r32_float:
+			case vitex::graphics::format::d32_float:
 				return DXGI_FORMAT_R32_TYPELESS;
-			case Vitex::Graphics::Format::R16_Float:
-			case Vitex::Graphics::Format::D16_Unorm:
+			case vitex::graphics::format::r16_float:
+			case vitex::graphics::format::d16_unorm:
 				return DXGI_FORMAT_R16_TYPELESS;
-			case Vitex::Graphics::Format::D24_Unorm_S8_Uint:
+			case vitex::graphics::format::d24_unorm_s8_uint:
 				return DXGI_FORMAT_R24G8_TYPELESS;
 			default:
-				return (DXGI_FORMAT)Format;
+				return (DXGI_FORMAT)format;
 		}
 	}
-	static DXGI_FORMAT GetInternalDepthFormat(Vitex::Graphics::Format Format)
+	static DXGI_FORMAT get_internal_depth_format(vitex::graphics::format format)
 	{
-		switch (Format)
+		switch (format)
 		{
-			case Vitex::Graphics::Format::R32_Float:
-			case Vitex::Graphics::Format::D32_Float:
+			case vitex::graphics::format::r32_float:
+			case vitex::graphics::format::d32_float:
 				return DXGI_FORMAT_D32_FLOAT;
-			case Vitex::Graphics::Format::R16_Float:
-			case Vitex::Graphics::Format::D16_Unorm:
+			case vitex::graphics::format::r16_float:
+			case vitex::graphics::format::d16_unorm:
 				return DXGI_FORMAT_D16_UNORM;
-			case Vitex::Graphics::Format::D24_Unorm_S8_Uint:
+			case vitex::graphics::format::d24_unorm_s8_uint:
 				return DXGI_FORMAT_D24_UNORM_S8_UINT;
 			default:
-				return (DXGI_FORMAT)Format;
+				return (DXGI_FORMAT)format;
 		}
 	}
-	static DXGI_FORMAT GetDepthFormat(Vitex::Graphics::Format Format)
+	static DXGI_FORMAT get_depth_format(vitex::graphics::format format)
 	{
-		switch (Format)
+		switch (format)
 		{
-			case Vitex::Graphics::Format::R32_Float:
-			case Vitex::Graphics::Format::D32_Float:
+			case vitex::graphics::format::r32_float:
+			case vitex::graphics::format::d32_float:
 				return DXGI_FORMAT_R32_FLOAT;
-			case Vitex::Graphics::Format::R16_Float:
+			case vitex::graphics::format::r16_float:
 				return DXGI_FORMAT_R16_FLOAT;
-			case Vitex::Graphics::Format::D16_Unorm:
+			case vitex::graphics::format::d16_unorm:
 				return DXGI_FORMAT_R16_UNORM;
-			case Vitex::Graphics::Format::D24_Unorm_S8_Uint:
+			case vitex::graphics::format::d24_unorm_s8_uint:
 				return DXGI_FORMAT_R24_UNORM_X8_TYPELESS;
 			default:
-				return (DXGI_FORMAT)Format;
+				return (DXGI_FORMAT)format;
 		}
 	}
-	static Vitex::Graphics::GraphicsException GetException(HRESULT ResultCode, const std::string_view& ScopeText)
+	static vitex::graphics::graphics_exception get_exception(HRESULT result_code, const std::string_view& scope_text)
 	{
 		try
 		{
-			if (ResultCode != S_OK)
+			if (result_code != S_OK)
 			{
-				_com_error Error(ResultCode);
-				auto Text = Vitex::Core::String(ScopeText);
-				Text += " CAUSING ";
-				Text += Error.ErrorMessage();
-				return Vitex::Graphics::GraphicsException((int)ResultCode, std::move(Text));
+				_com_error error(result_code);
+				auto text = vitex::core::string(scope_text);
+				text += " CAUSING ";
+				text += error.ErrorMessage();
+				return vitex::graphics::graphics_exception((int)result_code, std::move(text));
 			}
 			else
 			{
-				auto Text = Vitex::Core::String(ScopeText);
-				Text += " CAUSING internal graphics error";
-				return Vitex::Graphics::GraphicsException((int)ResultCode, std::move(Text));
+				auto text = vitex::core::string(scope_text);
+				text += " CAUSING internal graphics error";
+				return vitex::graphics::graphics_exception((int)result_code, std::move(text));
 			}
 		}
 		catch (...)
 		{
-			auto Text = Vitex::Core::String(ScopeText);
-			Text += " CAUSING internal graphics error";
-			return Vitex::Graphics::GraphicsException((int)ResultCode, std::move(Text));
+			auto text = vitex::core::string(scope_text);
+			text += " CAUSING internal graphics error";
+			return vitex::graphics::graphics_exception((int)result_code, std::move(text));
 		}
 	}
-	static void DebugMessage(D3D11_MESSAGE* Message)
+	static void debug_message(D3D11_MESSAGE* message)
 	{
 		const char* _Source;
-		switch (Message->Category)
+		switch (message->Category)
 		{
 			case D3D11_MESSAGE_CATEGORY_APPLICATION_DEFINED:
 				_Source = "APPLICATION DEFINED";
@@ -148,20 +153,20 @@ namespace
 				break;
 		}
 
-		switch (Message->Severity)
+		switch (message->Severity)
 		{
 			case D3D11_MESSAGE_SEVERITY_ERROR:
 			case D3D11_MESSAGE_SEVERITY_CORRUPTION:
-				VI_ERR("[d3d11] %s (%d): %.*s", _Source, (int)Message->ID, (int)Message->DescriptionByteLength, Message->pDescription);
+				VI_ERR("[d3d11] %s (%d): %.*s", _Source, (int)message->ID, (int)message->DescriptionByteLength, message->pDescription);
 				break;
 			case D3D11_MESSAGE_SEVERITY_WARNING:
-				VI_WARN("[d3d11] %s (%d): %.*s", _Source, (int)Message->ID, (int)Message->DescriptionByteLength, Message->pDescription);
+				VI_WARN("[d3d11] %s (%d): %.*s", _Source, (int)message->ID, (int)message->DescriptionByteLength, message->pDescription);
 				break;
 			case D3D11_MESSAGE_SEVERITY_INFO:
-				VI_DEBUG("[d3d11] %s (%d): %.*s", _Source, (int)Message->ID, (int)Message->DescriptionByteLength, Message->pDescription);
+				VI_DEBUG("[d3d11] %s (%d): %.*s", _Source, (int)message->ID, (int)message->DescriptionByteLength, message->pDescription);
 				break;
 			case D3D11_MESSAGE_SEVERITY_MESSAGE:
-				VI_TRACE("[d3d11] %s (%d): %.*s", _Source, (int)Message->ID, (int)Message->DescriptionByteLength, Message->pDescription);
+				VI_TRACE("[d3d11] %s (%d): %.*s", _Source, (int)message->ID, (int)message->DescriptionByteLength, message->pDescription);
 				break;
 		}
 
@@ -169,3285 +174,3312 @@ namespace
 	}
 }
 
-namespace Vitex
+namespace vitex
 {
-	namespace Graphics
+	namespace graphics
 	{
-		namespace D3D11
+		namespace d3d11
 		{
-			D3D11DepthStencilState::D3D11DepthStencilState(const Desc& I) : DepthStencilState(I), Resource(nullptr)
+			d3d11_depth_stencil_state::d3d11_depth_stencil_state(const desc& i) : depth_stencil_state(i), resource(nullptr)
 			{
 			}
-			D3D11DepthStencilState::~D3D11DepthStencilState()
+			d3d11_depth_stencil_state::~d3d11_depth_stencil_state()
 			{
-				Core::Memory::Release(Resource);
+				d3d11_release(resource);
 			}
-			void* D3D11DepthStencilState::GetResource() const
+			void* d3d11_depth_stencil_state::get_resource() const
 			{
-				return Resource;
-			}
-
-			D3D11RasterizerState::D3D11RasterizerState(const Desc& I) : RasterizerState(I), Resource(nullptr)
-			{
-			}
-			D3D11RasterizerState::~D3D11RasterizerState()
-			{
-				Core::Memory::Release(Resource);
-			}
-			void* D3D11RasterizerState::GetResource() const
-			{
-				return Resource;
+				return resource;
 			}
 
-			D3D11BlendState::D3D11BlendState(const Desc& I) : BlendState(I), Resource(nullptr)
+			d3d11_rasterizer_state::d3d11_rasterizer_state(const desc& i) : rasterizer_state(i), resource(nullptr)
 			{
 			}
-			D3D11BlendState::~D3D11BlendState()
+			d3d11_rasterizer_state::~d3d11_rasterizer_state()
 			{
-				Core::Memory::Release(Resource);
+				d3d11_release(resource);
 			}
-			void* D3D11BlendState::GetResource() const
+			void* d3d11_rasterizer_state::get_resource() const
 			{
-				return Resource;
-			}
-
-			D3D11SamplerState::D3D11SamplerState(const Desc& I) : SamplerState(I), Resource(nullptr)
-			{
-			}
-			D3D11SamplerState::~D3D11SamplerState()
-			{
-				Core::Memory::Release(Resource);
-			}
-			void* D3D11SamplerState::GetResource() const
-			{
-				return Resource;
+				return resource;
 			}
 
-			D3D11InputLayout::D3D11InputLayout(const Desc& I) : InputLayout(I)
+			d3d11_blend_state::d3d11_blend_state(const desc& i) : blend_state(i), resource(nullptr)
 			{
 			}
-			D3D11InputLayout::~D3D11InputLayout()
+			d3d11_blend_state::~d3d11_blend_state()
+			{
+				d3d11_release(resource);
+			}
+			void* d3d11_blend_state::get_resource() const
+			{
+				return resource;
+			}
+
+			d3d11_sampler_state::d3d11_sampler_state(const desc& i) : sampler_state(i), resource(nullptr)
 			{
 			}
-			void* D3D11InputLayout::GetResource() const
+			d3d11_sampler_state::~d3d11_sampler_state()
+			{
+				d3d11_release(resource);
+			}
+			void* d3d11_sampler_state::get_resource() const
+			{
+				return resource;
+			}
+
+			d3d11_input_layout::d3d11_input_layout(const desc& i) : input_layout(i)
+			{
+			}
+			d3d11_input_layout::~d3d11_input_layout()
+			{
+			}
+			void* d3d11_input_layout::get_resource() const
 			{
 				return (void*)this;
 			}
 
-			D3D11Shader::D3D11Shader(const Desc& I) : Shader(I), Compiled(false)
+			d3d11_shader::d3d11_shader(const desc& i) : shader(i), compiled(false)
 			{
-				VertexShader = nullptr;
-				PixelShader = nullptr;
-				GeometryShader = nullptr;
-				HullShader = nullptr;
-				DomainShader = nullptr;
-				ComputeShader = nullptr;
-				ConstantBuffer = nullptr;
-				VertexLayout = nullptr;
-				Signature = nullptr;
+				vertex_shader = nullptr;
+				pixel_shader = nullptr;
+				geometry_shader = nullptr;
+				hull_shader = nullptr;
+				domain_shader = nullptr;
+				compute_shader = nullptr;
+				constant_buffer = nullptr;
+				vertex_layout = nullptr;
+				signature = nullptr;
 			}
-			D3D11Shader::~D3D11Shader()
+			d3d11_shader::~d3d11_shader()
 			{
-				Core::Memory::Release(ConstantBuffer);
-				Core::Memory::Release(VertexShader);
-				Core::Memory::Release(PixelShader);
-				Core::Memory::Release(GeometryShader);
-				Core::Memory::Release(DomainShader);
-				Core::Memory::Release(HullShader);
-				Core::Memory::Release(ComputeShader);
-				Core::Memory::Release(VertexLayout);
-				Core::Memory::Release(Signature);
+				d3d11_release(constant_buffer);
+				d3d11_release(vertex_shader);
+				d3d11_release(pixel_shader);
+				d3d11_release(geometry_shader);
+				d3d11_release(domain_shader);
+				d3d11_release(hull_shader);
+				d3d11_release(compute_shader);
+				d3d11_release(vertex_layout);
+				d3d11_release(signature);
 			}
-			bool D3D11Shader::IsValid() const
+			bool d3d11_shader::is_valid() const
 			{
-				return Compiled;
-			}
-
-			D3D11ElementBuffer::D3D11ElementBuffer(const Desc& I) : ElementBuffer(I)
-			{
-				Resource = nullptr;
-				Element = nullptr;
-				Access = nullptr;
-			}
-			D3D11ElementBuffer::~D3D11ElementBuffer()
-			{
-				Core::Memory::Release(Resource);
-				Core::Memory::Release(Element);
-				Core::Memory::Release(Access);
-			}
-			void* D3D11ElementBuffer::GetResource() const
-			{
-				return (void*)Element;
+				return compiled;
 			}
 
-			D3D11MeshBuffer::D3D11MeshBuffer(const Desc& I) : MeshBuffer(I)
+			d3d11_element_buffer::d3d11_element_buffer(const desc& i) : element_buffer(i)
 			{
+				resource = nullptr;
+				element = nullptr;
+				access = nullptr;
 			}
-			Trigonometry::Vertex* D3D11MeshBuffer::GetElements(GraphicsDevice* Device) const
+			d3d11_element_buffer::~d3d11_element_buffer()
 			{
-				VI_ASSERT(Device != nullptr, "graphics device should be set");
-
-				MappedSubresource Resource;
-				Device->Map(VertexBuffer, ResourceMap::Write, &Resource);
-
-				Trigonometry::Vertex* Vertices = Core::Memory::Allocate<Trigonometry::Vertex>(sizeof(Trigonometry::Vertex) * (uint32_t)VertexBuffer->GetElements());
-				memcpy(Vertices, Resource.Pointer, (size_t)VertexBuffer->GetElements() * sizeof(Trigonometry::Vertex));
-
-				Device->Unmap(VertexBuffer, &Resource);
-				return Vertices;
+				d3d11_release(resource);
+				d3d11_release(element);
+				d3d11_release(access);
 			}
-
-			D3D11SkinMeshBuffer::D3D11SkinMeshBuffer(const Desc& I) : SkinMeshBuffer(I)
+			void* d3d11_element_buffer::get_resource() const
 			{
-			}
-			Trigonometry::SkinVertex* D3D11SkinMeshBuffer::GetElements(GraphicsDevice* Device) const
-			{
-				VI_ASSERT(Device != nullptr, "graphics device should be set");
-
-				MappedSubresource Resource;
-				Device->Map(VertexBuffer, ResourceMap::Write, &Resource);
-
-				Trigonometry::SkinVertex* Vertices = Core::Memory::Allocate<Trigonometry::SkinVertex>(sizeof(Trigonometry::SkinVertex) * (uint32_t)VertexBuffer->GetElements());
-				memcpy(Vertices, Resource.Pointer, (size_t)VertexBuffer->GetElements() * sizeof(Trigonometry::SkinVertex));
-
-				Device->Unmap(VertexBuffer, &Resource);
-				return Vertices;
+				return (void*)element;
 			}
 
-			D3D11InstanceBuffer::D3D11InstanceBuffer(const Desc& I) : InstanceBuffer(I), Resource(nullptr)
+			d3d11_mesh_buffer::d3d11_mesh_buffer(const desc& i) : mesh_buffer(i)
 			{
 			}
-			D3D11InstanceBuffer::~D3D11InstanceBuffer()
+			trigonometry::vertex* d3d11_mesh_buffer::get_elements(graphics_device* device) const
 			{
-				if (Device != nullptr && Sync)
-					Device->ClearBuffer(this);
+				VI_ASSERT(device != nullptr, "graphics device should be set");
 
-				Core::Memory::Release(Resource);
-			}
+				mapped_subresource resource;
+				device->map(vertex_buffer, resource_map::write, &resource);
 
-			D3D11Texture2D::D3D11Texture2D() : Texture2D(), Access(nullptr), Resource(nullptr), View(nullptr)
-			{
-			}
-			D3D11Texture2D::D3D11Texture2D(const Desc& I) : Texture2D(I), Access(nullptr), Resource(nullptr), View(nullptr)
-			{
-			}
-			D3D11Texture2D::~D3D11Texture2D()
-			{
-				Core::Memory::Release(View);
-				Core::Memory::Release(Resource);
-				Core::Memory::Release(Access);
-			}
-			void* D3D11Texture2D::GetResource() const
-			{
-				return (void*)Resource;
+				trigonometry::vertex* vertices = core::memory::allocate<trigonometry::vertex>(sizeof(trigonometry::vertex) * (uint32_t)vertex_buffer->get_elements());
+				memcpy(vertices, resource.pointer, (size_t)vertex_buffer->get_elements() * sizeof(trigonometry::vertex));
+
+				device->unmap(vertex_buffer, &resource);
+				return vertices;
 			}
 
-			D3D11Texture3D::D3D11Texture3D() : Texture3D(), Access(nullptr), Resource(nullptr), View(nullptr)
+			d3d11_skin_mesh_buffer::d3d11_skin_mesh_buffer(const desc& i) : skin_mesh_buffer(i)
 			{
 			}
-			D3D11Texture3D::~D3D11Texture3D()
+			trigonometry::skin_vertex* d3d11_skin_mesh_buffer::get_elements(graphics_device* device) const
 			{
-				Core::Memory::Release(View);
-				Core::Memory::Release(Resource);
-				Core::Memory::Release(Access);
-			}
-			void* D3D11Texture3D::GetResource()
-			{
-				return (void*)Resource;
+				VI_ASSERT(device != nullptr, "graphics device should be set");
+
+				mapped_subresource resource;
+				device->map(vertex_buffer, resource_map::write, &resource);
+
+				trigonometry::skin_vertex* vertices = core::memory::allocate<trigonometry::skin_vertex>(sizeof(trigonometry::skin_vertex) * (uint32_t)vertex_buffer->get_elements());
+				memcpy(vertices, resource.pointer, (size_t)vertex_buffer->get_elements() * sizeof(trigonometry::skin_vertex));
+
+				device->unmap(vertex_buffer, &resource);
+				return vertices;
 			}
 
-			D3D11TextureCube::D3D11TextureCube() : TextureCube(), Access(nullptr), Resource(nullptr), View(nullptr)
+			d3d11_instance_buffer::d3d11_instance_buffer(const desc& i) : instance_buffer(i), resource(nullptr)
 			{
 			}
-			D3D11TextureCube::D3D11TextureCube(const Desc& I) : TextureCube(I), Access(nullptr), Resource(nullptr), View(nullptr)
+			d3d11_instance_buffer::~d3d11_instance_buffer()
 			{
-			}
-			D3D11TextureCube::~D3D11TextureCube()
-			{
-				Core::Memory::Release(View);
-				Core::Memory::Release(Resource);
-				Core::Memory::Release(Access);
-			}
-			void* D3D11TextureCube::GetResource() const
-			{
-				return (void*)Resource;
+				if (device != nullptr && sync)
+					device->clear_buffer(this);
+
+				d3d11_release(resource);
 			}
 
-			D3D11DepthTarget2D::D3D11DepthTarget2D(const Desc& I) : DepthTarget2D(I)
+			d3d11_texture_2d::d3d11_texture_2d() : texture_2d(), access(nullptr), resource(nullptr), view(nullptr)
 			{
-				DepthStencilView = nullptr;
 			}
-			D3D11DepthTarget2D::~D3D11DepthTarget2D()
+			d3d11_texture_2d::d3d11_texture_2d(const desc& i) : texture_2d(i), access(nullptr), resource(nullptr), view(nullptr)
 			{
-				Core::Memory::Release(DepthStencilView);
 			}
-			void* D3D11DepthTarget2D::GetResource() const
+			d3d11_texture_2d::~d3d11_texture_2d()
 			{
-				return DepthStencilView;
+				d3d11_release(view);
+				d3d11_release(resource);
+				d3d11_release(access);
 			}
-			uint32_t D3D11DepthTarget2D::GetWidth() const
+			void* d3d11_texture_2d::get_resource() const
 			{
-				return (uint32_t)Viewarea.Width;
-			}
-			uint32_t D3D11DepthTarget2D::GetHeight() const
-			{
-				return (uint32_t)Viewarea.Height;
+				return (void*)resource;
 			}
 
-			D3D11DepthTargetCube::D3D11DepthTargetCube(const Desc& I) : DepthTargetCube(I)
+			d3d11_texture_3d::d3d11_texture_3d() : texture_3d(), access(nullptr), resource(nullptr), view(nullptr)
 			{
-				DepthStencilView = nullptr;
 			}
-			D3D11DepthTargetCube::~D3D11DepthTargetCube()
+			d3d11_texture_3d::~d3d11_texture_3d()
 			{
-				Core::Memory::Release(DepthStencilView);
+				d3d11_release(view);
+				d3d11_release(resource);
+				d3d11_release(access);
 			}
-			void* D3D11DepthTargetCube::GetResource() const
+			void* d3d11_texture_3d::get_resource()
 			{
-				return DepthStencilView;
-			}
-			uint32_t D3D11DepthTargetCube::GetWidth() const
-			{
-				return (uint32_t)Viewarea.Width;
-			}
-			uint32_t D3D11DepthTargetCube::GetHeight() const
-			{
-				return (uint32_t)Viewarea.Height;
+				return (void*)resource;
 			}
 
-			D3D11RenderTarget2D::D3D11RenderTarget2D(const Desc& I) : RenderTarget2D(I)
+			d3d11_texture_cube::d3d11_texture_cube() : texture_cube(), access(nullptr), resource(nullptr), view(nullptr)
 			{
-				RenderTargetView = nullptr;
-				DepthStencilView = nullptr;
-				Texture = nullptr;
 			}
-			D3D11RenderTarget2D::~D3D11RenderTarget2D()
+			d3d11_texture_cube::d3d11_texture_cube(const desc& i) : texture_cube(i), access(nullptr), resource(nullptr), view(nullptr)
 			{
-				Core::Memory::Release(Texture);
-				Core::Memory::Release(DepthStencilView);
-				Core::Memory::Release(RenderTargetView);
 			}
-			void* D3D11RenderTarget2D::GetTargetBuffer() const
+			d3d11_texture_cube::~d3d11_texture_cube()
 			{
-				return (void*)&RenderTargetView;
+				d3d11_release(view);
+				d3d11_release(resource);
+				d3d11_release(access);
 			}
-			void* D3D11RenderTarget2D::GetDepthBuffer() const
+			void* d3d11_texture_cube::get_resource() const
 			{
-				return (void*)DepthStencilView;
-			}
-			uint32_t D3D11RenderTarget2D::GetWidth() const
-			{
-				return (uint32_t)Viewarea.Width;
-			}
-			uint32_t D3D11RenderTarget2D::GetHeight() const
-			{
-				return (uint32_t)Viewarea.Height;
+				return (void*)resource;
 			}
 
-			D3D11MultiRenderTarget2D::D3D11MultiRenderTarget2D(const Desc& I) : MultiRenderTarget2D(I), DepthStencilView(nullptr)
+			d3d11_depth_target_2d::d3d11_depth_target_2d(const desc& i) : depth_target_2d(i)
 			{
-				ZeroMemory(&Information, sizeof(Information));
+				depth_stencil_view = nullptr;
+			}
+			d3d11_depth_target_2d::~d3d11_depth_target_2d()
+			{
+				d3d11_release(depth_stencil_view);
+			}
+			void* d3d11_depth_target_2d::get_resource() const
+			{
+				return depth_stencil_view;
+			}
+			uint32_t d3d11_depth_target_2d::get_width() const
+			{
+				return (uint32_t)viewarea.width;
+			}
+			uint32_t d3d11_depth_target_2d::get_height() const
+			{
+				return (uint32_t)viewarea.height;
+			}
+
+			d3d11_depth_target_cube::d3d11_depth_target_cube(const desc& i) : depth_target_cube(i)
+			{
+				depth_stencil_view = nullptr;
+			}
+			d3d11_depth_target_cube::~d3d11_depth_target_cube()
+			{
+				d3d11_release(depth_stencil_view);
+			}
+			void* d3d11_depth_target_cube::get_resource() const
+			{
+				return depth_stencil_view;
+			}
+			uint32_t d3d11_depth_target_cube::get_width() const
+			{
+				return (uint32_t)viewarea.width;
+			}
+			uint32_t d3d11_depth_target_cube::get_height() const
+			{
+				return (uint32_t)viewarea.height;
+			}
+
+			d3d11_render_target_2d::d3d11_render_target_2d(const desc& i) : render_target_2d(i)
+			{
+				render_target_view = nullptr;
+				depth_stencil_view = nullptr;
+				texture = nullptr;
+			}
+			d3d11_render_target_2d::~d3d11_render_target_2d()
+			{
+				d3d11_release(texture);
+				d3d11_release(depth_stencil_view);
+				d3d11_release(render_target_view);
+			}
+			void* d3d11_render_target_2d::get_target_buffer() const
+			{
+				return (void*)&render_target_view;
+			}
+			void* d3d11_render_target_2d::get_depth_buffer() const
+			{
+				return (void*)depth_stencil_view;
+			}
+			uint32_t d3d11_render_target_2d::get_width() const
+			{
+				return (uint32_t)viewarea.width;
+			}
+			uint32_t d3d11_render_target_2d::get_height() const
+			{
+				return (uint32_t)viewarea.height;
+			}
+
+			d3d11_multi_render_target_2d::d3d11_multi_render_target_2d(const desc& i) : multi_render_target_2d(i), depth_stencil_view(nullptr)
+			{
+				ZeroMemory(&information, sizeof(information));
 				for (uint32_t i = 0; i < 8; i++)
 				{
-					RenderTargetView[i] = nullptr;
-					Texture[i] = nullptr;
+					render_target_view[i] = nullptr;
+					texture[i] = nullptr;
 				}
 			}
-			D3D11MultiRenderTarget2D::~D3D11MultiRenderTarget2D()
+			d3d11_multi_render_target_2d::~d3d11_multi_render_target_2d()
 			{
-				Core::Memory::Release(DepthStencilView);
+				d3d11_release(depth_stencil_view);
 				for (uint32_t i = 0; i < 8; i++)
 				{
-					Core::Memory::Release(Texture[i]);
-					Core::Memory::Release(RenderTargetView[i]);
+					d3d11_release(texture[i]);
+					d3d11_release(render_target_view[i]);
 				}
 			}
-			void* D3D11MultiRenderTarget2D::GetTargetBuffer() const
+			void* d3d11_multi_render_target_2d::get_target_buffer() const
 			{
-				return (void*)RenderTargetView;
+				return (void*)render_target_view;
 			}
-			void* D3D11MultiRenderTarget2D::GetDepthBuffer() const
+			void* d3d11_multi_render_target_2d::get_depth_buffer() const
 			{
-				return (void*)DepthStencilView;
+				return (void*)depth_stencil_view;
 			}
-			uint32_t D3D11MultiRenderTarget2D::GetWidth() const
+			uint32_t d3d11_multi_render_target_2d::get_width() const
 			{
-				return (uint32_t)Viewarea.Width;
+				return (uint32_t)viewarea.width;
 			}
-			uint32_t D3D11MultiRenderTarget2D::GetHeight() const
+			uint32_t d3d11_multi_render_target_2d::get_height() const
 			{
-				return (uint32_t)Viewarea.Height;
-			}
-
-			D3D11RenderTargetCube::D3D11RenderTargetCube(const Desc& I) : RenderTargetCube(I)
-			{
-				DepthStencilView = nullptr;
-				RenderTargetView = nullptr;
-				Texture = nullptr;
-			}
-			D3D11RenderTargetCube::~D3D11RenderTargetCube()
-			{
-				Core::Memory::Release(DepthStencilView);
-				Core::Memory::Release(RenderTargetView);
-				Core::Memory::Release(Texture);
-			}
-			void* D3D11RenderTargetCube::GetTargetBuffer() const
-			{
-				return (void*)&RenderTargetView;
-			}
-			void* D3D11RenderTargetCube::GetDepthBuffer() const
-			{
-				return (void*)DepthStencilView;
-			}
-			uint32_t D3D11RenderTargetCube::GetWidth() const
-			{
-				return (uint32_t)Viewarea.Width;
-			}
-			uint32_t D3D11RenderTargetCube::GetHeight() const
-			{
-				return (uint32_t)Viewarea.Height;
+				return (uint32_t)viewarea.height;
 			}
 
-			D3D11MultiRenderTargetCube::D3D11MultiRenderTargetCube(const Desc& I) : MultiRenderTargetCube(I), DepthStencilView(nullptr)
+			d3d11_render_target_cube::d3d11_render_target_cube(const desc& i) : render_target_cube(i)
+			{
+				depth_stencil_view = nullptr;
+				render_target_view = nullptr;
+				texture = nullptr;
+			}
+			d3d11_render_target_cube::~d3d11_render_target_cube()
+			{
+				d3d11_release(depth_stencil_view);
+				d3d11_release(render_target_view);
+				d3d11_release(texture);
+			}
+			void* d3d11_render_target_cube::get_target_buffer() const
+			{
+				return (void*)&render_target_view;
+			}
+			void* d3d11_render_target_cube::get_depth_buffer() const
+			{
+				return (void*)depth_stencil_view;
+			}
+			uint32_t d3d11_render_target_cube::get_width() const
+			{
+				return (uint32_t)viewarea.width;
+			}
+			uint32_t d3d11_render_target_cube::get_height() const
+			{
+				return (uint32_t)viewarea.height;
+			}
+
+			d3d11_multi_render_target_cube::d3d11_multi_render_target_cube(const desc& i) : multi_render_target_cube(i), depth_stencil_view(nullptr)
 			{
 				for (uint32_t i = 0; i < 8; i++)
 				{
-					RenderTargetView[i] = nullptr;
-					Texture[i] = nullptr;
-					Resource[i] = nullptr;
+					render_target_view[i] = nullptr;
+					texture[i] = nullptr;
+					resource[i] = nullptr;
 				}
 			}
-			D3D11MultiRenderTargetCube::~D3D11MultiRenderTargetCube()
+			d3d11_multi_render_target_cube::~d3d11_multi_render_target_cube()
 			{
-				VI_ASSERT((uint32_t)Target <= 8, "targets count should be less than 9");
-				for (uint32_t i = 0; i < (uint32_t)Target; i++)
+				VI_ASSERT((uint32_t)target <= 8, "targets count should be less than 9");
+				for (uint32_t i = 0; i < (uint32_t)target; i++)
 				{
-					Core::Memory::Release(RenderTargetView[i]);
-					Core::Memory::Release(Texture[i]);
+					d3d11_release(render_target_view[i]);
+					d3d11_release(texture[i]);
 				}
-				Core::Memory::Release(DepthStencilView);
+				d3d11_release(depth_stencil_view);
 			}
-			void* D3D11MultiRenderTargetCube::GetTargetBuffer() const
+			void* d3d11_multi_render_target_cube::get_target_buffer() const
 			{
-				return (void*)RenderTargetView;
+				return (void*)render_target_view;
 			}
-			void* D3D11MultiRenderTargetCube::GetDepthBuffer() const
+			void* d3d11_multi_render_target_cube::get_depth_buffer() const
 			{
-				return (void*)DepthStencilView;
+				return (void*)depth_stencil_view;
 			}
-			uint32_t D3D11MultiRenderTargetCube::GetWidth() const
+			uint32_t d3d11_multi_render_target_cube::get_width() const
 			{
-				return (uint32_t)Viewarea.Width;
+				return (uint32_t)viewarea.width;
 			}
-			uint32_t D3D11MultiRenderTargetCube::GetHeight() const
+			uint32_t d3d11_multi_render_target_cube::get_height() const
 			{
-				return (uint32_t)Viewarea.Height;
-			}
-
-			D3D11Cubemap::D3D11Cubemap(const Desc& I) : Cubemap(I), Merger(nullptr), Source(nullptr)
-			{
-				VI_ASSERT(I.Source != nullptr, "source should be set");
-				VI_ASSERT(I.Target < I.Source->GetTargetCount(), "targets count should be less than %i", (int)I.Source->GetTargetCount());
-
-				D3D11Texture2D* Target = (D3D11Texture2D*)I.Source->GetTarget2D(I.Target);
-				VI_ASSERT(Target != nullptr && Target->View != nullptr, "render target should be valid");
-
-				Source = Target->View;
-				Source->GetDesc(&Options.Texture);
-				Source->AddRef();
-
-				D3D11_TEXTURE2D_DESC& Texture = Options.Texture;
-				Texture.MipLevels = I.MipLevels;
-				Texture.ArraySize = 6;
-				Texture.Usage = D3D11_USAGE_DEFAULT;
-				Texture.BindFlags = D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE;
-				Texture.CPUAccessFlags = 0;
-				Texture.MiscFlags = D3D11_RESOURCE_MISC_TEXTURECUBE | D3D11_RESOURCE_MISC_GENERATE_MIPS;
-
-				D3D11_SHADER_RESOURCE_VIEW_DESC& Resource = Options.Resource;
-				Resource.Format = Texture.Format;
-				Resource.ViewDimension = D3D11_SRV_DIMENSION_TEXTURECUBE;
-				Resource.TextureCube.MostDetailedMip = 0;
-				Resource.TextureCube.MipLevels = I.MipLevels;
-
-				D3D11_BOX& Region = Options.Region;
-				Region = { 0, 0, 0, (uint32_t)I.Size, (uint32_t)I.Size, 1 };
-			}
-			D3D11Cubemap::~D3D11Cubemap()
-			{
-				Core::Memory::Release(Source);
-				Core::Memory::Release(Merger);
+				return (uint32_t)viewarea.height;
 			}
 
-			D3D11Query::D3D11Query() : Query(), Async(nullptr)
+			d3d11_cubemap::d3d11_cubemap(const desc& i) : cubemap(i), merger(nullptr), source(nullptr)
 			{
+				VI_ASSERT(i.source != nullptr, "source should be set");
+				VI_ASSERT(i.target < i.source->get_target_count(), "targets count should be less than %i", (int)i.source->get_target_count());
+
+				d3d11_texture_2d* target = (d3d11_texture_2d*)i.source->get_target_2d(i.target);
+				VI_ASSERT(target != nullptr && target->view != nullptr, "render target should be valid");
+
+				source = target->view;
+				source->GetDesc(&options.texture);
+				source->AddRef();
+
+				D3D11_TEXTURE2D_DESC& texture = options.texture;
+				texture.MipLevels = i.mip_levels;
+				texture.ArraySize = 6;
+				texture.Usage = D3D11_USAGE_DEFAULT;
+				texture.BindFlags = D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE;
+				texture.CPUAccessFlags = 0;
+				texture.MiscFlags = D3D11_RESOURCE_MISC_TEXTURECUBE | D3D11_RESOURCE_MISC_GENERATE_MIPS;
+
+				D3D11_SHADER_RESOURCE_VIEW_DESC& resource = options.resource;
+				resource.Format = texture.Format;
+				resource.ViewDimension = D3D11_SRV_DIMENSION_TEXTURECUBE;
+				resource.TextureCube.MostDetailedMip = 0;
+				resource.TextureCube.MipLevels = i.mip_levels;
+
+				D3D11_BOX& region = options.region;
+				region = { 0, 0, 0, (uint32_t)i.size, (uint32_t)i.size, 1 };
 			}
-			D3D11Query::~D3D11Query()
+			d3d11_cubemap::~d3d11_cubemap()
 			{
-				Core::Memory::Release(Async);
-			}
-			void* D3D11Query::GetResource() const
-			{
-				return (void*)Async;
+				d3d11_release(source);
+				d3d11_release(merger);
 			}
 
-			D3D11Device::D3D11Device(const Desc& I) : GraphicsDevice(I), ImmediateContext(nullptr), Context(nullptr), SwapChain(nullptr), FeatureLevel(D3D_FEATURE_LEVEL_11_0), DriverType(D3D_DRIVER_TYPE_HARDWARE), Window(I.Window)
+			d3d11_query::d3d11_query() : query(), async(nullptr)
 			{
-				if (!Window)
+			}
+			d3d11_query::~d3d11_query()
+			{
+				d3d11_release(async);
+			}
+			void* d3d11_query::get_resource() const
+			{
+				return (void*)async;
+			}
+
+			d3d11_device::d3d11_device(const desc& i) : graphics_device(i), immediate_context(nullptr), context(nullptr), swap_chain(nullptr), feature_level(D3D_FEATURE_LEVEL_11_0), driver_type(D3D_DRIVER_TYPE_HARDWARE), window(i.window)
+			{
+				if (!window)
 				{
-					VI_ASSERT(VirtualWindow != nullptr, "cannot initialize virtual activity for device");
-					Window = VirtualWindow;
+					VI_ASSERT(virtual_window != nullptr, "cannot initialize virtual activity for device");
+					window = virtual_window;
+				}
+				else
+				{
+					core::memory::release(virtual_window);
+					virtual_window = window;
+					virtual_window->add_ref();
 				}
 
-				if (!Window->GetHandle())
+				if (!window->get_handle())
 				{
-					Window->ApplyConfiguration(Backend);
-					if (!Window->GetHandle())
+					window->apply_configuration(backend);
+					if (!window->get_handle())
 						return;
 				}
 
-				uint32_t CreationFlags = I.CreationFlags | D3D11_CREATE_DEVICE_DISABLE_GPU_TIMEOUT;
-				if (I.Debug)
-					CreationFlags |= D3D11_CREATE_DEVICE_DEBUG;
+				uint32_t creation_flags = i.creation_flags | D3D11_CREATE_DEVICE_DISABLE_GPU_TIMEOUT;
+				if (i.debug)
+					creation_flags |= D3D11_CREATE_DEVICE_DEBUG;
 
-				D3D_FEATURE_LEVEL FeatureLevels[] = { D3D_FEATURE_LEVEL_11_0, D3D_FEATURE_LEVEL_10_1, D3D_FEATURE_LEVEL_10_0, D3D_FEATURE_LEVEL_9_3, D3D_FEATURE_LEVEL_9_2, D3D_FEATURE_LEVEL_9_1, };
-				ZeroMemory(&SwapChainResource, sizeof(SwapChainResource));
-				SwapChainResource.BufferCount = 2;
-				SwapChainResource.BufferDesc.Width = I.BufferWidth;
-				SwapChainResource.BufferDesc.Height = I.BufferHeight;
-				SwapChainResource.BufferDesc.Format = (DXGI_FORMAT)I.BufferFormat;
-				SwapChainResource.BufferDesc.RefreshRate.Numerator = 60;
-				SwapChainResource.BufferDesc.RefreshRate.Denominator = 1;
-				SwapChainResource.BufferDesc.ScanlineOrdering = DXGI_MODE_SCANLINE_ORDER_UNSPECIFIED;
-				SwapChainResource.BufferDesc.Scaling = DXGI_MODE_SCALING_CENTERED;
-				SwapChainResource.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
-				SwapChainResource.SampleDesc.Count = 1;
-				SwapChainResource.SampleDesc.Quality = 0;
-				SwapChainResource.Windowed = I.IsWindowed;
+				D3D_FEATURE_LEVEL feature_levels[] = { D3D_FEATURE_LEVEL_11_0, D3D_FEATURE_LEVEL_10_1, D3D_FEATURE_LEVEL_10_0, D3D_FEATURE_LEVEL_9_3, D3D_FEATURE_LEVEL_9_2, D3D_FEATURE_LEVEL_9_1, };
+				ZeroMemory(&swap_chain_resource, sizeof(swap_chain_resource));
+				swap_chain_resource.BufferCount = 2;
+				swap_chain_resource.BufferDesc.Width = i.buffer_width;
+				swap_chain_resource.BufferDesc.Height = i.buffer_height;
+				swap_chain_resource.BufferDesc.Format = (DXGI_FORMAT)i.buffer_format;
+				swap_chain_resource.BufferDesc.RefreshRate.Numerator = 60;
+				swap_chain_resource.BufferDesc.RefreshRate.Denominator = 1;
+				swap_chain_resource.BufferDesc.ScanlineOrdering = DXGI_MODE_SCANLINE_ORDER_UNSPECIFIED;
+				swap_chain_resource.BufferDesc.Scaling = DXGI_MODE_SCALING_CENTERED;
+				swap_chain_resource.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
+				swap_chain_resource.SampleDesc.Count = 1;
+				swap_chain_resource.SampleDesc.Quality = 0;
+				swap_chain_resource.Windowed = i.is_windowed;
 
-				if (I.BlitRendering)
+				if (i.blit_rendering)
 				{
-					SwapChainResource.Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING;
-					SwapChainResource.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
+					swap_chain_resource.Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING;
+					swap_chain_resource.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
 				}
 				else
-					SwapChainResource.SwapEffect = DXGI_SWAP_EFFECT_DISCARD;
+					swap_chain_resource.SwapEffect = DXGI_SWAP_EFFECT_DISCARD;
 
-				if (Window != nullptr)
-					SwapChainResource.OutputWindow = (HWND)Video::Windows::GetHWND(Window);
+				if (window != nullptr)
+					swap_chain_resource.OutputWindow = (HWND)video::windows::get_hwnd(window);
 
 				try
 				{
-					HRESULT Code = D3D11CreateDeviceAndSwapChain(nullptr, DriverType, nullptr, CreationFlags, FeatureLevels, ARRAYSIZE(FeatureLevels), D3D11_SDK_VERSION, &SwapChainResource, &SwapChain, &Context, &FeatureLevel, &ImmediateContext);
-					VI_PANIC(Code == S_OK && Context != nullptr && ImmediateContext != nullptr && SwapChain != nullptr, "D3D11 graphics device creation failed");
+					HRESULT code = D3D11CreateDeviceAndSwapChain(nullptr, driver_type, nullptr, creation_flags, feature_levels, ARRAYSIZE(feature_levels), D3D11_SDK_VERSION, &swap_chain_resource, &swap_chain, &context, &feature_level, &immediate_context);
+					VI_PANIC(code == S_OK && context != nullptr && immediate_context != nullptr && swap_chain != nullptr, "d3d11 graphics device creation failed");
 				}
 				catch (...)
 				{
 					VI_PANIC(false, "d3d11 device creation request has thrown an exception");
 				}
 
-				SetShaderModel(I.ShaderMode == ShaderModel::Auto ? GetSupportedShaderModel() : I.ShaderMode);
-				SetPrimitiveTopology(PrimitiveTopology::Triangle_List);
-				ResizeBuffers(I.BufferWidth, I.BufferHeight);
-				CreateStates();
+				set_shader_model(i.shader_mode == shader_model::any ? get_supported_shader_model() : i.shader_mode);
+				set_primitive_topology(primitive_topology::triangle_list);
+				resize_buffers(i.buffer_width, i.buffer_height);
+				create_states();
 			}
-			D3D11Device::~D3D11Device()
+			d3d11_device::~d3d11_device()
 			{
-				ReleaseProxy();
-				Core::Memory::Release(Immediate.VertexShader);
-				Core::Memory::Release(Immediate.VertexLayout);
-				Core::Memory::Release(Immediate.ConstantBuffer);
-				Core::Memory::Release(Immediate.PixelShader);
-				Core::Memory::Release(Immediate.VertexBuffer);
-				Core::Memory::Release(ImmediateContext);
-				Core::Memory::Release(SwapChain);
+				release_proxy();
+				d3d11_release(immediate.vertex_shader);
+				d3d11_release(immediate.vertex_layout);
+				d3d11_release(immediate.constant_buffer);
+				d3d11_release(immediate.pixel_shader);
+				d3d11_release(immediate.vertex_buffer);
+				d3d11_release(immediate_context);
+				d3d11_release(swap_chain);
 
-				if (Debug)
+				if (debug)
 				{
-					ID3D11Debug* Debugger = nullptr;
-					Context->QueryInterface(__uuidof(ID3D11Debug), reinterpret_cast<void**>(&Debugger));
-					if (Debugger != nullptr)
+					ID3D11Debug* debugger = nullptr;
+					context->QueryInterface(__uuidof(ID3D11Debug), reinterpret_cast<void**>(&debugger));
+					if (debugger != nullptr)
 					{
-						D3D11_RLDO_FLAGS Flags = (D3D11_RLDO_FLAGS)(D3D11_RLDO_DETAIL | 0x4); // D3D11_RLDO_IGNORE_INTERNAL
-						Debugger->ReportLiveDeviceObjects(Flags);
-						Core::Memory::Release(Debugger);
+						D3D11_RLDO_FLAGS flags = (D3D11_RLDO_FLAGS)(D3D11_RLDO_DETAIL | 0x4); // D3D11_RLDO_IGNORE_INTERNAL
+						debugger->ReportLiveDeviceObjects(flags);
+						d3d11_release(debugger);
 					}
 				}
 
-				Core::Memory::Release(Context);
+				d3d11_release(context);
 			}
-			void D3D11Device::SetAsCurrentDevice()
+			void d3d11_device::set_as_current_device()
 			{
 			}
-			void D3D11Device::SetShaderModel(ShaderModel Model)
+			void d3d11_device::set_shader_model(shader_model model)
 			{
-				ShaderGen = Model;
-				if (ShaderGen == ShaderModel::HLSL_1_0)
+				shader_gen = model;
+				if (shader_gen == shader_model::hlsl_1_0)
 				{
-					Models.Vertex = "vs_1_0";
-					Models.Pixel = "ps_1_0";
-					Models.Geometry = "gs_1_0";
-					Models.Compute = "cs_1_0";
-					Models.Domain = "ds_1_0";
-					Models.Hull = "hs_1_0";
+					models.vertex = "vs_1_0";
+					models.pixel = "ps_1_0";
+					models.geometry = "gs_1_0";
+					models.compute = "cs_1_0";
+					models.domain = "ds_1_0";
+					models.hull = "hs_1_0";
 				}
-				else if (ShaderGen == ShaderModel::HLSL_2_0)
+				else if (shader_gen == shader_model::hlsl_2_0)
 				{
-					Models.Vertex = "vs_2_0";
-					Models.Pixel = "ps_2_0";
-					Models.Geometry = "gs_2_0";
-					Models.Compute = "cs_2_0";
-					Models.Domain = "ds_2_0";
-					Models.Hull = "hs_2_0";
+					models.vertex = "vs_2_0";
+					models.pixel = "ps_2_0";
+					models.geometry = "gs_2_0";
+					models.compute = "cs_2_0";
+					models.domain = "ds_2_0";
+					models.hull = "hs_2_0";
 				}
-				else if (ShaderGen == ShaderModel::HLSL_3_0)
+				else if (shader_gen == shader_model::hlsl_3_0)
 				{
-					Models.Vertex = "vs_3_0";
-					Models.Pixel = "ps_3_0";
-					Models.Geometry = "gs_3_0";
-					Models.Compute = "cs_3_0";
-					Models.Domain = "ds_3_0";
-					Models.Hull = "hs_3_0";
+					models.vertex = "vs_3_0";
+					models.pixel = "ps_3_0";
+					models.geometry = "gs_3_0";
+					models.compute = "cs_3_0";
+					models.domain = "ds_3_0";
+					models.hull = "hs_3_0";
 				}
-				else if (ShaderGen == ShaderModel::HLSL_4_0)
+				else if (shader_gen == shader_model::hlsl_4_0)
 				{
-					Models.Vertex = "vs_4_0";
-					Models.Pixel = "ps_4_0";
-					Models.Geometry = "gs_4_0";
-					Models.Compute = "cs_4_0";
-					Models.Domain = "ds_4_0";
-					Models.Hull = "hs_4_0";
+					models.vertex = "vs_4_0";
+					models.pixel = "ps_4_0";
+					models.geometry = "gs_4_0";
+					models.compute = "cs_4_0";
+					models.domain = "ds_4_0";
+					models.hull = "hs_4_0";
 				}
-				else if (ShaderGen == ShaderModel::HLSL_4_1)
+				else if (shader_gen == shader_model::hlsl_4_1)
 				{
-					Models.Vertex = "vs_4_1";
-					Models.Pixel = "ps_4_1";
-					Models.Geometry = "gs_4_1";
-					Models.Compute = "cs_4_1";
-					Models.Domain = "ds_4_1";
-					Models.Hull = "hs_4_1";
+					models.vertex = "vs_4_1";
+					models.pixel = "ps_4_1";
+					models.geometry = "gs_4_1";
+					models.compute = "cs_4_1";
+					models.domain = "ds_4_1";
+					models.hull = "hs_4_1";
 				}
-				else if (ShaderGen == ShaderModel::HLSL_5_0)
+				else if (shader_gen == shader_model::hlsl_5_0)
 				{
-					Models.Vertex = "vs_5_0";
-					Models.Pixel = "ps_5_0";
-					Models.Geometry = "gs_5_0";
-					Models.Compute = "cs_5_0";
-					Models.Domain = "ds_5_0";
-					Models.Hull = "hs_5_0";
+					models.vertex = "vs_5_0";
+					models.pixel = "ps_5_0";
+					models.geometry = "gs_5_0";
+					models.compute = "cs_5_0";
+					models.domain = "ds_5_0";
+					models.hull = "hs_5_0";
 				}
 				else
-					SetShaderModel(ShaderModel::HLSL_4_0);
+					set_shader_model(shader_model::hlsl_4_0);
 			}
-			void D3D11Device::SetBlendState(BlendState* State)
+			void d3d11_device::set_blend_state(blend_state* state)
 			{
-				ID3D11BlendState* NewState = (ID3D11BlendState*)(State ? State->GetResource() : nullptr);
-				REG_EXCHANGE(Blend, NewState);
-				ImmediateContext->OMSetBlendState(NewState, 0, 0xffffffff);
+				ID3D11BlendState* new_state = (ID3D11BlendState*)(state ? state->get_resource() : nullptr);
+				REG_EXCHANGE(blend, new_state);
+				immediate_context->OMSetBlendState(new_state, 0, 0xffffffff);
 			}
-			void D3D11Device::SetRasterizerState(RasterizerState* State)
+			void d3d11_device::set_rasterizer_state(rasterizer_state* state)
 			{
-				ID3D11RasterizerState* NewState = (ID3D11RasterizerState*)(State ? State->GetResource() : nullptr);
-				REG_EXCHANGE(Rasterizer, NewState);
-				ImmediateContext->RSSetState(NewState);
+				ID3D11RasterizerState* new_state = (ID3D11RasterizerState*)(state ? state->get_resource() : nullptr);
+				REG_EXCHANGE(rasterizer, new_state);
+				immediate_context->RSSetState(new_state);
 			}
-			void D3D11Device::SetDepthStencilState(DepthStencilState* State)
+			void d3d11_device::set_depth_stencil_state(depth_stencil_state* state)
 			{
-				ID3D11DepthStencilState* NewState = (ID3D11DepthStencilState*)(State ? State->GetResource() : nullptr);
-				REG_EXCHANGE(DepthStencil, NewState);
-				ImmediateContext->OMSetDepthStencilState(NewState, 1);
+				ID3D11DepthStencilState* new_state = (ID3D11DepthStencilState*)(state ? state->get_resource() : nullptr);
+				REG_EXCHANGE(depth_stencil, new_state);
+				immediate_context->OMSetDepthStencilState(new_state, 1);
 			}
-			void D3D11Device::SetInputLayout(InputLayout* Resource)
+			void d3d11_device::set_input_layout(input_layout* resource)
 			{
-				Register.Layout = (D3D11InputLayout*)Resource;
+				regs.layout = (d3d11_input_layout*)resource;
 			}
-			ExpectsGraphics<void> D3D11Device::SetShader(Shader* Resource, uint32_t Type)
+			expects_graphics<void> d3d11_device::set_shader(shader* resource, uint32_t type)
 			{
-				D3D11Shader* IResource = (D3D11Shader*)Resource;
-				bool Flush = (!IResource), Update = false;
+				d3d11_shader* iresource = (d3d11_shader*)resource;
+				bool flush = (!iresource), update = false;
 
-				if (Type & (uint32_t)ShaderType::Vertex)
+				if (type & (uint32_t)shader_type::vertex)
 				{
-					auto& Item = Register.Shaders[0];
-					if (Item != IResource)
+					auto& item = regs.shaders[0];
+					if (item != iresource)
 					{
-						ImmediateContext->VSSetShader(Flush ? nullptr : IResource->VertexShader, nullptr, 0);
-						Item = IResource;
-						Update = true;
+						immediate_context->VSSetShader(flush ? nullptr : iresource->vertex_shader, nullptr, 0);
+						item = iresource;
+						update = true;
 					}
 				}
 
-				if (Type & (uint32_t)ShaderType::Pixel)
+				if (type & (uint32_t)shader_type::pixel)
 				{
-					auto& Item = Register.Shaders[1];
-					if (Item != IResource)
+					auto& item = regs.shaders[1];
+					if (item != iresource)
 					{
-						ImmediateContext->PSSetShader(Flush ? nullptr : IResource->PixelShader, nullptr, 0);
-						Item = IResource;
-						Update = true;
+						immediate_context->PSSetShader(flush ? nullptr : iresource->pixel_shader, nullptr, 0);
+						item = iresource;
+						update = true;
 					}
 				}
 
-				if (Type & (uint32_t)ShaderType::Geometry)
+				if (type & (uint32_t)shader_type::geometry)
 				{
-					auto& Item = Register.Shaders[2];
-					if (Item != IResource)
+					auto& item = regs.shaders[2];
+					if (item != iresource)
 					{
-						ImmediateContext->GSSetShader(Flush ? nullptr : IResource->GeometryShader, nullptr, 0);
-						Item = IResource;
-						Update = true;
+						immediate_context->GSSetShader(flush ? nullptr : iresource->geometry_shader, nullptr, 0);
+						item = iresource;
+						update = true;
 					}
 				}
 
-				if (Type & (uint32_t)ShaderType::Hull)
+				if (type & (uint32_t)shader_type::hull)
 				{
-					auto& Item = Register.Shaders[3];
-					if (Item != IResource)
+					auto& item = regs.shaders[3];
+					if (item != iresource)
 					{
-						ImmediateContext->HSSetShader(Flush ? nullptr : IResource->HullShader, nullptr, 0);
-						Item = IResource;
-						Update = true;
+						immediate_context->HSSetShader(flush ? nullptr : iresource->hull_shader, nullptr, 0);
+						item = iresource;
+						update = true;
 					}
 				}
 
-				if (Type & (uint32_t)ShaderType::Domain)
+				if (type & (uint32_t)shader_type::domain)
 				{
-					auto& Item = Register.Shaders[4];
-					if (Item != IResource)
+					auto& item = regs.shaders[4];
+					if (item != iresource)
 					{
-						ImmediateContext->DSSetShader(Flush ? nullptr : IResource->DomainShader, nullptr, 0);
-						Item = IResource;
-						Update = true;
+						immediate_context->DSSetShader(flush ? nullptr : iresource->domain_shader, nullptr, 0);
+						item = iresource;
+						update = true;
 					}
 				}
 
-				if (Type & (uint32_t)ShaderType::Compute)
+				if (type & (uint32_t)shader_type::compute)
 				{
-					auto& Item = Register.Shaders[5];
-					if (Item != IResource)
+					auto& item = regs.shaders[5];
+					if (item != iresource)
 					{
-						ImmediateContext->CSSetShader(Flush ? nullptr : IResource->ComputeShader, nullptr, 0);
-						Item = IResource;
-						Update = true;
+						immediate_context->CSSetShader(flush ? nullptr : iresource->compute_shader, nullptr, 0);
+						item = iresource;
+						update = true;
 					}
 				}
-				
-				if (!Update)
-					return Core::Expectation::Met;
 
-				if (Flush)
+				if (!update)
+					return core::expectation::met;
+
+				if (flush)
 				{
-					ImmediateContext->IASetInputLayout(nullptr);
-					return Core::Expectation::Met;
+					immediate_context->IASetInputLayout(nullptr);
+					return core::expectation::met;
 				}
 
-				auto NewLayout = GenerateInputLayout(IResource);
-				ImmediateContext->IASetInputLayout(NewLayout ? *NewLayout : nullptr);
-				if (!NewLayout)
-					return NewLayout.Error();
+				auto new_layout = generate_input_layout(iresource);
+				immediate_context->IASetInputLayout(new_layout ? *new_layout : nullptr);
+				if (!new_layout)
+					return new_layout.error();
 
-				return Core::Expectation::Met;
+				return core::expectation::met;
 			}
-			void D3D11Device::SetSamplerState(SamplerState* State, uint32_t Slot, uint32_t Count, uint32_t Type)
+			void d3d11_device::set_sampler_state(sampler_state* state, uint32_t slot, uint32_t count, uint32_t type)
 			{
-				VI_ASSERT(Slot < UNITS_SIZE, "slot should be less than %i", (int)UNITS_SIZE);
-				VI_ASSERT(Count <= UNITS_SIZE && Slot + Count <= UNITS_SIZE, "count should be less than or equal %i", (int)UNITS_SIZE);
-
-				ID3D11SamplerState* NewState = (ID3D11SamplerState*)(State ? State->GetResource() : nullptr);
-				REG_EXCHANGE_T3(Sampler, NewState, Slot, Type);
-
-				if (Type & (uint32_t)ShaderType::Vertex)
-					ImmediateContext->VSSetSamplers(Slot, 1, &NewState);
-
-				if (Type & (uint32_t)ShaderType::Pixel)
-					ImmediateContext->PSSetSamplers(Slot, 1, &NewState);
-
-				if (Type & (uint32_t)ShaderType::Geometry)
-					ImmediateContext->GSSetSamplers(Slot, 1, &NewState);
-
-				if (Type & (uint32_t)ShaderType::Hull)
-					ImmediateContext->HSSetSamplers(Slot, 1, &NewState);
-
-				if (Type & (uint32_t)ShaderType::Domain)
-					ImmediateContext->DSSetSamplers(Slot, 1, &NewState);
-
-				if (Type & (uint32_t)ShaderType::Compute)
-					ImmediateContext->CSSetSamplers(Slot, 1, &NewState);
-			}
-			void D3D11Device::SetBuffer(Shader* Resource, uint32_t Slot, uint32_t Type)
-			{
-				VI_ASSERT(Slot < UNITS_SIZE, "slot should be less than %i", (int)UNITS_SIZE);
-
-				ID3D11Buffer* IBuffer = (Resource ? ((D3D11Shader*)Resource)->ConstantBuffer : nullptr);
-				if (Type & (uint32_t)ShaderType::Vertex)
-					ImmediateContext->VSSetConstantBuffers(Slot, 1, &IBuffer);
-
-				if (Type & (uint32_t)ShaderType::Pixel)
-					ImmediateContext->PSSetConstantBuffers(Slot, 1, &IBuffer);
-
-				if (Type & (uint32_t)ShaderType::Geometry)
-					ImmediateContext->GSSetConstantBuffers(Slot, 1, &IBuffer);
-
-				if (Type & (uint32_t)ShaderType::Hull)
-					ImmediateContext->HSSetConstantBuffers(Slot, 1, &IBuffer);
-
-				if (Type & (uint32_t)ShaderType::Domain)
-					ImmediateContext->DSSetConstantBuffers(Slot, 1, &IBuffer);
-
-				if (Type & (uint32_t)ShaderType::Compute)
-					ImmediateContext->CSSetConstantBuffers(Slot, 1, &IBuffer);
-			}
-			void D3D11Device::SetBuffer(InstanceBuffer* Resource, uint32_t Slot, uint32_t Type)
-			{
-				VI_ASSERT(Slot < UNITS_SIZE, "slot should be less than %i", (int)UNITS_SIZE);
-
-				ID3D11ShaderResourceView* NewState = (Resource ? ((D3D11InstanceBuffer*)Resource)->Resource : nullptr);
-				REG_EXCHANGE_RS(Resources, NewState, Slot, Type);
-
-				if (Type & (uint32_t)ShaderType::Vertex)
-					ImmediateContext->VSSetShaderResources(Slot, 1, &NewState);
-
-				if (Type & (uint32_t)ShaderType::Pixel)
-					ImmediateContext->PSSetShaderResources(Slot, 1, &NewState);
-
-				if (Type & (uint32_t)ShaderType::Geometry)
-					ImmediateContext->GSSetShaderResources(Slot, 1, &NewState);
-
-				if (Type & (uint32_t)ShaderType::Hull)
-					ImmediateContext->HSSetShaderResources(Slot, 1, &NewState);
-
-				if (Type & (uint32_t)ShaderType::Domain)
-					ImmediateContext->DSSetShaderResources(Slot, 1, &NewState);
-
-				if (Type & (uint32_t)ShaderType::Compute)
-					ImmediateContext->CSSetShaderResources(Slot, 1, &NewState);
-			}
-			void D3D11Device::SetConstantBuffer(ElementBuffer* Resource, uint32_t Slot, uint32_t Type)
-			{
-				VI_ASSERT(Slot < UNITS_SIZE, "slot should be less than %i", (int)UNITS_SIZE);
-
-				ID3D11Buffer* IBuffer = (Resource ? ((D3D11ElementBuffer*)Resource)->Element : nullptr);
-				if (Type & (uint32_t)ShaderType::Vertex)
-					ImmediateContext->VSSetConstantBuffers(Slot, 1, &IBuffer);
-
-				if (Type & (uint32_t)ShaderType::Pixel)
-					ImmediateContext->PSSetConstantBuffers(Slot, 1, &IBuffer);
-
-				if (Type & (uint32_t)ShaderType::Geometry)
-					ImmediateContext->GSSetConstantBuffers(Slot, 1, &IBuffer);
-
-				if (Type & (uint32_t)ShaderType::Hull)
-					ImmediateContext->HSSetConstantBuffers(Slot, 1, &IBuffer);
-
-				if (Type & (uint32_t)ShaderType::Domain)
-					ImmediateContext->DSSetConstantBuffers(Slot, 1, &IBuffer);
-
-				if (Type & (uint32_t)ShaderType::Compute)
-					ImmediateContext->CSSetConstantBuffers(Slot, 1, &IBuffer);
-			}
-			void D3D11Device::SetStructureBuffer(ElementBuffer* Resource, uint32_t Slot, uint32_t Type)
-			{
-				VI_ASSERT(Slot < UNITS_SIZE, "slot should be less than %i", (int)UNITS_SIZE);
-
-				ID3D11ShaderResourceView* NewState = (Resource ? ((D3D11ElementBuffer*)Resource)->Resource : nullptr);
-				REG_EXCHANGE_RS(Resources, NewState, Slot, Type);
-
-				if (Type & (uint32_t)ShaderType::Vertex)
-					ImmediateContext->VSSetShaderResources(Slot, 1, &NewState);
-
-				if (Type & (uint32_t)ShaderType::Pixel)
-					ImmediateContext->PSSetShaderResources(Slot, 1, &NewState);
-
-				if (Type & (uint32_t)ShaderType::Geometry)
-					ImmediateContext->GSSetShaderResources(Slot, 1, &NewState);
-
-				if (Type & (uint32_t)ShaderType::Hull)
-					ImmediateContext->HSSetShaderResources(Slot, 1, &NewState);
-
-				if (Type & (uint32_t)ShaderType::Domain)
-					ImmediateContext->DSSetShaderResources(Slot, 1, &NewState);
-
-				if (Type & (uint32_t)ShaderType::Compute)
-					ImmediateContext->CSSetShaderResources(Slot, 1, &NewState);
-			}
-			void D3D11Device::SetTexture2D(Texture2D* Resource, uint32_t Slot, uint32_t Type)
-			{
-				VI_ASSERT(Slot < UNITS_SIZE, "slot should be less than %i", (int)UNITS_SIZE);
-
-				ID3D11ShaderResourceView* NewState = (Resource ? ((D3D11Texture2D*)Resource)->Resource : nullptr);
-				REG_EXCHANGE_RS(Resources, NewState, Slot, Type);
-
-				if (Type & (uint32_t)ShaderType::Vertex)
-					ImmediateContext->VSSetShaderResources(Slot, 1, &NewState);
-
-				if (Type & (uint32_t)ShaderType::Pixel)
-					ImmediateContext->PSSetShaderResources(Slot, 1, &NewState);
-
-				if (Type & (uint32_t)ShaderType::Geometry)
-					ImmediateContext->GSSetShaderResources(Slot, 1, &NewState);
-
-				if (Type & (uint32_t)ShaderType::Hull)
-					ImmediateContext->HSSetShaderResources(Slot, 1, &NewState);
-
-				if (Type & (uint32_t)ShaderType::Domain)
-					ImmediateContext->DSSetShaderResources(Slot, 1, &NewState);
-
-				if (Type & (uint32_t)ShaderType::Compute)
-					ImmediateContext->CSSetShaderResources(Slot, 1, &NewState);
-			}
-			void D3D11Device::SetTexture3D(Texture3D* Resource, uint32_t Slot, uint32_t Type)
-			{
-				VI_ASSERT(Slot < UNITS_SIZE, "slot should be less than %i", (int)UNITS_SIZE);
-
-				ID3D11ShaderResourceView* NewState = (Resource ? ((D3D11Texture3D*)Resource)->Resource : nullptr);
-				REG_EXCHANGE_RS(Resources, NewState, Slot, Type);
-
-				if (Type & (uint32_t)ShaderType::Vertex)
-					ImmediateContext->VSSetShaderResources(Slot, 1, &NewState);
-
-				if (Type & (uint32_t)ShaderType::Pixel)
-					ImmediateContext->PSSetShaderResources(Slot, 1, &NewState);
-
-				if (Type & (uint32_t)ShaderType::Geometry)
-					ImmediateContext->GSSetShaderResources(Slot, 1, &NewState);
-
-				if (Type & (uint32_t)ShaderType::Hull)
-					ImmediateContext->HSSetShaderResources(Slot, 1, &NewState);
-
-				if (Type & (uint32_t)ShaderType::Domain)
-					ImmediateContext->DSSetShaderResources(Slot, 1, &NewState);
-
-				if (Type & (uint32_t)ShaderType::Compute)
-					ImmediateContext->CSSetShaderResources(Slot, 1, &NewState);
-			}
-			void D3D11Device::SetTextureCube(TextureCube* Resource, uint32_t Slot, uint32_t Type)
-			{
-				VI_ASSERT(Slot < UNITS_SIZE, "slot should be less than %i", (int)UNITS_SIZE);
-
-				ID3D11ShaderResourceView* NewState = (Resource ? ((D3D11TextureCube*)Resource)->Resource : nullptr);
-				REG_EXCHANGE_RS(Resources, NewState, Slot, Type);
-
-				if (Type & (uint32_t)ShaderType::Vertex)
-					ImmediateContext->VSSetShaderResources(Slot, 1, &NewState);
-
-				if (Type & (uint32_t)ShaderType::Pixel)
-					ImmediateContext->PSSetShaderResources(Slot, 1, &NewState);
-
-				if (Type & (uint32_t)ShaderType::Geometry)
-					ImmediateContext->GSSetShaderResources(Slot, 1, &NewState);
-
-				if (Type & (uint32_t)ShaderType::Hull)
-					ImmediateContext->HSSetShaderResources(Slot, 1, &NewState);
-
-				if (Type & (uint32_t)ShaderType::Domain)
-					ImmediateContext->DSSetShaderResources(Slot, 1, &NewState);
-
-				if (Type & (uint32_t)ShaderType::Compute)
-					ImmediateContext->CSSetShaderResources(Slot, 1, &NewState);
-			}
-			void D3D11Device::SetIndexBuffer(ElementBuffer* Resource, Format FormatMode)
-			{
-				D3D11ElementBuffer* IResource = (D3D11ElementBuffer*)Resource;
-				REG_EXCHANGE_T2(IndexBuffer, IResource, FormatMode);
-				ImmediateContext->IASetIndexBuffer(IResource ? IResource->Element : nullptr, (DXGI_FORMAT)FormatMode, 0);
-			}
-			void D3D11Device::SetVertexBuffers(ElementBuffer** Resources, uint32_t Count, bool)
-			{
-				VI_ASSERT(Resources != nullptr || !Count, "invalid vertex buffer array pointer");
-				VI_ASSERT(Count <= UNITS_SIZE, "slot should be less than or equal to %i", (int)UNITS_SIZE);
-
-				static ID3D11Buffer* IBuffers[UNITS_SIZE] = { nullptr };
-				static uint32_t Strides[UNITS_SIZE] = { };
-				static uint32_t Offsets[UNITS_SIZE] = { };
-
-				for (uint32_t i = 0; i < Count; i++)
-				{
-					D3D11ElementBuffer* IResource = (D3D11ElementBuffer*)Resources[i];
-					IBuffers[i] = (IResource ? IResource->Element : nullptr);
-					Strides[i] = (uint32_t)(IResource ? IResource->Stride : 0);
-					REG_EXCHANGE_RS(VertexBuffers, IResource, i, i);
-				}
-
-				ImmediateContext->IASetVertexBuffers(0, Count, IBuffers, Strides, Offsets);
-			}
-			void D3D11Device::SetWriteable(ElementBuffer** Resource, uint32_t Slot, uint32_t Count, bool Computable)
-			{
-				VI_ASSERT(Slot < 8, "slot should be less than 8");
-				VI_ASSERT(Count <= 8 && Slot + Count <= 8, "count should be less than or equal 8");
-				VI_ASSERT(Resource != nullptr, "buffers ptr should be set");
-
-				ID3D11UnorderedAccessView* Array[8] = { nullptr };
-				for (uint32_t i = 0; i < Count; i++)
-					Array[i] = (Resource[i] ? ((D3D11ElementBuffer*)(Resource[i]))->Access : nullptr);
-
-				UINT Offset = 0;
-				if (!Computable)
-					ImmediateContext->OMSetRenderTargetsAndUnorderedAccessViews(D3D11_KEEP_RENDER_TARGETS_AND_DEPTH_STENCIL, nullptr, nullptr, Slot, Count, Array, &Offset);
-				else
-					ImmediateContext->CSSetUnorderedAccessViews(Slot, Count, Array, &Offset);
-			}
-			void D3D11Device::SetWriteable(Texture2D** Resource, uint32_t Slot, uint32_t Count, bool Computable)
-			{
-				VI_ASSERT(Slot < 8, "slot should be less than 8");
-				VI_ASSERT(Count <= 8 && Slot + Count <= 8, "count should be less than or equal 8");
-				VI_ASSERT(Resource != nullptr, "buffers ptr should be set");
-
-				ID3D11UnorderedAccessView* Array[8] = { nullptr };
-				for (uint32_t i = 0; i < Count; i++)
-					Array[i] = (Resource[i] ? ((D3D11Texture2D*)(Resource[i]))->Access : nullptr);
-
-				UINT Offset = 0;
-				if (!Computable)
-					ImmediateContext->OMSetRenderTargetsAndUnorderedAccessViews(D3D11_KEEP_RENDER_TARGETS_AND_DEPTH_STENCIL, nullptr, nullptr, Slot, Count, Array, &Offset);
-				else
-					ImmediateContext->CSSetUnorderedAccessViews(Slot, Count, Array, &Offset);
-			}
-			void D3D11Device::SetWriteable(Texture3D** Resource, uint32_t Slot, uint32_t Count, bool Computable)
-			{
-				VI_ASSERT(Slot < 8, "slot should be less than 8");
-				VI_ASSERT(Count <= 8 && Slot + Count <= 8, "count should be less than or equal 8");
-				VI_ASSERT(Resource != nullptr, "buffers ptr should be set");
-
-				ID3D11UnorderedAccessView* Array[8] = { nullptr };
-				for (uint32_t i = 0; i < Count; i++)
-					Array[i] = (Resource[i] ? ((D3D11Texture3D*)(Resource[i]))->Access : nullptr);
-
-				UINT Offset = 0;
-				if (!Computable)
-					ImmediateContext->OMSetRenderTargetsAndUnorderedAccessViews(D3D11_KEEP_RENDER_TARGETS_AND_DEPTH_STENCIL, nullptr, nullptr, Slot, Count, Array, &Offset);
-				else
-					ImmediateContext->CSSetUnorderedAccessViews(Slot, Count, Array, &Offset);
-			}
-			void D3D11Device::SetWriteable(TextureCube** Resource, uint32_t Slot, uint32_t Count, bool Computable)
-			{
-				VI_ASSERT(Slot < 8, "slot should be less than 8");
-				VI_ASSERT(Count <= 8 && Slot + Count <= 8, "count should be less than or equal 8");
-				VI_ASSERT(Resource != nullptr, "buffers ptr should be set");
-
-				ID3D11UnorderedAccessView* Array[8] = { nullptr };
-				for (uint32_t i = 0; i < Count; i++)
-					Array[i] = (Resource[i] ? ((D3D11TextureCube*)(Resource[i]))->Access : nullptr);
-
-				UINT Offset = 0;
-				if (!Computable)
-					ImmediateContext->OMSetRenderTargetsAndUnorderedAccessViews(D3D11_KEEP_RENDER_TARGETS_AND_DEPTH_STENCIL, nullptr, nullptr, Slot, Count, Array, &Offset);
-				else
-					ImmediateContext->CSSetUnorderedAccessViews(Slot, Count, Array, &Offset);
-			}
-			void D3D11Device::SetTarget(float R, float G, float B)
-			{
-				SetTarget(RenderTarget, 0, R, G, B);
-			}
-			void D3D11Device::SetTarget()
-			{
-				SetTarget(RenderTarget, 0);
-			}
-			void D3D11Device::SetTarget(DepthTarget2D* Resource)
-			{
-				VI_ASSERT(Resource != nullptr, "depth target should be set");
-				D3D11DepthTarget2D* IResource = (D3D11DepthTarget2D*)Resource;
-				const Viewport& Viewarea = Resource->GetViewport();
-				D3D11_VIEWPORT Viewport = { Viewarea.TopLeftX, Viewarea.TopLeftY, Viewarea.Width, Viewarea.Height, Viewarea.MinDepth, Viewarea.MaxDepth };
-
-				ImmediateContext->OMSetRenderTargets(0, nullptr, IResource->DepthStencilView);
-				ImmediateContext->RSSetViewports(1, &Viewport);
-			}
-			void D3D11Device::SetTarget(DepthTargetCube* Resource)
-			{
-				VI_ASSERT(Resource != nullptr, "depth target should be set");
-				D3D11DepthTargetCube* IResource = (D3D11DepthTargetCube*)Resource;
-				const Viewport& Viewarea = Resource->GetViewport();
-				D3D11_VIEWPORT Viewport = { Viewarea.TopLeftX, Viewarea.TopLeftY, Viewarea.Width, Viewarea.Height, Viewarea.MinDepth, Viewarea.MaxDepth };
-
-				ImmediateContext->OMSetRenderTargets(0, nullptr, IResource->DepthStencilView);
-				ImmediateContext->RSSetViewports(1, &Viewport);
-			}
-			void D3D11Device::SetTarget(Graphics::RenderTarget* Resource, uint32_t Target, float R, float G, float B)
-			{
-				VI_ASSERT(Resource != nullptr, "render target should be set");
-				VI_ASSERT(Target < Resource->GetTargetCount(), "targets count should be less than %i", (int)Resource->GetTargetCount());
-
-				const Viewport& Viewarea = Resource->GetViewport();
-				ID3D11RenderTargetView** TargetBuffer = (ID3D11RenderTargetView**)Resource->GetTargetBuffer();
-				ID3D11DepthStencilView* DepthBuffer = (ID3D11DepthStencilView*)Resource->GetDepthBuffer();
-				D3D11_VIEWPORT Viewport = { Viewarea.TopLeftX, Viewarea.TopLeftY, Viewarea.Width, Viewarea.Height, Viewarea.MinDepth, Viewarea.MaxDepth };
-				float ClearColor[4] = { R, G, B, 0.0f };
-
-				ImmediateContext->RSSetViewports(1, &Viewport);
-				ImmediateContext->OMSetRenderTargets(1, &TargetBuffer[Target], DepthBuffer);
-				ImmediateContext->ClearRenderTargetView(TargetBuffer[Target], ClearColor);
-			}
-			void D3D11Device::SetTarget(Graphics::RenderTarget* Resource, uint32_t Target)
-			{
-				VI_ASSERT(Resource != nullptr, "render target should be set");
-				VI_ASSERT(Target < Resource->GetTargetCount(), "targets count should be less than %i", (int)Resource->GetTargetCount());
-
-				const Viewport& Viewarea = Resource->GetViewport();
-				ID3D11RenderTargetView** TargetBuffer = (ID3D11RenderTargetView**)Resource->GetTargetBuffer();
-				ID3D11DepthStencilView* DepthBuffer = (ID3D11DepthStencilView*)Resource->GetDepthBuffer();
-				D3D11_VIEWPORT Viewport = { Viewarea.TopLeftX, Viewarea.TopLeftY, Viewarea.Width, Viewarea.Height, Viewarea.MinDepth, Viewarea.MaxDepth };
-
-				ImmediateContext->RSSetViewports(1, &Viewport);
-				ImmediateContext->OMSetRenderTargets(1, &TargetBuffer[Target], DepthBuffer);
-			}
-			void D3D11Device::SetTarget(Graphics::RenderTarget* Resource, float R, float G, float B)
-			{
-				VI_ASSERT(Resource != nullptr, "render target should be set");
-
-				const Viewport& Viewarea = Resource->GetViewport();
-				ID3D11RenderTargetView** TargetBuffer = (ID3D11RenderTargetView**)Resource->GetTargetBuffer();
-				ID3D11DepthStencilView* DepthBuffer = (ID3D11DepthStencilView*)Resource->GetDepthBuffer();
-				D3D11_VIEWPORT Viewport = { Viewarea.TopLeftX, Viewarea.TopLeftY, Viewarea.Width, Viewarea.Height, Viewarea.MinDepth, Viewarea.MaxDepth };
-				uint32_t Count = Resource->GetTargetCount();
-				float ClearColor[4] = { R, G, B, 0.0f };
-
-				ImmediateContext->RSSetViewports(1, &Viewport);
-				ImmediateContext->OMSetRenderTargets(Count, TargetBuffer, DepthBuffer);
-
-				for (uint32_t i = 0; i < Count; i++)
-					ImmediateContext->ClearRenderTargetView(TargetBuffer[i], ClearColor);
-			}
-			void D3D11Device::SetTarget(Graphics::RenderTarget* Resource)
-			{
-				VI_ASSERT(Resource != nullptr, "render target should be set");
-
-				const Viewport& Viewarea = Resource->GetViewport();
-				ID3D11RenderTargetView** TargetBuffer = (ID3D11RenderTargetView**)Resource->GetTargetBuffer();
-				ID3D11DepthStencilView* DepthBuffer = (ID3D11DepthStencilView*)Resource->GetDepthBuffer();
-				D3D11_VIEWPORT Viewport = { Viewarea.TopLeftX, Viewarea.TopLeftY, Viewarea.Width, Viewarea.Height, Viewarea.MinDepth, Viewarea.MaxDepth };
-
-				ImmediateContext->RSSetViewports(1, &Viewport);
-				ImmediateContext->OMSetRenderTargets(Resource->GetTargetCount(), TargetBuffer, DepthBuffer);
-			}
-			void D3D11Device::SetTargetMap(Graphics::RenderTarget* Resource, bool Enabled[8])
-			{
-				VI_ASSERT(Resource != nullptr, "render target should be set");
-				VI_ASSERT(Resource->GetTargetCount() > 1, "render target should have more than one targets");
-
-				const Viewport& Viewarea = Resource->GetViewport();
-				ID3D11RenderTargetView** TargetBuffers = (ID3D11RenderTargetView**)Resource->GetTargetBuffer();
-				ID3D11DepthStencilView* DepthBuffer = (ID3D11DepthStencilView*)Resource->GetDepthBuffer();
-				D3D11_VIEWPORT Viewport = { Viewarea.TopLeftX, Viewarea.TopLeftY, Viewarea.Width, Viewarea.Height, Viewarea.MinDepth, Viewarea.MaxDepth };
-				uint32_t Count = Resource->GetTargetCount();
-
-				ID3D11RenderTargetView* Targets[8] = { };
-				for (uint32_t i = 0; i < Count; i++)
-					Targets[i] = (Enabled[i] ? TargetBuffers[i] : nullptr);
-
-				ImmediateContext->RSSetViewports(1, &Viewport);
-				ImmediateContext->OMSetRenderTargets(Count, Targets, DepthBuffer);
-			}
-			void D3D11Device::SetTargetRect(uint32_t Width, uint32_t Height)
-			{
-				VI_ASSERT(Width > 0 && Height > 0, "width and height should be greater than zero");
-
-				D3D11_VIEWPORT Viewport = { 0, 0, (FLOAT)Width, (FLOAT)Height, 0, 1 };
-				ImmediateContext->RSSetViewports(1, &Viewport);
-				ImmediateContext->OMSetRenderTargets(0, nullptr, nullptr);
-			}
-			void D3D11Device::SetViewports(uint32_t Count, Viewport* Value)
-			{
-				VI_ASSERT(Value != nullptr, "value should be set");
-				VI_ASSERT(Count > 0, "count should be greater than zero");
-
-				D3D11_VIEWPORT Viewports[D3D11_VIEWPORT_AND_SCISSORRECT_OBJECT_COUNT_PER_PIPELINE];
-				for (uint32_t i = 0; i < Count; i++)
-					memcpy(&Viewports[i], &Value[i], sizeof(Viewport));
-
-				ImmediateContext->RSSetViewports(Count, Viewports);
-			}
-			void D3D11Device::SetScissorRects(uint32_t Count, Trigonometry::Rectangle* Value)
-			{
-				VI_ASSERT(Value != nullptr, "value should be set");
-				VI_ASSERT(Count > 0, "count should be greater than zero");
-
-				D3D11_RECT Rects[D3D11_VIEWPORT_AND_SCISSORRECT_OBJECT_COUNT_PER_PIPELINE];
-				for (uint32_t i = 0; i < Count; i++)
-				{
-					Trigonometry::Rectangle& From = Value[i];
-					D3D11_RECT& To = Rects[i];
-					To.left = (LONG)From.Left;
-					To.right = (LONG)From.Right;
-					To.bottom = (LONG)From.Bottom;
-					To.top = (LONG)From.Top;
-				}
-
-				ImmediateContext->RSSetScissorRects(Count, Rects);
-			}
-			void D3D11Device::SetPrimitiveTopology(PrimitiveTopology Topology)
-			{
-				ImmediateContext->IASetPrimitiveTopology((D3D11_PRIMITIVE_TOPOLOGY)Topology);
-			}
-			void D3D11Device::FlushTexture(uint32_t Slot, uint32_t Count, uint32_t Type)
-			{
-				VI_ASSERT(Slot < UNITS_SIZE, "slot should be less than %i", (int)UNITS_SIZE);
-				VI_ASSERT(Count <= UNITS_SIZE && Slot + Count <= UNITS_SIZE, "count should be less than or equal %i", (int)UNITS_SIZE);
-
-				static ID3D11ShaderResourceView* Array[UNITS_SIZE] = { nullptr };
-				if (Type & (uint32_t)ShaderType::Vertex)
-					ImmediateContext->VSSetShaderResources(Slot, Count, Array);
-
-				if (Type & (uint32_t)ShaderType::Pixel)
-					ImmediateContext->PSSetShaderResources(Slot, Count, Array);
-
-				if (Type & (uint32_t)ShaderType::Geometry)
-					ImmediateContext->GSSetShaderResources(Slot, Count, Array);
-
-				if (Type & (uint32_t)ShaderType::Hull)
-					ImmediateContext->HSSetShaderResources(Slot, Count, Array);
-
-				if (Type & (uint32_t)ShaderType::Domain)
-					ImmediateContext->DSSetShaderResources(Slot, Count, Array);
-
-				if (Type & (uint32_t)ShaderType::Compute)
-					ImmediateContext->CSSetShaderResources(Slot, Count, Array);
-
-				size_t Offset = Slot + Count;
-				for (size_t i = Slot; i < Offset; i++)
-					Register.Resources[i] = std::make_pair<ID3D11ShaderResourceView*, uint32_t>(nullptr, 0);
-			}
-			void D3D11Device::FlushState()
-			{
-				if (ImmediateContext != nullptr)
-					ImmediateContext->ClearState();
-			}
-			void D3D11Device::ClearBuffer(InstanceBuffer* Resource)
-			{
-				VI_ASSERT(Resource != nullptr, "resource should be set");
-				D3D11InstanceBuffer* IResource = (D3D11InstanceBuffer*)Resource;
-				if (!IResource->Sync)
+				VI_ASSERT(slot < units_size, "slot should be less than %i", (int)units_size);
+				VI_ASSERT(count <= units_size && slot + count <= units_size, "count should be less than or equal %i", (int)units_size);
+				if (slot == (uint32_t)-1)
 					return;
 
-				D3D11ElementBuffer* Element = (D3D11ElementBuffer*)IResource->Elements;
-				IResource->Sync = false;
+				ID3D11SamplerState* new_state = (ID3D11SamplerState*)(state ? state->get_resource() : nullptr);
+				REG_EXCHANGE_T3(sampler, new_state, slot, type);
 
-				D3D11_MAPPED_SUBRESOURCE MappedResource;
-				ImmediateContext->Map(Element->Element, 0, D3D11_MAP_WRITE_DISCARD, 0, &MappedResource);
-				MappedResource.pData = nullptr;
-				ImmediateContext->Unmap(Element->Element, 0);
-			}
-			void D3D11Device::ClearWritable(Texture2D* Resource)
-			{
-				VI_ASSERT(Resource != nullptr, "resource should be set");
-				D3D11Texture2D* IResource = (D3D11Texture2D*)Resource;
+				if (type & (uint32_t)shader_type::vertex)
+					immediate_context->VSSetSamplers(slot, 1, &new_state);
 
-				VI_ASSERT(IResource->Access != nullptr, "resource should be valid");
-				UINT ClearColor[4] = { 0, 0, 0, 0 };
-				ImmediateContext->ClearUnorderedAccessViewUint(IResource->Access, ClearColor);
-			}
-			void D3D11Device::ClearWritable(Texture2D* Resource, float R, float G, float B)
-			{
-				VI_ASSERT(Resource != nullptr, "resource should be set");
-				D3D11Texture2D* IResource = (D3D11Texture2D*)Resource;
+				if (type & (uint32_t)shader_type::pixel)
+					immediate_context->PSSetSamplers(slot, 1, &new_state);
 
-				VI_ASSERT(IResource->Access != nullptr, "resource should be valid");
-				float ClearColor[4] = { R, G, B, 0.0f };
-				ImmediateContext->ClearUnorderedAccessViewFloat(IResource->Access, ClearColor);
-			}
-			void D3D11Device::ClearWritable(Texture3D* Resource)
-			{
-				VI_ASSERT(Resource != nullptr, "resource should be set");
-				D3D11Texture3D* IResource = (D3D11Texture3D*)Resource;
+				if (type & (uint32_t)shader_type::geometry)
+					immediate_context->GSSetSamplers(slot, 1, &new_state);
 
-				VI_ASSERT(IResource->Access != nullptr, "resource should be valid");
-				UINT ClearColor[4] = { 0, 0, 0, 0 };
-				ImmediateContext->ClearUnorderedAccessViewUint(IResource->Access, ClearColor);
-			}
-			void D3D11Device::ClearWritable(Texture3D* Resource, float R, float G, float B)
-			{
-				VI_ASSERT(Resource != nullptr, "resource should be set");
-				D3D11Texture3D* IResource = (D3D11Texture3D*)Resource;
+				if (type & (uint32_t)shader_type::hull)
+					immediate_context->HSSetSamplers(slot, 1, &new_state);
 
-				VI_ASSERT(IResource->Access != nullptr, "resource should be valid");
-				float ClearColor[4] = { R, G, B, 0.0f };
-				ImmediateContext->ClearUnorderedAccessViewFloat(IResource->Access, ClearColor);
-			}
-			void D3D11Device::ClearWritable(TextureCube* Resource)
-			{
-				VI_ASSERT(Resource != nullptr, "resource should be set");
-				D3D11TextureCube* IResource = (D3D11TextureCube*)Resource;
+				if (type & (uint32_t)shader_type::domain)
+					immediate_context->DSSetSamplers(slot, 1, &new_state);
 
-				VI_ASSERT(IResource->Access != nullptr, "resource should be valid");
-				UINT ClearColor[4] = { 0, 0, 0, 0 };
-				ImmediateContext->ClearUnorderedAccessViewUint(IResource->Access, ClearColor);
+				if (type & (uint32_t)shader_type::compute)
+					immediate_context->CSSetSamplers(slot, 1, &new_state);
 			}
-			void D3D11Device::ClearWritable(TextureCube* Resource, float R, float G, float B)
+			void d3d11_device::set_buffer(shader* resource, uint32_t slot, uint32_t type)
 			{
-				VI_ASSERT(Resource != nullptr, "resource should be set");
-				D3D11TextureCube* IResource = (D3D11TextureCube*)Resource;
+				VI_ASSERT(slot < units_size, "slot should be less than %i", (int)units_size);
 
-				VI_ASSERT(IResource->Access != nullptr, "resource should be valid");
-				float ClearColor[4] = { R, G, B, 0.0f };
-				ImmediateContext->ClearUnorderedAccessViewFloat(IResource->Access, ClearColor);
-			}
-			void D3D11Device::Clear(float R, float G, float B)
-			{
-				Clear(RenderTarget, 0, R, G, B);
-			}
-			void D3D11Device::Clear(Graphics::RenderTarget* Resource, uint32_t Target, float R, float G, float B)
-			{
-				VI_ASSERT(Resource != nullptr, "resource should be set");
-				VI_ASSERT(Target < Resource->GetTargetCount(), "targets count should be less than %i", (int)Resource->GetTargetCount());
+				ID3D11Buffer* ibuffer = (resource ? ((d3d11_shader*)resource)->constant_buffer : nullptr);
+				if (type & (uint32_t)shader_type::vertex)
+					immediate_context->VSSetConstantBuffers(slot, 1, &ibuffer);
 
-				ID3D11RenderTargetView** TargetBuffer = (ID3D11RenderTargetView**)Resource->GetTargetBuffer();
-				float ClearColor[4] = { R, G, B, 0.0f };
+				if (type & (uint32_t)shader_type::pixel)
+					immediate_context->PSSetConstantBuffers(slot, 1, &ibuffer);
 
-				ImmediateContext->ClearRenderTargetView(TargetBuffer[Target], ClearColor);
-			}
-			void D3D11Device::ClearDepth()
-			{
-				ClearDepth(RenderTarget);
-			}
-			void D3D11Device::ClearDepth(DepthTarget2D* Resource)
-			{
-				VI_ASSERT(Resource != nullptr, "resource should be set");
-				D3D11DepthTarget2D* IResource = (D3D11DepthTarget2D*)Resource;
-				ImmediateContext->ClearDepthStencilView(IResource->DepthStencilView, D3D11_CLEAR_DEPTH, 1.0f, 0);
-			}
-			void D3D11Device::ClearDepth(DepthTargetCube* Resource)
-			{
-				VI_ASSERT(Resource != nullptr, "resource should be set");
-				D3D11DepthTargetCube* IResource = (D3D11DepthTargetCube*)Resource;
-				ImmediateContext->ClearDepthStencilView(IResource->DepthStencilView, D3D11_CLEAR_DEPTH, 1.0f, 0);
-			}
-			void D3D11Device::ClearDepth(Graphics::RenderTarget* Resource)
-			{
-				VI_ASSERT(Resource != nullptr, "resource should be set");
-				ID3D11DepthStencilView* DepthBuffer = (ID3D11DepthStencilView*)Resource->GetDepthBuffer();
-				ImmediateContext->ClearDepthStencilView(DepthBuffer, D3D11_CLEAR_DEPTH, 1.0f, 0);
-			}
-			void D3D11Device::DrawIndexed(uint32_t Count, uint32_t IndexLocation, uint32_t BaseLocation)
-			{
-				ImmediateContext->DrawIndexed(Count, IndexLocation, BaseLocation);
-			}
-			void D3D11Device::DrawIndexed(MeshBuffer* Resource)
-			{
-				VI_ASSERT(Resource != nullptr, "resource should be set");
-				D3D11ElementBuffer* VertexBuffer = (D3D11ElementBuffer*)Resource->GetVertexBuffer();
-				D3D11ElementBuffer* IndexBuffer = (D3D11ElementBuffer*)Resource->GetIndexBuffer();
-				uint32_t Stride = (uint32_t)VertexBuffer->Stride, Offset = 0;
+				if (type & (uint32_t)shader_type::geometry)
+					immediate_context->GSSetConstantBuffers(slot, 1, &ibuffer);
 
-				if (Register.VertexBuffers[0].first != VertexBuffer)
+				if (type & (uint32_t)shader_type::hull)
+					immediate_context->HSSetConstantBuffers(slot, 1, &ibuffer);
+
+				if (type & (uint32_t)shader_type::domain)
+					immediate_context->DSSetConstantBuffers(slot, 1, &ibuffer);
+
+				if (type & (uint32_t)shader_type::compute)
+					immediate_context->CSSetConstantBuffers(slot, 1, &ibuffer);
+			}
+			void d3d11_device::set_buffer(instance_buffer* resource, uint32_t slot, uint32_t type)
+			{
+				VI_ASSERT(slot < units_size, "slot should be less than %i", (int)units_size);
+
+				ID3D11ShaderResourceView* new_state = (resource ? ((d3d11_instance_buffer*)resource)->resource : nullptr);
+				REG_EXCHANGE_RS(resources, new_state, slot, type);
+
+				if (type & (uint32_t)shader_type::vertex)
+					immediate_context->VSSetShaderResources(slot, 1, &new_state);
+
+				if (type & (uint32_t)shader_type::pixel)
+					immediate_context->PSSetShaderResources(slot, 1, &new_state);
+
+				if (type & (uint32_t)shader_type::geometry)
+					immediate_context->GSSetShaderResources(slot, 1, &new_state);
+
+				if (type & (uint32_t)shader_type::hull)
+					immediate_context->HSSetShaderResources(slot, 1, &new_state);
+
+				if (type & (uint32_t)shader_type::domain)
+					immediate_context->DSSetShaderResources(slot, 1, &new_state);
+
+				if (type & (uint32_t)shader_type::compute)
+					immediate_context->CSSetShaderResources(slot, 1, &new_state);
+			}
+			void d3d11_device::set_constant_buffer(element_buffer* resource, uint32_t slot, uint32_t type)
+			{
+				VI_ASSERT(slot < units_size, "slot should be less than %i", (int)units_size);
+
+				ID3D11Buffer* ibuffer = (resource ? ((d3d11_element_buffer*)resource)->element : nullptr);
+				if (type & (uint32_t)shader_type::vertex)
+					immediate_context->VSSetConstantBuffers(slot, 1, &ibuffer);
+
+				if (type & (uint32_t)shader_type::pixel)
+					immediate_context->PSSetConstantBuffers(slot, 1, &ibuffer);
+
+				if (type & (uint32_t)shader_type::geometry)
+					immediate_context->GSSetConstantBuffers(slot, 1, &ibuffer);
+
+				if (type & (uint32_t)shader_type::hull)
+					immediate_context->HSSetConstantBuffers(slot, 1, &ibuffer);
+
+				if (type & (uint32_t)shader_type::domain)
+					immediate_context->DSSetConstantBuffers(slot, 1, &ibuffer);
+
+				if (type & (uint32_t)shader_type::compute)
+					immediate_context->CSSetConstantBuffers(slot, 1, &ibuffer);
+			}
+			void d3d11_device::set_structure_buffer(element_buffer* resource, uint32_t slot, uint32_t type)
+			{
+				VI_ASSERT(slot < units_size, "slot should be less than %i", (int)units_size);
+
+				ID3D11ShaderResourceView* new_state = (resource ? ((d3d11_element_buffer*)resource)->resource : nullptr);
+				REG_EXCHANGE_RS(resources, new_state, slot, type);
+
+				if (type & (uint32_t)shader_type::vertex)
+					immediate_context->VSSetShaderResources(slot, 1, &new_state);
+
+				if (type & (uint32_t)shader_type::pixel)
+					immediate_context->PSSetShaderResources(slot, 1, &new_state);
+
+				if (type & (uint32_t)shader_type::geometry)
+					immediate_context->GSSetShaderResources(slot, 1, &new_state);
+
+				if (type & (uint32_t)shader_type::hull)
+					immediate_context->HSSetShaderResources(slot, 1, &new_state);
+
+				if (type & (uint32_t)shader_type::domain)
+					immediate_context->DSSetShaderResources(slot, 1, &new_state);
+
+				if (type & (uint32_t)shader_type::compute)
+					immediate_context->CSSetShaderResources(slot, 1, &new_state);
+			}
+			void d3d11_device::set_texture_2d(texture_2d* resource, uint32_t slot, uint32_t type)
+			{
+				VI_ASSERT(slot < units_size, "slot should be less than %i", (int)units_size);
+
+				ID3D11ShaderResourceView* new_state = (resource ? ((d3d11_texture_2d*)resource)->resource : nullptr);
+				REG_EXCHANGE_RS(resources, new_state, slot, type);
+
+				if (type & (uint32_t)shader_type::vertex)
+					immediate_context->VSSetShaderResources(slot, 1, &new_state);
+
+				if (type & (uint32_t)shader_type::pixel)
+					immediate_context->PSSetShaderResources(slot, 1, &new_state);
+
+				if (type & (uint32_t)shader_type::geometry)
+					immediate_context->GSSetShaderResources(slot, 1, &new_state);
+
+				if (type & (uint32_t)shader_type::hull)
+					immediate_context->HSSetShaderResources(slot, 1, &new_state);
+
+				if (type & (uint32_t)shader_type::domain)
+					immediate_context->DSSetShaderResources(slot, 1, &new_state);
+
+				if (type & (uint32_t)shader_type::compute)
+					immediate_context->CSSetShaderResources(slot, 1, &new_state);
+			}
+			void d3d11_device::set_texture_3d(texture_3d* resource, uint32_t slot, uint32_t type)
+			{
+				VI_ASSERT(slot < units_size, "slot should be less than %i", (int)units_size);
+
+				ID3D11ShaderResourceView* new_state = (resource ? ((d3d11_texture_3d*)resource)->resource : nullptr);
+				REG_EXCHANGE_RS(resources, new_state, slot, type);
+
+				if (type & (uint32_t)shader_type::vertex)
+					immediate_context->VSSetShaderResources(slot, 1, &new_state);
+
+				if (type & (uint32_t)shader_type::pixel)
+					immediate_context->PSSetShaderResources(slot, 1, &new_state);
+
+				if (type & (uint32_t)shader_type::geometry)
+					immediate_context->GSSetShaderResources(slot, 1, &new_state);
+
+				if (type & (uint32_t)shader_type::hull)
+					immediate_context->HSSetShaderResources(slot, 1, &new_state);
+
+				if (type & (uint32_t)shader_type::domain)
+					immediate_context->DSSetShaderResources(slot, 1, &new_state);
+
+				if (type & (uint32_t)shader_type::compute)
+					immediate_context->CSSetShaderResources(slot, 1, &new_state);
+			}
+			void d3d11_device::set_texture_cube(texture_cube* resource, uint32_t slot, uint32_t type)
+			{
+				VI_ASSERT(slot < units_size, "slot should be less than %i", (int)units_size);
+
+				ID3D11ShaderResourceView* new_state = (resource ? ((d3d11_texture_cube*)resource)->resource : nullptr);
+				REG_EXCHANGE_RS(resources, new_state, slot, type);
+
+				if (type & (uint32_t)shader_type::vertex)
+					immediate_context->VSSetShaderResources(slot, 1, &new_state);
+
+				if (type & (uint32_t)shader_type::pixel)
+					immediate_context->PSSetShaderResources(slot, 1, &new_state);
+
+				if (type & (uint32_t)shader_type::geometry)
+					immediate_context->GSSetShaderResources(slot, 1, &new_state);
+
+				if (type & (uint32_t)shader_type::hull)
+					immediate_context->HSSetShaderResources(slot, 1, &new_state);
+
+				if (type & (uint32_t)shader_type::domain)
+					immediate_context->DSSetShaderResources(slot, 1, &new_state);
+
+				if (type & (uint32_t)shader_type::compute)
+					immediate_context->CSSetShaderResources(slot, 1, &new_state);
+			}
+			void d3d11_device::set_index_buffer(element_buffer* resource, format format_mode)
+			{
+				d3d11_element_buffer* iresource = (d3d11_element_buffer*)resource;
+				REG_EXCHANGE_T2(index_buffer, iresource, format_mode);
+				immediate_context->IASetIndexBuffer(iresource ? iresource->element : nullptr, (DXGI_FORMAT)format_mode, 0);
+			}
+			void d3d11_device::set_vertex_buffers(element_buffer** resources, uint32_t count, bool)
+			{
+				VI_ASSERT(resources != nullptr || !count, "invalid vertex buffer array pointer");
+				VI_ASSERT(count <= units_size, "slot should be less than or equal to %i", (int)units_size);
+
+				static ID3D11Buffer* ibuffers[units_size] = { nullptr };
+				static uint32_t strides[units_size] = { };
+				static uint32_t offsets[units_size] = { };
+
+				for (uint32_t i = 0; i < count; i++)
 				{
-					Register.VertexBuffers[0] = std::make_pair(VertexBuffer, 0);
-					ImmediateContext->IASetVertexBuffers(0, 1, &VertexBuffer->Element, &Stride, &Offset);
+					d3d11_element_buffer* iresource = (d3d11_element_buffer*)resources[i];
+					ibuffers[i] = (iresource ? iresource->element : nullptr);
+					strides[i] = (uint32_t)(iresource ? iresource->stride : 0);
+					REG_EXCHANGE_RS(vertex_buffers, iresource, i, i);
 				}
 
-				if (std::get<0>(Register.IndexBuffer) != IndexBuffer || std::get<1>(Register.IndexBuffer) != Format::R32_Uint)
+				immediate_context->IASetVertexBuffers(0, count, ibuffers, strides, offsets);
+			}
+			void d3d11_device::set_writeable(element_buffer** resource, uint32_t slot, uint32_t count, bool computable)
+			{
+				VI_ASSERT(slot < 8, "slot should be less than 8");
+				VI_ASSERT(count <= 8 && slot + count <= 8, "count should be less than or equal 8");
+				VI_ASSERT(resource != nullptr, "buffers ptr should be set");
+
+				ID3D11UnorderedAccessView* array[8] = { nullptr };
+				for (uint32_t i = 0; i < count; i++)
+					array[i] = (resource[i] ? ((d3d11_element_buffer*)(resource[i]))->access : nullptr);
+
+				UINT offset = 0;
+				if (!computable)
+					immediate_context->OMSetRenderTargetsAndUnorderedAccessViews(D3D11_KEEP_RENDER_TARGETS_AND_DEPTH_STENCIL, nullptr, nullptr, slot, count, array, &offset);
+				else
+					immediate_context->CSSetUnorderedAccessViews(slot, count, array, &offset);
+			}
+			void d3d11_device::set_writeable(texture_2d** resource, uint32_t slot, uint32_t count, bool computable)
+			{
+				VI_ASSERT(slot < 8, "slot should be less than 8");
+				VI_ASSERT(count <= 8 && slot + count <= 8, "count should be less than or equal 8");
+				VI_ASSERT(resource != nullptr, "buffers ptr should be set");
+
+				ID3D11UnorderedAccessView* array[8] = { nullptr };
+				for (uint32_t i = 0; i < count; i++)
+					array[i] = (resource[i] ? ((d3d11_texture_2d*)(resource[i]))->access : nullptr);
+
+				UINT offset = 0;
+				if (!computable)
+					immediate_context->OMSetRenderTargetsAndUnorderedAccessViews(D3D11_KEEP_RENDER_TARGETS_AND_DEPTH_STENCIL, nullptr, nullptr, slot, count, array, &offset);
+				else
+					immediate_context->CSSetUnorderedAccessViews(slot, count, array, &offset);
+			}
+			void d3d11_device::set_writeable(texture_3d** resource, uint32_t slot, uint32_t count, bool computable)
+			{
+				VI_ASSERT(slot < 8, "slot should be less than 8");
+				VI_ASSERT(count <= 8 && slot + count <= 8, "count should be less than or equal 8");
+				VI_ASSERT(resource != nullptr, "buffers ptr should be set");
+
+				ID3D11UnorderedAccessView* array[8] = { nullptr };
+				for (uint32_t i = 0; i < count; i++)
+					array[i] = (resource[i] ? ((d3d11_texture_3d*)(resource[i]))->access : nullptr);
+
+				UINT offset = 0;
+				if (!computable)
+					immediate_context->OMSetRenderTargetsAndUnorderedAccessViews(D3D11_KEEP_RENDER_TARGETS_AND_DEPTH_STENCIL, nullptr, nullptr, slot, count, array, &offset);
+				else
+					immediate_context->CSSetUnorderedAccessViews(slot, count, array, &offset);
+			}
+			void d3d11_device::set_writeable(texture_cube** resource, uint32_t slot, uint32_t count, bool computable)
+			{
+				VI_ASSERT(slot < 8, "slot should be less than 8");
+				VI_ASSERT(count <= 8 && slot + count <= 8, "count should be less than or equal 8");
+				VI_ASSERT(resource != nullptr, "buffers ptr should be set");
+
+				ID3D11UnorderedAccessView* array[8] = { nullptr };
+				for (uint32_t i = 0; i < count; i++)
+					array[i] = (resource[i] ? ((d3d11_texture_cube*)(resource[i]))->access : nullptr);
+
+				UINT offset = 0;
+				if (!computable)
+					immediate_context->OMSetRenderTargetsAndUnorderedAccessViews(D3D11_KEEP_RENDER_TARGETS_AND_DEPTH_STENCIL, nullptr, nullptr, slot, count, array, &offset);
+				else
+					immediate_context->CSSetUnorderedAccessViews(slot, count, array, &offset);
+			}
+			void d3d11_device::set_target(float r, float g, float b)
+			{
+				set_target(render_target, 0, r, g, b);
+			}
+			void d3d11_device::set_target()
+			{
+				set_target(render_target, 0);
+			}
+			void d3d11_device::set_target(depth_target_2d* resource)
+			{
+				VI_ASSERT(resource != nullptr, "depth target should be set");
+				d3d11_depth_target_2d* iresource = (d3d11_depth_target_2d*)resource;
+				const viewport& viewarea = resource->get_viewport();
+				D3D11_VIEWPORT viewport = { viewarea.top_left_x, viewarea.top_left_y, viewarea.width, viewarea.height, viewarea.min_depth, viewarea.max_depth };
+
+				immediate_context->OMSetRenderTargets(0, nullptr, iresource->depth_stencil_view);
+				immediate_context->RSSetViewports(1, &viewport);
+			}
+			void d3d11_device::set_target(depth_target_cube* resource)
+			{
+				VI_ASSERT(resource != nullptr, "depth target should be set");
+				d3d11_depth_target_cube* iresource = (d3d11_depth_target_cube*)resource;
+				const viewport& viewarea = resource->get_viewport();
+				D3D11_VIEWPORT viewport = { viewarea.top_left_x, viewarea.top_left_y, viewarea.width, viewarea.height, viewarea.min_depth, viewarea.max_depth };
+
+				immediate_context->OMSetRenderTargets(0, nullptr, iresource->depth_stencil_view);
+				immediate_context->RSSetViewports(1, &viewport);
+			}
+			void d3d11_device::set_target(graphics::render_target* resource, uint32_t target, float r, float g, float b)
+			{
+				VI_ASSERT(resource != nullptr, "render target should be set");
+				VI_ASSERT(target < resource->get_target_count(), "targets count should be less than %i", (int)resource->get_target_count());
+
+				const viewport& viewarea = resource->get_viewport();
+				ID3D11RenderTargetView** target_buffer = (ID3D11RenderTargetView**)resource->get_target_buffer();
+				ID3D11DepthStencilView* depth_buffer = (ID3D11DepthStencilView*)resource->get_depth_buffer();
+				D3D11_VIEWPORT viewport = { viewarea.top_left_x, viewarea.top_left_y, viewarea.width, viewarea.height, viewarea.min_depth, viewarea.max_depth };
+				float clear_color[4] = { r, g, b, 0.0f };
+
+				immediate_context->RSSetViewports(1, &viewport);
+				immediate_context->OMSetRenderTargets(1, &target_buffer[target], depth_buffer);
+				immediate_context->ClearRenderTargetView(target_buffer[target], clear_color);
+			}
+			void d3d11_device::set_target(graphics::render_target* resource, uint32_t target)
+			{
+				VI_ASSERT(resource != nullptr, "render target should be set");
+				VI_ASSERT(target < resource->get_target_count(), "targets count should be less than %i", (int)resource->get_target_count());
+
+				const viewport& viewarea = resource->get_viewport();
+				ID3D11RenderTargetView** target_buffer = (ID3D11RenderTargetView**)resource->get_target_buffer();
+				ID3D11DepthStencilView* depth_buffer = (ID3D11DepthStencilView*)resource->get_depth_buffer();
+				D3D11_VIEWPORT viewport = { viewarea.top_left_x, viewarea.top_left_y, viewarea.width, viewarea.height, viewarea.min_depth, viewarea.max_depth };
+
+				immediate_context->RSSetViewports(1, &viewport);
+				immediate_context->OMSetRenderTargets(1, &target_buffer[target], depth_buffer);
+			}
+			void d3d11_device::set_target(graphics::render_target* resource, float r, float g, float b)
+			{
+				VI_ASSERT(resource != nullptr, "render target should be set");
+
+				const viewport& viewarea = resource->get_viewport();
+				ID3D11RenderTargetView** target_buffer = (ID3D11RenderTargetView**)resource->get_target_buffer();
+				ID3D11DepthStencilView* depth_buffer = (ID3D11DepthStencilView*)resource->get_depth_buffer();
+				D3D11_VIEWPORT viewport = { viewarea.top_left_x, viewarea.top_left_y, viewarea.width, viewarea.height, viewarea.min_depth, viewarea.max_depth };
+				uint32_t count = resource->get_target_count();
+				float clear_color[4] = { r, g, b, 0.0f };
+
+				immediate_context->RSSetViewports(1, &viewport);
+				immediate_context->OMSetRenderTargets(count, target_buffer, depth_buffer);
+
+				for (uint32_t i = 0; i < count; i++)
+					immediate_context->ClearRenderTargetView(target_buffer[i], clear_color);
+			}
+			void d3d11_device::set_target(graphics::render_target* resource)
+			{
+				VI_ASSERT(resource != nullptr, "render target should be set");
+
+				const viewport& viewarea = resource->get_viewport();
+				ID3D11RenderTargetView** target_buffer = (ID3D11RenderTargetView**)resource->get_target_buffer();
+				ID3D11DepthStencilView* depth_buffer = (ID3D11DepthStencilView*)resource->get_depth_buffer();
+				D3D11_VIEWPORT viewport = { viewarea.top_left_x, viewarea.top_left_y, viewarea.width, viewarea.height, viewarea.min_depth, viewarea.max_depth };
+
+				immediate_context->RSSetViewports(1, &viewport);
+				immediate_context->OMSetRenderTargets(resource->get_target_count(), target_buffer, depth_buffer);
+			}
+			void d3d11_device::set_target_map(graphics::render_target* resource, bool enabled[8])
+			{
+				VI_ASSERT(resource != nullptr, "render target should be set");
+				VI_ASSERT(resource->get_target_count() > 1, "render target should have more than one targets");
+
+				const viewport& viewarea = resource->get_viewport();
+				ID3D11RenderTargetView** target_buffers = (ID3D11RenderTargetView**)resource->get_target_buffer();
+				ID3D11DepthStencilView* depth_buffer = (ID3D11DepthStencilView*)resource->get_depth_buffer();
+				D3D11_VIEWPORT viewport = { viewarea.top_left_x, viewarea.top_left_y, viewarea.width, viewarea.height, viewarea.min_depth, viewarea.max_depth };
+				uint32_t count = resource->get_target_count();
+
+				ID3D11RenderTargetView* targets[8] = { };
+				for (uint32_t i = 0; i < count; i++)
+					targets[i] = (enabled[i] ? target_buffers[i] : nullptr);
+
+				immediate_context->RSSetViewports(1, &viewport);
+				immediate_context->OMSetRenderTargets(count, targets, depth_buffer);
+			}
+			void d3d11_device::set_target_rect(uint32_t width, uint32_t height)
+			{
+				VI_ASSERT(width > 0 && height > 0, "width and height should be greater than zero");
+
+				D3D11_VIEWPORT viewport = { 0, 0, (FLOAT)width, (FLOAT)height, 0, 1 };
+				immediate_context->RSSetViewports(1, &viewport);
+				immediate_context->OMSetRenderTargets(0, nullptr, nullptr);
+			}
+			void d3d11_device::set_viewports(uint32_t count, viewport* value)
+			{
+				VI_ASSERT(value != nullptr, "value should be set");
+				VI_ASSERT(count > 0, "count should be greater than zero");
+
+				D3D11_VIEWPORT viewports[D3D11_VIEWPORT_AND_SCISSORRECT_OBJECT_COUNT_PER_PIPELINE];
+				for (uint32_t i = 0; i < count; i++)
+					memcpy(&viewports[i], &value[i], sizeof(viewport));
+
+				immediate_context->RSSetViewports(count, viewports);
+			}
+			void d3d11_device::set_scissor_rects(uint32_t count, trigonometry::rectangle* value)
+			{
+				VI_ASSERT(value != nullptr, "value should be set");
+				VI_ASSERT(count > 0, "count should be greater than zero");
+
+				D3D11_RECT rects[D3D11_VIEWPORT_AND_SCISSORRECT_OBJECT_COUNT_PER_PIPELINE];
+				for (uint32_t i = 0; i < count; i++)
 				{
-					Register.IndexBuffer = std::make_tuple(IndexBuffer, Format::R32_Uint);
-					ImmediateContext->IASetIndexBuffer(IndexBuffer->Element, DXGI_FORMAT_R32_UINT, 0);
+					trigonometry::rectangle& from = value[i];
+					D3D11_RECT& to = rects[i];
+					to.left = (LONG)from.left;
+					to.right = (LONG)from.right;
+					to.bottom = (LONG)from.bottom;
+					to.top = (LONG)from.top;
 				}
 
-				ImmediateContext->DrawIndexed((uint32_t)IndexBuffer->GetElements(), 0, 0);
+				immediate_context->RSSetScissorRects(count, rects);
 			}
-			void D3D11Device::DrawIndexed(SkinMeshBuffer* Resource)
+			void d3d11_device::set_primitive_topology(primitive_topology topology)
 			{
-				VI_ASSERT(Resource != nullptr, "resource should be set");
-				D3D11ElementBuffer* VertexBuffer = (D3D11ElementBuffer*)Resource->GetVertexBuffer();
-				D3D11ElementBuffer* IndexBuffer = (D3D11ElementBuffer*)Resource->GetIndexBuffer();
-				uint32_t Stride = (uint32_t)VertexBuffer->Stride, Offset = 0;
-
-				if (Register.VertexBuffers[0].first != VertexBuffer)
-				{
-					Register.VertexBuffers[0] = std::make_pair(VertexBuffer, 0);
-					ImmediateContext->IASetVertexBuffers(0, 1, &VertexBuffer->Element, &Stride, &Offset);
-				}
-
-				if (std::get<0>(Register.IndexBuffer) != IndexBuffer || std::get<1>(Register.IndexBuffer) != Format::R32_Uint)
-				{
-					Register.IndexBuffer = std::make_tuple(IndexBuffer, Format::R32_Uint);
-					ImmediateContext->IASetIndexBuffer(IndexBuffer->Element, DXGI_FORMAT_R32_UINT, 0);
-				}
-
-				ImmediateContext->DrawIndexed((uint32_t)IndexBuffer->GetElements(), 0, 0);
+				immediate_context->IASetPrimitiveTopology((D3D11_PRIMITIVE_TOPOLOGY)topology);
 			}
-			void D3D11Device::DrawIndexedInstanced(uint32_t IndexCountPerInstance, uint32_t InstanceCount, uint32_t IndexLocation, uint32_t VertexLocation, uint32_t InstanceLocation)
+			void d3d11_device::flush_texture(uint32_t slot, uint32_t count, uint32_t type)
 			{
-				ImmediateContext->DrawIndexedInstanced(IndexCountPerInstance, InstanceCount, IndexLocation, VertexLocation, InstanceLocation);
+				VI_ASSERT(slot < units_size, "slot should be less than %i", (int)units_size);
+				VI_ASSERT(count <= units_size && slot + count <= units_size, "count should be less than or equal %i", (int)units_size);
+
+				static ID3D11ShaderResourceView* array[units_size] = { nullptr };
+				if (type & (uint32_t)shader_type::vertex)
+					immediate_context->VSSetShaderResources(slot, count, array);
+
+				if (type & (uint32_t)shader_type::pixel)
+					immediate_context->PSSetShaderResources(slot, count, array);
+
+				if (type & (uint32_t)shader_type::geometry)
+					immediate_context->GSSetShaderResources(slot, count, array);
+
+				if (type & (uint32_t)shader_type::hull)
+					immediate_context->HSSetShaderResources(slot, count, array);
+
+				if (type & (uint32_t)shader_type::domain)
+					immediate_context->DSSetShaderResources(slot, count, array);
+
+				if (type & (uint32_t)shader_type::compute)
+					immediate_context->CSSetShaderResources(slot, count, array);
+
+				size_t offset = slot + count;
+				for (size_t i = slot; i < offset; i++)
+					regs.resources[i] = std::make_pair<ID3D11ShaderResourceView*, uint32_t>(nullptr, 0);
 			}
-			void D3D11Device::DrawIndexedInstanced(ElementBuffer* Instances, MeshBuffer* Resource, uint32_t InstanceCount)
+			void d3d11_device::flush_state()
 			{
-				VI_ASSERT(Instances != nullptr, "instances should be set");
-				VI_ASSERT(Resource != nullptr, "resource should be set");
-
-				D3D11ElementBuffer* InstanceBuffer = (D3D11ElementBuffer*)Instances;
-				D3D11ElementBuffer* VertexBuffer = (D3D11ElementBuffer*)Resource->GetVertexBuffer();
-				D3D11ElementBuffer* IndexBuffer = (D3D11ElementBuffer*)Resource->GetIndexBuffer();
-				uint32_t Stride = (uint32_t)VertexBuffer->Stride, Offset = 0;
-
-				if (Register.VertexBuffers[0].first != VertexBuffer)
-				{
-					Register.VertexBuffers[0] = std::make_pair(VertexBuffer, 0);
-					ImmediateContext->IASetVertexBuffers(0, 1, &VertexBuffer->Element, &Stride, &Offset);
-				}
-
-				if (std::get<0>(Register.IndexBuffer) != IndexBuffer || std::get<1>(Register.IndexBuffer) != Format::R32_Uint)
-				{
-					Register.IndexBuffer = std::make_tuple(IndexBuffer, Format::R32_Uint);
-					ImmediateContext->IASetIndexBuffer(IndexBuffer->Element, DXGI_FORMAT_R32_UINT, 0);
-				}
-
-				Stride = (uint32_t)InstanceBuffer->Stride;
-				ImmediateContext->IASetVertexBuffers(1, 1, &InstanceBuffer->Element, &Stride, &Offset);
-				ImmediateContext->DrawIndexedInstanced((uint32_t)IndexBuffer->GetElements(), InstanceCount, 0, 0, 0);
+				if (immediate_context != nullptr)
+					immediate_context->ClearState();
 			}
-			void D3D11Device::DrawIndexedInstanced(ElementBuffer* Instances, SkinMeshBuffer* Resource, uint32_t InstanceCount)
+			void d3d11_device::clear_buffer(instance_buffer* resource)
 			{
-				VI_ASSERT(Instances != nullptr, "instances should be set");
-				VI_ASSERT(Resource != nullptr, "resource should be set");
-
-				D3D11ElementBuffer* InstanceBuffer = (D3D11ElementBuffer*)Instances;
-				D3D11ElementBuffer* VertexBuffer = (D3D11ElementBuffer*)Resource->GetVertexBuffer();
-				D3D11ElementBuffer* IndexBuffer = (D3D11ElementBuffer*)Resource->GetIndexBuffer();
-				uint32_t Stride = (uint32_t)VertexBuffer->Stride, Offset = 0;
-
-				if (Register.VertexBuffers[0].first != VertexBuffer)
-				{
-					Register.VertexBuffers[0] = std::make_pair(VertexBuffer, 0);
-					ImmediateContext->IASetVertexBuffers(0, 1, &VertexBuffer->Element, &Stride, &Offset);
-				}
-
-				if (std::get<0>(Register.IndexBuffer) != IndexBuffer || std::get<1>(Register.IndexBuffer) != Format::R32_Uint)
-				{
-					Register.IndexBuffer = std::make_tuple(IndexBuffer, Format::R32_Uint);
-					ImmediateContext->IASetIndexBuffer(IndexBuffer->Element, DXGI_FORMAT_R32_UINT, 0);
-				}
-
-				Stride = (uint32_t)InstanceBuffer->Stride;
-				ImmediateContext->IASetVertexBuffers(1, 1, &InstanceBuffer->Element, &Stride, &Offset);
-				ImmediateContext->DrawIndexedInstanced((uint32_t)IndexBuffer->GetElements(), InstanceCount, 0, 0, 0);
-			}
-			void D3D11Device::Draw(uint32_t Count, uint32_t Location)
-			{
-				ImmediateContext->Draw(Count, Location);
-			}
-			void D3D11Device::DrawInstanced(uint32_t VertexCountPerInstance, uint32_t InstanceCount, uint32_t VertexLocation, uint32_t InstanceLocation)
-			{
-				ImmediateContext->DrawInstanced(VertexCountPerInstance, InstanceCount, VertexLocation, InstanceLocation);
-			}
-			void D3D11Device::Dispatch(uint32_t GroupX, uint32_t GroupY, uint32_t GroupZ)
-			{
-				ImmediateContext->Dispatch(GroupX, GroupY, GroupZ);
-			}
-			void D3D11Device::GetViewports(uint32_t* Count, Viewport* Out)
-			{
-				D3D11_VIEWPORT Viewports[D3D11_VIEWPORT_AND_SCISSORRECT_OBJECT_COUNT_PER_PIPELINE];
-				UINT ViewCount = (Count ? *Count : 1);
-
-				ImmediateContext->RSGetViewports(&ViewCount, Viewports);
-				if (!ViewCount || !Out)
+				VI_ASSERT(resource != nullptr, "resource should be set");
+				d3d11_instance_buffer* iresource = (d3d11_instance_buffer*)resource;
+				if (!iresource->sync)
 					return;
 
-				for (UINT i = 0; i < ViewCount; i++)
-					memcpy(&Out[i], &Viewports[i], sizeof(D3D11_VIEWPORT));
-			}
-			void D3D11Device::GetScissorRects(uint32_t* Count, Trigonometry::Rectangle* Out)
-			{
-				D3D11_RECT Rects[D3D11_VIEWPORT_AND_SCISSORRECT_OBJECT_COUNT_PER_PIPELINE];
-				UINT RectCount = (Count ? *Count : 1);
+				d3d11_element_buffer* element = (d3d11_element_buffer*)iresource->elements;
+				iresource->sync = false;
 
-				ImmediateContext->RSGetScissorRects(&RectCount, Rects);
-				if (!Out)
+				D3D11_MAPPED_SUBRESOURCE mapped_resource;
+				immediate_context->Map(element->element, 0, D3D11_MAP_WRITE_DISCARD, 0, &mapped_resource);
+				mapped_resource.pData = nullptr;
+				immediate_context->Unmap(element->element, 0);
+			}
+			void d3d11_device::clear_writable(texture_2d* resource)
+			{
+				VI_ASSERT(resource != nullptr, "resource should be set");
+				d3d11_texture_2d* iresource = (d3d11_texture_2d*)resource;
+
+				VI_ASSERT(iresource->access != nullptr, "resource should be valid");
+				UINT clear_color[4] = { 0, 0, 0, 0 };
+				immediate_context->ClearUnorderedAccessViewUint(iresource->access, clear_color);
+			}
+			void d3d11_device::clear_writable(texture_2d* resource, float r, float g, float b)
+			{
+				VI_ASSERT(resource != nullptr, "resource should be set");
+				d3d11_texture_2d* iresource = (d3d11_texture_2d*)resource;
+
+				VI_ASSERT(iresource->access != nullptr, "resource should be valid");
+				float clear_color[4] = { r, g, b, 0.0f };
+				immediate_context->ClearUnorderedAccessViewFloat(iresource->access, clear_color);
+			}
+			void d3d11_device::clear_writable(texture_3d* resource)
+			{
+				VI_ASSERT(resource != nullptr, "resource should be set");
+				d3d11_texture_3d* iresource = (d3d11_texture_3d*)resource;
+
+				VI_ASSERT(iresource->access != nullptr, "resource should be valid");
+				UINT clear_color[4] = { 0, 0, 0, 0 };
+				immediate_context->ClearUnorderedAccessViewUint(iresource->access, clear_color);
+			}
+			void d3d11_device::clear_writable(texture_3d* resource, float r, float g, float b)
+			{
+				VI_ASSERT(resource != nullptr, "resource should be set");
+				d3d11_texture_3d* iresource = (d3d11_texture_3d*)resource;
+
+				VI_ASSERT(iresource->access != nullptr, "resource should be valid");
+				float clear_color[4] = { r, g, b, 0.0f };
+				immediate_context->ClearUnorderedAccessViewFloat(iresource->access, clear_color);
+			}
+			void d3d11_device::clear_writable(texture_cube* resource)
+			{
+				VI_ASSERT(resource != nullptr, "resource should be set");
+				d3d11_texture_cube* iresource = (d3d11_texture_cube*)resource;
+
+				VI_ASSERT(iresource->access != nullptr, "resource should be valid");
+				UINT clear_color[4] = { 0, 0, 0, 0 };
+				immediate_context->ClearUnorderedAccessViewUint(iresource->access, clear_color);
+			}
+			void d3d11_device::clear_writable(texture_cube* resource, float r, float g, float b)
+			{
+				VI_ASSERT(resource != nullptr, "resource should be set");
+				d3d11_texture_cube* iresource = (d3d11_texture_cube*)resource;
+
+				VI_ASSERT(iresource->access != nullptr, "resource should be valid");
+				float clear_color[4] = { r, g, b, 0.0f };
+				immediate_context->ClearUnorderedAccessViewFloat(iresource->access, clear_color);
+			}
+			void d3d11_device::clear(float r, float g, float b)
+			{
+				clear(render_target, 0, r, g, b);
+			}
+			void d3d11_device::clear(graphics::render_target* resource, uint32_t target, float r, float g, float b)
+			{
+				VI_ASSERT(resource != nullptr, "resource should be set");
+				VI_ASSERT(target < resource->get_target_count(), "targets count should be less than %i", (int)resource->get_target_count());
+
+				ID3D11RenderTargetView** target_buffer = (ID3D11RenderTargetView**)resource->get_target_buffer();
+				float clear_color[4] = { r, g, b, 0.0f };
+
+				immediate_context->ClearRenderTargetView(target_buffer[target], clear_color);
+			}
+			void d3d11_device::clear_depth()
+			{
+				clear_depth(render_target);
+			}
+			void d3d11_device::clear_depth(depth_target_2d* resource)
+			{
+				VI_ASSERT(resource != nullptr, "resource should be set");
+				d3d11_depth_target_2d* iresource = (d3d11_depth_target_2d*)resource;
+				immediate_context->ClearDepthStencilView(iresource->depth_stencil_view, D3D11_CLEAR_DEPTH, 1.0f, 0);
+			}
+			void d3d11_device::clear_depth(depth_target_cube* resource)
+			{
+				VI_ASSERT(resource != nullptr, "resource should be set");
+				d3d11_depth_target_cube* iresource = (d3d11_depth_target_cube*)resource;
+				immediate_context->ClearDepthStencilView(iresource->depth_stencil_view, D3D11_CLEAR_DEPTH, 1.0f, 0);
+			}
+			void d3d11_device::clear_depth(graphics::render_target* resource)
+			{
+				VI_ASSERT(resource != nullptr, "resource should be set");
+				ID3D11DepthStencilView* depth_buffer = (ID3D11DepthStencilView*)resource->get_depth_buffer();
+				immediate_context->ClearDepthStencilView(depth_buffer, D3D11_CLEAR_DEPTH, 1.0f, 0);
+			}
+			void d3d11_device::draw_indexed(uint32_t count, uint32_t index_location, uint32_t base_location)
+			{
+				immediate_context->DrawIndexed(count, index_location, base_location);
+			}
+			void d3d11_device::draw_indexed(mesh_buffer* resource)
+			{
+				VI_ASSERT(resource != nullptr, "resource should be set");
+				d3d11_element_buffer* vertex_buffer = (d3d11_element_buffer*)resource->get_vertex_buffer();
+				d3d11_element_buffer* index_buffer = (d3d11_element_buffer*)resource->get_index_buffer();
+				uint32_t stride = (uint32_t)vertex_buffer->stride, offset = 0;
+
+				if (regs.vertex_buffers[0].first != vertex_buffer)
+				{
+					regs.vertex_buffers[0] = std::make_pair(vertex_buffer, 0);
+					immediate_context->IASetVertexBuffers(0, 1, &vertex_buffer->element, &stride, &offset);
+				}
+
+				if (std::get<0>(regs.index_buffer) != index_buffer || std::get<1>(regs.index_buffer) != format::r32_uint)
+				{
+					regs.index_buffer = std::make_tuple(index_buffer, format::r32_uint);
+					immediate_context->IASetIndexBuffer(index_buffer->element, DXGI_FORMAT_R32_UINT, 0);
+				}
+
+				immediate_context->DrawIndexed((uint32_t)index_buffer->get_elements(), 0, 0);
+			}
+			void d3d11_device::draw_indexed(skin_mesh_buffer* resource)
+			{
+				VI_ASSERT(resource != nullptr, "resource should be set");
+				d3d11_element_buffer* vertex_buffer = (d3d11_element_buffer*)resource->get_vertex_buffer();
+				d3d11_element_buffer* index_buffer = (d3d11_element_buffer*)resource->get_index_buffer();
+				uint32_t stride = (uint32_t)vertex_buffer->stride, offset = 0;
+
+				if (regs.vertex_buffers[0].first != vertex_buffer)
+				{
+					regs.vertex_buffers[0] = std::make_pair(vertex_buffer, 0);
+					immediate_context->IASetVertexBuffers(0, 1, &vertex_buffer->element, &stride, &offset);
+				}
+
+				if (std::get<0>(regs.index_buffer) != index_buffer || std::get<1>(regs.index_buffer) != format::r32_uint)
+				{
+					regs.index_buffer = std::make_tuple(index_buffer, format::r32_uint);
+					immediate_context->IASetIndexBuffer(index_buffer->element, DXGI_FORMAT_R32_UINT, 0);
+				}
+
+				immediate_context->DrawIndexed((uint32_t)index_buffer->get_elements(), 0, 0);
+			}
+			void d3d11_device::draw_indexed_instanced(uint32_t index_count_per_instance, uint32_t instance_count, uint32_t index_location, uint32_t vertex_location, uint32_t instance_location)
+			{
+				immediate_context->DrawIndexedInstanced(index_count_per_instance, instance_count, index_location, vertex_location, instance_location);
+			}
+			void d3d11_device::draw_indexed_instanced(element_buffer* instances, mesh_buffer* resource, uint32_t instance_count)
+			{
+				VI_ASSERT(instances != nullptr, "instances should be set");
+				VI_ASSERT(resource != nullptr, "resource should be set");
+
+				d3d11_element_buffer* instance_buffer = (d3d11_element_buffer*)instances;
+				d3d11_element_buffer* vertex_buffer = (d3d11_element_buffer*)resource->get_vertex_buffer();
+				d3d11_element_buffer* index_buffer = (d3d11_element_buffer*)resource->get_index_buffer();
+				uint32_t stride = (uint32_t)vertex_buffer->stride, offset = 0;
+
+				if (regs.vertex_buffers[0].first != vertex_buffer)
+				{
+					regs.vertex_buffers[0] = std::make_pair(vertex_buffer, 0);
+					immediate_context->IASetVertexBuffers(0, 1, &vertex_buffer->element, &stride, &offset);
+				}
+
+				if (std::get<0>(regs.index_buffer) != index_buffer || std::get<1>(regs.index_buffer) != format::r32_uint)
+				{
+					regs.index_buffer = std::make_tuple(index_buffer, format::r32_uint);
+					immediate_context->IASetIndexBuffer(index_buffer->element, DXGI_FORMAT_R32_UINT, 0);
+				}
+
+				stride = (uint32_t)instance_buffer->stride;
+				immediate_context->IASetVertexBuffers(1, 1, &instance_buffer->element, &stride, &offset);
+				immediate_context->DrawIndexedInstanced((uint32_t)index_buffer->get_elements(), instance_count, 0, 0, 0);
+			}
+			void d3d11_device::draw_indexed_instanced(element_buffer* instances, skin_mesh_buffer* resource, uint32_t instance_count)
+			{
+				VI_ASSERT(instances != nullptr, "instances should be set");
+				VI_ASSERT(resource != nullptr, "resource should be set");
+
+				d3d11_element_buffer* instance_buffer = (d3d11_element_buffer*)instances;
+				d3d11_element_buffer* vertex_buffer = (d3d11_element_buffer*)resource->get_vertex_buffer();
+				d3d11_element_buffer* index_buffer = (d3d11_element_buffer*)resource->get_index_buffer();
+				uint32_t stride = (uint32_t)vertex_buffer->stride, offset = 0;
+
+				if (regs.vertex_buffers[0].first != vertex_buffer)
+				{
+					regs.vertex_buffers[0] = std::make_pair(vertex_buffer, 0);
+					immediate_context->IASetVertexBuffers(0, 1, &vertex_buffer->element, &stride, &offset);
+				}
+
+				if (std::get<0>(regs.index_buffer) != index_buffer || std::get<1>(regs.index_buffer) != format::r32_uint)
+				{
+					regs.index_buffer = std::make_tuple(index_buffer, format::r32_uint);
+					immediate_context->IASetIndexBuffer(index_buffer->element, DXGI_FORMAT_R32_UINT, 0);
+				}
+
+				stride = (uint32_t)instance_buffer->stride;
+				immediate_context->IASetVertexBuffers(1, 1, &instance_buffer->element, &stride, &offset);
+				immediate_context->DrawIndexedInstanced((uint32_t)index_buffer->get_elements(), instance_count, 0, 0, 0);
+			}
+			void d3d11_device::draw(uint32_t count, uint32_t location)
+			{
+				immediate_context->Draw(count, location);
+			}
+			void d3d11_device::draw_instanced(uint32_t vertex_count_per_instance, uint32_t instance_count, uint32_t vertex_location, uint32_t instance_location)
+			{
+				immediate_context->DrawInstanced(vertex_count_per_instance, instance_count, vertex_location, instance_location);
+			}
+			void d3d11_device::dispatch(uint32_t group_x, uint32_t group_y, uint32_t group_z)
+			{
+				immediate_context->Dispatch(group_x, group_y, group_z);
+			}
+			void d3d11_device::get_viewports(uint32_t* count, viewport* out)
+			{
+				D3D11_VIEWPORT viewports[D3D11_VIEWPORT_AND_SCISSORRECT_OBJECT_COUNT_PER_PIPELINE];
+				UINT view_count = (count ? *count : 1);
+
+				immediate_context->RSGetViewports(&view_count, viewports);
+				if (!view_count || !out)
 					return;
 
-				if (Count != nullptr)
-					*Count = RectCount;
-
-				for (UINT i = 0; i < RectCount; i++)
-					memcpy(&Out[i], &Rects[i], sizeof(D3D11_RECT));
+				for (UINT i = 0; i < view_count; i++)
+					memcpy(&out[i], &viewports[i], sizeof(D3D11_VIEWPORT));
 			}
-			void D3D11Device::QueryBegin(Query* Resource)
+			void d3d11_device::get_scissor_rects(uint32_t* count, trigonometry::rectangle* out)
 			{
-				VI_ASSERT(Resource != nullptr, "resource should be set");
-				D3D11Query* IResource = (D3D11Query*)Resource;
+				D3D11_RECT rects[D3D11_VIEWPORT_AND_SCISSORRECT_OBJECT_COUNT_PER_PIPELINE];
+				UINT rect_count = (count ? *count : 1);
 
-				VI_ASSERT(IResource->Async != nullptr, "resource should be valid");
-				ImmediateContext->Begin(IResource->Async);
-			}
-			void D3D11Device::QueryEnd(Query* Resource)
-			{
-				VI_ASSERT(Resource != nullptr, "resource should be set");
-				D3D11Query* IResource = (D3D11Query*)Resource;
+				immediate_context->RSGetScissorRects(&rect_count, rects);
+				if (!out)
+					return;
 
-				VI_ASSERT(IResource->Async != nullptr, "resource should be valid");
-				ImmediateContext->End(IResource->Async);
-			}
-			void D3D11Device::GenerateMips(Texture2D* Resource)
-			{
-				VI_ASSERT(Resource != nullptr, "resource should be set");
-				D3D11Texture2D* IResource = (D3D11Texture2D*)Resource;
+				if (count != nullptr)
+					*count = rect_count;
 
-				VI_ASSERT(IResource->Resource != nullptr, "resource should be valid");
-				ImmediateContext->GenerateMips(IResource->Resource);
+				for (UINT i = 0; i < rect_count; i++)
+					memcpy(&out[i], &rects[i], sizeof(D3D11_RECT));
 			}
-			void D3D11Device::GenerateMips(Texture3D* Resource)
+			void d3d11_device::query_begin(query* resource)
 			{
-				VI_ASSERT(Resource != nullptr, "resource should be set");
-				D3D11Texture3D* IResource = (D3D11Texture3D*)Resource;
+				VI_ASSERT(resource != nullptr, "resource should be set");
+				d3d11_query* iresource = (d3d11_query*)resource;
 
-				VI_ASSERT(IResource->Resource != nullptr, "resource should be valid");
-				ImmediateContext->GenerateMips(IResource->Resource);
+				VI_ASSERT(iresource->async != nullptr, "resource should be valid");
+				immediate_context->Begin(iresource->async);
 			}
-			void D3D11Device::GenerateMips(TextureCube* Resource)
+			void d3d11_device::query_end(query* resource)
 			{
-				VI_ASSERT(Resource != nullptr, "resource should be set");
-				D3D11TextureCube* IResource = (D3D11TextureCube*)Resource;
+				VI_ASSERT(resource != nullptr, "resource should be set");
+				d3d11_query* iresource = (d3d11_query*)resource;
 
-				VI_ASSERT(IResource->Resource != nullptr, "resource should be valid");
-				ImmediateContext->GenerateMips(IResource->Resource);
+				VI_ASSERT(iresource->async != nullptr, "resource should be valid");
+				immediate_context->End(iresource->async);
 			}
-			bool D3D11Device::ImBegin()
+			void d3d11_device::generate_mips(texture_2d* resource)
 			{
-				if (!Immediate.VertexBuffer && !CreateDirectBuffer(0))
+				VI_ASSERT(resource != nullptr, "resource should be set");
+				d3d11_texture_2d* iresource = (d3d11_texture_2d*)resource;
+
+				VI_ASSERT(iresource->resource != nullptr, "resource should be valid");
+				immediate_context->GenerateMips(iresource->resource);
+			}
+			void d3d11_device::generate_mips(texture_3d* resource)
+			{
+				VI_ASSERT(resource != nullptr, "resource should be set");
+				d3d11_texture_3d* iresource = (d3d11_texture_3d*)resource;
+
+				VI_ASSERT(iresource->resource != nullptr, "resource should be valid");
+				immediate_context->GenerateMips(iresource->resource);
+			}
+			void d3d11_device::generate_mips(texture_cube* resource)
+			{
+				VI_ASSERT(resource != nullptr, "resource should be set");
+				d3d11_texture_cube* iresource = (d3d11_texture_cube*)resource;
+
+				VI_ASSERT(iresource->resource != nullptr, "resource should be valid");
+				immediate_context->GenerateMips(iresource->resource);
+			}
+			bool d3d11_device::im_begin()
+			{
+				if (!immediate.vertex_buffer && !create_direct_buffer(0))
 					return false;
 
-				Primitives = PrimitiveTopology::Triangle_List;
-				Direct.Transform = Trigonometry::Matrix4x4::Identity();
-				Direct.Padding = { 0, 0, 0, 1 };
-				ViewResource = nullptr;
+				primitives = primitive_topology::triangle_list;
+				direct.transform = trigonometry::matrix4x4::identity();
+				direct.padding = { 0, 0, 0, 1 };
+				view_resource = nullptr;
 
-				Elements.clear();
+				elements.clear();
 				return true;
 			}
-			void D3D11Device::ImTransform(const Trigonometry::Matrix4x4& Transform)
+			void d3d11_device::im_transform(const trigonometry::matrix4x4& transform)
 			{
-				Direct.Transform = Direct.Transform * Transform;
+				direct.transform = direct.transform * transform;
 			}
-			void D3D11Device::ImTopology(PrimitiveTopology Topology)
+			void d3d11_device::im_topology(primitive_topology topology)
 			{
-				Primitives = Topology;
+				primitives = topology;
 			}
-			void D3D11Device::ImEmit()
+			void d3d11_device::im_emit()
 			{
-				Elements.push_back({ 0, 0, 0, 0, 0, 1, 1, 1, 1 });
+				elements.push_back({ 0, 0, 0, 0, 0, 1, 1, 1, 1 });
 			}
-			void D3D11Device::ImTexture(Texture2D* In)
+			void d3d11_device::im_texture(texture_2d* in)
 			{
-				ViewResource = In;
-				Direct.Padding.Z = (In != nullptr);
+				view_resource = in;
+				direct.padding.z = (in != nullptr);
 			}
-			void D3D11Device::ImColor(float X, float Y, float Z, float W)
+			void d3d11_device::im_color(float x, float y, float z, float w)
 			{
-				VI_ASSERT(!Elements.empty(), "vertex should already be emitted");
-				auto& Element = Elements.back();
-				Element.CX = X;
-				Element.CY = Y;
-				Element.CZ = Z;
-				Element.CW = W;
+				VI_ASSERT(!elements.empty(), "vertex should already be emitted");
+				auto& element = elements.back();
+				element.cx = x;
+				element.cy = y;
+				element.cz = z;
+				element.cw = w;
 			}
-			void D3D11Device::ImIntensity(float Intensity)
+			void d3d11_device::im_intensity(float intensity)
 			{
-				Direct.Padding.W = Intensity;
+				direct.padding.w = intensity;
 			}
-			void D3D11Device::ImTexCoord(float X, float Y)
+			void d3d11_device::im_texcoord(float x, float y)
 			{
-				VI_ASSERT(!Elements.empty(), "vertex should already be emitted");
-				auto& Element = Elements.back();
-				Element.TX = X;
-				Element.TY = Y;
+				VI_ASSERT(!elements.empty(), "vertex should already be emitted");
+				auto& element = elements.back();
+				element.tx = x;
+				element.ty = y;
 			}
-			void D3D11Device::ImTexCoordOffset(float X, float Y)
+			void d3d11_device::im_texcoord_offset(float x, float y)
 			{
-				Direct.Padding.X = X;
-				Direct.Padding.Y = Y;
+				direct.padding.x = x;
+				direct.padding.y = y;
 			}
-			void D3D11Device::ImPosition(float X, float Y, float Z)
+			void d3d11_device::im_position(float x, float y, float z)
 			{
-				VI_ASSERT(!Elements.empty(), "vertex should already be emitted");
-				auto& Element = Elements.back();
-				Element.PX = X;
-				Element.PY = Y;
-				Element.PZ = Z;
+				VI_ASSERT(!elements.empty(), "vertex should already be emitted");
+				auto& element = elements.back();
+				element.px = x;
+				element.py = y;
+				element.pz = z;
 			}
-			bool D3D11Device::ImEnd()
+			bool d3d11_device::im_end()
 			{
-				if (Elements.size() > MaxElements && !CreateDirectBuffer(Elements.size()))
+				if (elements.size() > max_elements && !create_direct_buffer(elements.size()))
 					return false;
 
-				uint32_t Stride = sizeof(Vertex), Offset = 0;
-				uint32_t LastStride = 0, LastOffset = 0;
-				D3D11_MAPPED_SUBRESOURCE MappedResource;
-				ImmediateContext->Map(Immediate.VertexBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &MappedResource);
-				memcpy(MappedResource.pData, Elements.data(), (size_t)Elements.size() * sizeof(Vertex));
-				ImmediateContext->Unmap(Immediate.VertexBuffer, 0);
+				uint32_t stride = sizeof(vertex), offset = 0;
+				uint32_t last_stride = 0, last_offset = 0;
+				D3D11_MAPPED_SUBRESOURCE mapped_resource;
+				immediate_context->Map(immediate.vertex_buffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mapped_resource);
+				memcpy(mapped_resource.pData, elements.data(), (size_t)elements.size() * sizeof(vertex));
+				immediate_context->Unmap(immediate.vertex_buffer, 0);
 
-				D3D11_PRIMITIVE_TOPOLOGY LastTopology;
-				ImmediateContext->IAGetPrimitiveTopology(&LastTopology);
-				ImmediateContext->IASetPrimitiveTopology((D3D11_PRIMITIVE_TOPOLOGY)Primitives);
+				D3D11_PRIMITIVE_TOPOLOGY last_topology;
+				immediate_context->IAGetPrimitiveTopology(&last_topology);
+				immediate_context->IASetPrimitiveTopology((D3D11_PRIMITIVE_TOPOLOGY)primitives);
 
-				Core::UPtr<ID3D11InputLayout> LastLayout;
-				ImmediateContext->IAGetInputLayout(LastLayout.Out());
-				ImmediateContext->IASetInputLayout(Immediate.VertexLayout);
+				core::uptr<ID3D11InputLayout> last_layout;
+				immediate_context->IAGetInputLayout(last_layout.out());
+				immediate_context->IASetInputLayout(immediate.vertex_layout);
 
-				Core::UPtr<ID3D11VertexShader> LastVertexShader;
-				ImmediateContext->VSGetShader(LastVertexShader.Out(), nullptr, nullptr);
-				ImmediateContext->VSSetShader(Immediate.VertexShader, nullptr, 0);
+				core::uptr<ID3D11VertexShader> last_vertex_shader;
+				immediate_context->VSGetShader(last_vertex_shader.out(), nullptr, nullptr);
+				immediate_context->VSSetShader(immediate.vertex_shader, nullptr, 0);
 
-				Core::UPtr<ID3D11PixelShader> LastPixelShader;
-				ImmediateContext->PSGetShader(LastPixelShader.Out(), nullptr, nullptr);
-				ImmediateContext->PSSetShader(Immediate.PixelShader, nullptr, 0);
+				core::uptr<ID3D11PixelShader> last_pixel_shader;
+				immediate_context->PSGetShader(last_pixel_shader.out(), nullptr, nullptr);
+				immediate_context->PSSetShader(immediate.pixel_shader, nullptr, 0);
 
-				Core::UPtr<ID3D11Buffer> LastVertexBuffer;
-				ImmediateContext->IAGetVertexBuffers(0, 1, LastVertexBuffer.Out(), &LastStride, &LastOffset);
-				ImmediateContext->IASetVertexBuffers(0, 1, &Immediate.VertexBuffer, &Stride, &Offset);
+				core::uptr<ID3D11Buffer> last_vertex_buffer;
+				immediate_context->IAGetVertexBuffers(0, 1, last_vertex_buffer.out(), &last_stride, &last_offset);
+				immediate_context->IASetVertexBuffers(0, 1, &immediate.vertex_buffer, &stride, &offset);
 
-				Core::UPtr<ID3D11Buffer> LastBuffer1, LastBuffer2;
-				ImmediateContext->VSGetConstantBuffers(0, 1, LastBuffer1.Out());
-				ImmediateContext->VSSetConstantBuffers(0, 1, &Immediate.ConstantBuffer);
-				ImmediateContext->PSGetConstantBuffers(0, 1, LastBuffer2.Out());
-				ImmediateContext->PSSetConstantBuffers(0, 1, &Immediate.ConstantBuffer);
+				core::uptr<ID3D11Buffer> last_buffer1, last_buffer2;
+				immediate_context->VSGetConstantBuffers(0, 1, last_buffer1.out());
+				immediate_context->VSSetConstantBuffers(0, 1, &immediate.constant_buffer);
+				immediate_context->PSGetConstantBuffers(0, 1, last_buffer2.out());
+				immediate_context->PSSetConstantBuffers(0, 1, &immediate.constant_buffer);
 
-				Core::UPtr<ID3D11SamplerState> LastSampler;
-				ImmediateContext->PSGetSamplers(1, 1, LastSampler.Out());
-				ImmediateContext->PSSetSamplers(1, 1, &Immediate.Sampler);
+				core::uptr<ID3D11SamplerState> last_sampler;
+				immediate_context->PSGetSamplers(1, 1, last_sampler.out());
+				immediate_context->PSSetSamplers(1, 1, &immediate.sampler);
 
-				ID3D11ShaderResourceView* NullTexture = nullptr;
-				Core::UPtr<ID3D11ShaderResourceView> LastTexture;
-				ImmediateContext->PSGetShaderResources(1, 1, LastTexture.Out());
-				ImmediateContext->PSSetShaderResources(1, 1, ViewResource ? &((D3D11Texture2D*)ViewResource)->Resource : &NullTexture);
+				ID3D11ShaderResourceView* null_texture = nullptr;
+				core::uptr<ID3D11ShaderResourceView> last_texture;
+				immediate_context->PSGetShaderResources(1, 1, last_texture.out());
+				immediate_context->PSSetShaderResources(1, 1, view_resource ? &((d3d11_texture_2d*)view_resource)->resource : &null_texture);
 
-				ImmediateContext->UpdateSubresource(Immediate.ConstantBuffer, 0, nullptr, &Direct, 0, 0);
-				ImmediateContext->Draw((uint32_t)Elements.size(), 0);
-				ImmediateContext->IASetPrimitiveTopology(LastTopology);
-				ImmediateContext->IASetInputLayout(*LastLayout);
-				ImmediateContext->VSSetShader(*LastVertexShader, nullptr, 0);
-				ImmediateContext->VSSetConstantBuffers(0, 1, LastBuffer1.In());
-				ImmediateContext->PSSetShader(*LastPixelShader, nullptr, 0);
-				ImmediateContext->PSSetConstantBuffers(0, 1, LastBuffer2.In());
-				ImmediateContext->PSSetSamplers(1, 1, LastSampler.In());
-				ImmediateContext->PSSetShaderResources(1, 1, LastTexture.In());
-				ImmediateContext->IASetVertexBuffers(0, 1, LastVertexBuffer.In(), &LastStride, &LastOffset);
+				immediate_context->UpdateSubresource(immediate.constant_buffer, 0, nullptr, &direct, 0, 0);
+				immediate_context->Draw((uint32_t)elements.size(), 0);
+				immediate_context->IASetPrimitiveTopology(last_topology);
+				immediate_context->IASetInputLayout(*last_layout);
+				immediate_context->VSSetShader(*last_vertex_shader, nullptr, 0);
+				immediate_context->VSSetConstantBuffers(0, 1, last_buffer1.in());
+				immediate_context->PSSetShader(*last_pixel_shader, nullptr, 0);
+				immediate_context->PSSetConstantBuffers(0, 1, last_buffer2.in());
+				immediate_context->PSSetSamplers(1, 1, last_sampler.in());
+				immediate_context->PSSetShaderResources(1, 1, last_texture.in());
+				immediate_context->IASetVertexBuffers(0, 1, last_vertex_buffer.in(), &last_stride, &last_offset);
 				return true;
 			}
-			bool D3D11Device::HasExplicitSlots() const
+			bool d3d11_device::has_explicit_slots() const
 			{
 				return true;
 			}
-			ExpectsGraphics<uint32_t> D3D11Device::GetShaderSlot(Shader* Resource, const std::string_view& Name) const
+			expects_graphics<uint32_t> d3d11_device::get_shader_slot(shader* resource, const std::string_view& name) const
 			{
-				VI_ASSERT(Core::Stringify::IsCString(Name), "name should be set");
-				VI_ASSERT(Resource != nullptr, "resource should be set");
-				D3D11Shader* IResource = (D3D11Shader*)Resource;
-				static auto ResolveSlot = [](ID3D11ShaderReflection* Reflection, const std::string_view& Name) -> Core::Option<uint32_t>
+				VI_ASSERT(core::stringify::is_cstring(name), "name should be set");
+				VI_ASSERT(resource != nullptr, "resource should be set");
+				d3d11_shader* iresource = (d3d11_shader*)resource;
+				static auto resolve_slot = [](ID3D11ShaderReflection* reflection, const std::string_view& name) -> core::option<uint32_t>
 				{
-					if (!Reflection || Name.empty())
-						return Core::Optional::None;
+					if (!reflection || name.empty())
+						return core::optional::none;
 
-					auto* Variable = Reflection->GetVariableByName(Name.data());
-					if (Variable != nullptr)
-						return (uint32_t)Variable->GetInterfaceSlot(0);
+					D3D11_SHADER_INPUT_BIND_DESC input_desc;
+					if (reflection->GetResourceBindingDescByName(name.data(), &input_desc) == S_OK)
+					{
+						auto slot = (uint32_t)input_desc.BindPoint;
+						if (slot != std::numeric_limits<uint32_t>::max())
+							return slot;
+					}
 
-					return Core::Optional::None;
+					return core::optional::none;
 				};
 
-				auto Result = ResolveSlot(IResource->Reflection.VertexShader, Name);
-				if (Result)
-					return *Result;
+				auto result = resolve_slot(iresource->reflection.vertex_shader, name);
+				if (result)
+					return *result;
 
-				auto Result = ResolveSlot(IResource->Reflection.PixelShader, Name);
-				if (Result)
-					return *Result;
+				result = resolve_slot(iresource->reflection.pixel_shader, name);
+				if (result)
+					return *result;
 
-				auto Result = ResolveSlot(IResource->Reflection.GeometryShader, Name);
-				if (Result)
-					return *Result;
+				result = resolve_slot(iresource->reflection.geometry_shader, name);
+				if (result)
+					return *result;
 
-				auto Result = ResolveSlot(IResource->Reflection.DomainShader, Name);
-				if (Result)
-					return *Result;
+				result = resolve_slot(iresource->reflection.domain_shader, name);
+				if (result)
+					return *result;
 
-				auto Result = ResolveSlot(IResource->Reflection.HullShader, Name);
-				if (Result)
-					return *Result;
+				result = resolve_slot(iresource->reflection.hull_shader, name);
+				if (result)
+					return *result;
 
-				auto Result = ResolveSlot(IResource->Reflection.ComputeShader, Name);
-				if (Result)
-					return *Result;
+				result = resolve_slot(iresource->reflection.compute_shader, name);
+				if (result)
+					return *result;
 
-				return GraphicsException(-1, Core::Stringify::Text("shader slot for variable %s not found", Name.data()));
+				return graphics_exception(-1, core::stringify::text("shader slot for variable %s not found", name.data()));
 			}
-			ExpectsGraphics<uint32_t> D3D11Device::GetShaderSamplerSlot(Shader* Resource, const std::string_view& ResourceName, const std::string_view& SamplerName) const
+			expects_graphics<uint32_t> d3d11_device::get_shader_sampler_slot(shader* resource, const std::string_view& resource_name, const std::string_view& sampler_name) const
 			{
-				return GetShaderSlot(Resource, SamplerName);
+				return get_shader_slot(resource, sampler_name);
 			}
-			ExpectsGraphics<void> D3D11Device::Submit()
+			expects_graphics<void> d3d11_device::submit()
 			{
-				HRESULT ResultCode = SwapChain->Present((uint32_t)VSyncMode, PresentFlags);
-				DispatchQueue();
-				if (Debug)
+				HRESULT result_code = swap_chain->Present((uint32_t)vsync_mode, present_flags);
+				dispatch_queue();
+				if (debug)
 				{
-					ID3D11InfoQueue* Debugger = nullptr;
-					Context->QueryInterface(__uuidof(ID3D11InfoQueue), reinterpret_cast<void**>(&Debugger));
-					if (Debugger != nullptr)
+					ID3D11InfoQueue* debugger = nullptr;
+					context->QueryInterface(__uuidof(ID3D11InfoQueue), reinterpret_cast<void**>(&debugger));
+					if (debugger != nullptr)
 					{
-						Core::UPtr<D3D11_MESSAGE> Message;
-						SIZE_T CurrentMessageSize = 0;
-						UINT64 Messages = Debugger->GetNumStoredMessages();
-						for (UINT64 i = 0; i < Messages; i++)
+						core::uptr<D3D11_MESSAGE> message;
+						SIZE_T current_message_size = 0;
+						UINT64 messages = debugger->GetNumStoredMessages();
+						for (UINT64 i = 0; i < messages; i++)
 						{
-							SIZE_T NextMessageSize = 0;
-							if (Debugger->GetMessage(i, nullptr, &NextMessageSize) != S_OK)
+							SIZE_T next_message_size = 0;
+							if (debugger->GetMessage(i, nullptr, &next_message_size) != S_OK)
 								continue;
 
-							if (CurrentMessageSize < NextMessageSize)
+							if (current_message_size < next_message_size)
 							{
-								CurrentMessageSize = NextMessageSize;
-								Message = Core::Memory::Allocate<D3D11_MESSAGE>((size_t)CurrentMessageSize);
+								current_message_size = next_message_size;
+								message = core::memory::allocate<D3D11_MESSAGE>((size_t)current_message_size);
 							}
-							
-							if (Debugger->GetMessage(i, *Message, &NextMessageSize) == S_OK)
-								DebugMessage(*Message);
+
+							if (debugger->GetMessage(i, *message, &next_message_size) == S_OK)
+								debug_message(*message);
 						}
 
-						Debugger->ClearStoredMessages();
-						Debugger->Release();
+						debugger->ClearStoredMessages();
+						debugger->Release();
 					}
 				}
-				if (ResultCode != S_OK)
-					return GetException(ResultCode, "swap chain present");
+				if (result_code != S_OK)
+					return get_exception(result_code, "swap chain present");
 
-				return Core::Expectation::Met;
+				return core::expectation::met;
 			}
-			ExpectsGraphics<void> D3D11Device::Map(ElementBuffer* Resource, ResourceMap Mode, MappedSubresource* Map)
+			expects_graphics<void> d3d11_device::map(element_buffer* resource, resource_map mode, mapped_subresource* map)
 			{
-				VI_ASSERT(Resource != nullptr, "resource should be set");
-				VI_ASSERT(Map != nullptr, "map should be set");
+				VI_ASSERT(resource != nullptr, "resource should be set");
+				VI_ASSERT(map != nullptr, "map should be set");
 
-				D3D11ElementBuffer* IResource = (D3D11ElementBuffer*)Resource;
-				D3D11_MAPPED_SUBRESOURCE MappedResource;
-				HRESULT ResultCode = ImmediateContext->Map(IResource->Element, 0, (D3D11_MAP)Mode, 0, &MappedResource);
-				if (ResultCode != S_OK)
-					return GetException(ResultCode, "map element buffer");
+				d3d11_element_buffer* iresource = (d3d11_element_buffer*)resource;
+				D3D11_MAPPED_SUBRESOURCE mapped_resource;
+				HRESULT result_code = immediate_context->Map(iresource->element, 0, (D3D11_MAP)mode, 0, &mapped_resource);
+				if (result_code != S_OK)
+					return get_exception(result_code, "map element buffer");
 
-				Map->Pointer = MappedResource.pData;
-				Map->RowPitch = MappedResource.RowPitch;
-				Map->DepthPitch = MappedResource.DepthPitch;
-				return Core::Expectation::Met;
+				map->pointer = mapped_resource.pData;
+				map->row_pitch = mapped_resource.RowPitch;
+				map->depth_pitch = mapped_resource.DepthPitch;
+				return core::expectation::met;
 			}
-			ExpectsGraphics<void> D3D11Device::Map(Texture2D* Resource, ResourceMap Mode, MappedSubresource* Map)
+			expects_graphics<void> d3d11_device::map(texture_2d* resource, resource_map mode, mapped_subresource* map)
 			{
-				VI_ASSERT(Resource != nullptr, "resource should be set");
-				VI_ASSERT(Map != nullptr, "map should be set");
+				VI_ASSERT(resource != nullptr, "resource should be set");
+				VI_ASSERT(map != nullptr, "map should be set");
 
-				D3D11Texture2D* IResource = (D3D11Texture2D*)Resource;
-				D3D11_MAPPED_SUBRESOURCE MappedResource;
-				HRESULT ResultCode = ImmediateContext->Map(IResource->View, 0, (D3D11_MAP)Mode, 0, &MappedResource);
-				if (ResultCode != S_OK)
-					return GetException(ResultCode, "map texture 2d");
+				d3d11_texture_2d* iresource = (d3d11_texture_2d*)resource;
+				D3D11_MAPPED_SUBRESOURCE mapped_resource;
+				HRESULT result_code = immediate_context->Map(iresource->view, 0, (D3D11_MAP)mode, 0, &mapped_resource);
+				if (result_code != S_OK)
+					return get_exception(result_code, "map texture 2d");
 
-				Map->Pointer = MappedResource.pData;
-				Map->RowPitch = MappedResource.RowPitch;
-				Map->DepthPitch = MappedResource.DepthPitch;
-				return Core::Expectation::Met;
+				map->pointer = mapped_resource.pData;
+				map->row_pitch = mapped_resource.RowPitch;
+				map->depth_pitch = mapped_resource.DepthPitch;
+				return core::expectation::met;
 			}
-			ExpectsGraphics<void> D3D11Device::Map(Texture3D* Resource, ResourceMap Mode, MappedSubresource* Map)
+			expects_graphics<void> d3d11_device::map(texture_3d* resource, resource_map mode, mapped_subresource* map)
 			{
-				VI_ASSERT(Resource != nullptr, "resource should be set");
-				VI_ASSERT(Map != nullptr, "map should be set");
+				VI_ASSERT(resource != nullptr, "resource should be set");
+				VI_ASSERT(map != nullptr, "map should be set");
 
-				D3D11Texture3D* IResource = (D3D11Texture3D*)Resource;
-				D3D11_MAPPED_SUBRESOURCE MappedResource;
-				HRESULT ResultCode = ImmediateContext->Map(IResource->View, 0, (D3D11_MAP)Mode, 0, &MappedResource);
-				if (ResultCode != S_OK)
-					return GetException(ResultCode, "map texture 3d");
+				d3d11_texture_3d* iresource = (d3d11_texture_3d*)resource;
+				D3D11_MAPPED_SUBRESOURCE mapped_resource;
+				HRESULT result_code = immediate_context->Map(iresource->view, 0, (D3D11_MAP)mode, 0, &mapped_resource);
+				if (result_code != S_OK)
+					return get_exception(result_code, "map texture 3d");
 
-				Map->Pointer = MappedResource.pData;
-				Map->RowPitch = MappedResource.RowPitch;
-				Map->DepthPitch = MappedResource.DepthPitch;
-				return Core::Expectation::Met;
+				map->pointer = mapped_resource.pData;
+				map->row_pitch = mapped_resource.RowPitch;
+				map->depth_pitch = mapped_resource.DepthPitch;
+				return core::expectation::met;
 			}
-			ExpectsGraphics<void> D3D11Device::Map(TextureCube* Resource, ResourceMap Mode, MappedSubresource* Map)
+			expects_graphics<void> d3d11_device::map(texture_cube* resource, resource_map mode, mapped_subresource* map)
 			{
-				VI_ASSERT(Resource != nullptr, "resource should be set");
-				VI_ASSERT(Map != nullptr, "map should be set");
+				VI_ASSERT(resource != nullptr, "resource should be set");
+				VI_ASSERT(map != nullptr, "map should be set");
 
-				D3D11TextureCube* IResource = (D3D11TextureCube*)Resource;
-				D3D11_MAPPED_SUBRESOURCE MappedResource;
-				HRESULT ResultCode = ImmediateContext->Map(IResource->View, 0, (D3D11_MAP)Mode, 0, &MappedResource);
-				if (ResultCode != S_OK)
-					return GetException(ResultCode, "map texture cube");
+				d3d11_texture_cube* iresource = (d3d11_texture_cube*)resource;
+				D3D11_MAPPED_SUBRESOURCE mapped_resource;
+				HRESULT result_code = immediate_context->Map(iresource->view, 0, (D3D11_MAP)mode, 0, &mapped_resource);
+				if (result_code != S_OK)
+					return get_exception(result_code, "map texture cube");
 
-				Map->Pointer = MappedResource.pData;
-				Map->RowPitch = MappedResource.RowPitch;
-				Map->DepthPitch = MappedResource.DepthPitch;
-				return Core::Expectation::Met;
+				map->pointer = mapped_resource.pData;
+				map->row_pitch = mapped_resource.RowPitch;
+				map->depth_pitch = mapped_resource.DepthPitch;
+				return core::expectation::met;
 			}
-			ExpectsGraphics<void> D3D11Device::Unmap(Texture2D* Resource, MappedSubresource* Map)
+			expects_graphics<void> d3d11_device::unmap(texture_2d* resource, mapped_subresource* map)
 			{
-				VI_ASSERT(Resource != nullptr, "resource should be set");
-				VI_ASSERT(Map != nullptr, "map should be set");
+				VI_ASSERT(resource != nullptr, "resource should be set");
+				VI_ASSERT(map != nullptr, "map should be set");
 
-				D3D11Texture2D* IResource = (D3D11Texture2D*)Resource;
-				ImmediateContext->Unmap(IResource->View, 0);
-				return Core::Expectation::Met;
+				d3d11_texture_2d* iresource = (d3d11_texture_2d*)resource;
+				immediate_context->Unmap(iresource->view, 0);
+				return core::expectation::met;
 			}
-			ExpectsGraphics<void> D3D11Device::Unmap(Texture3D* Resource, MappedSubresource* Map)
+			expects_graphics<void> d3d11_device::unmap(texture_3d* resource, mapped_subresource* map)
 			{
-				VI_ASSERT(Resource != nullptr, "resource should be set");
-				VI_ASSERT(Map != nullptr, "map should be set");
+				VI_ASSERT(resource != nullptr, "resource should be set");
+				VI_ASSERT(map != nullptr, "map should be set");
 
-				D3D11Texture3D* IResource = (D3D11Texture3D*)Resource;
-				ImmediateContext->Unmap(IResource->View, 0);
-				return Core::Expectation::Met;
+				d3d11_texture_3d* iresource = (d3d11_texture_3d*)resource;
+				immediate_context->Unmap(iresource->view, 0);
+				return core::expectation::met;
 			}
-			ExpectsGraphics<void> D3D11Device::Unmap(TextureCube* Resource, MappedSubresource* Map)
+			expects_graphics<void> d3d11_device::unmap(texture_cube* resource, mapped_subresource* map)
 			{
-				VI_ASSERT(Resource != nullptr, "resource should be set");
-				VI_ASSERT(Map != nullptr, "map should be set");
+				VI_ASSERT(resource != nullptr, "resource should be set");
+				VI_ASSERT(map != nullptr, "map should be set");
 
-				D3D11TextureCube* IResource = (D3D11TextureCube*)Resource;
-				ImmediateContext->Unmap(IResource->View, 0);
-				return Core::Expectation::Met;
+				d3d11_texture_cube* iresource = (d3d11_texture_cube*)resource;
+				immediate_context->Unmap(iresource->view, 0);
+				return core::expectation::met;
 			}
-			ExpectsGraphics<void> D3D11Device::Unmap(ElementBuffer* Resource, MappedSubresource* Map)
+			expects_graphics<void> d3d11_device::unmap(element_buffer* resource, mapped_subresource* map)
 			{
-				VI_ASSERT(Resource != nullptr, "resource should be set");
-				VI_ASSERT(Map != nullptr, "map should be set");
+				VI_ASSERT(resource != nullptr, "resource should be set");
+				VI_ASSERT(map != nullptr, "map should be set");
 
-				D3D11ElementBuffer* IResource = (D3D11ElementBuffer*)Resource;
-				ImmediateContext->Unmap(IResource->Element, 0);
-				return Core::Expectation::Met;
+				d3d11_element_buffer* iresource = (d3d11_element_buffer*)resource;
+				immediate_context->Unmap(iresource->element, 0);
+				return core::expectation::met;
 			}
-			ExpectsGraphics<void> D3D11Device::UpdateConstantBuffer(ElementBuffer* Resource, void* Data, size_t Size)
+			expects_graphics<void> d3d11_device::update_constant_buffer(element_buffer* resource, void* data, size_t size)
 			{
-				VI_ASSERT(Resource != nullptr, "resource should be set");
-				VI_ASSERT(Data != nullptr, "data should be set");
+				VI_ASSERT(resource != nullptr, "resource should be set");
+				VI_ASSERT(data != nullptr, "data should be set");
 
-				D3D11ElementBuffer* IResource = (D3D11ElementBuffer*)Resource;
-				ImmediateContext->UpdateSubresource(IResource->Element, 0, nullptr, Data, 0, 0);
-				return Core::Expectation::Met;
+				d3d11_element_buffer* iresource = (d3d11_element_buffer*)resource;
+				immediate_context->UpdateSubresource(iresource->element, 0, nullptr, data, 0, 0);
+				return core::expectation::met;
 			}
-			ExpectsGraphics<void> D3D11Device::UpdateBuffer(ElementBuffer* Resource, void* Data, size_t Size)
+			expects_graphics<void> d3d11_device::update_buffer(element_buffer* resource, void* data, size_t size)
 			{
-				VI_ASSERT(Resource != nullptr, "resource should be set");
-				VI_ASSERT(Data != nullptr, "data should be set");
+				VI_ASSERT(resource != nullptr, "resource should be set");
+				VI_ASSERT(data != nullptr, "data should be set");
 
-				D3D11ElementBuffer* IResource = (D3D11ElementBuffer*)Resource;
-				D3D11_MAPPED_SUBRESOURCE MappedResource;
-				HRESULT ResultCode = ImmediateContext->Map(IResource->Element, 0, D3D11_MAP_WRITE_DISCARD, 0, &MappedResource);
-				if (ResultCode != S_OK)
-					return GetException(ResultCode, "map element buffer");
+				d3d11_element_buffer* iresource = (d3d11_element_buffer*)resource;
+				D3D11_MAPPED_SUBRESOURCE mapped_resource;
+				HRESULT result_code = immediate_context->Map(iresource->element, 0, D3D11_MAP_WRITE_DISCARD, 0, &mapped_resource);
+				if (result_code != S_OK)
+					return get_exception(result_code, "map element buffer");
 
-				memcpy(MappedResource.pData, Data, Size);
-				ImmediateContext->Unmap(IResource->Element, 0);
-				return Core::Expectation::Met;
+				memcpy(mapped_resource.pData, data, size);
+				immediate_context->Unmap(iresource->element, 0);
+				return core::expectation::met;
 			}
-			ExpectsGraphics<void> D3D11Device::UpdateBuffer(Shader* Resource, const void* Data)
+			expects_graphics<void> d3d11_device::update_buffer(shader* resource, const void* data)
 			{
-				VI_ASSERT(Resource != nullptr, "resource should be set");
-				VI_ASSERT(Data != nullptr, "data should be set");
+				VI_ASSERT(resource != nullptr, "resource should be set");
+				VI_ASSERT(data != nullptr, "data should be set");
 
-				D3D11Shader* IResource = (D3D11Shader*)Resource;
-				ImmediateContext->UpdateSubresource(IResource->ConstantBuffer, 0, nullptr, Data, 0, 0);
-				return Core::Expectation::Met;
+				d3d11_shader* iresource = (d3d11_shader*)resource;
+				immediate_context->UpdateSubresource(iresource->constant_buffer, 0, nullptr, data, 0, 0);
+				return core::expectation::met;
 			}
-			ExpectsGraphics<void> D3D11Device::UpdateBuffer(MeshBuffer* Resource, Trigonometry::Vertex* Data)
+			expects_graphics<void> d3d11_device::update_buffer(mesh_buffer* resource, trigonometry::vertex* data)
 			{
-				VI_ASSERT(Resource != nullptr, "resource should be set");
-				VI_ASSERT(Data != nullptr, "data should be set");
+				VI_ASSERT(resource != nullptr, "resource should be set");
+				VI_ASSERT(data != nullptr, "data should be set");
 
-				D3D11MeshBuffer* IResource = (D3D11MeshBuffer*)Resource;
-				MappedSubresource MappedResource;
-				auto MapStatus = Map(IResource->VertexBuffer, ResourceMap::Write, &MappedResource);
-				if (!MapStatus)
-					return MapStatus;
+				d3d11_mesh_buffer* iresource = (d3d11_mesh_buffer*)resource;
+				mapped_subresource mapped_resource;
+				auto map_status = map(iresource->vertex_buffer, resource_map::write, &mapped_resource);
+				if (!map_status)
+					return map_status;
 
-				memcpy(MappedResource.Pointer, Data, (size_t)IResource->VertexBuffer->GetElements() * sizeof(Trigonometry::Vertex));
-				return Unmap(IResource->VertexBuffer, &MappedResource);
+				memcpy(mapped_resource.pointer, data, (size_t)iresource->vertex_buffer->get_elements() * sizeof(trigonometry::vertex));
+				return unmap(iresource->vertex_buffer, &mapped_resource);
 			}
-			ExpectsGraphics<void> D3D11Device::UpdateBuffer(SkinMeshBuffer* Resource, Trigonometry::SkinVertex* Data)
+			expects_graphics<void> d3d11_device::update_buffer(skin_mesh_buffer* resource, trigonometry::skin_vertex* data)
 			{
-				VI_ASSERT(Resource != nullptr, "resource should be set");
-				VI_ASSERT(Data != nullptr, "data should be set");
+				VI_ASSERT(resource != nullptr, "resource should be set");
+				VI_ASSERT(data != nullptr, "data should be set");
 
-				D3D11SkinMeshBuffer* IResource = (D3D11SkinMeshBuffer*)Resource;
-				MappedSubresource MappedResource;
-				auto MapStatus = Map(IResource->VertexBuffer, ResourceMap::Write, &MappedResource);
-				if (!MapStatus)
-					return MapStatus;
+				d3d11_skin_mesh_buffer* iresource = (d3d11_skin_mesh_buffer*)resource;
+				mapped_subresource mapped_resource;
+				auto map_status = map(iresource->vertex_buffer, resource_map::write, &mapped_resource);
+				if (!map_status)
+					return map_status;
 
-				memcpy(MappedResource.Pointer, Data, (size_t)IResource->VertexBuffer->GetElements() * sizeof(Trigonometry::SkinVertex));
-				return Unmap(IResource->VertexBuffer, &MappedResource);
+				memcpy(mapped_resource.pointer, data, (size_t)iresource->vertex_buffer->get_elements() * sizeof(trigonometry::skin_vertex));
+				return unmap(iresource->vertex_buffer, &mapped_resource);
 			}
-			ExpectsGraphics<void> D3D11Device::UpdateBuffer(InstanceBuffer* Resource)
+			expects_graphics<void> d3d11_device::update_buffer(instance_buffer* resource)
 			{
-				VI_ASSERT(Resource != nullptr, "resource should be set");
-				D3D11InstanceBuffer* IResource = (D3D11InstanceBuffer*)Resource;
-				if (IResource->Array.empty() || IResource->Array.size() > IResource->ElementLimit)
-					return GraphicsException("instance buffer mapping error: invalid array size");
+				VI_ASSERT(resource != nullptr, "resource should be set");
+				d3d11_instance_buffer* iresource = (d3d11_instance_buffer*)resource;
+				if (iresource->array.empty() || iresource->array.size() > iresource->element_limit)
+					return graphics_exception("instance buffer mapping error: invalid array size");
 
-				D3D11ElementBuffer* Element = (D3D11ElementBuffer*)IResource->Elements;
-				IResource->Sync = true;
+				d3d11_element_buffer* element = (d3d11_element_buffer*)iresource->elements;
+				iresource->sync = true;
 
-				D3D11_MAPPED_SUBRESOURCE MappedResource;
-				HRESULT ResultCode = ImmediateContext->Map(Element->Element, 0, D3D11_MAP_WRITE_DISCARD, 0, &MappedResource);
-				if (ResultCode != S_OK)
-					return GetException(ResultCode, "map instance buffer");
+				D3D11_MAPPED_SUBRESOURCE mapped_resource;
+				HRESULT result_code = immediate_context->Map(element->element, 0, D3D11_MAP_WRITE_DISCARD, 0, &mapped_resource);
+				if (result_code != S_OK)
+					return get_exception(result_code, "map instance buffer");
 
-				memcpy(MappedResource.pData, IResource->Array.data(), (size_t)IResource->Array.size() * IResource->ElementWidth);
-				ImmediateContext->Unmap(Element->Element, 0);
-				return Core::Expectation::Met;
+				memcpy(mapped_resource.pData, iresource->array.data(), (size_t)iresource->array.size() * iresource->element_width);
+				immediate_context->Unmap(element->element, 0);
+				return core::expectation::met;
 			}
-			ExpectsGraphics<void> D3D11Device::UpdateBufferSize(Shader* Resource, size_t Size)
+			expects_graphics<void> d3d11_device::update_buffer_size(shader* resource, size_t size)
 			{
-				VI_ASSERT(Resource != nullptr, "resource should be set");
-				VI_ASSERT(Size > 0, "size should be greater than zero");
+				VI_ASSERT(resource != nullptr, "resource should be set");
+				VI_ASSERT(size > 0, "size should be greater than zero");
 
-				D3D11Shader* IResource = (D3D11Shader*)Resource;
-				Core::Memory::Release(IResource->ConstantBuffer);	
-				HRESULT ResultCode = CreateConstantBuffer(&IResource->ConstantBuffer, Size);
-				if (ResultCode != S_OK)
-					return GetException(ResultCode, "map shader buffer");
+				d3d11_shader* iresource = (d3d11_shader*)resource;
+				d3d11_release(iresource->constant_buffer);
+				HRESULT result_code = create_constant_buffer(&iresource->constant_buffer, size);
+				if (result_code != S_OK)
+					return get_exception(result_code, "map shader buffer");
 
-				return Core::Expectation::Met;
+				return core::expectation::met;
 			}
-			ExpectsGraphics<void> D3D11Device::UpdateBufferSize(InstanceBuffer* Resource, size_t Size)
+			expects_graphics<void> d3d11_device::update_buffer_size(instance_buffer* resource, size_t size)
 			{
-				VI_ASSERT(Resource != nullptr, "resource should be set");
-				VI_ASSERT(Size > 0, "size should be greater than zero");
+				VI_ASSERT(resource != nullptr, "resource should be set");
+				VI_ASSERT(size > 0, "size should be greater than zero");
 
-				D3D11InstanceBuffer* IResource = (D3D11InstanceBuffer*)Resource;
-				ClearBuffer(IResource);
-				Core::Memory::Release(IResource->Elements);
-				Core::Memory::Release(IResource->Resource);
-				IResource->ElementLimit = Size;
-				IResource->Array.clear();
-				IResource->Array.reserve(IResource->ElementLimit);
+				d3d11_instance_buffer* iresource = (d3d11_instance_buffer*)resource;
+				clear_buffer(iresource);
+				core::memory::release(iresource->elements);
+				d3d11_release(iresource->resource);
+				iresource->element_limit = size;
+				iresource->array.clear();
+				iresource->array.reserve(iresource->element_limit);
 
-				ElementBuffer::Desc F = ElementBuffer::Desc();
-				F.AccessFlags = CPUAccess::Write;
-				F.MiscFlags = ResourceMisc::Buffer_Structured;
-				F.Usage = ResourceUsage::Dynamic;
-				F.BindFlags = ResourceBind::Shader_Input;
-				F.ElementCount = (uint32_t)IResource->ElementLimit;
-				F.ElementWidth = (uint32_t)IResource->ElementWidth;
-				F.StructureByteStride = F.ElementWidth;
+				element_buffer::desc f = element_buffer::desc();
+				f.access_flags = cpu_access::write;
+				f.misc_flags = resource_misc::buffer_structured;
+				f.usage = resource_usage::dynamic;
+				f.bind_flags = resource_bind::shader_input;
+				f.element_count = (uint32_t)iresource->element_limit;
+				f.element_width = (uint32_t)iresource->element_width;
+				f.structure_byte_stride = f.element_width;
 
-				auto Buffer = CreateElementBuffer(F);
-				if (!Buffer)
-					return Buffer.Error();
+				auto buffer = create_element_buffer(f);
+				if (!buffer)
+					return buffer.error();
 
-				IResource->Elements = *Buffer;
+				iresource->elements = *buffer;
 
 				D3D11_SHADER_RESOURCE_VIEW_DESC SRV;
 				ZeroMemory(&SRV, sizeof(SRV));
 				SRV.Format = DXGI_FORMAT_UNKNOWN;
 				SRV.ViewDimension = D3D11_SRV_DIMENSION_BUFFER;
-				SRV.Buffer.ElementWidth = (uint32_t)IResource->ElementLimit;
+				SRV.Buffer.ElementWidth = (uint32_t)iresource->element_limit;
 
-				HRESULT ResultCode = Context->CreateShaderResourceView(((D3D11ElementBuffer*)IResource->Elements)->Element, &SRV, &IResource->Resource);
-				if (ResultCode != S_OK)
-					return GetException(ResultCode, "create shader resource view for instance buffer");
+				HRESULT result_code = context->CreateShaderResourceView(((d3d11_element_buffer*)iresource->elements)->element, &SRV, &iresource->resource);
+				if (result_code != S_OK)
+					return get_exception(result_code, "create shader resource view for instance buffer");
 
-				return Core::Expectation::Met;
+				return core::expectation::met;
 			}
-			ExpectsGraphics<void> D3D11Device::CopyTexture2D(Texture2D* Resource, Texture2D** Result)
+			expects_graphics<void> d3d11_device::copy_texture_2d(texture_2d* resource, texture_2d** result)
 			{
-				VI_ASSERT(Resource != nullptr, "resource should be set");
-				VI_ASSERT(Result != nullptr, "result should be set");
-				D3D11Texture2D* IResource = (D3D11Texture2D*)Resource;
+				VI_ASSERT(resource != nullptr, "resource should be set");
+				VI_ASSERT(result != nullptr, "result should be set");
+				d3d11_texture_2d* iresource = (d3d11_texture_2d*)resource;
 
-				VI_ASSERT(IResource->View != nullptr, "resource should be valid");
-				D3D11_TEXTURE2D_DESC Information;
-				IResource->View->GetDesc(&Information);
-				Information.BindFlags |= D3D11_BIND_SHADER_RESOURCE;
+				VI_ASSERT(iresource->view != nullptr, "resource should be valid");
+				D3D11_TEXTURE2D_DESC information;
+				iresource->view->GetDesc(&information);
+				information.BindFlags |= D3D11_BIND_SHADER_RESOURCE;
 
-				D3D11Texture2D* Texture = (D3D11Texture2D*)*Result;
-				if (!Texture)
+				d3d11_texture_2d* texture = (d3d11_texture_2d*)*result;
+				if (!texture)
 				{
-					auto NewTexture = CreateTexture2D();
-					if (!NewTexture)
-						return NewTexture.Error();
+					auto new_texture = create_texture_2d();
+					if (!new_texture)
+						return new_texture.error();
 
-					Texture = (D3D11Texture2D*)*NewTexture;
-					HRESULT ResultCode = Context->CreateTexture2D(&Information, nullptr, &Texture->View);
-					if (ResultCode != S_OK)
-						return GetException(ResultCode, "create texture 2d for copy");
+					texture = (d3d11_texture_2d*)*new_texture;
+					HRESULT result_code = context->CreateTexture2D(&information, nullptr, &texture->view);
+					if (result_code != S_OK)
+						return get_exception(result_code, "create texture 2d for copy");
 				}
 
-				*Result = Texture;
-				ImmediateContext->CopyResource(Texture->View, IResource->View);
-				return GenerateTexture(Texture);
+				*result = texture;
+				immediate_context->CopyResource(texture->view, iresource->view);
+				return generate_texture(texture);
 			}
-			ExpectsGraphics<void> D3D11Device::CopyTexture2D(Graphics::RenderTarget* Resource, uint32_t Target, Texture2D** Result)
+			expects_graphics<void> d3d11_device::copy_texture_2d(graphics::render_target* resource, uint32_t target, texture_2d** result)
 			{
-				VI_ASSERT(Resource != nullptr, "resource should be set");
-				VI_ASSERT(Result != nullptr, "result should be set");
+				VI_ASSERT(resource != nullptr, "resource should be set");
+				VI_ASSERT(result != nullptr, "result should be set");
 
-				D3D11Texture2D* Source = (D3D11Texture2D*)Resource->GetTarget2D(Target);
-				VI_ASSERT(Source != nullptr, "source should be set");
-				VI_ASSERT(Source->View != nullptr, "source should be valid");
+				d3d11_texture_2d* source = (d3d11_texture_2d*)resource->get_target_2d(target);
+				VI_ASSERT(source != nullptr, "source should be set");
+				VI_ASSERT(source->view != nullptr, "source should be valid");
 
-				D3D11_TEXTURE2D_DESC Information;
-				Source->View->GetDesc(&Information);
-				Information.BindFlags |= D3D11_BIND_SHADER_RESOURCE;
+				D3D11_TEXTURE2D_DESC information;
+				source->view->GetDesc(&information);
+				information.BindFlags |= D3D11_BIND_SHADER_RESOURCE;
 
-				D3D11Texture2D* Texture = (D3D11Texture2D*)*Result;
-				if (!Texture)
+				d3d11_texture_2d* texture = (d3d11_texture_2d*)*result;
+				if (!texture)
 				{
-					auto NewTexture = CreateTexture2D();
-					if (!NewTexture)
-						return NewTexture.Error();
+					auto new_texture = create_texture_2d();
+					if (!new_texture)
+						return new_texture.error();
 
-					Texture = (D3D11Texture2D*)*NewTexture;
-					HRESULT ResultCode = Context->CreateTexture2D(&Information, nullptr, &Texture->View);
-					if (ResultCode != S_OK)
-						return GetException(ResultCode, "create texture 2d for copy");
+					texture = (d3d11_texture_2d*)*new_texture;
+					HRESULT result_code = context->CreateTexture2D(&information, nullptr, &texture->view);
+					if (result_code != S_OK)
+						return get_exception(result_code, "create texture 2d for copy");
 				}
 
-				*Result = Texture;
-				ImmediateContext->CopyResource(Texture->View, Source->View);
-				return GenerateTexture(Texture);
+				*result = texture;
+				immediate_context->CopyResource(texture->view, source->view);
+				return generate_texture(texture);
 			}
-			ExpectsGraphics<void> D3D11Device::CopyTexture2D(RenderTargetCube* Resource, Trigonometry::CubeFace Face, Texture2D** Result)
+			expects_graphics<void> d3d11_device::copy_texture_2d(render_target_cube* resource, trigonometry::cube_face face, texture_2d** result)
 			{
-				VI_ASSERT(Resource != nullptr, "resource should be set");
-				VI_ASSERT(Result != nullptr, "result should be set");
+				VI_ASSERT(resource != nullptr, "resource should be set");
+				VI_ASSERT(result != nullptr, "result should be set");
 
-				D3D11RenderTargetCube* IResource = (D3D11RenderTargetCube*)Resource;
+				d3d11_render_target_cube* iresource = (d3d11_render_target_cube*)resource;
 
-				VI_ASSERT(IResource->Texture != nullptr, "resource should be valid");
-				D3D11_TEXTURE2D_DESC Information;
-				IResource->Texture->GetDesc(&Information);
-				Information.BindFlags |= D3D11_BIND_SHADER_RESOURCE;
+				VI_ASSERT(iresource->texture != nullptr, "resource should be valid");
+				D3D11_TEXTURE2D_DESC information;
+				iresource->texture->GetDesc(&information);
+				information.BindFlags |= D3D11_BIND_SHADER_RESOURCE;
 
-				D3D11Texture2D* Texture = (D3D11Texture2D*)*Result;
-				if (!Texture)
+				d3d11_texture_2d* texture = (d3d11_texture_2d*)*result;
+				if (!texture)
 				{
-					auto NewTexture = CreateTexture2D();
-					if (!NewTexture)
-						return NewTexture.Error();
+					auto new_texture = create_texture_2d();
+					if (!new_texture)
+						return new_texture.error();
 
-					Texture = (D3D11Texture2D*)*NewTexture;
-					HRESULT ResultCode = Context->CreateTexture2D(&Information, nullptr, &Texture->View);
-					if (ResultCode != S_OK)
-						return GetException(ResultCode, "create texture 2d for copy");
+					texture = (d3d11_texture_2d*)*new_texture;
+					HRESULT result_code = context->CreateTexture2D(&information, nullptr, &texture->view);
+					if (result_code != S_OK)
+						return get_exception(result_code, "create texture 2d for copy");
 				}
 
-				*Result = Texture;
-				ImmediateContext->CopySubresourceRegion(Texture->View, (uint32_t)Face * Information.MipLevels, 0, 0, 0, IResource->Texture, 0, 0);
-				return GenerateTexture(Texture);
+				*result = texture;
+				immediate_context->CopySubresourceRegion(texture->view, (uint32_t)face * information.MipLevels, 0, 0, 0, iresource->texture, 0, 0);
+				return generate_texture(texture);
 			}
-			ExpectsGraphics<void> D3D11Device::CopyTexture2D(MultiRenderTargetCube* Resource, uint32_t Cube, Trigonometry::CubeFace Face, Texture2D** Result)
+			expects_graphics<void> d3d11_device::copy_texture_2d(multi_render_target_cube* resource, uint32_t cube, trigonometry::cube_face face, texture_2d** result)
 			{
-				VI_ASSERT(Resource != nullptr, "resource should be set");
-				VI_ASSERT(Result != nullptr, "result should be set");
+				VI_ASSERT(resource != nullptr, "resource should be set");
+				VI_ASSERT(result != nullptr, "result should be set");
 
-				D3D11MultiRenderTargetCube* IResource = (D3D11MultiRenderTargetCube*)Resource;
-				VI_ASSERT(IResource->Texture[Cube] != nullptr, "source should be set");
-				VI_ASSERT(Cube < (uint32_t)IResource->Target, "cube index should be less than %i", (int)IResource->Target);
+				d3d11_multi_render_target_cube* iresource = (d3d11_multi_render_target_cube*)resource;
+				VI_ASSERT(iresource->texture[cube] != nullptr, "source should be set");
+				VI_ASSERT(cube < (uint32_t)iresource->target, "cube index should be less than %i", (int)iresource->target);
 
-				D3D11_TEXTURE2D_DESC Information;
-				IResource->Texture[Cube]->GetDesc(&Information);
-				Information.BindFlags |= D3D11_BIND_SHADER_RESOURCE;
+				D3D11_TEXTURE2D_DESC information;
+				iresource->texture[cube]->GetDesc(&information);
+				information.BindFlags |= D3D11_BIND_SHADER_RESOURCE;
 
-				D3D11Texture2D* Texture = (D3D11Texture2D*)*Result;
-				if (!Texture)
+				d3d11_texture_2d* texture = (d3d11_texture_2d*)*result;
+				if (!texture)
 				{
-					auto NewTexture = CreateTexture2D();
-					if (!NewTexture)
-						return NewTexture.Error();
+					auto new_texture = create_texture_2d();
+					if (!new_texture)
+						return new_texture.error();
 
-					Texture = (D3D11Texture2D*)*NewTexture;
-					HRESULT ResultCode = Context->CreateTexture2D(&Information, nullptr, &Texture->View);
-					if (ResultCode != S_OK)
-						return GetException(ResultCode, "create texture 2d for copy");
+					texture = (d3d11_texture_2d*)*new_texture;
+					HRESULT result_code = context->CreateTexture2D(&information, nullptr, &texture->view);
+					if (result_code != S_OK)
+						return get_exception(result_code, "create texture 2d for copy");
 				}
 
-				*Result = Texture;
-				ImmediateContext->CopySubresourceRegion(Texture->View, (uint32_t)Face * Information.MipLevels, 0, 0, 0, IResource->Texture[Cube], 0, 0);
-				return GenerateTexture(Texture);
+				*result = texture;
+				immediate_context->CopySubresourceRegion(texture->view, (uint32_t)face * information.MipLevels, 0, 0, 0, iresource->texture[cube], 0, 0);
+				return generate_texture(texture);
 			}
-			ExpectsGraphics<void> D3D11Device::CopyTextureCube(RenderTargetCube* Resource, TextureCube** Result)
+			expects_graphics<void> d3d11_device::copy_texture_cube(render_target_cube* resource, texture_cube** result)
 			{
-				VI_ASSERT(Resource != nullptr, "resource should be set");
-				VI_ASSERT(Result != nullptr, "result should be set");
+				VI_ASSERT(resource != nullptr, "resource should be set");
+				VI_ASSERT(result != nullptr, "result should be set");
 
-				D3D11RenderTargetCube* IResource = (D3D11RenderTargetCube*)Resource;
-				VI_ASSERT(IResource->Texture != nullptr, "resource should be valid");
-				D3D11_TEXTURE2D_DESC Information;
-				IResource->Texture->GetDesc(&Information);
-				Information.BindFlags |= D3D11_BIND_SHADER_RESOURCE;
+				d3d11_render_target_cube* iresource = (d3d11_render_target_cube*)resource;
+				VI_ASSERT(iresource->texture != nullptr, "resource should be valid");
+				D3D11_TEXTURE2D_DESC information;
+				iresource->texture->GetDesc(&information);
+				information.BindFlags |= D3D11_BIND_SHADER_RESOURCE;
 
-				void* Resources[6] = { nullptr };
+				void* resources[6] = { nullptr };
 				for (uint32_t i = 0; i < 6; i++)
 				{
-					ID3D11Texture2D* Subresource;
-					HRESULT ResultCode = Context->CreateTexture2D(&Information, nullptr, &Subresource);
-					if (ResultCode != S_OK)
+					ID3D11Texture2D* subresource;
+					HRESULT result_code = context->CreateTexture2D(&information, nullptr, &subresource);
+					if (result_code != S_OK)
 					{
 						for (uint32_t j = 0; j < 6; j++)
 						{
-							ID3D11Texture2D* Src = (ID3D11Texture2D*)Resources[j];
-							Core::Memory::Release(Src);
+							ID3D11Texture2D* src = (ID3D11Texture2D*)resources[j];
+							d3d11_release(src);
 						}
 
-						return GetException(ResultCode, "create texture 2d for copy");
+						return get_exception(result_code, "create texture 2d for copy");
 					}
 					else
 					{
-						ImmediateContext->CopySubresourceRegion(Subresource, i, 0, 0, 0, IResource->Texture, 0, 0);
-						Resources[i] = Subresource;
+						immediate_context->CopySubresourceRegion(subresource, i, 0, 0, 0, iresource->texture, 0, 0);
+						resources[i] = subresource;
 					}
 				}
 
-				auto NewTexture = CreateTextureCubeInternal(Resources);
-				if (!NewTexture)
+				auto new_texture = create_texture_cube_internal(resources);
+				if (!new_texture)
 				{
-					Core::Memory::Release(*Result);
-					return NewTexture.Error();
+					core::memory::release(*result);
+					return new_texture.error();
 				}
 
-				Core::Memory::Release(*Result);
-				*Result = *NewTexture;
-				return Core::Expectation::Met;
+				core::memory::release(*result);
+				*result = *new_texture;
+				return core::expectation::met;
 			}
-			ExpectsGraphics<void> D3D11Device::CopyTextureCube(MultiRenderTargetCube* Resource, uint32_t Cube, TextureCube** Result)
+			expects_graphics<void> d3d11_device::copy_texture_cube(multi_render_target_cube* resource, uint32_t cube, texture_cube** result)
 			{
-				VI_ASSERT(Resource != nullptr, "resource should be set");
-				VI_ASSERT(Result != nullptr, "result should be set");
+				VI_ASSERT(resource != nullptr, "resource should be set");
+				VI_ASSERT(result != nullptr, "result should be set");
 
-				D3D11MultiRenderTargetCube* IResource = (D3D11MultiRenderTargetCube*)Resource;
-				VI_ASSERT(IResource->Texture[Cube] != nullptr, "source should be set");
-				VI_ASSERT(Cube < (uint32_t)IResource->Target, "cube index should be less than %i", (int)IResource->Target);
+				d3d11_multi_render_target_cube* iresource = (d3d11_multi_render_target_cube*)resource;
+				VI_ASSERT(iresource->texture[cube] != nullptr, "source should be set");
+				VI_ASSERT(cube < (uint32_t)iresource->target, "cube index should be less than %i", (int)iresource->target);
 
-				D3D11_TEXTURE2D_DESC Information;
-				IResource->Texture[Cube]->GetDesc(&Information);
-				Information.BindFlags |= D3D11_BIND_SHADER_RESOURCE;
+				D3D11_TEXTURE2D_DESC information;
+				iresource->texture[cube]->GetDesc(&information);
+				information.BindFlags |= D3D11_BIND_SHADER_RESOURCE;
 
-				void* Resources[6] = { nullptr };
+				void* resources[6] = { nullptr };
 				for (uint32_t i = 0; i < 6; i++)
 				{
-					ID3D11Texture2D* Subresource;
-					HRESULT ResultCode = Context->CreateTexture2D(&Information, nullptr, &Subresource);
-					if (ResultCode != S_OK)
+					ID3D11Texture2D* subresource;
+					HRESULT result_code = context->CreateTexture2D(&information, nullptr, &subresource);
+					if (result_code != S_OK)
 					{
 						for (uint32_t j = 0; j < 6; j++)
 						{
-							ID3D11Texture2D* Src = (ID3D11Texture2D*)Resources[j];
-							Core::Memory::Release(Src);
+							ID3D11Texture2D* src = (ID3D11Texture2D*)resources[j];
+							d3d11_release(src);
 						}
 
-						return GetException(ResultCode, "create texture 2d for copy");
+						return get_exception(result_code, "create texture 2d for copy");
 					}
 					else
 					{
-						ImmediateContext->CopySubresourceRegion(Subresource, i, 0, 0, 0, IResource->Texture[Cube], 0, 0);
-						Resources[i] = Subresource;
+						immediate_context->CopySubresourceRegion(subresource, i, 0, 0, 0, iresource->texture[cube], 0, 0);
+						resources[i] = subresource;
 					}
 				}
 
-				auto NewTexture = CreateTextureCubeInternal(Resources);
-				Core::Memory::Release(*Result);
-				if (!NewTexture)
-					return NewTexture.Error();
+				auto new_texture = create_texture_cube_internal(resources);
+				core::memory::release(*result);
+				if (!new_texture)
+					return new_texture.error();
 
-				*Result = *NewTexture;
-				return Core::Expectation::Met;
+				*result = *new_texture;
+				return core::expectation::met;
 			}
-			ExpectsGraphics<void> D3D11Device::CopyTarget(Graphics::RenderTarget* From, uint32_t FromTarget, Graphics::RenderTarget* To, uint32_t ToTarget)
+			expects_graphics<void> d3d11_device::copy_target(graphics::render_target* from, uint32_t from_target, graphics::render_target* to, uint32_t to_target)
 			{
-				VI_ASSERT(From != nullptr, "from should be set");
-				VI_ASSERT(To != nullptr, "to should be set");
+				VI_ASSERT(from != nullptr, "from should be set");
+				VI_ASSERT(to != nullptr, "to should be set");
 
-				D3D11Texture2D* Source2D = (D3D11Texture2D*)From->GetTarget2D(FromTarget);
-				D3D11TextureCube* SourceCube = (D3D11TextureCube*)From->GetTargetCube(FromTarget);
-				D3D11Texture2D* Dest2D = (D3D11Texture2D*)To->GetTarget2D(ToTarget);
-				D3D11TextureCube* DestCube = (D3D11TextureCube*)To->GetTargetCube(ToTarget);
-				ID3D11Texture2D* Source = (Source2D ? Source2D->View : (SourceCube ? SourceCube->View : nullptr));
-				ID3D11Texture2D* Dest = (Dest2D ? Dest2D->View : (DestCube ? DestCube->View : nullptr));
+				d3d11_texture_2d* source_2d = (d3d11_texture_2d*)from->get_target_2d(from_target);
+				d3d11_texture_cube* source_cube = (d3d11_texture_cube*)from->get_target_cube(from_target);
+				d3d11_texture_2d* dest_2d = (d3d11_texture_2d*)to->get_target_2d(to_target);
+				d3d11_texture_cube* dest_cube = (d3d11_texture_cube*)to->get_target_cube(to_target);
+				ID3D11Texture2D* source = (source_2d ? source_2d->view : (source_cube ? source_cube->view : nullptr));
+				ID3D11Texture2D* dest = (dest_2d ? dest_2d->view : (dest_cube ? dest_cube->view : nullptr));
 
-				VI_ASSERT(Source != nullptr, "from should be set");
-				VI_ASSERT(Dest != nullptr, "to should be set");
+				VI_ASSERT(source != nullptr, "from should be set");
+				VI_ASSERT(dest != nullptr, "to should be set");
 
-				ImmediateContext->CopyResource(Dest, Source);
-				return Core::Expectation::Met;
+				immediate_context->CopyResource(dest, source);
+				return core::expectation::met;
 			}
-			ExpectsGraphics<void> D3D11Device::CopyBackBuffer(Texture2D** Result)
+			expects_graphics<void> d3d11_device::copy_back_buffer(texture_2d** result)
 			{
-				VI_ASSERT(Result != nullptr, "result should be set");
+				VI_ASSERT(result != nullptr, "result should be set");
 
-				ID3D11Texture2D* BackBuffer = nullptr;
-				HRESULT ResultCode = SwapChain->GetBuffer(0, __uuidof(BackBuffer), reinterpret_cast<void**>(&BackBuffer));
-				if (ResultCode != S_OK)
-					return GetException(ResultCode, "fetch swap chain for copy");
+				ID3D11Texture2D* back_buffer = nullptr;
+				HRESULT result_code = swap_chain->GetBuffer(0, __uuidof(back_buffer), reinterpret_cast<void**>(&back_buffer));
+				if (result_code != S_OK)
+					return get_exception(result_code, "fetch swap chain for copy");
 
-				D3D11_TEXTURE2D_DESC Information;
-				BackBuffer->GetDesc(&Information);
-				Information.BindFlags = D3D11_BIND_SHADER_RESOURCE;
+				D3D11_TEXTURE2D_DESC information;
+				back_buffer->GetDesc(&information);
+				information.BindFlags = D3D11_BIND_SHADER_RESOURCE;
 
-				D3D11Texture2D* Texture = (D3D11Texture2D*)*Result;
-				if (!Texture)
+				d3d11_texture_2d* texture = (d3d11_texture_2d*)*result;
+				if (!texture)
 				{
-					auto NewTexture = CreateTexture2D();
-					if (!NewTexture)
-						return NewTexture.Error();
+					auto new_texture = create_texture_2d();
+					if (!new_texture)
+						return new_texture.error();
 
-					Texture = (D3D11Texture2D*)*NewTexture;
-					if (SwapChainResource.SampleDesc.Count > 1)
+					texture = (d3d11_texture_2d*)*new_texture;
+					if (swap_chain_resource.SampleDesc.Count > 1)
 					{
-						Information.SampleDesc.Count = 1;
-						Information.SampleDesc.Quality = 0;
+						information.SampleDesc.Count = 1;
+						information.SampleDesc.Quality = 0;
 					}
 
-					HRESULT ResultCode = Context->CreateTexture2D(&Information, nullptr, &Texture->View);
-					if (ResultCode != S_OK)
-						return GetException(ResultCode, "create texture 2d for copy");
+					HRESULT result_code = context->CreateTexture2D(&information, nullptr, &texture->view);
+					if (result_code != S_OK)
+						return get_exception(result_code, "create texture 2d for copy");
 				}
 
-				if (SwapChainResource.SampleDesc.Count > 1)
-					ImmediateContext->ResolveSubresource(Texture->View, 0, BackBuffer, 0, DXGI_FORMAT_R8G8B8A8_UNORM);
+				if (swap_chain_resource.SampleDesc.Count > 1)
+					immediate_context->ResolveSubresource(texture->view, 0, back_buffer, 0, DXGI_FORMAT_R8G8B8A8_UNORM);
 				else
-					ImmediateContext->CopyResource(Texture->View, BackBuffer);
+					immediate_context->CopyResource(texture->view, back_buffer);
 
-				Core::Memory::Release(BackBuffer);
-				return GenerateTexture(Texture);
+				d3d11_release(back_buffer);
+				return generate_texture(texture);
 			}
-			ExpectsGraphics<void> D3D11Device::CubemapPush(Cubemap* Resource, TextureCube* Result)
+			expects_graphics<void> d3d11_device::cubemap_push(cubemap* resource, texture_cube* result)
 			{
-				VI_ASSERT(Resource != nullptr, "resource should be set");
-				VI_ASSERT(Resource->IsValid(), "resource should be valid");
-				VI_ASSERT(Result != nullptr, "result should be set");
+				VI_ASSERT(resource != nullptr, "resource should be set");
+				VI_ASSERT(resource->is_valid(), "resource should be valid");
+				VI_ASSERT(result != nullptr, "result should be set");
 
-				D3D11Cubemap* IResource = (D3D11Cubemap*)Resource;
-				D3D11TextureCube* Dest = (D3D11TextureCube*)Result;
-				IResource->Dest = Dest;
+				d3d11_cubemap* iresource = (d3d11_cubemap*)resource;
+				d3d11_texture_cube* dest = (d3d11_texture_cube*)result;
+				iresource->dest = dest;
 
-				if (Dest->View != nullptr && Dest->Resource != nullptr)
-					return Core::Expectation::Met;
+				if (dest->view != nullptr && dest->resource != nullptr)
+					return core::expectation::met;
 
-				Core::Memory::Release(Dest->View);
-				HRESULT ResultCode = Context->CreateTexture2D(&IResource->Options.Texture, nullptr, &Dest->View);
-				if (ResultCode != S_OK)
-					return GetException(ResultCode, "create texture cube for cubemap");
-	
-				Core::Memory::Release(Dest->Resource);
-				ResultCode = Context->CreateShaderResourceView(Dest->View, &IResource->Options.Resource, &Dest->Resource);
-				if (ResultCode != S_OK)
-					return GetException(ResultCode, "create texture resource for cubemap");
+				d3d11_release(dest->view);
+				HRESULT result_code = context->CreateTexture2D(&iresource->options.texture, nullptr, &dest->view);
+				if (result_code != S_OK)
+					return get_exception(result_code, "create texture cube for cubemap");
 
-				return GenerateTexture(Dest);
+				d3d11_release(dest->resource);
+				result_code = context->CreateShaderResourceView(dest->view, &iresource->options.resource, &dest->resource);
+				if (result_code != S_OK)
+					return get_exception(result_code, "create texture resource for cubemap");
+
+				return generate_texture(dest);
 			}
-			ExpectsGraphics<void> D3D11Device::CubemapFace(Cubemap* Resource, Trigonometry::CubeFace Face)
+			expects_graphics<void> d3d11_device::cubemap_face(cubemap* resource, trigonometry::cube_face face)
 			{
-				VI_ASSERT(Resource != nullptr, "resource should be set");
-				VI_ASSERT(Resource->IsValid(), "resource should be valid");
+				VI_ASSERT(resource != nullptr, "resource should be set");
+				VI_ASSERT(resource->is_valid(), "resource should be valid");
 
-				D3D11Cubemap* IResource = (D3D11Cubemap*)Resource;
-				D3D11TextureCube* Dest = (D3D11TextureCube*)IResource->Dest;
+				d3d11_cubemap* iresource = (d3d11_cubemap*)resource;
+				d3d11_texture_cube* dest = (d3d11_texture_cube*)iresource->dest;
 
-				VI_ASSERT(IResource->Dest != nullptr, "result should be set");
-				ImmediateContext->CopyResource(IResource->Merger, IResource->Source);
-				ImmediateContext->CopySubresourceRegion(Dest->View, (uint32_t)Face * IResource->Meta.MipLevels, 0, 0, 0, IResource->Merger, 0, &IResource->Options.Region);
-				return Core::Expectation::Met;
+				VI_ASSERT(iresource->dest != nullptr, "result should be set");
+				immediate_context->CopyResource(iresource->merger, iresource->source);
+				immediate_context->CopySubresourceRegion(dest->view, (uint32_t)face * iresource->meta.mip_levels, 0, 0, 0, iresource->merger, 0, &iresource->options.region);
+				return core::expectation::met;
 			}
-			ExpectsGraphics<void> D3D11Device::CubemapPop(Cubemap* Resource)
+			expects_graphics<void> d3d11_device::cubemap_pop(cubemap* resource)
 			{
-				VI_ASSERT(Resource != nullptr, "resource should be set");
-				VI_ASSERT(Resource->IsValid(), "resource should be valid");
+				VI_ASSERT(resource != nullptr, "resource should be set");
+				VI_ASSERT(resource->is_valid(), "resource should be valid");
 
-				D3D11Cubemap* IResource = (D3D11Cubemap*)Resource;
-				D3D11TextureCube* Dest = (D3D11TextureCube*)IResource->Dest;
+				d3d11_cubemap* iresource = (d3d11_cubemap*)resource;
+				d3d11_texture_cube* dest = (d3d11_texture_cube*)iresource->dest;
 
-				VI_ASSERT(IResource->Dest != nullptr, "result should be set");
-				if (IResource->Meta.MipLevels > 0)
-					ImmediateContext->GenerateMips(Dest->Resource);
+				VI_ASSERT(iresource->dest != nullptr, "result should be set");
+				if (iresource->meta.mip_levels > 0)
+					immediate_context->GenerateMips(dest->resource);
 
-				return Core::Expectation::Met;
+				return core::expectation::met;
 			}
-			ExpectsGraphics<void> D3D11Device::RescaleBuffers(uint32_t Width, uint32_t Height)
+			expects_graphics<void> d3d11_device::rescale_buffers(uint32_t width, uint32_t height)
 			{
-				VI_ASSERT(VirtualWindow != nullptr, "window should be set");
-				auto Size = VirtualWindow->GetDrawableSize(Width, Height);
-				return ResizeBuffers((uint32_t)Size.X, (uint32_t)Size.Y);
+				VI_ASSERT(virtual_window != nullptr, "window should be set");
+				auto size = virtual_window->get_drawable_size(width, height);
+				return resize_buffers((uint32_t)size.x, (uint32_t)size.y);
 			}
-			ExpectsGraphics<void> D3D11Device::ResizeBuffers(uint32_t Width, uint32_t Height)
+			expects_graphics<void> d3d11_device::resize_buffers(uint32_t width, uint32_t height)
 			{
-				if (RenderTarget != nullptr)
+				if (render_target != nullptr)
 				{
-					ImmediateContext->OMSetRenderTargets(0, 0, 0);
-					Core::Memory::Release(RenderTarget);
+					immediate_context->OMSetRenderTargets(0, 0, 0);
+					core::memory::release(render_target);
 
-					DXGI_SWAP_CHAIN_DESC Info;
-					HRESULT ResultCode = SwapChain->GetDesc(&Info);
-					if (ResultCode != S_OK)
-						return GetException(ResultCode, "resize buffers");
+					DXGI_SWAP_CHAIN_DESC info;
+					HRESULT result_code = swap_chain->GetDesc(&info);
+					if (result_code != S_OK)
+						return get_exception(result_code, "resize buffers");
 
-					ResultCode = SwapChain->ResizeBuffers(2, Width, Height, Info.BufferDesc.Format, Info.Flags);
-					if (ResultCode != S_OK)
-						return GetException(ResultCode, "resize buffers");
+					result_code = swap_chain->ResizeBuffers(2, width, height, info.BufferDesc.Format, info.Flags);
+					if (result_code != S_OK)
+						return get_exception(result_code, "resize buffers");
 				}
 
-				ID3D11Texture2D* BackBuffer = nullptr;
-				HRESULT ResultCode = SwapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), (LPVOID*)&BackBuffer);
-				if (ResultCode != S_OK)
-					return GetException(ResultCode, "resize buffers");
+				ID3D11Texture2D* back_buffer = nullptr;
+				HRESULT result_code = swap_chain->GetBuffer(0, __uuidof(ID3D11Texture2D), (LPVOID*)&back_buffer);
+				if (result_code != S_OK)
+					return get_exception(result_code, "resize buffers");
 
-				RenderTarget2D::Desc F = RenderTarget2D::Desc();
-				F.Width = Width;
-				F.Height = Height;
-				F.MipLevels = 1;
-				F.MiscFlags = ResourceMisc::None;
-				F.FormatMode = Format::R8G8B8A8_Unorm;
-				F.Usage = ResourceUsage::Default;
-				F.AccessFlags = CPUAccess::None;
-				F.BindFlags = ResourceBind::Render_Target | ResourceBind::Shader_Input;
-				F.RenderSurface = (void*)BackBuffer;
+				render_target_2d::desc f = render_target_2d::desc();
+				f.width = width;
+				f.height = height;
+				f.mip_levels = 1;
+				f.misc_flags = resource_misc::none;
+				f.format_mode = format::r8g8b8a8_unorm;
+				f.usage = resource_usage::defaults;
+				f.access_flags = cpu_access::none;
+				f.bind_flags = resource_bind::render_target | resource_bind::shader_input;
+				f.render_surface = (void*)back_buffer;
 
-				auto NewTarget = CreateRenderTarget2D(F);
-				if (!NewTarget)
-					return NewTarget.Error();
+				auto new_target = create_render_target_2d(f);
+				if (!new_target)
+					return new_target.error();
 
-				RenderTarget = *NewTarget;
-				SetTarget(RenderTarget, 0);
-				Core::Memory::Release(BackBuffer);
-				return Core::Expectation::Met;
+				render_target = *new_target;
+				set_target(render_target, 0);
+				d3d11_release(back_buffer);
+				return core::expectation::met;
 			}
-			ExpectsGraphics<void> D3D11Device::GenerateTexture(Texture2D* Resource)
+			expects_graphics<void> d3d11_device::generate_texture(texture_2d* resource)
 			{
-				return CreateTexture2D(Resource, DXGI_FORMAT_UNKNOWN);
+				return create_texture_2d(resource, DXGI_FORMAT_UNKNOWN);
 			}
-			ExpectsGraphics<void> D3D11Device::GenerateTexture(Texture3D* Resource)
+			expects_graphics<void> d3d11_device::generate_texture(texture_3d* resource)
 			{
-				VI_ASSERT(Resource != nullptr, "resource should be set");
-				D3D11Texture3D* IResource = (D3D11Texture3D*)Resource;
+				VI_ASSERT(resource != nullptr, "resource should be set");
+				d3d11_texture_3d* iresource = (d3d11_texture_3d*)resource;
 
-				VI_ASSERT(IResource->View != nullptr, "resource should be valid");
-				D3D11_TEXTURE3D_DESC Description;
-				IResource->View->GetDesc(&Description);
-				IResource->FormatMode = (Format)Description.Format;
-				IResource->Usage = (ResourceUsage)Description.Usage;
-				IResource->Width = Description.Width;
-				IResource->Height = Description.Height;
-				IResource->MipLevels = Description.MipLevels;
-				IResource->AccessFlags = (CPUAccess)Description.CPUAccessFlags;
-				IResource->Binding = (ResourceBind)Description.BindFlags;
+				VI_ASSERT(iresource->view != nullptr, "resource should be valid");
+				D3D11_TEXTURE3D_DESC description;
+				iresource->view->GetDesc(&description);
+				iresource->format_mode = (format)description.Format;
+				iresource->usage = (resource_usage)description.Usage;
+				iresource->width = description.Width;
+				iresource->height = description.Height;
+				iresource->mip_levels = description.MipLevels;
+				iresource->access_flags = (cpu_access)description.CPUAccessFlags;
+				iresource->binding = (resource_bind)description.BindFlags;
 
-				if (!((uint32_t)IResource->Binding & (uint32_t)ResourceBind::Shader_Input))
-					return Core::Expectation::Met;
+				if (!((uint32_t)iresource->binding & (uint32_t)resource_bind::shader_input))
+					return core::expectation::met;
 
 				D3D11_SHADER_RESOURCE_VIEW_DESC SRV;
 				ZeroMemory(&SRV, sizeof(SRV));
-				SRV.Format = Description.Format;
+				SRV.Format = description.Format;
 				SRV.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE3D;
 				SRV.Texture3D.MostDetailedMip = 0;
-				SRV.Texture3D.MipLevels = Description.MipLevels;
+				SRV.Texture3D.MipLevels = description.MipLevels;
 
-				Core::Memory::Release(IResource->Resource);
-				HRESULT ResultCode = Context->CreateShaderResourceView(IResource->View, &SRV, &IResource->Resource);
-				if (ResultCode != S_OK)
-					return GetException(ResultCode, "generate texture");
+				d3d11_release(iresource->resource);
+				HRESULT result_code = context->CreateShaderResourceView(iresource->view, &SRV, &iresource->resource);
+				if (result_code != S_OK)
+					return get_exception(result_code, "generate texture");
 
-				return Core::Expectation::Met;
+				return core::expectation::met;
 			}
-			ExpectsGraphics<void> D3D11Device::GenerateTexture(TextureCube* Resource)
+			expects_graphics<void> d3d11_device::generate_texture(texture_cube* resource)
 			{
-				VI_ASSERT(Resource != nullptr, "resource should be set");
-				D3D11TextureCube* IResource = (D3D11TextureCube*)Resource;
+				VI_ASSERT(resource != nullptr, "resource should be set");
+				d3d11_texture_cube* iresource = (d3d11_texture_cube*)resource;
 
-				VI_ASSERT(IResource->View != nullptr, "resource should be valid");
-				D3D11_TEXTURE2D_DESC Description;
-				IResource->View->GetDesc(&Description);
-				IResource->FormatMode = (Format)Description.Format;
-				IResource->Usage = (ResourceUsage)Description.Usage;
-				IResource->Width = Description.Width;
-				IResource->Height = Description.Height;
-				IResource->MipLevels = Description.MipLevels;
-				IResource->AccessFlags = (CPUAccess)Description.CPUAccessFlags;
-				IResource->Binding = (ResourceBind)Description.BindFlags;
+				VI_ASSERT(iresource->view != nullptr, "resource should be valid");
+				D3D11_TEXTURE2D_DESC description;
+				iresource->view->GetDesc(&description);
+				iresource->format_mode = (format)description.Format;
+				iresource->usage = (resource_usage)description.Usage;
+				iresource->width = description.Width;
+				iresource->height = description.Height;
+				iresource->mip_levels = description.MipLevels;
+				iresource->access_flags = (cpu_access)description.CPUAccessFlags;
+				iresource->binding = (resource_bind)description.BindFlags;
 
-				if (!((uint32_t)IResource->Binding & (uint32_t)ResourceBind::Shader_Input))
-					return Core::Expectation::Met;
+				if (!((uint32_t)iresource->binding & (uint32_t)resource_bind::shader_input))
+					return core::expectation::met;
 
 				D3D11_SHADER_RESOURCE_VIEW_DESC SRV;
 				ZeroMemory(&SRV, sizeof(SRV));
-				SRV.Format = Description.Format;
+				SRV.Format = description.Format;
 				SRV.ViewDimension = D3D11_SRV_DIMENSION_TEXTURECUBE;
 				SRV.TextureCube.MostDetailedMip = 0;
-				SRV.TextureCube.MipLevels = Description.MipLevels;
+				SRV.TextureCube.MipLevels = description.MipLevels;
 
-				Core::Memory::Release(IResource->Resource);
-				HRESULT ResultCode = Context->CreateShaderResourceView(IResource->View, &SRV, &IResource->Resource);
-				if (ResultCode != S_OK)
-					return GetException(ResultCode, "generate texture");
+				d3d11_release(iresource->resource);
+				HRESULT result_code = context->CreateShaderResourceView(iresource->view, &SRV, &iresource->resource);
+				if (result_code != S_OK)
+					return get_exception(result_code, "generate texture");
 
-				return Core::Expectation::Met;
+				return core::expectation::met;
 			}
-			ExpectsGraphics<void> D3D11Device::GetQueryData(Query* Resource, size_t* Result, bool Flush)
+			expects_graphics<void> d3d11_device::get_query_data(query* resource, size_t* result, bool flush)
 			{
-				VI_ASSERT(Resource != nullptr, "resource should be set");
-				VI_ASSERT(Result != nullptr, "result should be set");
+				VI_ASSERT(resource != nullptr, "resource should be set");
+				VI_ASSERT(result != nullptr, "result should be set");
 
-				D3D11Query* IResource = (D3D11Query*)Resource;
-				uint64_t Passing = 0;
+				d3d11_query* iresource = (d3d11_query*)resource;
+				uint64_t passing = 0;
 
-				VI_ASSERT(IResource->Async != nullptr, "resource should be valid");
-				HRESULT ResultCode = ImmediateContext->GetData(IResource->Async, &Passing, sizeof(uint64_t), !Flush ? D3D11_ASYNC_GETDATA_DONOTFLUSH : 0);
-				*Result = (size_t)Passing;
-				if (ResultCode != S_OK)
-					return GetException(ResultCode, "query data");
+				VI_ASSERT(iresource->async != nullptr, "resource should be valid");
+				HRESULT result_code = immediate_context->GetData(iresource->async, &passing, sizeof(uint64_t), !flush ? D3D11_ASYNC_GETDATA_DONOTFLUSH : 0);
+				*result = (size_t)passing;
+				if (result_code != S_OK)
+					return get_exception(result_code, "query data");
 
-				return Core::Expectation::Met;
+				return core::expectation::met;
 			}
-			ExpectsGraphics<void> D3D11Device::GetQueryData(Query* Resource, bool* Result, bool Flush)
+			expects_graphics<void> d3d11_device::get_query_data(query* resource, bool* result, bool flush)
 			{
-				VI_ASSERT(Resource != nullptr, "resource should be set");
-				VI_ASSERT(Result != nullptr, "result should be set");
+				VI_ASSERT(resource != nullptr, "resource should be set");
+				VI_ASSERT(result != nullptr, "result should be set");
 
-				D3D11Query* IResource = (D3D11Query*)Resource;
-				VI_ASSERT(IResource->Async != nullptr, "resource should be valid");
-				HRESULT ResultCode = ImmediateContext->GetData(IResource->Async, Result, sizeof(bool), !Flush ? D3D11_ASYNC_GETDATA_DONOTFLUSH : 0);
-				if (ResultCode != S_OK)
-					return GetException(ResultCode, "query data");
+				d3d11_query* iresource = (d3d11_query*)resource;
+				VI_ASSERT(iresource->async != nullptr, "resource should be valid");
+				HRESULT result_code = immediate_context->GetData(iresource->async, result, sizeof(bool), !flush ? D3D11_ASYNC_GETDATA_DONOTFLUSH : 0);
+				if (result_code != S_OK)
+					return get_exception(result_code, "query data");
 
-				return Core::Expectation::Met;
+				return core::expectation::met;
 			}
-			ExpectsGraphics<DepthStencilState*> D3D11Device::CreateDepthStencilState(const DepthStencilState::Desc& I)
+			expects_graphics<depth_stencil_state*> d3d11_device::create_depth_stencil_state(const depth_stencil_state::desc& i)
 			{
-				D3D11_DEPTH_STENCIL_DESC State;
-				State.BackFace.StencilDepthFailOp = (D3D11_STENCIL_OP)I.BackFaceStencilDepthFailOperation;
-				State.BackFace.StencilFailOp = (D3D11_STENCIL_OP)I.BackFaceStencilFailOperation;
-				State.BackFace.StencilFunc = (D3D11_COMPARISON_FUNC)I.BackFaceStencilFunction;
-				State.BackFace.StencilPassOp = (D3D11_STENCIL_OP)I.BackFaceStencilPassOperation;
-				State.FrontFace.StencilDepthFailOp = (D3D11_STENCIL_OP)I.FrontFaceStencilDepthFailOperation;
-				State.FrontFace.StencilFailOp = (D3D11_STENCIL_OP)I.FrontFaceStencilFailOperation;
-				State.FrontFace.StencilFunc = (D3D11_COMPARISON_FUNC)I.FrontFaceStencilFunction;
-				State.FrontFace.StencilPassOp = (D3D11_STENCIL_OP)I.FrontFaceStencilPassOperation;
-				State.DepthEnable = I.DepthEnable;
-				State.DepthFunc = (D3D11_COMPARISON_FUNC)I.DepthFunction;
-				State.DepthWriteMask = (D3D11_DEPTH_WRITE_MASK)I.DepthWriteMask;
-				State.StencilEnable = I.StencilEnable;
-				State.StencilReadMask = I.StencilReadMask;
-				State.StencilWriteMask = I.StencilWriteMask;
+				D3D11_DEPTH_STENCIL_DESC state;
+				state.BackFace.StencilDepthFailOp = (D3D11_STENCIL_OP)i.back_face_stencil_depth_fail_operation;
+				state.BackFace.StencilFailOp = (D3D11_STENCIL_OP)i.back_face_stencil_fail_operation;
+				state.BackFace.StencilFunc = (D3D11_COMPARISON_FUNC)i.back_face_stencil_function;
+				state.BackFace.StencilPassOp = (D3D11_STENCIL_OP)i.back_face_stencil_pass_operation;
+				state.FrontFace.StencilDepthFailOp = (D3D11_STENCIL_OP)i.front_face_stencil_depth_fail_operation;
+				state.FrontFace.StencilFailOp = (D3D11_STENCIL_OP)i.front_face_stencil_fail_operation;
+				state.FrontFace.StencilFunc = (D3D11_COMPARISON_FUNC)i.front_face_stencil_function;
+				state.FrontFace.StencilPassOp = (D3D11_STENCIL_OP)i.front_face_stencil_pass_operation;
+				state.DepthEnable = i.depth_enable;
+				state.DepthFunc = (D3D11_COMPARISON_FUNC)i.depth_function;
+				state.DepthWriteMask = (D3D11_DEPTH_WRITE_MASK)i.depth_write_mask;
+				state.StencilEnable = i.stencil_enable;
+				state.StencilReadMask = i.stencil_read_mask;
+				state.StencilWriteMask = i.stencil_write_mask;
 
-				Core::UPtr<ID3D11DepthStencilState> DeviceState;
-				HRESULT ResultCode = Context->CreateDepthStencilState(&State, DeviceState.Out());
-				if (ResultCode != S_OK)
-					return GetException(ResultCode, "create depth stencil state");
+				core::uptr<ID3D11DepthStencilState> device_state;
+				HRESULT result_code = context->CreateDepthStencilState(&state, device_state.out());
+				if (result_code != S_OK)
+					return get_exception(result_code, "create depth stencil state");
 
-				D3D11DepthStencilState* Result = new D3D11DepthStencilState(I);
-				Result->Resource = DeviceState.Reset();
-				return Result;
+				d3d11_depth_stencil_state* result = new d3d11_depth_stencil_state(i);
+				result->resource = device_state.reset();
+				return result;
 			}
-			ExpectsGraphics<BlendState*> D3D11Device::CreateBlendState(const BlendState::Desc& I)
+			expects_graphics<blend_state*> d3d11_device::create_blend_state(const blend_state::desc& i)
 			{
-				D3D11_BLEND_DESC State;
-				State.AlphaToCoverageEnable = I.AlphaToCoverageEnable;
-				State.IndependentBlendEnable = I.IndependentBlendEnable;
-				for (uint32_t i = 0; i < 8; i++)
+				D3D11_BLEND_DESC state;
+				state.AlphaToCoverageEnable = i.alpha_to_coverage_enable;
+				state.IndependentBlendEnable = i.independent_blend_enable;
+				for (uint32_t j = 0; j < 8; j++)
 				{
-					State.RenderTarget[i].BlendEnable = I.RenderTarget[i].BlendEnable;
-					State.RenderTarget[i].BlendOp = (D3D11_BLEND_OP)I.RenderTarget[i].BlendOperationMode;
-					State.RenderTarget[i].BlendOpAlpha = (D3D11_BLEND_OP)I.RenderTarget[i].BlendOperationAlpha;
-					State.RenderTarget[i].DestBlend = (D3D11_BLEND)I.RenderTarget[i].DestBlend;
-					State.RenderTarget[i].DestBlendAlpha = (D3D11_BLEND)I.RenderTarget[i].DestBlendAlpha;
-					State.RenderTarget[i].RenderTargetWriteMask = I.RenderTarget[i].RenderTargetWriteMask;
-					State.RenderTarget[i].SrcBlend = (D3D11_BLEND)I.RenderTarget[i].SrcBlend;
-					State.RenderTarget[i].SrcBlendAlpha = (D3D11_BLEND)I.RenderTarget[i].SrcBlendAlpha;
+					state.RenderTarget[j].BlendEnable = i.render_target[j].blend_enable;
+					state.RenderTarget[j].BlendOp = (D3D11_BLEND_OP)i.render_target[j].blend_operation_mode;
+					state.RenderTarget[j].BlendOpAlpha = (D3D11_BLEND_OP)i.render_target[j].blend_operation_alpha;
+					state.RenderTarget[j].DestBlend = (D3D11_BLEND)i.render_target[j].dest_blend;
+					state.RenderTarget[j].DestBlendAlpha = (D3D11_BLEND)i.render_target[j].dest_blend_alpha;
+					state.RenderTarget[j].RenderTargetWriteMask = i.render_target[j].render_target_write_mask;
+					state.RenderTarget[j].SrcBlend = (D3D11_BLEND)i.render_target[j].src_blend;
+					state.RenderTarget[j].SrcBlendAlpha = (D3D11_BLEND)i.render_target[j].src_blend_alpha;
 				}
 
-				Core::UPtr<ID3D11BlendState> DeviceState;
-				HRESULT ResultCode = Context->CreateBlendState(&State, DeviceState.Out());
-				if (ResultCode != S_OK)
-					return GetException(ResultCode, "create blend state");
+				core::uptr<ID3D11BlendState> device_state;
+				HRESULT result_code = context->CreateBlendState(&state, device_state.out());
+				if (result_code != S_OK)
+					return get_exception(result_code, "create blend state");
 
-				D3D11BlendState* Result = new D3D11BlendState(I);
-				Result->Resource = DeviceState.Reset();
-				return Result;
+				d3d11_blend_state* result = new d3d11_blend_state(i);
+				result->resource = device_state.reset();
+				return result;
 			}
-			ExpectsGraphics<RasterizerState*> D3D11Device::CreateRasterizerState(const RasterizerState::Desc& I)
+			expects_graphics<rasterizer_state*> d3d11_device::create_rasterizer_state(const rasterizer_state::desc& i)
 			{
-				D3D11_RASTERIZER_DESC State;
-				State.AntialiasedLineEnable = I.AntialiasedLineEnable;
-				State.CullMode = (D3D11_CULL_MODE)I.CullMode;
-				State.DepthBias = I.DepthBias;
-				State.DepthBiasClamp = I.DepthBiasClamp;
-				State.DepthClipEnable = I.DepthClipEnable;
-				State.FillMode = (D3D11_FILL_MODE)I.FillMode;
-				State.FrontCounterClockwise = I.FrontCounterClockwise;
-				State.MultisampleEnable = I.MultisampleEnable;
-				State.ScissorEnable = I.ScissorEnable;
-				State.SlopeScaledDepthBias = I.SlopeScaledDepthBias;
+				D3D11_RASTERIZER_DESC state;
+				state.AntialiasedLineEnable = i.antialiased_line_enable;
+				state.CullMode = (D3D11_CULL_MODE)i.cull_mode;
+				state.DepthBias = i.depth_bias;
+				state.DepthBiasClamp = i.depth_bias_clamp;
+				state.DepthClipEnable = i.depth_clip_enable;
+				state.FillMode = (D3D11_FILL_MODE)i.fill_mode;
+				state.FrontCounterClockwise = i.front_counter_clockwise;
+				state.MultisampleEnable = i.multisample_enable;
+				state.ScissorEnable = i.scissor_enable;
+				state.SlopeScaledDepthBias = i.slope_scaled_depth_bias;
 
-				Core::UPtr<ID3D11RasterizerState> DeviceState;
-				HRESULT ResultCode = Context->CreateRasterizerState(&State, DeviceState.Out());
-				if (ResultCode != S_OK)
-					return GetException(ResultCode, "create rasterizer state");
+				core::uptr<ID3D11RasterizerState> device_state;
+				HRESULT result_code = context->CreateRasterizerState(&state, device_state.out());
+				if (result_code != S_OK)
+					return get_exception(result_code, "create rasterizer state");
 
-				D3D11RasterizerState* Result = new D3D11RasterizerState(I);
-				Result->Resource = DeviceState.Reset();
-				return Result;
+				d3d11_rasterizer_state* result = new d3d11_rasterizer_state(i);
+				result->resource = device_state.reset();
+				return result;
 			}
-			ExpectsGraphics<SamplerState*> D3D11Device::CreateSamplerState(const SamplerState::Desc& I)
+			expects_graphics<sampler_state*> d3d11_device::create_sampler_state(const sampler_state::desc& i)
 			{
-				D3D11_SAMPLER_DESC State;
-				State.AddressU = (D3D11_TEXTURE_ADDRESS_MODE)I.AddressU;
-				State.AddressV = (D3D11_TEXTURE_ADDRESS_MODE)I.AddressV;
-				State.AddressW = (D3D11_TEXTURE_ADDRESS_MODE)I.AddressW;
-				State.ComparisonFunc = (D3D11_COMPARISON_FUNC)I.ComparisonFunction;
-				State.Filter = (D3D11_FILTER)I.Filter;
-				State.MaxAnisotropy = I.MaxAnisotropy;
-				State.MaxLOD = I.MaxLOD;
-				State.MinLOD = I.MinLOD;
-				State.MipLODBias = I.MipLODBias;
-				State.BorderColor[0] = I.BorderColor[0];
-				State.BorderColor[1] = I.BorderColor[1];
-				State.BorderColor[2] = I.BorderColor[2];
-				State.BorderColor[3] = I.BorderColor[3];
+				D3D11_SAMPLER_DESC state;
+				state.AddressU = (D3D11_TEXTURE_ADDRESS_MODE)i.address_u;
+				state.AddressV = (D3D11_TEXTURE_ADDRESS_MODE)i.address_v;
+				state.AddressW = (D3D11_TEXTURE_ADDRESS_MODE)i.address_w;
+				state.ComparisonFunc = (D3D11_COMPARISON_FUNC)i.comparison_function;
+				state.Filter = (D3D11_FILTER)i.filter;
+				state.MaxAnisotropy = i.max_anisotropy;
+				state.MinLOD = i.min_lod;
+				state.MaxLOD = i.max_lod;
+				state.MipLODBias = i.mip_lod_bias;
+				state.BorderColor[0] = i.border_color[0];
+				state.BorderColor[1] = i.border_color[1];
+				state.BorderColor[2] = i.border_color[2];
+				state.BorderColor[3] = i.border_color[3];
 
-				Core::UPtr<ID3D11SamplerState> DeviceState;
-				HRESULT ResultCode = Context->CreateSamplerState(&State, DeviceState.Out());
-				if (ResultCode != S_OK)
-					return GetException(ResultCode, "create sampler state");
+				core::uptr<ID3D11SamplerState> device_state;
+				HRESULT result_code = context->CreateSamplerState(&state, device_state.out());
+				if (result_code != S_OK)
+					return get_exception(result_code, "create sampler state");
 
-				D3D11SamplerState* Result = new D3D11SamplerState(I);
-				Result->Resource = DeviceState.Reset();
-				return Result;
+				d3d11_sampler_state* result = new d3d11_sampler_state(i);
+				result->resource = device_state.reset();
+				return result;
 			}
-			ExpectsGraphics<InputLayout*> D3D11Device::CreateInputLayout(const InputLayout::Desc& I)
+			expects_graphics<input_layout*> d3d11_device::create_input_layout(const input_layout::desc& i)
 			{
-				return new D3D11InputLayout(I);
+				return new d3d11_input_layout(i);
 			}
-			ExpectsGraphics<Shader*> D3D11Device::CreateShader(const Shader::Desc& I)
+			expects_graphics<shader*> d3d11_device::create_shader(const shader::desc& i)
 			{
-				Shader::Desc F(I);
-				auto PreprocessStatus = Preprocess(F);
-				if (!PreprocessStatus)
-					return GraphicsException(std::move(PreprocessStatus.Error().message()));
+				shader::desc f(i);
+				auto preprocess_status = preprocess(f);
+				if (!preprocess_status)
+					return graphics_exception(std::move(preprocess_status.error().message()));
 
-				auto Name = GetProgramName(F);
-				if (!Name)
-					return GraphicsException("shader name is not defined");
+				auto name = get_program_name(f);
+				if (!name)
+					return graphics_exception("shader name is not defined");
 
-				Core::UPtr<D3D11Shader> Result = new D3D11Shader(I);
-				Core::String ProgramName = std::move(*Name);
-				ID3DBlob* ShaderBlob = nullptr;
-				ID3DBlob* ErrorBlob = nullptr;
-				void* Data = nullptr;
-				size_t Size = 0;
+				core::uptr<d3d11_shader> result = new d3d11_shader(i);
+				core::string program_name = std::move(*name);
+				ID3DBlob* shader_blob = nullptr;
+				ID3DBlob* error_blob = nullptr;
+				void* data = nullptr;
+				size_t size = 0;
 
-				Core::String VertexEntry = GetShaderMain(ShaderType::Vertex);
-				if (F.Data.find(VertexEntry) != Core::String::npos)
+				core::string vertex_entry = get_shader_main(shader_type::vertex);
+				if (f.data.find(vertex_entry) != core::string::npos)
 				{
-					Core::String Stage = ProgramName + SHADER_VERTEX, Bytecode;
-					if (!GetProgramCache(Stage, &Bytecode))
+					core::string stage = program_name + SHADER_VERTEX, bytecode;
+					if (!get_program_cache(stage, &bytecode))
 					{
-						VI_DEBUG("[d3d11] compile %s vertex shader source", Stage.c_str());
-						HRESULT ResultCode = D3DCompile(F.Data.c_str(), F.Data.size() * sizeof(char), F.Filename.empty() ? nullptr : F.Filename.c_str(), nullptr, nullptr, VertexEntry.c_str(), GetVSProfile().data(), CompileFlags, 0, &Result->Signature, &ErrorBlob);
-						if (ResultCode != S_OK || !GetCompileState(ErrorBlob).empty())
+						VI_DEBUG("[d3d11] compile %s vertex shader source", stage.c_str());
+						HRESULT result_code = D3DCompile(f.data.c_str(), f.data.size() * sizeof(char), f.filename.empty() ? nullptr : f.filename.c_str(), nullptr, nullptr, vertex_entry.c_str(), get_vs_profile().data(), compile_flags, 0, &result->signature, &error_blob);
+						if (result_code != S_OK || !get_compile_state(error_blob).empty())
 						{
-							auto Message = GetCompileState(ErrorBlob);
-							Core::Memory::Release(ErrorBlob);
-							return GetException(ResultCode, Message);
+							auto message = get_compile_state(error_blob);
+							d3d11_release(error_blob);
+							return get_exception(result_code, message);
 						}
 
-						Data = (void*)Result->Signature->GetBufferPointer();
-						Size = (size_t)Result->Signature->GetBufferSize();
-						SetProgramCache(Stage, Core::String((char*)Data, Size));
+						data = (void*)result->signature->GetBufferPointer();
+						size = (size_t)result->signature->GetBufferSize();
+						set_program_cache(stage, core::string((char*)data, size));
 					}
 					else
 					{
-						Data = (void*)Bytecode.c_str(); Size = Bytecode.size();
-						HRESULT ResultCode = D3DCreateBlob(Size, &Result->Signature);
-						if (ResultCode != S_OK)
-							return GetException(ResultCode, "compile vertex shader");
+						data = (void*)bytecode.c_str(); size = bytecode.size();
+						HRESULT result_code = D3DCreateBlob(size, &result->signature);
+						if (result_code != S_OK)
+							return get_exception(result_code, "compile vertex shader");
 
-						void* Buffer = Result->Signature->GetBufferPointer();
-						memcpy(Buffer, Data, Size);
+						void* buffer = result->signature->GetBufferPointer();
+						memcpy(buffer, data, size);
 					}
 
-					VI_DEBUG("[d3d11] load %s vertex shader bytecode", Stage.c_str());
-					HRESULT ResultCode = Context->CreateVertexShader(Data, Size, nullptr, &Result->VertexShader);
-					if (ResultCode != S_OK)
-						return GetException(ResultCode, "compile vertex shader");
+					VI_DEBUG("[d3d11] load %s vertex shader bytecode", stage.c_str());
+					HRESULT result_code = context->CreateVertexShader(data, size, nullptr, &result->vertex_shader);
+					if (result_code != S_OK)
+						return get_exception(result_code, "compile vertex shader");
 
-					ResultCode = D3DReflect(Data, Size, IID_ID3D11ShaderReflection, (void**)&Result->Reflection.VertexShader);
-					if (ResultCode != S_OK)
-						return GetException(ResultCode, "disassemble vertex shader");
+					result_code = D3DReflect(data, size, IID_ID3D11ShaderReflection, (void**)&result->reflection.vertex_shader);
+					if (result_code != S_OK)
+						return get_exception(result_code, "disassemble vertex shader");
 				}
 
-				Core::String PixelEntry = GetShaderMain(ShaderType::Pixel);
-				if (F.Data.find(PixelEntry) != Core::String::npos)
+				core::string pixel_entry = get_shader_main(shader_type::pixel);
+				if (f.data.find(pixel_entry) != core::string::npos)
 				{
-					Core::String Stage = ProgramName + SHADER_PIXEL, Bytecode;
-					if (!GetProgramCache(Stage, &Bytecode))
+					core::string stage = program_name + SHADER_PIXEL, bytecode;
+					if (!get_program_cache(stage, &bytecode))
 					{
-						VI_DEBUG("[d3d11] compile %s pixel shader source", Stage.c_str());
-						HRESULT ResultCode = D3DCompile(F.Data.c_str(), F.Data.size() * sizeof(char), F.Filename.empty() ? nullptr : F.Filename.c_str(), nullptr, nullptr, PixelEntry.c_str(), GetPSProfile().data(), CompileFlags, 0, &ShaderBlob, &ErrorBlob);
-						if (ResultCode != S_OK || !GetCompileState(ErrorBlob).empty())
+						VI_DEBUG("[d3d11] compile %s pixel shader source", stage.c_str());
+						HRESULT result_code = D3DCompile(f.data.c_str(), f.data.size() * sizeof(char), f.filename.empty() ? nullptr : f.filename.c_str(), nullptr, nullptr, pixel_entry.c_str(), get_ps_profile().data(), compile_flags, 0, &shader_blob, &error_blob);
+						if (result_code != S_OK || !get_compile_state(error_blob).empty())
 						{
-							auto Message = GetCompileState(ErrorBlob);
-							Core::Memory::Release(ErrorBlob);
-							return GetException(ResultCode, Message);
+							auto message = get_compile_state(error_blob);
+							d3d11_release(error_blob);
+							return get_exception(result_code, message);
 						}
 
-						Data = (void*)ShaderBlob->GetBufferPointer();
-						Size = (size_t)ShaderBlob->GetBufferSize();
-						SetProgramCache(Stage, Core::String((char*)Data, Size));
+						data = (void*)shader_blob->GetBufferPointer();
+						size = (size_t)shader_blob->GetBufferSize();
+						set_program_cache(stage, core::string((char*)data, size));
 					}
 					else
 					{
-						Data = (void*)Bytecode.c_str();
-						Size = Bytecode.size();
+						data = (void*)bytecode.c_str();
+						size = bytecode.size();
 					}
 
-					VI_DEBUG("[d3d11] load %s pixel shader bytecode", Stage.c_str());
-					HRESULT ResultCode = Context->CreatePixelShader(Data, Size, nullptr, &Result->PixelShader);
-					Core::Memory::Release(ShaderBlob);
-					if (ResultCode != S_OK)
-						return GetException(ResultCode, "compile pixel shader");
+					VI_DEBUG("[d3d11] load %s pixel shader bytecode", stage.c_str());
+					HRESULT result_code = context->CreatePixelShader(data, size, nullptr, &result->pixel_shader);
+					if (result_code != S_OK)
+					{
+						d3d11_release(shader_blob);
+						return get_exception(result_code, "compile pixel shader");
+					}
 
-					ResultCode = D3DReflect(Data, Size, IID_ID3D11ShaderReflection, (void**)&Result->Reflection.PixelShader);
-					if (ResultCode != S_OK)
-						return GetException(ResultCode, "disassemble pixel shader");
+					result_code = D3DReflect(data, size, IID_ID3D11ShaderReflection, (void**)&result->reflection.pixel_shader);
+					d3d11_release(shader_blob);
+					if (result_code != S_OK)
+						return get_exception(result_code, "disassemble pixel shader");
 				}
 
-				Core::String GeometryEntry = GetShaderMain(ShaderType::Geometry);
-				if (F.Data.find(GeometryEntry) != Core::String::npos)
+				core::string geometry_entry = get_shader_main(shader_type::geometry);
+				if (f.data.find(geometry_entry) != core::string::npos)
 				{
-					Core::String Stage = ProgramName + SHADER_GEOMETRY, Bytecode;
-					if (!GetProgramCache(Stage, &Bytecode))
+					core::string stage = program_name + SHADER_GEOMETRY, bytecode;
+					if (!get_program_cache(stage, &bytecode))
 					{
-						VI_DEBUG("[d3d11] compile %s geometry shader source", Stage.c_str());
-						HRESULT ResultCode = D3DCompile(F.Data.c_str(), F.Data.size() * sizeof(char), F.Filename.empty() ? nullptr : F.Filename.c_str(), nullptr, nullptr, GeometryEntry.c_str(), GetGSProfile().data(), GetCompileFlags(), 0, &ShaderBlob, &ErrorBlob);
-						if (ResultCode != S_OK || !GetCompileState(ErrorBlob).empty())
+						VI_DEBUG("[d3d11] compile %s geometry shader source", stage.c_str());
+						HRESULT result_code = D3DCompile(f.data.c_str(), f.data.size() * sizeof(char), f.filename.empty() ? nullptr : f.filename.c_str(), nullptr, nullptr, geometry_entry.c_str(), get_gs_profile().data(), get_compile_flags(), 0, &shader_blob, &error_blob);
+						if (result_code != S_OK || !get_compile_state(error_blob).empty())
 						{
-							auto Message = GetCompileState(ErrorBlob);
-							Core::Memory::Release(ErrorBlob);
-							return GetException(ResultCode, Message);
+							auto message = get_compile_state(error_blob);
+							d3d11_release(error_blob);
+							return get_exception(result_code, message);
 						}
 
-						Data = (void*)ShaderBlob->GetBufferPointer();
-						Size = (size_t)ShaderBlob->GetBufferSize();
-						SetProgramCache(Stage, Core::String((char*)Data, Size));
+						data = (void*)shader_blob->GetBufferPointer();
+						size = (size_t)shader_blob->GetBufferSize();
+						set_program_cache(stage, core::string((char*)data, size));
 					}
 					else
 					{
-						Data = (void*)Bytecode.c_str();
-						Size = Bytecode.size();
+						data = (void*)bytecode.c_str();
+						size = bytecode.size();
 					}
 
-					VI_DEBUG("[d3d11] load %s geometry shader bytecode", Stage.c_str());
-					HRESULT ResultCode = Context->CreateGeometryShader(Data, Size, nullptr, &Result->GeometryShader);
-					Core::Memory::Release(ShaderBlob);
-					if (ResultCode != S_OK)
-						return GetException(ResultCode, "compile geometry shader");
+					VI_DEBUG("[d3d11] load %s geometry shader bytecode", stage.c_str());
+					HRESULT result_code = context->CreateGeometryShader(data, size, nullptr, &result->geometry_shader);
+					if (result_code != S_OK)
+					{
+						d3d11_release(shader_blob);
+						return get_exception(result_code, "compile geometry shader");
+					}
 
-					ResultCode = D3DReflect(Data, Size, IID_ID3D11ShaderReflection, (void**)&Result->Reflection.GeometryShader);
-					if (ResultCode != S_OK)
-						return GetException(ResultCode, "disassemble geometry shader");
+					result_code = D3DReflect(data, size, IID_ID3D11ShaderReflection, (void**)&result->reflection.geometry_shader);
+					d3d11_release(shader_blob);
+					if (result_code != S_OK)
+						return get_exception(result_code, "disassemble geometry shader");
 				}
 
-				Core::String ComputeEntry = GetShaderMain(ShaderType::Compute);
-				if (F.Data.find(ComputeEntry) != Core::String::npos)
+				core::string compute_entry = get_shader_main(shader_type::compute);
+				if (f.data.find(compute_entry) != core::string::npos)
 				{
-					Core::String Stage = ProgramName + SHADER_COMPUTE, Bytecode;
-					if (!GetProgramCache(Stage, &Bytecode))
+					core::string stage = program_name + SHADER_COMPUTE, bytecode;
+					if (!get_program_cache(stage, &bytecode))
 					{
-						VI_DEBUG("[d3d11] compile %s compute shader source", Stage.c_str());
-						HRESULT ResultCode = D3DCompile(F.Data.c_str(), F.Data.size() * sizeof(char), F.Filename.empty() ? nullptr : F.Filename.c_str(), nullptr, nullptr, ComputeEntry.c_str(), GetCSProfile().data(), GetCompileFlags(), 0, &ShaderBlob, &ErrorBlob);
-						if (ResultCode != S_OK || !GetCompileState(ErrorBlob).empty())
+						VI_DEBUG("[d3d11] compile %s compute shader source", stage.c_str());
+						HRESULT result_code = D3DCompile(f.data.c_str(), f.data.size() * sizeof(char), f.filename.empty() ? nullptr : f.filename.c_str(), nullptr, nullptr, compute_entry.c_str(), get_cs_profile().data(), get_compile_flags(), 0, &shader_blob, &error_blob);
+						if (result_code != S_OK || !get_compile_state(error_blob).empty())
 						{
-							auto Message = GetCompileState(ErrorBlob);
-							Core::Memory::Release(ErrorBlob);
-							return GetException(ResultCode, Message);
+							auto message = get_compile_state(error_blob);
+							d3d11_release(error_blob);
+							return get_exception(result_code, message);
 						}
 
-						Data = (void*)ShaderBlob->GetBufferPointer();
-						Size = (size_t)ShaderBlob->GetBufferSize();
-						SetProgramCache(Stage, Core::String((char*)Data, Size));
+						data = (void*)shader_blob->GetBufferPointer();
+						size = (size_t)shader_blob->GetBufferSize();
+						set_program_cache(stage, core::string((char*)data, size));
 					}
 					else
 					{
-						Data = (void*)Bytecode.c_str();
-						Size = Bytecode.size();
+						data = (void*)bytecode.c_str();
+						size = bytecode.size();
 					}
 
-					VI_DEBUG("[d3d11] load %s compute shader bytecode", Stage.c_str());
-					HRESULT ResultCode = Context->CreateComputeShader(Data, Size, nullptr, &Result->ComputeShader);
-					Core::Memory::Release(ShaderBlob);
-					if (ResultCode != S_OK)
-						return GetException(ResultCode, "compile compute shader");
+					VI_DEBUG("[d3d11] load %s compute shader bytecode", stage.c_str());
+					HRESULT result_code = context->CreateComputeShader(data, size, nullptr, &result->compute_shader);
+					if (result_code != S_OK)
+					{
+						d3d11_release(shader_blob);
+						return get_exception(result_code, "compile compute shader");
+					}
 
-					ResultCode = D3DReflect(Data, Size, IID_ID3D11ShaderReflection, (void**)&Result->Reflection.ComputeShader);
-					if (ResultCode != S_OK)
-						return GetException(ResultCode, "disassemble compute shader");
+					result_code = D3DReflect(data, size, IID_ID3D11ShaderReflection, (void**)&result->reflection.compute_shader);
+					d3d11_release(shader_blob);
+					if (result_code != S_OK)
+						return get_exception(result_code, "disassemble compute shader");
 				}
 
-				Core::String HullEntry = GetShaderMain(ShaderType::Hull);
-				if (F.Data.find(HullEntry) != Core::String::npos)
+				core::string hull_entry = get_shader_main(shader_type::hull);
+				if (f.data.find(hull_entry) != core::string::npos)
 				{
-					Core::String Stage = ProgramName + SHADER_HULL, Bytecode;
-					if (!GetProgramCache(Stage, &Bytecode))
+					core::string stage = program_name + SHADER_HULL, bytecode;
+					if (!get_program_cache(stage, &bytecode))
 					{
-						VI_DEBUG("[d3d11] compile %s hull shader source", Stage.c_str());
-						HRESULT ResultCode = D3DCompile(F.Data.c_str(), F.Data.size() * sizeof(char), F.Filename.empty() ? nullptr : F.Filename.c_str(), nullptr, nullptr, HullEntry.c_str(), GetHSProfile().data(), GetCompileFlags(), 0, &ShaderBlob, &ErrorBlob);
-						if (ResultCode != S_OK || !GetCompileState(ErrorBlob).empty())
+						VI_DEBUG("[d3d11] compile %s hull shader source", stage.c_str());
+						HRESULT result_code = D3DCompile(f.data.c_str(), f.data.size() * sizeof(char), f.filename.empty() ? nullptr : f.filename.c_str(), nullptr, nullptr, hull_entry.c_str(), get_hs_profile().data(), get_compile_flags(), 0, &shader_blob, &error_blob);
+						if (result_code != S_OK || !get_compile_state(error_blob).empty())
 						{
-							auto Message = GetCompileState(ErrorBlob);
-							Core::Memory::Release(ErrorBlob);
-							return GetException(ResultCode, Message);
+							auto message = get_compile_state(error_blob);
+							d3d11_release(error_blob);
+							return get_exception(result_code, message);
 						}
 
-						Data = (void*)ShaderBlob->GetBufferPointer();
-						Size = (size_t)ShaderBlob->GetBufferSize();
-						SetProgramCache(Stage, Core::String((char*)Data, Size));
+						data = (void*)shader_blob->GetBufferPointer();
+						size = (size_t)shader_blob->GetBufferSize();
+						set_program_cache(stage, core::string((char*)data, size));
 					}
 					else
 					{
-						Data = (void*)Bytecode.c_str();
-						Size = Bytecode.size();
+						data = (void*)bytecode.c_str();
+						size = bytecode.size();
 					}
 
-					VI_DEBUG("[d3d11] load %s hull shader bytecode", Stage.c_str());
-					HRESULT ResultCode = Context->CreateHullShader(Data, Size, nullptr, &Result->HullShader);
-					Core::Memory::Release(ShaderBlob);
-					if (ResultCode != S_OK)
-						return GetException(ResultCode, "compile hull shader");
+					VI_DEBUG("[d3d11] load %s hull shader bytecode", stage.c_str());
+					HRESULT result_code = context->CreateHullShader(data, size, nullptr, &result->hull_shader);
+					if (result_code != S_OK)
+					{
+						d3d11_release(shader_blob);
+						return get_exception(result_code, "compile hull shader");
+					}
 
-					ResultCode = D3DReflect(Data, Size, IID_ID3D11ShaderReflection, (void**)&Result->Reflection.HullShader);
-					if (ResultCode != S_OK)
-						return GetException(ResultCode, "disassemble hull shader");
+					result_code = D3DReflect(data, size, IID_ID3D11ShaderReflection, (void**)&result->reflection.hull_shader);
+					d3d11_release(shader_blob);
+					if (result_code != S_OK)
+						return get_exception(result_code, "disassemble hull shader");
 				}
 
-				Core::String DomainEntry = GetShaderMain(ShaderType::Domain);
-				if (F.Data.find(DomainEntry) != Core::String::npos)
+				core::string domain_entry = get_shader_main(shader_type::domain);
+				if (f.data.find(domain_entry) != core::string::npos)
 				{
-					Core::String Stage = ProgramName + SHADER_DOMAIN, Bytecode;
-					if (!GetProgramCache(Stage, &Bytecode))
+					core::string stage = program_name + SHADER_DOMAIN, bytecode;
+					if (!get_program_cache(stage, &bytecode))
 					{
-						VI_DEBUG("[d3d11] compile %s domain shader source", Stage.c_str());
-						HRESULT ResultCode = D3DCompile(F.Data.c_str(), F.Data.size() * sizeof(char), F.Filename.empty() ? nullptr : F.Filename.c_str(), nullptr, nullptr, DomainEntry.c_str(), GetDSProfile().data(), GetCompileFlags(), 0, &ShaderBlob, &ErrorBlob);
-						if (ResultCode != S_OK || !GetCompileState(ErrorBlob).empty())
+						VI_DEBUG("[d3d11] compile %s domain shader source", stage.c_str());
+						HRESULT result_code = D3DCompile(f.data.c_str(), f.data.size() * sizeof(char), f.filename.empty() ? nullptr : f.filename.c_str(), nullptr, nullptr, domain_entry.c_str(), get_ds_profile().data(), get_compile_flags(), 0, &shader_blob, &error_blob);
+						if (result_code != S_OK || !get_compile_state(error_blob).empty())
 						{
-							auto Message = GetCompileState(ErrorBlob);
-							Core::Memory::Release(ErrorBlob);
-							return GetException(ResultCode, Message);
+							auto message = get_compile_state(error_blob);
+							d3d11_release(error_blob);
+							return get_exception(result_code, message);
 						}
 
-						Data = (void*)ShaderBlob->GetBufferPointer();
-						Size = (size_t)ShaderBlob->GetBufferSize();
-						SetProgramCache(Stage, Core::String((char*)Data, Size));
+						data = (void*)shader_blob->GetBufferPointer();
+						size = (size_t)shader_blob->GetBufferSize();
+						set_program_cache(stage, core::string((char*)data, size));
 					}
 					else
 					{
-						Data = (void*)Bytecode.c_str();
-						Size = Bytecode.size();
+						data = (void*)bytecode.c_str();
+						size = bytecode.size();
 					}
 
-					VI_DEBUG("[d3d11] load %s domain shader bytecode", Stage.c_str());
-					HRESULT ResultCode = Context->CreateDomainShader(Data, Size, nullptr, &Result->DomainShader);
-					Core::Memory::Release(ShaderBlob);
-					if (ResultCode != S_OK)
-						return GetException(ResultCode, "compile domain shader");
+					VI_DEBUG("[d3d11] load %s domain shader bytecode", stage.c_str());
+					HRESULT result_code = context->CreateDomainShader(data, size, nullptr, &result->domain_shader);
+					if (result_code != S_OK)
+					{
+						d3d11_release(shader_blob);
+						return get_exception(result_code, "compile domain shader");
+					}
 
-					ResultCode = D3DReflect(Data, Size, IID_ID3D11ShaderReflection, (void**)&Result->Reflection.DomainShader);
-					if (ResultCode != S_OK)
-						return GetException(ResultCode, "disassemble domain shader");
+					result_code = D3DReflect(data, size, IID_ID3D11ShaderReflection, (void**)&result->reflection.domain_shader);
+					d3d11_release(shader_blob);
+					if (result_code != S_OK)
+						return get_exception(result_code, "disassemble domain shader");
 				}
 
-				Result->Compiled = true;
-				return Result.Reset();
+				result->compiled = true;
+				return result.reset();
 			}
-			ExpectsGraphics<ElementBuffer*> D3D11Device::CreateElementBuffer(const ElementBuffer::Desc& I)
+			expects_graphics<element_buffer*> d3d11_device::create_element_buffer(const element_buffer::desc& i)
 			{
-				D3D11_BUFFER_DESC BufferDesc;
-				ZeroMemory(&BufferDesc, sizeof(BufferDesc));
-				BufferDesc.Usage = (D3D11_USAGE)I.Usage;
-				BufferDesc.ByteWidth = (uint32_t)I.ElementCount * I.ElementWidth;
-				BufferDesc.BindFlags = (uint32_t)I.BindFlags;
-				BufferDesc.CPUAccessFlags = (uint32_t)I.AccessFlags;
-				BufferDesc.MiscFlags = (uint32_t)I.MiscFlags;
-				BufferDesc.StructureByteStride = I.StructureByteStride;
+				D3D11_BUFFER_DESC buffer_desc;
+				ZeroMemory(&buffer_desc, sizeof(buffer_desc));
+				buffer_desc.Usage = (D3D11_USAGE)i.usage;
+				buffer_desc.ByteWidth = (uint32_t)i.element_count * i.element_width;
+				buffer_desc.BindFlags = (uint32_t)i.bind_flags;
+				buffer_desc.CPUAccessFlags = (uint32_t)i.access_flags;
+				buffer_desc.MiscFlags = (uint32_t)i.misc_flags;
+				buffer_desc.StructureByteStride = i.structure_byte_stride;
 
-				Core::UPtr<D3D11ElementBuffer> Result = new D3D11ElementBuffer(I);
-				HRESULT ResultCode;
-				if (I.Elements != nullptr)
+				core::uptr<d3d11_element_buffer> result = new d3d11_element_buffer(i);
+				HRESULT result_code;
+				if (i.elements != nullptr)
 				{
-					D3D11_SUBRESOURCE_DATA Subresource;
-					ZeroMemory(&Subresource, sizeof(Subresource));
-					Subresource.pSysMem = I.Elements;
+					D3D11_SUBRESOURCE_DATA subresource;
+					ZeroMemory(&subresource, sizeof(subresource));
+					subresource.pSysMem = i.elements;
 
-					ResultCode = Context->CreateBuffer(&BufferDesc, &Subresource, &Result->Element);
+					result_code = context->CreateBuffer(&buffer_desc, &subresource, &result->element);
 				}
 				else
-					ResultCode = Context->CreateBuffer(&BufferDesc, nullptr, &Result->Element);
+					result_code = context->CreateBuffer(&buffer_desc, nullptr, &result->element);
 
-				if (ResultCode != S_OK)
-					return GetException(ResultCode, "create element buffer");
+				if (result_code != S_OK)
+					return get_exception(result_code, "create element buffer");
 
-				if (I.Writable)
+				if (i.writable)
 				{
-					D3D11_UNORDERED_ACCESS_VIEW_DESC AccessDesc;
-					ZeroMemory(&AccessDesc, sizeof(AccessDesc));
-					AccessDesc.Format = DXGI_FORMAT_R32_FLOAT;
-					AccessDesc.ViewDimension = D3D11_UAV_DIMENSION_BUFFER;
-					AccessDesc.Buffer.Flags = 0;
-					AccessDesc.Buffer.FirstElement = 0;
-					AccessDesc.Buffer.NumElements = I.ElementCount;
+					D3D11_UNORDERED_ACCESS_VIEW_DESC access_desc;
+					ZeroMemory(&access_desc, sizeof(access_desc));
+					access_desc.Format = DXGI_FORMAT_R32_FLOAT;
+					access_desc.ViewDimension = D3D11_UAV_DIMENSION_BUFFER;
+					access_desc.Buffer.Flags = 0;
+					access_desc.Buffer.FirstElement = 0;
+					access_desc.Buffer.NumElements = i.element_count;
 
-					ResultCode = Context->CreateUnorderedAccessView(Result->Element, &AccessDesc, &Result->Access);
-					if (ResultCode != S_OK)
-						return GetException(ResultCode, "create element buffer");
+					result_code = context->CreateUnorderedAccessView(result->element, &access_desc, &result->access);
+					if (result_code != S_OK)
+						return get_exception(result_code, "create element buffer");
 				}
 
-				if (!((size_t)I.MiscFlags & (size_t)ResourceMisc::Buffer_Structured))
-					return Result.Reset();
+				if (!((size_t)i.misc_flags & (size_t)resource_misc::buffer_structured))
+					return result.reset();
 
 				D3D11_SHADER_RESOURCE_VIEW_DESC SRV;
 				ZeroMemory(&SRV, sizeof(SRV));
 				SRV.Format = DXGI_FORMAT_UNKNOWN;
 				SRV.ViewDimension = D3D11_SRV_DIMENSION_BUFFER;
-				SRV.Buffer.ElementWidth = I.ElementCount;
+				SRV.Buffer.ElementWidth = i.element_count;
 
-				ResultCode = Context->CreateShaderResourceView(Result->Element, &SRV, &Result->Resource);
-				if (ResultCode != S_OK)
-					return GetException(ResultCode, "create element buffer");
+				result_code = context->CreateShaderResourceView(result->element, &SRV, &result->resource);
+				if (result_code != S_OK)
+					return get_exception(result_code, "create element buffer");
 
-				return Result.Reset();
+				return result.reset();
 			}
-			ExpectsGraphics<MeshBuffer*> D3D11Device::CreateMeshBuffer(const MeshBuffer::Desc& I)
+			expects_graphics<mesh_buffer*> d3d11_device::create_mesh_buffer(const mesh_buffer::desc& i)
 			{
-				ElementBuffer::Desc F = ElementBuffer::Desc();
-				F.AccessFlags = I.AccessFlags;
-				F.Usage = I.Usage;
-				F.BindFlags = ResourceBind::Vertex_Buffer;
-				F.ElementCount = (uint32_t)I.Elements.size();
-				F.Elements = (void*)I.Elements.data();
-				F.ElementWidth = sizeof(Trigonometry::Vertex);
-				
-				auto NewVertexBuffer = CreateElementBuffer(F);
-				if (!NewVertexBuffer)
-					return NewVertexBuffer.Error();
+				element_buffer::desc f = element_buffer::desc();
+				f.access_flags = i.access_flags;
+				f.usage = i.usage;
+				f.bind_flags = resource_bind::vertex_buffer;
+				f.element_count = (uint32_t)i.elements.size();
+				f.elements = (void*)i.elements.data();
+				f.element_width = sizeof(trigonometry::vertex);
 
-				F = ElementBuffer::Desc();
-				F.AccessFlags = I.AccessFlags;
-				F.Usage = I.Usage;
-				F.BindFlags = ResourceBind::Index_Buffer;
-				F.ElementCount = (uint32_t)I.Indices.size();
-				F.ElementWidth = sizeof(int);
-				F.Elements = (void*)I.Indices.data();
+				auto new_vertex_buffer = create_element_buffer(f);
+				if (!new_vertex_buffer)
+					return new_vertex_buffer.error();
 
-				auto NewIndexBuffer = CreateElementBuffer(F);
-				if (!NewIndexBuffer)
+				f = element_buffer::desc();
+				f.access_flags = i.access_flags;
+				f.usage = i.usage;
+				f.bind_flags = resource_bind::index_buffer;
+				f.element_count = (uint32_t)i.indices.size();
+				f.element_width = sizeof(int);
+				f.elements = (void*)i.indices.data();
+
+				auto new_index_buffer = create_element_buffer(f);
+				if (!new_index_buffer)
 				{
-					Core::Memory::Release(*NewVertexBuffer);
-					return NewIndexBuffer.Error();
+					core::memory::release(*new_vertex_buffer);
+					return new_index_buffer.error();
 				}
 
-				D3D11MeshBuffer* Result = new D3D11MeshBuffer(I);
-				Result->VertexBuffer = *NewVertexBuffer;
-				Result->IndexBuffer = *NewIndexBuffer;
-				return Result;
+				d3d11_mesh_buffer* result = new d3d11_mesh_buffer(i);
+				result->vertex_buffer = *new_vertex_buffer;
+				result->index_buffer = *new_index_buffer;
+				return result;
 			}
-			ExpectsGraphics<MeshBuffer*> D3D11Device::CreateMeshBuffer(ElementBuffer* VertexBuffer, ElementBuffer* IndexBuffer)
+			expects_graphics<mesh_buffer*> d3d11_device::create_mesh_buffer(element_buffer* vertex_buffer, element_buffer* index_buffer)
 			{
-				VI_ASSERT(VertexBuffer != nullptr, "vertex buffer should be set");
-				VI_ASSERT(IndexBuffer != nullptr, "index buffer should be set");
-				D3D11MeshBuffer* Result = new D3D11MeshBuffer(D3D11MeshBuffer::Desc());
-				Result->VertexBuffer = VertexBuffer;
-				Result->IndexBuffer = IndexBuffer;
-				return Result;
+				VI_ASSERT(vertex_buffer != nullptr, "vertex buffer should be set");
+				VI_ASSERT(index_buffer != nullptr, "index buffer should be set");
+				d3d11_mesh_buffer* result = new d3d11_mesh_buffer(d3d11_mesh_buffer::desc());
+				result->vertex_buffer = vertex_buffer;
+				result->index_buffer = index_buffer;
+				return result;
 			}
-			ExpectsGraphics<SkinMeshBuffer*> D3D11Device::CreateSkinMeshBuffer(const SkinMeshBuffer::Desc& I)
+			expects_graphics<skin_mesh_buffer*> d3d11_device::create_skin_mesh_buffer(const skin_mesh_buffer::desc& i)
 			{
-				ElementBuffer::Desc F = ElementBuffer::Desc();
-				F.AccessFlags = I.AccessFlags;
-				F.Usage = I.Usage;
-				F.BindFlags = ResourceBind::Vertex_Buffer;
-				F.ElementCount = (uint32_t)I.Elements.size();
-				F.Elements = (void*)I.Elements.data();
-				F.ElementWidth = sizeof(Trigonometry::SkinVertex);
+				element_buffer::desc f = element_buffer::desc();
+				f.access_flags = i.access_flags;
+				f.usage = i.usage;
+				f.bind_flags = resource_bind::vertex_buffer;
+				f.element_count = (uint32_t)i.elements.size();
+				f.elements = (void*)i.elements.data();
+				f.element_width = sizeof(trigonometry::skin_vertex);
 
-				auto NewVertexBuffer = CreateElementBuffer(F);
-				if (!NewVertexBuffer)
-					return NewVertexBuffer.Error();
+				auto new_vertex_buffer = create_element_buffer(f);
+				if (!new_vertex_buffer)
+					return new_vertex_buffer.error();
 
-				F = ElementBuffer::Desc();
-				F.AccessFlags = I.AccessFlags;
-				F.Usage = I.Usage;
-				F.BindFlags = ResourceBind::Index_Buffer;
-				F.ElementCount = (uint32_t)I.Indices.size();
-				F.ElementWidth = sizeof(int);
-				F.Elements = (void*)I.Indices.data();
+				f = element_buffer::desc();
+				f.access_flags = i.access_flags;
+				f.usage = i.usage;
+				f.bind_flags = resource_bind::index_buffer;
+				f.element_count = (uint32_t)i.indices.size();
+				f.element_width = sizeof(int);
+				f.elements = (void*)i.indices.data();
 
-				auto NewIndexBuffer = CreateElementBuffer(F);
-				if (!NewIndexBuffer)
+				auto new_index_buffer = create_element_buffer(f);
+				if (!new_index_buffer)
 				{
-					Core::Memory::Release(*NewVertexBuffer);
-					return NewIndexBuffer.Error();
+					core::memory::release(*new_vertex_buffer);
+					return new_index_buffer.error();
 				}
 
-				D3D11SkinMeshBuffer* Result = new D3D11SkinMeshBuffer(I);
-				Result->VertexBuffer = *NewVertexBuffer;
-				Result->IndexBuffer = *NewIndexBuffer;
-				return Result;
+				d3d11_skin_mesh_buffer* result = new d3d11_skin_mesh_buffer(i);
+				result->vertex_buffer = *new_vertex_buffer;
+				result->index_buffer = *new_index_buffer;
+				return result;
 			}
-			ExpectsGraphics<SkinMeshBuffer*> D3D11Device::CreateSkinMeshBuffer(ElementBuffer* VertexBuffer, ElementBuffer* IndexBuffer)
+			expects_graphics<skin_mesh_buffer*> d3d11_device::create_skin_mesh_buffer(element_buffer* vertex_buffer, element_buffer* index_buffer)
 			{
-				VI_ASSERT(VertexBuffer != nullptr, "vertex buffer should be set");
-				VI_ASSERT(IndexBuffer != nullptr, "index buffer should be set");
-				D3D11SkinMeshBuffer* Result = new D3D11SkinMeshBuffer(D3D11SkinMeshBuffer::Desc());
-				Result->VertexBuffer = VertexBuffer;
-				Result->IndexBuffer = IndexBuffer;
-				return Result;
+				VI_ASSERT(vertex_buffer != nullptr, "vertex buffer should be set");
+				VI_ASSERT(index_buffer != nullptr, "index buffer should be set");
+				d3d11_skin_mesh_buffer* result = new d3d11_skin_mesh_buffer(d3d11_skin_mesh_buffer::desc());
+				result->vertex_buffer = vertex_buffer;
+				result->index_buffer = index_buffer;
+				return result;
 			}
-			ExpectsGraphics<InstanceBuffer*> D3D11Device::CreateInstanceBuffer(const InstanceBuffer::Desc& I)
+			expects_graphics<instance_buffer*> d3d11_device::create_instance_buffer(const instance_buffer::desc& i)
 			{
-				ElementBuffer::Desc F = ElementBuffer::Desc();
-				F.AccessFlags = CPUAccess::Write;
-				F.MiscFlags = ResourceMisc::Buffer_Structured;
-				F.Usage = ResourceUsage::Dynamic;
-				F.BindFlags = ResourceBind::Shader_Input;
-				F.ElementCount = I.ElementLimit;
-				F.ElementWidth = I.ElementWidth;
-				F.StructureByteStride = F.ElementWidth;
+				element_buffer::desc f = element_buffer::desc();
+				f.access_flags = cpu_access::write;
+				f.misc_flags = resource_misc::buffer_structured;
+				f.usage = resource_usage::dynamic;
+				f.bind_flags = resource_bind::shader_input;
+				f.element_count = i.element_limit;
+				f.element_width = i.element_width;
+				f.structure_byte_stride = f.element_width;
 
-				auto NewElements = CreateElementBuffer(F);
-				if (!NewElements)
-					return NewElements.Error();
+				auto new_elements = create_element_buffer(f);
+				if (!new_elements)
+					return new_elements.error();
 
-				Core::UPtr<D3D11InstanceBuffer> Result = new D3D11InstanceBuffer(I);
-				Result->Elements = *NewElements;
+				core::uptr<d3d11_instance_buffer> result = new d3d11_instance_buffer(i);
+				result->elements = *new_elements;
 
 				D3D11_SHADER_RESOURCE_VIEW_DESC SRV;
 				ZeroMemory(&SRV, sizeof(SRV));
 				SRV.Format = DXGI_FORMAT_UNKNOWN;
 				SRV.ViewDimension = D3D11_SRV_DIMENSION_BUFFER;
-				SRV.Buffer.ElementWidth = I.ElementLimit;
+				SRV.Buffer.ElementWidth = i.element_limit;
 
-				HRESULT ResultCode = Context->CreateShaderResourceView(((D3D11ElementBuffer*)Result->Elements)->Element, &SRV, &Result->Resource);
-				if (ResultCode != S_OK)
-					return GetException(ResultCode, "create instance buffer");
+				HRESULT result_code = context->CreateShaderResourceView(((d3d11_element_buffer*)result->elements)->element, &SRV, &result->resource);
+				if (result_code != S_OK)
+					return get_exception(result_code, "create instance buffer");
 
-				return Result.Reset();
+				return result.reset();
 			}
-			ExpectsGraphics<Texture2D*> D3D11Device::CreateTexture2D()
+			expects_graphics<texture_2d*> d3d11_device::create_texture_2d()
 			{
-				return new D3D11Texture2D();
+				return new d3d11_texture_2d();
 			}
-			ExpectsGraphics<Texture2D*> D3D11Device::CreateTexture2D(const Texture2D::Desc& I)
+			expects_graphics<texture_2d*> d3d11_device::create_texture_2d(const texture_2d::desc& i)
 			{
-				D3D11_TEXTURE2D_DESC Description;
-				ZeroMemory(&Description, sizeof(Description));
-				Description.Width = I.Width;
-				Description.Height = I.Height;
-				Description.MipLevels = I.MipLevels;
-				Description.ArraySize = 1;
-				Description.Format = (DXGI_FORMAT)I.FormatMode;
-				Description.SampleDesc.Count = 1;
-				Description.SampleDesc.Quality = 0;
-				Description.Usage = (D3D11_USAGE)I.Usage;
-				Description.BindFlags = (uint32_t)I.BindFlags;
-				Description.CPUAccessFlags = (uint32_t)I.AccessFlags;
-				Description.MiscFlags = (uint32_t)I.MiscFlags;
+				D3D11_TEXTURE2D_DESC description;
+				ZeroMemory(&description, sizeof(description));
+				description.Width = i.width;
+				description.Height = i.height;
+				description.MipLevels = i.mip_levels;
+				description.ArraySize = 1;
+				description.Format = (DXGI_FORMAT)i.format_mode;
+				description.SampleDesc.Count = 1;
+				description.SampleDesc.Quality = 0;
+				description.Usage = (D3D11_USAGE)i.usage;
+				description.BindFlags = (uint32_t)i.bind_flags;
+				description.CPUAccessFlags = (uint32_t)i.access_flags;
+				description.MiscFlags = (uint32_t)i.misc_flags;
 
-				if (I.Data != nullptr && I.MipLevels > 0)
+				if (i.data != nullptr && i.mip_levels > 0)
 				{
-					Description.BindFlags |= D3D11_BIND_RENDER_TARGET;
-					Description.MiscFlags |= D3D11_RESOURCE_MISC_GENERATE_MIPS;
+					description.BindFlags |= D3D11_BIND_RENDER_TARGET;
+					description.MiscFlags |= D3D11_RESOURCE_MISC_GENERATE_MIPS;
 				}
 
-				if (I.Writable)
-					Description.BindFlags |= D3D11_BIND_UNORDERED_ACCESS;
+				if (i.writable)
+					description.BindFlags |= D3D11_BIND_UNORDERED_ACCESS;
 
-				D3D11_SUBRESOURCE_DATA Data;
-				Data.pSysMem = I.Data;
-				Data.SysMemPitch = I.RowPitch;
-				Data.SysMemSlicePitch = I.DepthPitch;
+				D3D11_SUBRESOURCE_DATA data;
+				data.pSysMem = i.data;
+				data.SysMemPitch = i.row_pitch;
+				data.SysMemSlicePitch = i.depth_pitch;
 
-				Core::UPtr<D3D11Texture2D> Result = new D3D11Texture2D();
-				HRESULT ResultCode = Context->CreateTexture2D(&Description, I.Data && I.MipLevels <= 0 ? &Data : nullptr, &Result->View);
-				if (ResultCode != S_OK)
-					return GetException(ResultCode, "create texture 2d");
+				core::uptr<d3d11_texture_2d> result = new d3d11_texture_2d();
+				HRESULT result_code = context->CreateTexture2D(&description, i.data && i.mip_levels <= 0 ? &data : nullptr, &result->view);
+				if (result_code != S_OK)
+					return get_exception(result_code, "create texture 2d");
 
-				auto GenerateStatus = GenerateTexture(*Result);
-				if (!GenerateStatus)
-					return GenerateStatus.Error();
+				auto generate_status = generate_texture(*result);
+				if (!generate_status)
+					return generate_status.error();
 
-				if (I.Data != nullptr && I.MipLevels > 0)
+				if (i.data != nullptr && i.mip_levels > 0)
 				{
-					ImmediateContext->UpdateSubresource(Result->View, 0, nullptr, I.Data, I.RowPitch, I.DepthPitch);
-					ImmediateContext->GenerateMips(Result->Resource);
+					immediate_context->UpdateSubresource(result->view, 0, nullptr, i.data, i.row_pitch, i.depth_pitch);
+					immediate_context->GenerateMips(result->resource);
 				}
 
-				if (!I.Writable)
-					return Result.Reset();
+				if (!i.writable)
+					return result.reset();
 
-				D3D11_UNORDERED_ACCESS_VIEW_DESC AccessDesc;
-				ZeroMemory(&AccessDesc, sizeof(AccessDesc));
-				AccessDesc.Format = (DXGI_FORMAT)I.FormatMode;
-				AccessDesc.ViewDimension = D3D11_UAV_DIMENSION_TEXTURE2D;
-				AccessDesc.Texture2D.MipSlice = 0;
+				D3D11_UNORDERED_ACCESS_VIEW_DESC access_desc;
+				ZeroMemory(&access_desc, sizeof(access_desc));
+				access_desc.Format = (DXGI_FORMAT)i.format_mode;
+				access_desc.ViewDimension = D3D11_UAV_DIMENSION_TEXTURE2D;
+				access_desc.Texture2D.MipSlice = 0;
 
-				ResultCode = Context->CreateUnorderedAccessView(Result->View, &AccessDesc, &Result->Access);
-				if (ResultCode != S_OK)
-					return GetException(ResultCode, "create texture 2d");
+				result_code = context->CreateUnorderedAccessView(result->view, &access_desc, &result->access);
+				if (result_code != S_OK)
+					return get_exception(result_code, "create texture 2d");
 
-				return Result.Reset();
+				return result.reset();
 			}
-			ExpectsGraphics<Texture3D*> D3D11Device::CreateTexture3D()
+			expects_graphics<texture_3d*> d3d11_device::create_texture_3d()
 			{
-				return new D3D11Texture3D();
+				return new d3d11_texture_3d();
 			}
-			ExpectsGraphics<Texture3D*> D3D11Device::CreateTexture3D(const Texture3D::Desc& I)
+			expects_graphics<texture_3d*> d3d11_device::create_texture_3d(const texture_3d::desc& i)
 			{
-				D3D11_TEXTURE3D_DESC Description;
-				ZeroMemory(&Description, sizeof(Description));
-				Description.Width = I.Width;
-				Description.Height = I.Height;
-				Description.Depth = I.Depth;
-				Description.MipLevels = I.MipLevels;
-				Description.Format = (DXGI_FORMAT)I.FormatMode;
-				Description.Usage = (D3D11_USAGE)I.Usage;
-				Description.BindFlags = (uint32_t)I.BindFlags;
-				Description.CPUAccessFlags = (uint32_t)I.AccessFlags;
-				Description.MiscFlags = (uint32_t)I.MiscFlags;
+				D3D11_TEXTURE3D_DESC description;
+				ZeroMemory(&description, sizeof(description));
+				description.Width = i.width;
+				description.Height = i.height;
+				description.Depth = i.depth;
+				description.MipLevels = i.mip_levels;
+				description.Format = (DXGI_FORMAT)i.format_mode;
+				description.Usage = (D3D11_USAGE)i.usage;
+				description.BindFlags = (uint32_t)i.bind_flags;
+				description.CPUAccessFlags = (uint32_t)i.access_flags;
+				description.MiscFlags = (uint32_t)i.misc_flags;
 
-				if (I.MipLevels > 0)
+				if (i.mip_levels > 0)
 				{
-					Description.BindFlags |= D3D11_BIND_RENDER_TARGET;
-					Description.MiscFlags |= D3D11_RESOURCE_MISC_GENERATE_MIPS;
+					description.BindFlags |= D3D11_BIND_RENDER_TARGET;
+					description.MiscFlags |= D3D11_RESOURCE_MISC_GENERATE_MIPS;
 				}
 
-				if (I.Writable)
-					Description.BindFlags |= D3D11_BIND_UNORDERED_ACCESS;
+				if (i.writable)
+					description.BindFlags |= D3D11_BIND_UNORDERED_ACCESS;
 
-				Core::UPtr<D3D11Texture3D> Result = new D3D11Texture3D();
-				HRESULT ResultCode = Context->CreateTexture3D(&Description, nullptr, &Result->View);
-				if (ResultCode != S_OK)
-					return GetException(ResultCode, "create texture 3d");
+				core::uptr<d3d11_texture_3d> result = new d3d11_texture_3d();
+				HRESULT result_code = context->CreateTexture3D(&description, nullptr, &result->view);
+				if (result_code != S_OK)
+					return get_exception(result_code, "create texture 3d");
 
-				auto GenerateStatus = GenerateTexture(*Result);
-				if (!GenerateStatus)
-					return GenerateStatus.Error();
+				auto generate_status = generate_texture(*result);
+				if (!generate_status)
+					return generate_status.error();
 
-				if (!I.Writable)
-					return Result.Reset();
+				if (!i.writable)
+					return result.reset();
 
-				D3D11_UNORDERED_ACCESS_VIEW_DESC AccessDesc;
-				ZeroMemory(&AccessDesc, sizeof(AccessDesc));
-				AccessDesc.Format = (DXGI_FORMAT)I.FormatMode;
-				AccessDesc.ViewDimension = D3D11_UAV_DIMENSION_TEXTURE3D;
-				AccessDesc.Texture3D.MipSlice = 0;
-				AccessDesc.Texture3D.FirstWSlice = 0;
-				AccessDesc.Texture3D.WSize = I.Depth;
+				D3D11_UNORDERED_ACCESS_VIEW_DESC access_desc;
+				ZeroMemory(&access_desc, sizeof(access_desc));
+				access_desc.Format = (DXGI_FORMAT)i.format_mode;
+				access_desc.ViewDimension = D3D11_UAV_DIMENSION_TEXTURE3D;
+				access_desc.Texture3D.MipSlice = 0;
+				access_desc.Texture3D.FirstWSlice = 0;
+				access_desc.Texture3D.WSize = i.depth;
 
-				ResultCode = Context->CreateUnorderedAccessView(Result->View, &AccessDesc, &Result->Access);
-				if (ResultCode != S_OK)
-					return GetException(ResultCode, "create texture 3d");
+				result_code = context->CreateUnorderedAccessView(result->view, &access_desc, &result->access);
+				if (result_code != S_OK)
+					return get_exception(result_code, "create texture 3d");
 
-				return Result.Reset();
+				return result.reset();
 			}
-			ExpectsGraphics<TextureCube*> D3D11Device::CreateTextureCube()
+			expects_graphics<texture_cube*> d3d11_device::create_texture_cube()
 			{
-				return new D3D11TextureCube();
+				return new d3d11_texture_cube();
 			}
-			ExpectsGraphics<TextureCube*> D3D11Device::CreateTextureCube(const TextureCube::Desc& I)
+			expects_graphics<texture_cube*> d3d11_device::create_texture_cube(const texture_cube::desc& i)
 			{
-				D3D11_TEXTURE2D_DESC Description;
-				ZeroMemory(&Description, sizeof(Description));
-				Description.Width = I.Width;
-				Description.Height = I.Height;
-				Description.MipLevels = I.MipLevels;
-				Description.ArraySize = 6;
-				Description.Format = (DXGI_FORMAT)I.FormatMode;
-				Description.SampleDesc.Count = 1;
-				Description.SampleDesc.Quality = 0;
-				Description.Usage = (D3D11_USAGE)I.Usage;
-				Description.BindFlags = (uint32_t)I.BindFlags;
-				Description.CPUAccessFlags = (uint32_t)I.AccessFlags;
-				Description.MiscFlags = D3D11_RESOURCE_MISC_TEXTURECUBE | (uint32_t)I.MiscFlags;
+				D3D11_TEXTURE2D_DESC description;
+				ZeroMemory(&description, sizeof(description));
+				description.Width = i.width;
+				description.Height = i.height;
+				description.MipLevels = i.mip_levels;
+				description.ArraySize = 6;
+				description.Format = (DXGI_FORMAT)i.format_mode;
+				description.SampleDesc.Count = 1;
+				description.SampleDesc.Quality = 0;
+				description.Usage = (D3D11_USAGE)i.usage;
+				description.BindFlags = (uint32_t)i.bind_flags;
+				description.CPUAccessFlags = (uint32_t)i.access_flags;
+				description.MiscFlags = D3D11_RESOURCE_MISC_TEXTURECUBE | (uint32_t)i.misc_flags;
 
-				if (I.MipLevels > 0)
+				if (i.mip_levels > 0)
 				{
-					Description.BindFlags |= D3D11_BIND_RENDER_TARGET;
-					Description.MiscFlags |= D3D11_RESOURCE_MISC_GENERATE_MIPS;
+					description.BindFlags |= D3D11_BIND_RENDER_TARGET;
+					description.MiscFlags |= D3D11_RESOURCE_MISC_GENERATE_MIPS;
 				}
 
-				if (I.Writable)
-					Description.BindFlags |= D3D11_BIND_UNORDERED_ACCESS;
+				if (i.writable)
+					description.BindFlags |= D3D11_BIND_UNORDERED_ACCESS;
 
-				Core::UPtr<D3D11TextureCube> Result = new D3D11TextureCube();
-				HRESULT ResultCode = Context->CreateTexture2D(&Description, 0, &Result->View);
-				if (ResultCode != S_OK)
-					return GetException(ResultCode, "create texture cube");
+				core::uptr<d3d11_texture_cube> result = new d3d11_texture_cube();
+				HRESULT result_code = context->CreateTexture2D(&description, 0, &result->view);
+				if (result_code != S_OK)
+					return get_exception(result_code, "create texture cube");
 
-				D3D11_BOX Region;
-				Region.left = 0;
-				Region.right = Description.Width;
-				Region.top = 0;
-				Region.bottom = Description.Height;
-				Region.front = 0;
-				Region.back = 1;
+				D3D11_BOX region;
+				region.left = 0;
+				region.right = description.Width;
+				region.top = 0;
+				region.bottom = description.Height;
+				region.front = 0;
+				region.back = 1;
 
-				auto GenerateStatus = GenerateTexture(*Result);
-				if (!GenerateStatus)
-					return GenerateStatus.Error();
+				auto generate_status = generate_texture(*result);
+				if (!generate_status)
+					return generate_status.error();
 
-				if (!I.Writable)
-					return Result.Reset();
+				if (!i.writable)
+					return result.reset();
 
-				D3D11_UNORDERED_ACCESS_VIEW_DESC AccessDesc;
-				ZeroMemory(&AccessDesc, sizeof(AccessDesc));
-				AccessDesc.Format = (DXGI_FORMAT)I.FormatMode;
-				AccessDesc.ViewDimension = D3D11_UAV_DIMENSION_TEXTURE2DARRAY;
-				AccessDesc.Texture2DArray.MipSlice = 0;
-				AccessDesc.Texture2DArray.FirstArraySlice = 0;
-				AccessDesc.Texture2DArray.ArraySize = 6;
+				D3D11_UNORDERED_ACCESS_VIEW_DESC access_desc;
+				ZeroMemory(&access_desc, sizeof(access_desc));
+				access_desc.Format = (DXGI_FORMAT)i.format_mode;
+				access_desc.ViewDimension = D3D11_UAV_DIMENSION_TEXTURE2DARRAY;
+				access_desc.Texture2DArray.MipSlice = 0;
+				access_desc.Texture2DArray.FirstArraySlice = 0;
+				access_desc.Texture2DArray.ArraySize = 6;
 
-				ResultCode = Context->CreateUnorderedAccessView(Result->View, &AccessDesc, &Result->Access);
-				if (ResultCode != S_OK)
-					return GetException(ResultCode, "create texture cube");
+				result_code = context->CreateUnorderedAccessView(result->view, &access_desc, &result->access);
+				if (result_code != S_OK)
+					return get_exception(result_code, "create texture cube");
 
-				return Result.Reset();
+				return result.reset();
 			}
-			ExpectsGraphics<TextureCube*> D3D11Device::CreateTextureCube(Graphics::Texture2D* Resource[6])
+			expects_graphics<texture_cube*> d3d11_device::create_texture_cube(graphics::texture_2d* resource[6])
 			{
-				VI_ASSERT(Resource[0] && Resource[1] && Resource[2] && Resource[3] && Resource[4] && Resource[5], "all 6 faces should be set");
-				void* Resources[6];
+				VI_ASSERT(resource[0] && resource[1] && resource[2] && resource[3] && resource[4] && resource[5], "all 6 faces should be set");
+				void* resources[6];
 				for (uint32_t i = 0; i < 6; i++)
-					Resources[i] = (void*)((D3D11Texture2D*)Resource[i])->View;
+					resources[i] = (void*)((d3d11_texture_2d*)resource[i])->view;
 
-				return CreateTextureCubeInternal(Resources);
+				return create_texture_cube_internal(resources);
 			}
-			ExpectsGraphics<TextureCube*> D3D11Device::CreateTextureCube(Graphics::Texture2D* Resource)
+			expects_graphics<texture_cube*> d3d11_device::create_texture_cube(graphics::texture_2d* resource)
 			{
-				VI_ASSERT(Resource != nullptr, "resource should be set");
-				ID3D11Texture2D* Src = ((D3D11Texture2D*)Resource)->View;
+				VI_ASSERT(resource != nullptr, "resource should be set");
+				ID3D11Texture2D* src = ((d3d11_texture_2d*)resource)->view;
 
-				VI_ASSERT(Src != nullptr, "src should be set");
-				D3D11_TEXTURE2D_DESC Description;
-				Src->GetDesc(&Description);
-				Description.ArraySize = 6;
-				Description.Usage = D3D11_USAGE_DEFAULT;
-				Description.BindFlags = D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_RENDER_TARGET;
-				Description.CPUAccessFlags = 0;
-				Description.MiscFlags = D3D11_RESOURCE_MISC_TEXTURECUBE | D3D11_RESOURCE_MISC_GENERATE_MIPS;
+				VI_ASSERT(src != nullptr, "src should be set");
+				D3D11_TEXTURE2D_DESC description;
+				src->GetDesc(&description);
+				description.ArraySize = 6;
+				description.Usage = D3D11_USAGE_DEFAULT;
+				description.BindFlags = D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_RENDER_TARGET;
+				description.CPUAccessFlags = 0;
+				description.MiscFlags = D3D11_RESOURCE_MISC_TEXTURECUBE | D3D11_RESOURCE_MISC_GENERATE_MIPS;
 
-				uint32_t Width = Description.Width;
-				Description.Width = Description.Width / 4;
+				uint32_t width = description.Width;
+				description.Width = description.Width / 4;
 
-				uint32_t Height = Description.Height;
-				Description.Height = Description.Width;
+				uint32_t height = description.Height;
+				description.Height = description.Width;
 
-				D3D11_BOX Region;
-				Region.front = 0;
-				Region.back = 1;
+				D3D11_BOX region;
+				region.front = 0;
+				region.back = 1;
 
-				Description.MipLevels = GetMipLevel(Description.Width, Description.Height);
-				if (Width % 4 != 0 || Height % 3 != 0)
-					return GraphicsException("create texture cube: width / height is invalid");
+				description.MipLevels = get_mip_level(description.Width, description.Height);
+				if (width % 4 != 0 || height % 3 != 0)
+					return graphics_exception("create texture cube: width / height is invalid");
 
-				Core::UPtr<D3D11TextureCube> Result = new D3D11TextureCube();
-				HRESULT ResultCode = Context->CreateTexture2D(&Description, 0, &Result->View);
-				if (ResultCode != S_OK)
-					return GetException(ResultCode, "create texture cube");
+				core::uptr<d3d11_texture_cube> result = new d3d11_texture_cube();
+				HRESULT result_code = context->CreateTexture2D(&description, 0, &result->view);
+				if (result_code != S_OK)
+					return get_exception(result_code, "create texture cube");
 
-				Region.left = Description.Width * 2 - 1;
-				Region.top = Description.Height - 1;
-				Region.right = Region.left + Description.Width;
-				Region.bottom = Region.top + Description.Height;
-				ImmediateContext->CopySubresourceRegion(Result->View, D3D11CalcSubresource(0, 0, Description.MipLevels), 0, 0, 0, Src, 0, &Region);
+				region.left = description.Width * 2 - 1;
+				region.top = description.Height - 1;
+				region.right = region.left + description.Width;
+				region.bottom = region.top + description.Height;
+				immediate_context->CopySubresourceRegion(result->view, D3D11CalcSubresource(0, 0, description.MipLevels), 0, 0, 0, src, 0, &region);
 
-				Region.left = 0;
-				Region.top = Description.Height;
-				Region.right = Region.left + Description.Width;
-				Region.bottom = Region.top + Description.Height;
-				ImmediateContext->CopySubresourceRegion(Result->View, D3D11CalcSubresource(0, 1, Description.MipLevels), 0, 0, 0, Src, 0, &Region);
+				region.left = 0;
+				region.top = description.Height;
+				region.right = region.left + description.Width;
+				region.bottom = region.top + description.Height;
+				immediate_context->CopySubresourceRegion(result->view, D3D11CalcSubresource(0, 1, description.MipLevels), 0, 0, 0, src, 0, &region);
 
-				Region.left = Description.Width;
-				Region.top = 0;
-				Region.right = Region.left + Description.Width;
-				Region.bottom = Region.top + Description.Height;
-				ImmediateContext->CopySubresourceRegion(Result->View, D3D11CalcSubresource(0, 2, Description.MipLevels), 0, 0, 0, Src, 0, &Region);
+				region.left = description.Width;
+				region.top = 0;
+				region.right = region.left + description.Width;
+				region.bottom = region.top + description.Height;
+				immediate_context->CopySubresourceRegion(result->view, D3D11CalcSubresource(0, 2, description.MipLevels), 0, 0, 0, src, 0, &region);
 
-				Region.top = Description.Height * 2;
-				Region.right = Region.left + Description.Width;
-				Region.bottom = Region.top + Description.Height;
-				ImmediateContext->CopySubresourceRegion(Result->View, D3D11CalcSubresource(0, 3, Description.MipLevels), 0, 0, 0, Src, 0, &Region);
+				region.top = description.Height * 2;
+				region.right = region.left + description.Width;
+				region.bottom = region.top + description.Height;
+				immediate_context->CopySubresourceRegion(result->view, D3D11CalcSubresource(0, 3, description.MipLevels), 0, 0, 0, src, 0, &region);
 
-				Region.top = Description.Height;
-				Region.right = Region.left + Description.Width;
-				Region.bottom = Region.top + Description.Height;
-				ImmediateContext->CopySubresourceRegion(Result->View, D3D11CalcSubresource(0, 4, Description.MipLevels), 0, 0, 0, Src, 0, &Region);
+				region.top = description.Height;
+				region.right = region.left + description.Width;
+				region.bottom = region.top + description.Height;
+				immediate_context->CopySubresourceRegion(result->view, D3D11CalcSubresource(0, 4, description.MipLevels), 0, 0, 0, src, 0, &region);
 
-				Region.left = Description.Width * 3;
-				Region.right = Region.left + Description.Width;
-				Region.bottom = Region.top + Description.Height;
-				ImmediateContext->CopySubresourceRegion(Result->View, D3D11CalcSubresource(0, 5, Description.MipLevels), 0, 0, 0, Src, 0, &Region);
+				region.left = description.Width * 3;
+				region.right = region.left + description.Width;
+				region.bottom = region.top + description.Height;
+				immediate_context->CopySubresourceRegion(result->view, D3D11CalcSubresource(0, 5, description.MipLevels), 0, 0, 0, src, 0, &region);
 
-				auto GenerateStatus = GenerateTexture(*Result);
-				if (!GenerateStatus)
-					return GenerateStatus.Error();
+				auto generate_status = generate_texture(*result);
+				if (!generate_status)
+					return generate_status.error();
 
-				if (Description.MipLevels > 0)
-					ImmediateContext->GenerateMips(Result->Resource);
+				if (description.MipLevels > 0)
+					immediate_context->GenerateMips(result->resource);
 
-				return Result.Reset();
+				return result.reset();
 			}
-			ExpectsGraphics<TextureCube*> D3D11Device::CreateTextureCubeInternal(void* Resource[6])
+			expects_graphics<texture_cube*> d3d11_device::create_texture_cube_internal(void* resource[6])
 			{
-				VI_ASSERT(Resource[0] && Resource[1] && Resource[2] && Resource[3] && Resource[4] && Resource[5], "all 6 faces should be set");
+				VI_ASSERT(resource[0] && resource[1] && resource[2] && resource[3] && resource[4] && resource[5], "all 6 faces should be set");
 
-				D3D11_TEXTURE2D_DESC Description;
-				((ID3D11Texture2D*)Resource[0])->GetDesc(&Description);
-				Description.MipLevels = 1;
-				Description.ArraySize = 6;
-				Description.Usage = D3D11_USAGE_DEFAULT;
-				Description.BindFlags = D3D11_BIND_SHADER_RESOURCE;
-				Description.CPUAccessFlags = 0;
-				Description.MiscFlags = D3D11_RESOURCE_MISC_TEXTURECUBE;
+				D3D11_TEXTURE2D_DESC description;
+				((ID3D11Texture2D*)resource[0])->GetDesc(&description);
+				description.MipLevels = 1;
+				description.ArraySize = 6;
+				description.Usage = D3D11_USAGE_DEFAULT;
+				description.BindFlags = D3D11_BIND_SHADER_RESOURCE;
+				description.CPUAccessFlags = 0;
+				description.MiscFlags = D3D11_RESOURCE_MISC_TEXTURECUBE;
 
-				Core::UPtr<D3D11TextureCube> Result = new D3D11TextureCube();
-				HRESULT ResultCode = Context->CreateTexture2D(&Description, 0, &Result->View);
-				if (ResultCode != S_OK)
-					return GetException(ResultCode, "create texture cube internal");
+				core::uptr<d3d11_texture_cube> result = new d3d11_texture_cube();
+				HRESULT result_code = context->CreateTexture2D(&description, 0, &result->view);
+				if (result_code != S_OK)
+					return get_exception(result_code, "create texture cube internal");
 
-				D3D11_BOX Region;
-				Region.left = 0;
-				Region.right = Description.Width;
-				Region.top = 0;
-				Region.bottom = Description.Height;
-				Region.front = 0;
-				Region.back = 1;
+				D3D11_BOX region;
+				region.left = 0;
+				region.right = description.Width;
+				region.top = 0;
+				region.bottom = description.Height;
+				region.front = 0;
+				region.back = 1;
 
 				for (uint32_t j = 0; j < 6; j++)
-					ImmediateContext->CopySubresourceRegion(Result->View, j, 0, 0, 0, (ID3D11Texture2D*)Resource[j], 0, &Region);
+					immediate_context->CopySubresourceRegion(result->view, j, 0, 0, 0, (ID3D11Texture2D*)resource[j], 0, &region);
 
-				auto GenerateStatus = GenerateTexture(*Result);
-				if (!GenerateStatus)
-					return GenerateStatus.Error();
+				auto generate_status = generate_texture(*result);
+				if (!generate_status)
+					return generate_status.error();
 
-				return Result.Reset();
+				return result.reset();
 			}
-			ExpectsGraphics<DepthTarget2D*> D3D11Device::CreateDepthTarget2D(const DepthTarget2D::Desc& I)
+			expects_graphics<depth_target_2d*> d3d11_device::create_depth_target_2d(const depth_target_2d::desc& i)
 			{
-				D3D11_TEXTURE2D_DESC DepthBuffer;
-				ZeroMemory(&DepthBuffer, sizeof(DepthBuffer));
-				DepthBuffer.Width = I.Width;
-				DepthBuffer.Height = I.Height;
-				DepthBuffer.MipLevels = 1;
-				DepthBuffer.ArraySize = 1;
-				DepthBuffer.Format = GetBaseDepthFormat(I.FormatMode);
-				DepthBuffer.SampleDesc.Count = 1;
-				DepthBuffer.SampleDesc.Quality = 0;
-				DepthBuffer.Usage = (D3D11_USAGE)I.Usage;
-				DepthBuffer.BindFlags = D3D11_BIND_DEPTH_STENCIL | D3D11_BIND_SHADER_RESOURCE;
-				DepthBuffer.CPUAccessFlags = (uint32_t)I.AccessFlags;
-				DepthBuffer.MiscFlags = 0;
-				
-				ID3D11Texture2D* DepthTextureAddress = nullptr;
-				HRESULT ResultCode = Context->CreateTexture2D(&DepthBuffer, nullptr, &DepthTextureAddress);
-				if (ResultCode != S_OK)
-					return GetException(ResultCode, "create depth target 2d");
+				D3D11_TEXTURE2D_DESC depth_buffer;
+				ZeroMemory(&depth_buffer, sizeof(depth_buffer));
+				depth_buffer.Width = i.width;
+				depth_buffer.Height = i.height;
+				depth_buffer.MipLevels = 1;
+				depth_buffer.ArraySize = 1;
+				depth_buffer.Format = get_base_depth_format(i.format_mode);
+				depth_buffer.SampleDesc.Count = 1;
+				depth_buffer.SampleDesc.Quality = 0;
+				depth_buffer.Usage = (D3D11_USAGE)i.usage;
+				depth_buffer.BindFlags = D3D11_BIND_DEPTH_STENCIL | D3D11_BIND_SHADER_RESOURCE;
+				depth_buffer.CPUAccessFlags = (uint32_t)i.access_flags;
+				depth_buffer.MiscFlags = 0;
+
+				ID3D11Texture2D* depth_texture_address = nullptr;
+				HRESULT result_code = context->CreateTexture2D(&depth_buffer, nullptr, &depth_texture_address);
+				if (result_code != S_OK)
+					return get_exception(result_code, "create depth target 2d");
 
 				D3D11_DEPTH_STENCIL_VIEW_DESC DSV;
 				ZeroMemory(&DSV, sizeof(DSV));
-				DSV.Format = GetInternalDepthFormat(I.FormatMode);
+				DSV.Format = get_internal_depth_format(i.format_mode);
 				DSV.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
 				DSV.Texture2D.MipSlice = 0;
 
-				Core::UPtr<ID3D11Texture2D> DepthTexture = DepthTextureAddress;
-				Core::UPtr<D3D11DepthTarget2D> Result = new D3D11DepthTarget2D(I);
-				ResultCode = Context->CreateDepthStencilView(*DepthTexture, &DSV, &Result->DepthStencilView);
-				if (ResultCode != S_OK)
-					return GetException(ResultCode, "create depth target 2d");
+				core::uptr<ID3D11Texture2D> depth_texture = depth_texture_address;
+				core::uptr<d3d11_depth_target_2d> result = new d3d11_depth_target_2d(i);
+				result_code = context->CreateDepthStencilView(*depth_texture, &DSV, &result->depth_stencil_view);
+				if (result_code != S_OK)
+					return get_exception(result_code, "create depth target 2d");
 
-				auto NewTexture = CreateTexture2D();
-				if (!NewTexture)
-					return NewTexture.Error();
+				auto new_texture = create_texture_2d();
+				if (!new_texture)
+					return new_texture.error();
 
-				Result->Resource = *NewTexture;
-				((D3D11Texture2D*)Result->Resource)->View = DepthTexture.Reset();
+				result->resource = *new_texture;
+				((d3d11_texture_2d*)result->resource)->view = depth_texture.reset();
 
-				auto NewResource = CreateTexture2D(Result->Resource, GetDepthFormat(I.FormatMode));
-				if (!NewResource)
-					return NewResource.Error();
+				auto new_resource = create_texture_2d(result->resource, get_depth_format(i.format_mode));
+				if (!new_resource)
+					return new_resource.error();
 
-				Result->Viewarea.Width = (FLOAT)I.Width;
-				Result->Viewarea.Height = (FLOAT)I.Height;
-				Result->Viewarea.MinDepth = 0.0f;
-				Result->Viewarea.MaxDepth = 1.0f;
-				Result->Viewarea.TopLeftX = 0.0f;
-				Result->Viewarea.TopLeftY = 0.0f;
-				return Result.Reset();
+				result->viewarea.width = (FLOAT)i.width;
+				result->viewarea.height = (FLOAT)i.height;
+				result->viewarea.min_depth = 0.0f;
+				result->viewarea.max_depth = 1.0f;
+				result->viewarea.top_left_x = 0.0f;
+				result->viewarea.top_left_y = 0.0f;
+				return result.reset();
 			}
-			ExpectsGraphics<DepthTargetCube*> D3D11Device::CreateDepthTargetCube(const DepthTargetCube::Desc& I)
+			expects_graphics<depth_target_cube*> d3d11_device::create_depth_target_cube(const depth_target_cube::desc& i)
 			{
-				D3D11_TEXTURE2D_DESC DepthBuffer;
-				ZeroMemory(&DepthBuffer, sizeof(DepthBuffer));
-				DepthBuffer.Width = I.Size;
-				DepthBuffer.Height = I.Size;
-				DepthBuffer.MipLevels = 1;
-				DepthBuffer.ArraySize = 6;
-				DepthBuffer.Format = GetBaseDepthFormat(I.FormatMode);
-				DepthBuffer.SampleDesc.Count = 1;
-				DepthBuffer.SampleDesc.Quality = 0;
-				DepthBuffer.Usage = (D3D11_USAGE)I.Usage;
-				DepthBuffer.BindFlags = D3D11_BIND_DEPTH_STENCIL | D3D11_BIND_SHADER_RESOURCE;
-				DepthBuffer.CPUAccessFlags = (uint32_t)I.AccessFlags;
-				DepthBuffer.MiscFlags = D3D11_RESOURCE_MISC_TEXTURECUBE;
+				D3D11_TEXTURE2D_DESC depth_buffer;
+				ZeroMemory(&depth_buffer, sizeof(depth_buffer));
+				depth_buffer.Width = i.size;
+				depth_buffer.Height = i.size;
+				depth_buffer.MipLevels = 1;
+				depth_buffer.ArraySize = 6;
+				depth_buffer.Format = get_base_depth_format(i.format_mode);
+				depth_buffer.SampleDesc.Count = 1;
+				depth_buffer.SampleDesc.Quality = 0;
+				depth_buffer.Usage = (D3D11_USAGE)i.usage;
+				depth_buffer.BindFlags = D3D11_BIND_DEPTH_STENCIL | D3D11_BIND_SHADER_RESOURCE;
+				depth_buffer.CPUAccessFlags = (uint32_t)i.access_flags;
+				depth_buffer.MiscFlags = D3D11_RESOURCE_MISC_TEXTURECUBE;
 
-				ID3D11Texture2D* DepthTextureAddress = nullptr;
-				HRESULT ResultCode = Context->CreateTexture2D(&DepthBuffer, nullptr, &DepthTextureAddress);
-				if (ResultCode != S_OK)
-					return GetException(ResultCode, "create depth target 2d");
+				ID3D11Texture2D* depth_texture_address = nullptr;
+				HRESULT result_code = context->CreateTexture2D(&depth_buffer, nullptr, &depth_texture_address);
+				if (result_code != S_OK)
+					return get_exception(result_code, "create depth target 2d");
 
 				D3D11_DEPTH_STENCIL_VIEW_DESC DSV;
 				ZeroMemory(&DSV, sizeof(DSV));
-				DSV.Format = GetInternalDepthFormat(I.FormatMode);
+				DSV.Format = get_internal_depth_format(i.format_mode);
 				DSV.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2DARRAY;
 				DSV.Texture2DArray.FirstArraySlice = 0;
 				DSV.Texture2DArray.ArraySize = 6;
 				DSV.Texture2DArray.MipSlice = 0;
 
-				Core::UPtr<ID3D11Texture2D> DepthTexture = DepthTextureAddress;
-				Core::UPtr<D3D11DepthTargetCube> Result = new D3D11DepthTargetCube(I);
-				ResultCode = Context->CreateDepthStencilView(*DepthTexture, &DSV, &Result->DepthStencilView);
-				if (ResultCode != S_OK)
-					return GetException(ResultCode, "create depth target cube");
+				core::uptr<ID3D11Texture2D> depth_texture = depth_texture_address;
+				core::uptr<d3d11_depth_target_cube> result = new d3d11_depth_target_cube(i);
+				result_code = context->CreateDepthStencilView(*depth_texture, &DSV, &result->depth_stencil_view);
+				if (result_code != S_OK)
+					return get_exception(result_code, "create depth target cube");
 
-				auto NewTexture = CreateTextureCube();
-				if (!NewTexture)
-					return NewTexture.Error();
+				auto new_texture = create_texture_cube();
+				if (!new_texture)
+					return new_texture.error();
 
-				Result->Resource = *NewTexture;
-				((D3D11TextureCube*)Result->Resource)->View = DepthTexture.Reset();
+				result->resource = *new_texture;
+				((d3d11_texture_cube*)result->resource)->view = depth_texture.reset();
 
-				auto NewResource = CreateTextureCube(Result->Resource, GetDepthFormat(I.FormatMode));
-				if (!NewResource)
-					return NewResource.Error();
+				auto new_resource = create_texture_cube(result->resource, get_depth_format(i.format_mode));
+				if (!new_resource)
+					return new_resource.error();
 
-				Result->Viewarea.Width = (FLOAT)I.Size;
-				Result->Viewarea.Height = (FLOAT)I.Size;
-				Result->Viewarea.MinDepth = 0.0f;
-				Result->Viewarea.MaxDepth = 1.0f;
-				Result->Viewarea.TopLeftX = 0.0f;
-				Result->Viewarea.TopLeftY = 0.0f;
-				return Result.Reset();
+				result->viewarea.width = (FLOAT)i.size;
+				result->viewarea.height = (FLOAT)i.size;
+				result->viewarea.min_depth = 0.0f;
+				result->viewarea.max_depth = 1.0f;
+				result->viewarea.top_left_x = 0.0f;
+				result->viewarea.top_left_y = 0.0f;
+				return result.reset();
 			}
-			ExpectsGraphics<RenderTarget2D*> D3D11Device::CreateRenderTarget2D(const RenderTarget2D::Desc& I)
+			expects_graphics<render_target_2d*> d3d11_device::create_render_target_2d(const render_target_2d::desc& i)
 			{
-				D3D11_TEXTURE2D_DESC DepthBuffer;
-				ZeroMemory(&DepthBuffer, sizeof(DepthBuffer));
-				DepthBuffer.Width = I.Width;
-				DepthBuffer.Height = I.Height;
-				DepthBuffer.MipLevels = 1;
-				DepthBuffer.ArraySize = 1;
-				DepthBuffer.Format = DXGI_FORMAT_R24G8_TYPELESS;
-				DepthBuffer.SampleDesc.Count = 1;
-				DepthBuffer.SampleDesc.Quality = 0;
-				DepthBuffer.Usage = (D3D11_USAGE)I.Usage;
-				DepthBuffer.BindFlags = D3D11_BIND_DEPTH_STENCIL | D3D11_BIND_SHADER_RESOURCE;
-				DepthBuffer.CPUAccessFlags = (uint32_t)I.AccessFlags;
-				DepthBuffer.MiscFlags = 0;
+				D3D11_TEXTURE2D_DESC depth_buffer;
+				ZeroMemory(&depth_buffer, sizeof(depth_buffer));
+				depth_buffer.Width = i.width;
+				depth_buffer.Height = i.height;
+				depth_buffer.MipLevels = 1;
+				depth_buffer.ArraySize = 1;
+				depth_buffer.Format = DXGI_FORMAT_R24G8_TYPELESS;
+				depth_buffer.SampleDesc.Count = 1;
+				depth_buffer.SampleDesc.Quality = 0;
+				depth_buffer.Usage = (D3D11_USAGE)i.usage;
+				depth_buffer.BindFlags = D3D11_BIND_DEPTH_STENCIL | D3D11_BIND_SHADER_RESOURCE;
+				depth_buffer.CPUAccessFlags = (uint32_t)i.access_flags;
+				depth_buffer.MiscFlags = 0;
 
-				ID3D11Texture2D* DepthTextureAddress = nullptr;
-				HRESULT ResultCode = Context->CreateTexture2D(&DepthBuffer, nullptr, &DepthTextureAddress);
-				if (ResultCode != S_OK)
-					return GetException(ResultCode, "create render target 2d");
+				ID3D11Texture2D* depth_texture_address = nullptr;
+				HRESULT result_code = context->CreateTexture2D(&depth_buffer, nullptr, &depth_texture_address);
+				if (result_code != S_OK)
+					return get_exception(result_code, "create render target 2d");
 
 				D3D11_DEPTH_STENCIL_VIEW_DESC DSV;
 				ZeroMemory(&DSV, sizeof(DSV));
@@ -3455,120 +3487,120 @@ namespace Vitex
 				DSV.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
 				DSV.Texture2D.MipSlice = 0;
 
-				Core::UPtr<ID3D11Texture2D> DepthTexture = DepthTextureAddress;
-				Core::UPtr<D3D11RenderTarget2D> Result = new D3D11RenderTarget2D(I);
-				ResultCode = Context->CreateDepthStencilView(*DepthTexture, &DSV, &Result->DepthStencilView);
-				if (ResultCode != S_OK)
-					return GetException(ResultCode, "create render target 2d");
+				core::uptr<ID3D11Texture2D> depth_texture = depth_texture_address;
+				core::uptr<d3d11_render_target_2d> result = new d3d11_render_target_2d(i);
+				result_code = context->CreateDepthStencilView(*depth_texture, &DSV, &result->depth_stencil_view);
+				if (result_code != S_OK)
+					return get_exception(result_code, "create render target 2d");
 
-				auto NewTexture = CreateTexture2D();
-				if (!NewTexture)
-					return NewTexture.Error();
+				auto new_texture = create_texture_2d();
+				if (!new_texture)
+					return new_texture.error();
 
-				Result->DepthStencil = *NewTexture;
-				((D3D11Texture2D*)Result->DepthStencil)->View = DepthTexture.Reset();
+				result->depth_stencil = *new_texture;
+				((d3d11_texture_2d*)result->depth_stencil)->view = depth_texture.reset();
 
-				auto NewResource = CreateTexture2D(Result->DepthStencil, DXGI_FORMAT_R24_UNORM_X8_TYPELESS);
-				if (!NewResource)
-					return NewResource.Error();
+				auto new_resource = create_texture_2d(result->depth_stencil, DXGI_FORMAT_R24_UNORM_X8_TYPELESS);
+				if (!new_resource)
+					return new_resource.error();
 
-				if (I.RenderSurface == nullptr)
+				if (i.render_surface == nullptr)
 				{
-					D3D11_TEXTURE2D_DESC Description;
-					ZeroMemory(&Description, sizeof(Description));
-					Description.Width = I.Width;
-					Description.Height = I.Height;
-					Description.MipLevels = (I.MipLevels < 1 ? 1 : I.MipLevels);
-					Description.ArraySize = 1;
-					Description.Format = GetNonDepthFormat(I.FormatMode);
-					Description.SampleDesc.Count = 1;
-					Description.SampleDesc.Quality = 0;
-					Description.Usage = (D3D11_USAGE)I.Usage;
-					Description.BindFlags = (uint32_t)I.BindFlags;
-					Description.CPUAccessFlags = (uint32_t)I.AccessFlags;
-					Description.MiscFlags = (uint32_t)I.MiscFlags;
+					D3D11_TEXTURE2D_DESC description;
+					ZeroMemory(&description, sizeof(description));
+					description.Width = i.width;
+					description.Height = i.height;
+					description.MipLevels = (i.mip_levels < 1 ? 1 : i.mip_levels);
+					description.ArraySize = 1;
+					description.Format = get_non_depth_format(i.format_mode);
+					description.SampleDesc.Count = 1;
+					description.SampleDesc.Quality = 0;
+					description.Usage = (D3D11_USAGE)i.usage;
+					description.BindFlags = (uint32_t)i.bind_flags;
+					description.CPUAccessFlags = (uint32_t)i.access_flags;
+					description.MiscFlags = (uint32_t)i.misc_flags;
 
-					ResultCode = Context->CreateTexture2D(&Description, nullptr, &Result->Texture);
-					if (ResultCode != S_OK)
-						return GetException(ResultCode, "create render target 2d");
+					result_code = context->CreateTexture2D(&description, nullptr, &result->texture);
+					if (result_code != S_OK)
+						return get_exception(result_code, "create render target 2d");
 
-					auto NewSubtexture = CreateTexture2D();
-					if (!NewSubtexture)
-						return NewSubtexture.Error();
+					auto new_subtexture = create_texture_2d();
+					if (!new_subtexture)
+						return new_subtexture.error();
 
-					Result->Resource = *NewSubtexture;
-					((D3D11Texture2D*)Result->Resource)->View = Result->Texture;
-					Result->Texture->AddRef();
+					result->resource = *new_subtexture;
+					((d3d11_texture_2d*)result->resource)->view = result->texture;
+					result->texture->AddRef();
 
-					auto GenerateStatus = GenerateTexture(Result->Resource);
-					if (!GenerateStatus)
-						return GenerateStatus.Error();
+					auto generate_status = generate_texture(result->resource);
+					if (!generate_status)
+						return generate_status.error();
 				}
 
 				D3D11_RENDER_TARGET_VIEW_DESC RTV;
 				RTV.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D;
 				RTV.Texture2DArray.MipSlice = 0;
 				RTV.Texture2DArray.ArraySize = 1;
-				RTV.Format = GetNonDepthFormat(I.FormatMode);
+				RTV.Format = get_non_depth_format(i.format_mode);
 
-				ResultCode = Context->CreateRenderTargetView(I.RenderSurface ? (ID3D11Texture2D*)I.RenderSurface : Result->Texture, &RTV, &Result->RenderTargetView);
-				if (ResultCode != S_OK)
-					return GetException(ResultCode, "create render target 2d");
+				result_code = context->CreateRenderTargetView(i.render_surface ? (ID3D11Texture2D*)i.render_surface : result->texture, &RTV, &result->render_target_view);
+				if (result_code != S_OK)
+					return get_exception(result_code, "create render target 2d");
 
-				Result->Viewarea.Width = (float)I.Width;
-				Result->Viewarea.Height = (float)I.Height;
-				Result->Viewarea.MinDepth = 0.0f;
-				Result->Viewarea.MaxDepth = 1.0f;
-				Result->Viewarea.TopLeftX = 0.0f;
-				Result->Viewarea.TopLeftY = 0.0f;
+				result->viewarea.width = (float)i.width;
+				result->viewarea.height = (float)i.height;
+				result->viewarea.min_depth = 0.0f;
+				result->viewarea.max_depth = 1.0f;
+				result->viewarea.top_left_x = 0.0f;
+				result->viewarea.top_left_y = 0.0f;
 
-				if (!I.RenderSurface)
-					return Result.Reset();
+				if (!i.render_surface)
+					return result.reset();
 
-				ResultCode = SwapChain->GetBuffer(0, __uuidof(Result->Texture), reinterpret_cast<void**>(&Result->Texture));
-				if (ResultCode != S_OK)
-					return GetException(ResultCode, "create render target 2d");
+				result_code = swap_chain->GetBuffer(0, __uuidof(result->texture), reinterpret_cast<void**>(&result->texture));
+				if (result_code != S_OK)
+					return get_exception(result_code, "create render target 2d");
 
-				auto NewTarget = CreateTexture2D();
-				if (!NewTarget)
-					return NewTarget.Error();
+				auto new_target = create_texture_2d();
+				if (!new_target)
+					return new_target.error();
 
-				D3D11Texture2D* Target = (D3D11Texture2D*)*NewTarget;
-				Target->View = Result->Texture;
-				Result->Resource = Target;
-				Result->Texture->AddRef();
+				d3d11_texture_2d* target = (d3d11_texture_2d*)*new_target;
+				target->view = result->texture;
+				result->resource = target;
+				result->texture->AddRef();
 
-				D3D11_TEXTURE2D_DESC Description;
-				Target->View->GetDesc(&Description);
-				Target->FormatMode = (Format)Description.Format;
-				Target->Usage = (ResourceUsage)Description.Usage;
-				Target->Width = Description.Width;
-				Target->Height = Description.Height;
-				Target->MipLevels = Description.MipLevels;
-				Target->AccessFlags = (CPUAccess)Description.CPUAccessFlags;
-				Target->Binding = (ResourceBind)Description.BindFlags;
-				return Result.Reset();
+				D3D11_TEXTURE2D_DESC description;
+				target->view->GetDesc(&description);
+				target->format_mode = (format)description.Format;
+				target->usage = (resource_usage)description.Usage;
+				target->width = description.Width;
+				target->height = description.Height;
+				target->mip_levels = description.MipLevels;
+				target->access_flags = (cpu_access)description.CPUAccessFlags;
+				target->binding = (resource_bind)description.BindFlags;
+				return result.reset();
 			}
-			ExpectsGraphics<MultiRenderTarget2D*> D3D11Device::CreateMultiRenderTarget2D(const MultiRenderTarget2D::Desc& I)
+			expects_graphics<multi_render_target_2d*> d3d11_device::create_multi_render_target_2d(const multi_render_target_2d::desc& i)
 			{
-				D3D11_TEXTURE2D_DESC DepthBuffer;
-				ZeroMemory(&DepthBuffer, sizeof(DepthBuffer));
-				DepthBuffer.Width = I.Width;
-				DepthBuffer.Height = I.Height;
-				DepthBuffer.MipLevels = 1;
-				DepthBuffer.ArraySize = 1;
-				DepthBuffer.Format = DXGI_FORMAT_R24G8_TYPELESS;
-				DepthBuffer.SampleDesc.Count = 1;
-				DepthBuffer.SampleDesc.Quality = 0;
-				DepthBuffer.Usage = (D3D11_USAGE)I.Usage;
-				DepthBuffer.BindFlags = D3D11_BIND_DEPTH_STENCIL | D3D11_BIND_SHADER_RESOURCE;
-				DepthBuffer.CPUAccessFlags = (uint32_t)I.AccessFlags;
-				DepthBuffer.MiscFlags = 0;
+				D3D11_TEXTURE2D_DESC depth_buffer;
+				ZeroMemory(&depth_buffer, sizeof(depth_buffer));
+				depth_buffer.Width = i.width;
+				depth_buffer.Height = i.height;
+				depth_buffer.MipLevels = 1;
+				depth_buffer.ArraySize = 1;
+				depth_buffer.Format = DXGI_FORMAT_R24G8_TYPELESS;
+				depth_buffer.SampleDesc.Count = 1;
+				depth_buffer.SampleDesc.Quality = 0;
+				depth_buffer.Usage = (D3D11_USAGE)i.usage;
+				depth_buffer.BindFlags = D3D11_BIND_DEPTH_STENCIL | D3D11_BIND_SHADER_RESOURCE;
+				depth_buffer.CPUAccessFlags = (uint32_t)i.access_flags;
+				depth_buffer.MiscFlags = 0;
 
-				ID3D11Texture2D* DepthTextureAddress = nullptr;
-				HRESULT ResultCode = Context->CreateTexture2D(&DepthBuffer, nullptr, &DepthTextureAddress);
-				if (ResultCode != S_OK)
-					return GetException(ResultCode, "create multi render target 2d");
+				ID3D11Texture2D* depth_texture_address = nullptr;
+				HRESULT result_code = context->CreateTexture2D(&depth_buffer, nullptr, &depth_texture_address);
+				if (result_code != S_OK)
+					return get_exception(result_code, "create multi render target 2d");
 
 				D3D11_DEPTH_STENCIL_VIEW_DESC DSV;
 				ZeroMemory(&DSV, sizeof(DSV));
@@ -3576,95 +3608,95 @@ namespace Vitex
 				DSV.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
 				DSV.Texture2D.MipSlice = 0;
 
-				Core::UPtr<ID3D11Texture2D> DepthTexture = DepthTextureAddress;
-				Core::UPtr<D3D11MultiRenderTarget2D> Result = new D3D11MultiRenderTarget2D(I);
-				ResultCode = Context->CreateDepthStencilView(*DepthTexture, &DSV, &Result->DepthStencilView);
-				if (ResultCode != S_OK)
-					return GetException(ResultCode, "create multi render target 2d");
+				core::uptr<ID3D11Texture2D> depth_texture = depth_texture_address;
+				core::uptr<d3d11_multi_render_target_2d> result = new d3d11_multi_render_target_2d(i);
+				result_code = context->CreateDepthStencilView(*depth_texture, &DSV, &result->depth_stencil_view);
+				if (result_code != S_OK)
+					return get_exception(result_code, "create multi render target 2d");
 
-				auto NewTexture = CreateTexture2D();
-				if (!NewTexture)
-					return GetException(ResultCode, "create multi render target 2d");
+				auto new_texture = create_texture_2d();
+				if (!new_texture)
+					return get_exception(result_code, "create multi render target 2d");
 
-				Result->DepthStencil = *NewTexture;
-				((D3D11Texture2D*)Result->DepthStencil)->View = DepthTexture.Reset();
+				result->depth_stencil = *new_texture;
+				((d3d11_texture_2d*)result->depth_stencil)->view = depth_texture.reset();
 
-				auto NewResource = CreateTexture2D(Result->DepthStencil, DXGI_FORMAT_R24_UNORM_X8_TYPELESS);
-				if (!NewResource)
-					return GetException(ResultCode, "create multi render target 2d");
+				auto new_resource = create_texture_2d(result->depth_stencil, DXGI_FORMAT_R24_UNORM_X8_TYPELESS);
+				if (!new_resource)
+					return get_exception(result_code, "create multi render target 2d");
 
-				uint32_t MipLevels = (I.MipLevels < 1 ? 1 : I.MipLevels);
-				ZeroMemory(&Result->Information, sizeof(Result->Information));
-				Result->Information.Width = I.Width;
-				Result->Information.Height = I.Height;
-				Result->Information.MipLevels = MipLevels;
-				Result->Information.ArraySize = 1;
-				Result->Information.SampleDesc.Count = 1;
-				Result->Information.SampleDesc.Quality = 0;
-				Result->Information.Usage = (D3D11_USAGE)I.Usage;
-				Result->Information.BindFlags = (uint32_t)I.BindFlags;
-				Result->Information.CPUAccessFlags = (uint32_t)I.AccessFlags;
-				Result->Information.MiscFlags = (uint32_t)I.MiscFlags;
+				uint32_t mip_levels = (i.mip_levels < 1 ? 1 : i.mip_levels);
+				ZeroMemory(&result->information, sizeof(result->information));
+				result->information.Width = i.width;
+				result->information.Height = i.height;
+				result->information.MipLevels = mip_levels;
+				result->information.ArraySize = 1;
+				result->information.SampleDesc.Count = 1;
+				result->information.SampleDesc.Quality = 0;
+				result->information.Usage = (D3D11_USAGE)i.usage;
+				result->information.BindFlags = (uint32_t)i.bind_flags;
+				result->information.CPUAccessFlags = (uint32_t)i.access_flags;
+				result->information.MiscFlags = (uint32_t)i.misc_flags;
 
 				D3D11_RENDER_TARGET_VIEW_DESC RTV;
 				RTV.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D;
 				RTV.Texture2DArray.MipSlice = 0;
 				RTV.Texture2DArray.ArraySize = 1;
 
-				for (uint32_t i = 0; i < (uint32_t)Result->Target; i++)
+				for (uint32_t j = 0; j < (uint32_t)result->target; j++)
 				{
-					DXGI_FORMAT Format = GetNonDepthFormat(I.FormatMode[i]);
-					Result->Information.Format = Format;
-					ResultCode = Context->CreateTexture2D(&Result->Information, nullptr, &Result->Texture[i]);
-					if (ResultCode != S_OK)
-						return GetException(ResultCode, "create multi render target 2d surface");
+					DXGI_FORMAT format = get_non_depth_format(i.format_mode[j]);
+					result->information.Format = format;
+					result_code = context->CreateTexture2D(&result->information, nullptr, &result->texture[j]);
+					if (result_code != S_OK)
+						return get_exception(result_code, "create multi render target 2d surface");
 
-					RTV.Format = Format;
-					ResultCode = Context->CreateRenderTargetView(Result->Texture[i], &RTV, &Result->RenderTargetView[i]);
-					if (ResultCode != S_OK)
-						return GetException(ResultCode, "create multi render target 2d surface");
+					RTV.Format = format;
+					result_code = context->CreateRenderTargetView(result->texture[j], &RTV, &result->render_target_view[j]);
+					if (result_code != S_OK)
+						return get_exception(result_code, "create multi render target 2d surface");
 
-					auto NewSubtexture = CreateTexture2D();
-					if (!NewSubtexture)
-						return NewSubtexture.Error();
+					auto new_subtexture = create_texture_2d();
+					if (!new_subtexture)
+						return new_subtexture.error();
 
-					Result->Resource[i] = *NewSubtexture;
-					((D3D11Texture2D*)Result->Resource[i])->View = Result->Texture[i];
-					Result->Texture[i]->AddRef();
+					result->resource[j] = *new_subtexture;
+					((d3d11_texture_2d*)result->resource[j])->view = result->texture[j];
+					result->texture[j]->AddRef();
 
-					auto GenerateStatus = GenerateTexture(Result->Resource[i]);
-					if (!GenerateStatus)
-						return GenerateStatus.Error();
+					auto generate_status = generate_texture(result->resource[j]);
+					if (!generate_status)
+						return generate_status.error();
 				}
 
-				Result->Viewarea.Width = (float)I.Width;
-				Result->Viewarea.Height = (float)I.Height;
-				Result->Viewarea.MinDepth = 0.0f;
-				Result->Viewarea.MaxDepth = 1.0f;
-				Result->Viewarea.TopLeftX = 0.0f;
-				Result->Viewarea.TopLeftY = 0.0f;
-				return Result.Reset();
+				result->viewarea.width = (float)i.width;
+				result->viewarea.height = (float)i.height;
+				result->viewarea.min_depth = 0.0f;
+				result->viewarea.max_depth = 1.0f;
+				result->viewarea.top_left_x = 0.0f;
+				result->viewarea.top_left_y = 0.0f;
+				return result.reset();
 			}
-			ExpectsGraphics<RenderTargetCube*> D3D11Device::CreateRenderTargetCube(const RenderTargetCube::Desc& I)
+			expects_graphics<render_target_cube*> d3d11_device::create_render_target_cube(const render_target_cube::desc& i)
 			{
-				D3D11_TEXTURE2D_DESC DepthBuffer;
-				ZeroMemory(&DepthBuffer, sizeof(DepthBuffer));
-				DepthBuffer.Width = I.Size;
-				DepthBuffer.Height = I.Size;
-				DepthBuffer.MipLevels = 1;
-				DepthBuffer.ArraySize = 6;
-				DepthBuffer.Format = DXGI_FORMAT_R24G8_TYPELESS;
-				DepthBuffer.SampleDesc.Count = 1;
-				DepthBuffer.SampleDesc.Quality = 0;
-				DepthBuffer.Usage = (D3D11_USAGE)I.Usage;
-				DepthBuffer.BindFlags = D3D11_BIND_DEPTH_STENCIL | D3D11_BIND_SHADER_RESOURCE;
-				DepthBuffer.CPUAccessFlags = (uint32_t)I.AccessFlags;
-				DepthBuffer.MiscFlags = 0;
+				D3D11_TEXTURE2D_DESC depth_buffer;
+				ZeroMemory(&depth_buffer, sizeof(depth_buffer));
+				depth_buffer.Width = i.size;
+				depth_buffer.Height = i.size;
+				depth_buffer.MipLevels = 1;
+				depth_buffer.ArraySize = 6;
+				depth_buffer.Format = DXGI_FORMAT_R24G8_TYPELESS;
+				depth_buffer.SampleDesc.Count = 1;
+				depth_buffer.SampleDesc.Quality = 0;
+				depth_buffer.Usage = (D3D11_USAGE)i.usage;
+				depth_buffer.BindFlags = D3D11_BIND_DEPTH_STENCIL | D3D11_BIND_SHADER_RESOURCE;
+				depth_buffer.CPUAccessFlags = (uint32_t)i.access_flags;
+				depth_buffer.MiscFlags = 0;
 
-				ID3D11Texture2D* DepthTextureAddress = nullptr;
-				HRESULT ResultCode = Context->CreateTexture2D(&DepthBuffer, nullptr, &DepthTextureAddress);
-				if (ResultCode != S_OK)
-					return GetException(ResultCode, "create render target cube");
+				ID3D11Texture2D* depth_texture_address = nullptr;
+				HRESULT result_code = context->CreateTexture2D(&depth_buffer, nullptr, &depth_texture_address);
+				if (result_code != S_OK)
+					return get_exception(result_code, "create render target cube");
 
 				D3D11_DEPTH_STENCIL_VIEW_DESC DSV;
 				ZeroMemory(&DSV, sizeof(DSV));
@@ -3674,94 +3706,94 @@ namespace Vitex
 				DSV.Texture2DArray.ArraySize = 6;
 				DSV.Texture2DArray.MipSlice = 0;
 
-				Core::UPtr<ID3D11Texture2D> DepthTexture = DepthTextureAddress;
-				Core::UPtr<D3D11RenderTargetCube> Result = new D3D11RenderTargetCube(I);
-				ResultCode = Context->CreateDepthStencilView(*DepthTexture, &DSV, &Result->DepthStencilView);
-				if (ResultCode != S_OK)
-					return GetException(ResultCode, "create render target cube");
+				core::uptr<ID3D11Texture2D> depth_texture = depth_texture_address;
+				core::uptr<d3d11_render_target_cube> result = new d3d11_render_target_cube(i);
+				result_code = context->CreateDepthStencilView(*depth_texture, &DSV, &result->depth_stencil_view);
+				if (result_code != S_OK)
+					return get_exception(result_code, "create render target cube");
 
-				auto NewTexture = CreateTexture2D();
-				if (!NewTexture)
-					return NewTexture.Error();
+				auto new_texture = create_texture_2d();
+				if (!new_texture)
+					return new_texture.error();
 
-				Result->DepthStencil = *NewTexture;
-				((D3D11Texture2D*)Result->DepthStencil)->View = DepthTexture.Reset();
+				result->depth_stencil = *new_texture;
+				((d3d11_texture_2d*)result->depth_stencil)->view = depth_texture.reset();
 
-				auto NewResource = CreateTexture2D(Result->DepthStencil, DXGI_FORMAT_R24_UNORM_X8_TYPELESS);
-				if (!NewResource)
-					return NewResource.Error();
+				auto new_resource = create_texture_2d(result->depth_stencil, DXGI_FORMAT_R24_UNORM_X8_TYPELESS);
+				if (!new_resource)
+					return new_resource.error();
 
-				uint32_t MipLevels = (I.MipLevels < 1 ? 1 : I.MipLevels);
-				D3D11_TEXTURE2D_DESC Description;
-				ZeroMemory(&Description, sizeof(Description));
-				Description.Width = I.Size;
-				Description.Height = I.Size;
-				Description.MipLevels = MipLevels;
-				Description.ArraySize = 6;
-				Description.SampleDesc.Count = 1;
-				Description.SampleDesc.Quality = 0;
-				Description.Format = GetNonDepthFormat(I.FormatMode);
-				Description.Usage = (D3D11_USAGE)I.Usage;
-				Description.BindFlags = (uint32_t)I.BindFlags;
-				Description.CPUAccessFlags = (uint32_t)I.AccessFlags;
-				Description.MiscFlags = (uint32_t)I.MiscFlags;
+				uint32_t mip_levels = (i.mip_levels < 1 ? 1 : i.mip_levels);
+				D3D11_TEXTURE2D_DESC description;
+				ZeroMemory(&description, sizeof(description));
+				description.Width = i.size;
+				description.Height = i.size;
+				description.MipLevels = mip_levels;
+				description.ArraySize = 6;
+				description.SampleDesc.Count = 1;
+				description.SampleDesc.Quality = 0;
+				description.Format = get_non_depth_format(i.format_mode);
+				description.Usage = (D3D11_USAGE)i.usage;
+				description.BindFlags = (uint32_t)i.bind_flags;
+				description.CPUAccessFlags = (uint32_t)i.access_flags;
+				description.MiscFlags = (uint32_t)i.misc_flags;
 
-				ResultCode = Context->CreateTexture2D(&Description, nullptr, &Result->Texture);
-				if (ResultCode != S_OK)
-					return GetException(ResultCode, "create render target cube");
+				result_code = context->CreateTexture2D(&description, nullptr, &result->texture);
+				if (result_code != S_OK)
+					return get_exception(result_code, "create render target cube");
 
 				D3D11_RENDER_TARGET_VIEW_DESC RTV;
 				ZeroMemory(&RTV, sizeof(RTV));
-				RTV.Format = Description.Format;
+				RTV.Format = description.Format;
 				RTV.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2DARRAY;
 				RTV.Texture2DArray.FirstArraySlice = 0;
 				RTV.Texture2DArray.ArraySize = 6;
 				RTV.Texture2DArray.MipSlice = 0;
 
-				ResultCode = Context->CreateRenderTargetView(Result->Texture, &RTV, &Result->RenderTargetView);
-				if (ResultCode != S_OK)
-					return GetException(ResultCode, "create render target cube");
+				result_code = context->CreateRenderTargetView(result->texture, &RTV, &result->render_target_view);
+				if (result_code != S_OK)
+					return get_exception(result_code, "create render target cube");
 
-				auto NewSubtexture = CreateTextureCube();
-				if (!NewSubtexture)
-					return NewSubtexture.Error();
+				auto new_subtexture = create_texture_cube();
+				if (!new_subtexture)
+					return new_subtexture.error();
 
-				Result->Resource = *NewSubtexture;
-				((D3D11TextureCube*)Result->Resource)->View = Result->Texture;
-				Result->Texture->AddRef();
+				result->resource = *new_subtexture;
+				((d3d11_texture_cube*)result->resource)->view = result->texture;
+				result->texture->AddRef();
 
-				auto GenerateStatus = GenerateTexture(Result->Resource);
-				if (!GenerateStatus)
-					return GenerateStatus.Error();
+				auto generate_status = generate_texture(result->resource);
+				if (!generate_status)
+					return generate_status.error();
 
-				Result->Viewarea.Width = (float)I.Size;
-				Result->Viewarea.Height = (float)I.Size;
-				Result->Viewarea.MinDepth = 0.0f;
-				Result->Viewarea.MaxDepth = 1.0f;
-				Result->Viewarea.TopLeftX = 0.0f;
-				Result->Viewarea.TopLeftY = 0.0f;
-				return Result.Reset();
+				result->viewarea.width = (float)i.size;
+				result->viewarea.height = (float)i.size;
+				result->viewarea.min_depth = 0.0f;
+				result->viewarea.max_depth = 1.0f;
+				result->viewarea.top_left_x = 0.0f;
+				result->viewarea.top_left_y = 0.0f;
+				return result.reset();
 			}
-			ExpectsGraphics<MultiRenderTargetCube*> D3D11Device::CreateMultiRenderTargetCube(const MultiRenderTargetCube::Desc& I)
+			expects_graphics<multi_render_target_cube*> d3d11_device::create_multi_render_target_cube(const multi_render_target_cube::desc& i)
 			{
-				D3D11_TEXTURE2D_DESC DepthBuffer;
-				ZeroMemory(&DepthBuffer, sizeof(DepthBuffer));
-				DepthBuffer.Width = I.Size;
-				DepthBuffer.Height = I.Size;
-				DepthBuffer.MipLevels = 1;
-				DepthBuffer.ArraySize = 6;
-				DepthBuffer.Format = DXGI_FORMAT_R24G8_TYPELESS;
-				DepthBuffer.SampleDesc.Count = 1;
-				DepthBuffer.SampleDesc.Quality = 0;
-				DepthBuffer.Usage = (D3D11_USAGE)I.Usage;
-				DepthBuffer.BindFlags = D3D11_BIND_DEPTH_STENCIL | D3D11_BIND_SHADER_RESOURCE;
-				DepthBuffer.CPUAccessFlags = (uint32_t)I.AccessFlags;
-				DepthBuffer.MiscFlags = 0;
+				D3D11_TEXTURE2D_DESC depth_buffer;
+				ZeroMemory(&depth_buffer, sizeof(depth_buffer));
+				depth_buffer.Width = i.size;
+				depth_buffer.Height = i.size;
+				depth_buffer.MipLevels = 1;
+				depth_buffer.ArraySize = 6;
+				depth_buffer.Format = DXGI_FORMAT_R24G8_TYPELESS;
+				depth_buffer.SampleDesc.Count = 1;
+				depth_buffer.SampleDesc.Quality = 0;
+				depth_buffer.Usage = (D3D11_USAGE)i.usage;
+				depth_buffer.BindFlags = D3D11_BIND_DEPTH_STENCIL | D3D11_BIND_SHADER_RESOURCE;
+				depth_buffer.CPUAccessFlags = (uint32_t)i.access_flags;
+				depth_buffer.MiscFlags = 0;
 
-				ID3D11Texture2D* DepthTextureAddress = nullptr;
-				HRESULT ResultCode = Context->CreateTexture2D(&DepthBuffer, nullptr, &DepthTextureAddress);
-				if (ResultCode != S_OK)
-					return GetException(ResultCode, "create multi render target cube");
+				ID3D11Texture2D* depth_texture_address = nullptr;
+				HRESULT result_code = context->CreateTexture2D(&depth_buffer, nullptr, &depth_texture_address);
+				if (result_code != S_OK)
+					return get_exception(result_code, "create multi render target cube");
 
 				D3D11_DEPTH_STENCIL_VIEW_DESC DSV;
 				ZeroMemory(&DSV, sizeof(DSV));
@@ -3771,36 +3803,36 @@ namespace Vitex
 				DSV.Texture2DArray.ArraySize = 6;
 				DSV.Texture2DArray.MipSlice = 0;
 
-				Core::UPtr<ID3D11Texture2D> DepthTexture = DepthTextureAddress;
-				Core::UPtr<D3D11MultiRenderTargetCube> Result = new D3D11MultiRenderTargetCube(I);
-				ResultCode = Context->CreateDepthStencilView(*DepthTexture, &DSV, &Result->DepthStencilView);
-				if (ResultCode != S_OK)
-					return GetException(ResultCode, "create multi render target cube");
+				core::uptr<ID3D11Texture2D> depth_texture = depth_texture_address;
+				core::uptr<d3d11_multi_render_target_cube> result = new d3d11_multi_render_target_cube(i);
+				result_code = context->CreateDepthStencilView(*depth_texture, &DSV, &result->depth_stencil_view);
+				if (result_code != S_OK)
+					return get_exception(result_code, "create multi render target cube");
 
-				auto NewTexture = CreateTexture2D();
-				if (!NewTexture)
-					return NewTexture.Error();
+				auto new_texture = create_texture_2d();
+				if (!new_texture)
+					return new_texture.error();
 
-				Result->DepthStencil = *NewTexture;
-				((D3D11Texture2D*)Result->DepthStencil)->View = DepthTexture.Reset();
+				result->depth_stencil = *new_texture;
+				((d3d11_texture_2d*)result->depth_stencil)->view = depth_texture.reset();
 
-				auto NewResource = CreateTexture2D(Result->DepthStencil, DXGI_FORMAT_R24_UNORM_X8_TYPELESS);
-				if (!NewResource)
-					return NewResource.Error();
+				auto new_resource = create_texture_2d(result->depth_stencil, DXGI_FORMAT_R24_UNORM_X8_TYPELESS);
+				if (!new_resource)
+					return new_resource.error();
 
-				uint32_t MipLevels = (I.MipLevels < 1 ? 1 : I.MipLevels);
-				D3D11_TEXTURE2D_DESC Description;
-				ZeroMemory(&Description, sizeof(Description));
-				Description.Width = I.Size;
-				Description.Height = I.Size;
-				Description.ArraySize = 6;
-				Description.SampleDesc.Count = 1;
-				Description.SampleDesc.Quality = 0;
-				Description.Usage = (D3D11_USAGE)I.Usage;
-				Description.CPUAccessFlags = (uint32_t)I.AccessFlags;
-				Description.MiscFlags = (uint32_t)I.MiscFlags;
-				Description.BindFlags = (uint32_t)I.BindFlags;
-				Description.MipLevels = MipLevels;
+				uint32_t mip_levels = (i.mip_levels < 1 ? 1 : i.mip_levels);
+				D3D11_TEXTURE2D_DESC description;
+				ZeroMemory(&description, sizeof(description));
+				description.Width = i.size;
+				description.Height = i.size;
+				description.ArraySize = 6;
+				description.SampleDesc.Count = 1;
+				description.SampleDesc.Quality = 0;
+				description.Usage = (D3D11_USAGE)i.usage;
+				description.CPUAccessFlags = (uint32_t)i.access_flags;
+				description.MiscFlags = (uint32_t)i.misc_flags;
+				description.BindFlags = (uint32_t)i.bind_flags;
+				description.MipLevels = mip_levels;
 
 				D3D11_RENDER_TARGET_VIEW_DESC RTV;
 				ZeroMemory(&RTV, sizeof(RTV));
@@ -3809,530 +3841,530 @@ namespace Vitex
 				RTV.Texture2DArray.ArraySize = 6;
 				RTV.Texture2DArray.MipSlice = 0;
 
-				for (uint32_t i = 0; i < (uint32_t)Result->Target; i++)
+				for (uint32_t j = 0; j < (uint32_t)result->target; j++)
 				{
-					DXGI_FORMAT Format = GetNonDepthFormat(I.FormatMode[i]);
-					Description.Format = Format;
-					ResultCode = Context->CreateTexture2D(&Description, nullptr, &Result->Texture[i]);
-					if (ResultCode != S_OK)
-						return GetException(ResultCode, "create multi render target cube surface");
+					DXGI_FORMAT format = get_non_depth_format(i.format_mode[j]);
+					description.Format = format;
+					result_code = context->CreateTexture2D(&description, nullptr, &result->texture[j]);
+					if (result_code != S_OK)
+						return get_exception(result_code, "create multi render target cube surface");
 
-					RTV.Format = Format;
-					ResultCode = Context->CreateRenderTargetView(Result->Texture[i], &RTV, &Result->RenderTargetView[i]);
-					if (ResultCode != S_OK)
-						return GetException(ResultCode, "create multi render target cube surface");
+					RTV.Format = format;
+					result_code = context->CreateRenderTargetView(result->texture[j], &RTV, &result->render_target_view[j]);
+					if (result_code != S_OK)
+						return get_exception(result_code, "create multi render target cube surface");
 
-					auto NewSubtexture = CreateTextureCube();
-					if (!NewSubtexture)
-						return NewSubtexture.Error();
+					auto new_subtexture = create_texture_cube();
+					if (!new_subtexture)
+						return new_subtexture.error();
 
-					Result->Resource[i] = *NewSubtexture;
-					((D3D11TextureCube*)Result->Resource[i])->View = Result->Texture[i];
-					Result->Texture[i]->AddRef();
+					result->resource[j] = *new_subtexture;
+					((d3d11_texture_cube*)result->resource[j])->view = result->texture[j];
+					result->texture[j]->AddRef();
 
-					auto GenerateStatus = GenerateTexture(Result->Resource[i]);
-					if (!GenerateStatus)
-						return GenerateStatus.Error();
+					auto generate_status = generate_texture(result->resource[j]);
+					if (!generate_status)
+						return generate_status.error();
 				}
 
-				Result->Viewarea.Width = (float)I.Size;
-				Result->Viewarea.Height = (float)I.Size;
-				Result->Viewarea.MinDepth = 0.0f;
-				Result->Viewarea.MaxDepth = 1.0f;
-				Result->Viewarea.TopLeftX = 0.0f;
-				Result->Viewarea.TopLeftY = 0.0f;
-				return Result.Reset();
+				result->viewarea.width = (float)i.size;
+				result->viewarea.height = (float)i.size;
+				result->viewarea.min_depth = 0.0f;
+				result->viewarea.max_depth = 1.0f;
+				result->viewarea.top_left_x = 0.0f;
+				result->viewarea.top_left_y = 0.0f;
+				return result.reset();
 			}
-			ExpectsGraphics<Cubemap*> D3D11Device::CreateCubemap(const Cubemap::Desc& I)
+			expects_graphics<cubemap*> d3d11_device::create_cubemap(const cubemap::desc& i)
 			{
-				Core::UPtr<D3D11Cubemap> Result = new D3D11Cubemap(I);
-				D3D11_TEXTURE2D_DESC Texture;
-				Result->Source->GetDesc(&Texture);
-				Texture.ArraySize = 1;
-				Texture.CPUAccessFlags = 0;
-				Texture.MiscFlags = 0;
-				Texture.MipLevels = I.MipLevels;
+				core::uptr<d3d11_cubemap> result = new d3d11_cubemap(i);
+				D3D11_TEXTURE2D_DESC texture;
+				result->source->GetDesc(&texture);
+				texture.ArraySize = 1;
+				texture.CPUAccessFlags = 0;
+				texture.MiscFlags = 0;
+				texture.MipLevels = i.mip_levels;
 
-				HRESULT ResultCode = Context->CreateTexture2D(&Texture, nullptr, &Result->Merger);
-				if (ResultCode != S_OK)
-					return GetException(ResultCode, "create cubemap");
+				HRESULT result_code = context->CreateTexture2D(&texture, nullptr, &result->merger);
+				if (result_code != S_OK)
+					return get_exception(result_code, "create cubemap");
 
-				return Result.Reset();
+				return result.reset();
 			}
-			ExpectsGraphics<Query*> D3D11Device::CreateQuery(const Query::Desc& I)
+			expects_graphics<query*> d3d11_device::create_query(const query::desc& i)
 			{
-				D3D11_QUERY_DESC Desc;
-				Desc.Query = (I.Predicate ? D3D11_QUERY_OCCLUSION_PREDICATE : D3D11_QUERY_OCCLUSION);
-				Desc.MiscFlags = (I.AutoPass ? D3D11_QUERY_MISC_PREDICATEHINT : 0);
+				D3D11_QUERY_DESC desc;
+				desc.Query = (i.predicate ? D3D11_QUERY_OCCLUSION_PREDICATE : D3D11_QUERY_OCCLUSION);
+				desc.MiscFlags = (i.auto_pass ? D3D11_QUERY_MISC_PREDICATEHINT : 0);
 
-				Core::UPtr<D3D11Query> Result = new D3D11Query();
-				HRESULT ResultCode = Context->CreateQuery(&Desc, &Result->Async);
-				if (ResultCode != S_OK)
-					return GetException(ResultCode, "create query");
+				core::uptr<d3d11_query> result = new d3d11_query();
+				HRESULT result_code = context->CreateQuery(&desc, &result->async);
+				if (result_code != S_OK)
+					return get_exception(result_code, "create query");
 
-				return Result.Reset();
+				return result.reset();
 			}
-			PrimitiveTopology D3D11Device::GetPrimitiveTopology() const
+			primitive_topology d3d11_device::get_primitive_topology() const
 			{
-				D3D11_PRIMITIVE_TOPOLOGY Topology;
-				ImmediateContext->IAGetPrimitiveTopology(&Topology);
-				return (PrimitiveTopology)Topology;
+				D3D11_PRIMITIVE_TOPOLOGY topology;
+				immediate_context->IAGetPrimitiveTopology(&topology);
+				return (primitive_topology)topology;
 			}
-			ShaderModel D3D11Device::GetSupportedShaderModel() const
+			shader_model d3d11_device::get_supported_shader_model() const
 			{
-				if (FeatureLevel == D3D_FEATURE_LEVEL::D3D_FEATURE_LEVEL_11_0)
-					return ShaderModel::HLSL_5_0;
+				if (feature_level == D3D_FEATURE_LEVEL::D3D_FEATURE_LEVEL_11_0)
+					return shader_model::hlsl_5_0;
 
-				if (FeatureLevel == D3D_FEATURE_LEVEL::D3D_FEATURE_LEVEL_10_1)
-					return ShaderModel::HLSL_4_1;
+				if (feature_level == D3D_FEATURE_LEVEL::D3D_FEATURE_LEVEL_10_1)
+					return shader_model::hlsl_4_1;
 
-				if (FeatureLevel == D3D_FEATURE_LEVEL::D3D_FEATURE_LEVEL_10_0)
-					return ShaderModel::HLSL_4_0;
+				if (feature_level == D3D_FEATURE_LEVEL::D3D_FEATURE_LEVEL_10_0)
+					return shader_model::hlsl_4_0;
 
-				if (FeatureLevel == D3D_FEATURE_LEVEL::D3D_FEATURE_LEVEL_9_3)
-					return ShaderModel::HLSL_3_0;
+				if (feature_level == D3D_FEATURE_LEVEL::D3D_FEATURE_LEVEL_9_3)
+					return shader_model::hlsl_3_0;
 
-				if (FeatureLevel == D3D_FEATURE_LEVEL::D3D_FEATURE_LEVEL_9_2)
-					return ShaderModel::HLSL_2_0;
+				if (feature_level == D3D_FEATURE_LEVEL::D3D_FEATURE_LEVEL_9_2)
+					return shader_model::hlsl_2_0;
 
-				if (FeatureLevel == D3D_FEATURE_LEVEL::D3D_FEATURE_LEVEL_9_1)
-					return ShaderModel::HLSL_1_0;
+				if (feature_level == D3D_FEATURE_LEVEL::D3D_FEATURE_LEVEL_9_1)
+					return shader_model::hlsl_1_0;
 
-				return ShaderModel::Invalid;
+				return shader_model::invalid;
 			}
-			void* D3D11Device::GetDevice() const
+			void* d3d11_device::get_device() const
 			{
-				return (void*)Context;
+				return (void*)context;
 			}
-			void* D3D11Device::GetContext() const
+			void* d3d11_device::get_context() const
 			{
-				return (void*)ImmediateContext;
+				return (void*)immediate_context;
 			}
-			bool D3D11Device::IsValid() const
+			bool d3d11_device::is_valid() const
 			{
-				return Context != nullptr && ImmediateContext != nullptr;
+				return context != nullptr && immediate_context != nullptr;
 			}
-			ExpectsGraphics<void> D3D11Device::CreateDirectBuffer(size_t Size)
+			expects_graphics<void> d3d11_device::create_direct_buffer(size_t size)
 			{
-				MaxElements = Size + 1;
-				Core::Memory::Release(Immediate.VertexBuffer);
+				max_elements = size + 1;
+				d3d11_release(immediate.vertex_buffer);
 
-				D3D11_BUFFER_DESC BufferDesc;
-				ZeroMemory(&BufferDesc, sizeof(BufferDesc));
-				BufferDesc.Usage = D3D11_USAGE_DYNAMIC;
-				BufferDesc.ByteWidth = (uint32_t)MaxElements * sizeof(Vertex);
-				BufferDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
-				BufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
-				
-				HRESULT ResultCode = Context->CreateBuffer(&BufferDesc, nullptr, &Immediate.VertexBuffer);
-				if (ResultCode != S_OK)
-					return GetException(ResultCode, "create direct vertex buffer");
+				D3D11_BUFFER_DESC buffer_desc;
+				ZeroMemory(&buffer_desc, sizeof(buffer_desc));
+				buffer_desc.Usage = D3D11_USAGE_DYNAMIC;
+				buffer_desc.ByteWidth = (uint32_t)max_elements * sizeof(vertex);
+				buffer_desc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+				buffer_desc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
 
-				if (!Immediate.Sampler)
+				HRESULT result_code = context->CreateBuffer(&buffer_desc, nullptr, &immediate.vertex_buffer);
+				if (result_code != S_OK)
+					return get_exception(result_code, "create direct vertex buffer");
+
+				if (!immediate.sampler)
 				{
-					D3D11SamplerState* State = (D3D11SamplerState*)GetSamplerState("a16_fa_wrap");
-					if (State != nullptr)
-						Immediate.Sampler = State->Resource;
+					d3d11_sampler_state* state = (d3d11_sampler_state*)get_sampler_state("a16_fa_wrap");
+					if (state != nullptr)
+						immediate.sampler = state->resource;
 				}
 
-				if (!Immediate.VertexShader)
+				if (!immediate.vertex_shader)
 				{
-					static const char* VertexShaderCode = D3D_INLINE(
-						cbuffer VertexBuffer : register(b0)
-						{
-							matrix Transform;
-							float4 Padding;
-						};
-
-						struct VS_INPUT
-						{
-							float4 Position : POSITION0;
-							float2 TexCoord : TEXCOORD0;
-							float4 Color : COLOR0;
-						};
-
-						struct PS_INPUT
-						{
-							float4 Position : SV_POSITION;
-							float2 TexCoord : TEXCOORD0;
-							float4 Color : COLOR0;
-						};
-
-						PS_INPUT vs_main(VS_INPUT Input)
-						{
-							PS_INPUT Output;
-							Output.Position = mul(Transform, float4(Input.Position.xyz, 1));
-							Output.Color = Input.Color;
-							Output.TexCoord = Input.TexCoord;
-
-							return Output;
-						};);
-
-					ID3DBlob* Blob = nullptr, *Error = nullptr;
-					ResultCode = D3DCompile(VertexShaderCode, strlen(VertexShaderCode), nullptr, nullptr, nullptr, "vs_main", GetVSProfile().data(), 0, 0, &Blob, &Error);
-					if (ResultCode != S_OK || !GetCompileState(Error).empty())
+					static const char* vertex_shader_code = D3D_INLINE(
+					cbuffer vertex_buffer : register(b0)
 					{
-						auto Message = GetCompileState(Error);
-						Core::Memory::Release(Error);
-						return GetException(ResultCode, Message);
+						matrix transform;
+						float4 padding;
+					};
+
+					struct vs_input
+					{
+						float4 position : POSITION0;
+						float2 texcoord : TEXCOORD0;
+						float4 color : COLOR0;
+					};
+
+					struct vs_output
+					{
+						float4 position : SV_POSITION;
+						float2 texcoord : TEXCOORD0;
+						float4 color : COLOR0;
+					};
+
+					vs_output vs_main(vs_input input)
+					{
+						vs_output output;
+						output.position = mul(transform, float4(input.position.xyz, 1));
+						output.color = input.color;
+						output.texcoord = input.texcoord;
+
+						return output;
+					};);
+
+					ID3DBlob* blob = nullptr, * error = nullptr;
+					result_code = D3DCompile(vertex_shader_code, strlen(vertex_shader_code), nullptr, nullptr, nullptr, "vs_main", get_vs_profile().data(), 0, 0, &blob, &error);
+					if (result_code != S_OK || !get_compile_state(error).empty())
+					{
+						auto message = get_compile_state(error);
+						d3d11_release(error);
+						return get_exception(result_code, message);
 					}
 
-					ResultCode = Context->CreateVertexShader((DWORD*)Blob->GetBufferPointer(), Blob->GetBufferSize(), nullptr, &Immediate.VertexShader);
-					if (ResultCode != S_OK)
+					result_code = context->CreateVertexShader((DWORD*)blob->GetBufferPointer(), blob->GetBufferSize(), nullptr, &immediate.vertex_shader);
+					if (result_code != S_OK)
 					{
-						Core::Memory::Release(Blob);
-						return GetException(ResultCode, "compile direct vertex shader");
+						d3d11_release(blob);
+						return get_exception(result_code, "compile direct vertex shader");
 					}
 
-					D3D11_INPUT_ELEMENT_DESC LayoutDesc[] =
+					D3D11_INPUT_ELEMENT_DESC layout_desc[] =
 					{
 						{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
 						{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 3 * sizeof(float), D3D11_INPUT_PER_VERTEX_DATA, 0 },
 						{ "COLOR", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 5 * sizeof(float), D3D11_INPUT_PER_VERTEX_DATA, 0 }
 					};
-					ResultCode = Context->CreateInputLayout(LayoutDesc, 3, Blob->GetBufferPointer(), Blob->GetBufferSize(), &Immediate.VertexLayout);
-					Core::Memory::Release(Blob);
-					if (ResultCode != S_OK)
-						return GetException(ResultCode, "create direct input layout");
+					result_code = context->CreateInputLayout(layout_desc, 3, blob->GetBufferPointer(), blob->GetBufferSize(), &immediate.vertex_layout);
+					d3d11_release(blob);
+					if (result_code != S_OK)
+						return get_exception(result_code, "create direct input layout");
 				}
 
-				if (!Immediate.PixelShader)
+				if (!immediate.pixel_shader)
 				{
-					static const char* PixelShaderCode = D3D_INLINE(
-						cbuffer VertexBuffer : register(b0)
-						{
-							matrix Transform;
-							float4 Padding;
-						};
-
-						struct PS_INPUT
-						{
-							float4 Position : SV_POSITION;
-							float2 TexCoord : TEXCOORD0;
-							float4 Color : COLOR0;
-						};
-
-						Texture2D Diffuse : register(t1);
-						SamplerState State : register(s1);
-
-						float4 ps_main(PS_INPUT Input) : SV_TARGET0
-						{
-						   if (Padding.z > 0)
-							   return Input.Color * Diffuse.Sample(State, Input.TexCoord + Padding.xy) * Padding.w;
-
-						   return Input.Color * Padding.w;
-						};);
-
-					ID3DBlob* Blob = nullptr, * Error = nullptr;
-					ResultCode = D3DCompile(PixelShaderCode, strlen(PixelShaderCode), nullptr, nullptr, nullptr, "ps_main", GetPSProfile().data(), 0, 0, &Blob, &Error);
-					if (ResultCode != S_OK || !GetCompileState(Error).empty())
+					static const char* pixel_shader_code = D3D_INLINE(
+					cbuffer vertex_buffer : register(b0)
 					{
-						auto Message = GetCompileState(Error);
-						Core::Memory::Release(Error);
-						return GetException(ResultCode, Message);
+						matrix transform;
+						float4 padding;
+					};
+
+					struct ps_input
+					{
+						float4 position : SV_POSITION;
+						float2 texcoord : TEXCOORD0;
+						float4 color : COLOR0;
+					};
+
+					Texture2D diffuse : register(t1);
+					SamplerState state : register(s1);
+
+					float4 ps_main(ps_input input) : SV_TARGET0
+					{
+						if (padding.z > 0)
+							return input.color * diffuse.Sample(state, input.texcoord + padding.xy) * padding.w;
+
+						return input.color * padding.w;
+					};);
+
+					ID3DBlob* blob = nullptr, * error = nullptr;
+					result_code = D3DCompile(pixel_shader_code, strlen(pixel_shader_code), nullptr, nullptr, nullptr, "ps_main", get_ps_profile().data(), 0, 0, &blob, &error);
+					if (result_code != S_OK || !get_compile_state(error).empty())
+					{
+						auto message = get_compile_state(error);
+						d3d11_release(error);
+						return get_exception(result_code, message);
 					}
 
-					ResultCode = Context->CreatePixelShader((DWORD*)Blob->GetBufferPointer(), Blob->GetBufferSize(), nullptr, &Immediate.PixelShader);
-					Core::Memory::Release(Blob);
-					if (ResultCode != S_OK)
-						return GetException(ResultCode, "compile direct pixel shader");
+					result_code = context->CreatePixelShader((DWORD*)blob->GetBufferPointer(), blob->GetBufferSize(), nullptr, &immediate.pixel_shader);
+					d3d11_release(blob);
+					if (result_code != S_OK)
+						return get_exception(result_code, "compile direct pixel shader");
 				}
 
-				if (!Immediate.ConstantBuffer)
+				if (!immediate.constant_buffer)
 				{
-					ResultCode = CreateConstantBuffer(&Immediate.ConstantBuffer, sizeof(Direct));
-					if (ResultCode != S_OK)
-						return GetException(ResultCode, "compile direct constant buffer");
+					result_code = create_constant_buffer(&immediate.constant_buffer, sizeof(direct));
+					if (result_code != S_OK)
+						return get_exception(result_code, "compile direct constant buffer");
 				}
 
-				return Core::Expectation::Met;
+				return core::expectation::met;
 			}
-			ExpectsGraphics<void> D3D11Device::CreateTexture2D(Texture2D* Resource, DXGI_FORMAT InternalFormat)
+			expects_graphics<void> d3d11_device::create_texture_2d(texture_2d* resource, DXGI_FORMAT internal_format)
 			{
-				VI_ASSERT(Resource != nullptr, "resource should be set");
-				D3D11Texture2D* IResource = (D3D11Texture2D*)Resource;
-				VI_ASSERT(IResource->View != nullptr, "resource should be set");
+				VI_ASSERT(resource != nullptr, "resource should be set");
+				d3d11_texture_2d* iresource = (d3d11_texture_2d*)resource;
+				VI_ASSERT(iresource->view != nullptr, "resource should be set");
 
-				D3D11_TEXTURE2D_DESC Description;
-				IResource->View->GetDesc(&Description);
-				IResource->FormatMode = (Format)Description.Format;
-				IResource->Usage = (ResourceUsage)Description.Usage;
-				IResource->Width = Description.Width;
-				IResource->Height = Description.Height;
-				IResource->MipLevels = Description.MipLevels;
-				IResource->AccessFlags = (CPUAccess)Description.CPUAccessFlags;
-				IResource->Binding = (ResourceBind)Description.BindFlags;
+				D3D11_TEXTURE2D_DESC description;
+				iresource->view->GetDesc(&description);
+				iresource->format_mode = (format)description.Format;
+				iresource->usage = (resource_usage)description.Usage;
+				iresource->width = description.Width;
+				iresource->height = description.Height;
+				iresource->mip_levels = description.MipLevels;
+				iresource->access_flags = (cpu_access)description.CPUAccessFlags;
+				iresource->binding = (resource_bind)description.BindFlags;
 
-				if (IResource->Resource != nullptr || !((uint32_t)IResource->Binding & (uint32_t)ResourceBind::Shader_Input))
-					return Core::Expectation::Met;
+				if (iresource->resource != nullptr || !((uint32_t)iresource->binding & (uint32_t)resource_bind::shader_input))
+					return core::expectation::met;
 
 				D3D11_SHADER_RESOURCE_VIEW_DESC SRV;
 				ZeroMemory(&SRV, sizeof(SRV));
 
-				if (InternalFormat == DXGI_FORMAT_UNKNOWN)
-					SRV.Format = Description.Format;
+				if (internal_format == DXGI_FORMAT_UNKNOWN)
+					SRV.Format = description.Format;
 				else
-					SRV.Format = InternalFormat;
+					SRV.Format = internal_format;
 
-				if (Description.ArraySize > 1)
+				if (description.ArraySize > 1)
 				{
-					if (Description.MiscFlags & D3D11_RESOURCE_MISC_TEXTURECUBE)
+					if (description.MiscFlags & D3D11_RESOURCE_MISC_TEXTURECUBE)
 					{
 						SRV.ViewDimension = D3D11_SRV_DIMENSION_TEXTURECUBE;
 						SRV.TextureCube.MostDetailedMip = 0;
-						SRV.TextureCube.MipLevels = Description.MipLevels;
+						SRV.TextureCube.MipLevels = description.MipLevels;
 					}
-					else if (Description.SampleDesc.Count <= 1)
+					else if (description.SampleDesc.Count <= 1)
 					{
 						SRV.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2DARRAY;
 						SRV.Texture2DArray.MostDetailedMip = 0;
-						SRV.Texture2DArray.MipLevels = Description.MipLevels;
+						SRV.Texture2DArray.MipLevels = description.MipLevels;
 						SRV.Texture2DArray.FirstArraySlice = 0;
-						SRV.Texture2DArray.ArraySize = Description.ArraySize;
+						SRV.Texture2DArray.ArraySize = description.ArraySize;
 					}
 					else
 					{
 						SRV.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2DMSARRAY;
 						SRV.Texture2DMSArray.FirstArraySlice = 0;
-						SRV.Texture2DMSArray.ArraySize = Description.ArraySize;
+						SRV.Texture2DMSArray.ArraySize = description.ArraySize;
 					}
 				}
-				else if (Description.SampleDesc.Count <= 1)
+				else if (description.SampleDesc.Count <= 1)
 				{
 					SRV.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
 					SRV.Texture2D.MostDetailedMip = 0;
-					SRV.Texture2D.MipLevels = Description.MipLevels;
+					SRV.Texture2D.MipLevels = description.MipLevels;
 				}
 				else
 					SRV.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2DMS;
 
-				Core::Memory::Release(IResource->Resource);
-				HRESULT ResultCode = Context->CreateShaderResourceView(IResource->View, &SRV, &IResource->Resource);
-				if (ResultCode != S_OK)
-					return GetException(ResultCode, "create texture 2d internal");
+				d3d11_release(iresource->resource);
+				HRESULT result_code = context->CreateShaderResourceView(iresource->view, &SRV, &iresource->resource);
+				if (result_code != S_OK)
+					return get_exception(result_code, "create texture 2d internal");
 
-				return Core::Expectation::Met;
+				return core::expectation::met;
 			}
-			ExpectsGraphics<void> D3D11Device::CreateTextureCube(TextureCube* Resource, DXGI_FORMAT InternalFormat)
+			expects_graphics<void> d3d11_device::create_texture_cube(texture_cube* resource, DXGI_FORMAT internal_format)
 			{
-				VI_ASSERT(Resource != nullptr, "resource should be set");
-				D3D11TextureCube* IResource = (D3D11TextureCube*)Resource;
-				VI_ASSERT(IResource->View != nullptr, "resource should be set");
+				VI_ASSERT(resource != nullptr, "resource should be set");
+				d3d11_texture_cube* iresource = (d3d11_texture_cube*)resource;
+				VI_ASSERT(iresource->view != nullptr, "resource should be set");
 
-				D3D11_TEXTURE2D_DESC Description;
-				IResource->View->GetDesc(&Description);
-				IResource->FormatMode = (Format)Description.Format;
-				IResource->Usage = (ResourceUsage)Description.Usage;
-				IResource->Width = Description.Width;
-				IResource->Height = Description.Height;
-				IResource->MipLevels = Description.MipLevels;
-				IResource->AccessFlags = (CPUAccess)Description.CPUAccessFlags;
-				IResource->Binding = (ResourceBind)Description.BindFlags;
+				D3D11_TEXTURE2D_DESC description;
+				iresource->view->GetDesc(&description);
+				iresource->format_mode = (format)description.Format;
+				iresource->usage = (resource_usage)description.Usage;
+				iresource->width = description.Width;
+				iresource->height = description.Height;
+				iresource->mip_levels = description.MipLevels;
+				iresource->access_flags = (cpu_access)description.CPUAccessFlags;
+				iresource->binding = (resource_bind)description.BindFlags;
 
-				if (IResource->Resource != nullptr || !((uint32_t)IResource->Binding & (uint32_t)ResourceBind::Shader_Input))
-					return Core::Expectation::Met;
+				if (iresource->resource != nullptr || !((uint32_t)iresource->binding & (uint32_t)resource_bind::shader_input))
+					return core::expectation::met;
 
 				D3D11_SHADER_RESOURCE_VIEW_DESC SRV;
 				ZeroMemory(&SRV, sizeof(SRV));
 
-				if (InternalFormat == DXGI_FORMAT_UNKNOWN)
-					SRV.Format = Description.Format;
+				if (internal_format == DXGI_FORMAT_UNKNOWN)
+					SRV.Format = description.Format;
 				else
-					SRV.Format = InternalFormat;
+					SRV.Format = internal_format;
 
-				if (Description.ArraySize > 1)
+				if (description.ArraySize > 1)
 				{
-					if (Description.MiscFlags & D3D11_RESOURCE_MISC_TEXTURECUBE)
+					if (description.MiscFlags & D3D11_RESOURCE_MISC_TEXTURECUBE)
 					{
 						SRV.ViewDimension = D3D11_SRV_DIMENSION_TEXTURECUBE;
 						SRV.TextureCube.MostDetailedMip = 0;
-						SRV.TextureCube.MipLevels = Description.MipLevels;
+						SRV.TextureCube.MipLevels = description.MipLevels;
 					}
-					else if (Description.SampleDesc.Count <= 1)
+					else if (description.SampleDesc.Count <= 1)
 					{
 						SRV.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2DARRAY;
 						SRV.Texture2DArray.MostDetailedMip = 0;
-						SRV.Texture2DArray.MipLevels = Description.MipLevels;
+						SRV.Texture2DArray.MipLevels = description.MipLevels;
 						SRV.Texture2DArray.FirstArraySlice = 0;
-						SRV.Texture2DArray.ArraySize = Description.ArraySize;
+						SRV.Texture2DArray.ArraySize = description.ArraySize;
 					}
 					else
 					{
 						SRV.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2DMSARRAY;
 						SRV.Texture2DMSArray.FirstArraySlice = 0;
-						SRV.Texture2DMSArray.ArraySize = Description.ArraySize;
+						SRV.Texture2DMSArray.ArraySize = description.ArraySize;
 					}
 				}
-				else if (Description.SampleDesc.Count <= 1)
+				else if (description.SampleDesc.Count <= 1)
 				{
 					SRV.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
 					SRV.Texture2D.MostDetailedMip = 0;
-					SRV.Texture2D.MipLevels = Description.MipLevels;
+					SRV.Texture2D.MipLevels = description.MipLevels;
 				}
 				else
 					SRV.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2DMS;
 
-				Core::Memory::Release(IResource->Resource);
-				HRESULT ResultCode = Context->CreateShaderResourceView(IResource->View, &SRV, &IResource->Resource);
-				if (ResultCode != S_OK)
-					return GetException(ResultCode, "create texture 2d internal");
+				d3d11_release(iresource->resource);
+				HRESULT result_code = context->CreateShaderResourceView(iresource->view, &SRV, &iresource->resource);
+				if (result_code != S_OK)
+					return get_exception(result_code, "create texture 2d internal");
 
-				return Core::Expectation::Met;
+				return core::expectation::met;
 			}
-			ExpectsGraphics<ID3D11InputLayout*> D3D11Device::GenerateInputLayout(D3D11Shader* Shader)
+			expects_graphics<ID3D11InputLayout*> d3d11_device::generate_input_layout(d3d11_shader* shader)
 			{
-				VI_ASSERT(Shader != nullptr, "shader should be set");
-				if (Shader->VertexLayout != nullptr)
-					return Shader->VertexLayout;
+				VI_ASSERT(shader != nullptr, "shader should be set");
+				if (shader->vertex_layout != nullptr)
+					return shader->vertex_layout;
 
-				if (!Shader->Signature || !Register.Layout || Register.Layout->Layout.empty())
-					return GraphicsException("generate input layout: invalid argument");
+				if (!shader->signature || !regs.layout || regs.layout->layout.empty())
+					return graphics_exception("generate input layout: invalid argument");
 
-				Core::Vector<D3D11_INPUT_ELEMENT_DESC> Result;
-				for (size_t i = 0; i < Register.Layout->Layout.size(); i++)
+				core::vector<D3D11_INPUT_ELEMENT_DESC> result;
+				for (size_t i = 0; i < regs.layout->layout.size(); i++)
 				{
-					const InputLayout::Attribute& It = Register.Layout->Layout[i];
-					D3D11_INPUT_CLASSIFICATION Class = It.PerVertex ? D3D11_INPUT_PER_VERTEX_DATA : D3D11_INPUT_PER_INSTANCE_DATA;
-					UINT Step = It.PerVertex ? 0 : 1;
+					const input_layout::attribute& it = regs.layout->layout[i];
+					D3D11_INPUT_CLASSIFICATION data_class = it.per_vertex ? D3D11_INPUT_PER_VERTEX_DATA : D3D11_INPUT_PER_INSTANCE_DATA;
+					UINT step = it.per_vertex ? 0 : 1;
 
-					if (It.Format == AttributeType::Matrix)
+					if (it.format == attribute_type::matrix)
 					{
-						DXGI_FORMAT Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
-						Result.push_back({ It.SemanticName.c_str(), It.SemanticIndex + 0, Format, It.Slot, It.AlignedByteOffset + 0, Class, Step });
-						Result.push_back({ It.SemanticName.c_str(), It.SemanticIndex + 1, Format, It.Slot, It.AlignedByteOffset + 16, Class, Step });
-						Result.push_back({ It.SemanticName.c_str(), It.SemanticIndex + 2, Format, It.Slot, It.AlignedByteOffset + 32, Class, Step });
-						Result.push_back({ It.SemanticName.c_str(), It.SemanticIndex + 3, Format, It.Slot, It.AlignedByteOffset + 48, Class, Step });
+						DXGI_FORMAT format = DXGI_FORMAT_R32G32B32A32_FLOAT;
+						result.push_back({ it.semantic_name.c_str(), it.semantic_index + 0, format, it.slot, it.aligned_byte_offset + 0, data_class, step });
+						result.push_back({ it.semantic_name.c_str(), it.semantic_index + 1, format, it.slot, it.aligned_byte_offset + 16, data_class, step });
+						result.push_back({ it.semantic_name.c_str(), it.semantic_index + 2, format, it.slot, it.aligned_byte_offset + 32, data_class, step });
+						result.push_back({ it.semantic_name.c_str(), it.semantic_index + 3, format, it.slot, it.aligned_byte_offset + 48, data_class, step });
 						continue;
 					}
 
-					D3D11_INPUT_ELEMENT_DESC At;
-					At.SemanticName = It.SemanticName.c_str();
-					At.AlignedByteOffset = It.AlignedByteOffset;
-					At.Format = DXGI_FORMAT_R32_FLOAT;
-					At.SemanticIndex = It.SemanticIndex;
-					At.InputSlot = It.Slot;
-					At.InstanceDataStepRate = Step;
-					At.InputSlotClass = Class;
+					D3D11_INPUT_ELEMENT_DESC at;
+					at.SemanticName = it.semantic_name.c_str();
+					at.AlignedByteOffset = it.aligned_byte_offset;
+					at.Format = DXGI_FORMAT_R32_FLOAT;
+					at.SemanticIndex = it.semantic_index;
+					at.InputSlot = it.slot;
+					at.InstanceDataStepRate = step;
+					at.InputSlotClass = data_class;
 
-					switch (It.Format)
+					switch (it.format)
 					{
-						case Vitex::Graphics::AttributeType::Byte:
-							if (It.Components == 3)
-								return GraphicsException("generate input layout: no 24bit support format for this type");
-							else if (It.Components == 1)
-								At.Format = DXGI_FORMAT_R8_SNORM;
-							else if (It.Components == 2)
-								At.Format = DXGI_FORMAT_R8G8_SNORM;
-							else if (It.Components == 4)
-								At.Format = DXGI_FORMAT_R8G8B8A8_SNORM;
+						case vitex::graphics::attribute_type::byte:
+							if (it.components == 3)
+								return graphics_exception("generate input layout: no 24bit support format for this type");
+							else if (it.components == 1)
+								at.Format = DXGI_FORMAT_R8_SNORM;
+							else if (it.components == 2)
+								at.Format = DXGI_FORMAT_R8G8_SNORM;
+							else if (it.components == 4)
+								at.Format = DXGI_FORMAT_R8G8B8A8_SNORM;
 							break;
-						case Vitex::Graphics::AttributeType::Ubyte:
-							if (It.Components == 3)
-								return GraphicsException("generate input layout: no 24bit support format for this type");
-							else if (It.Components == 1)
-								At.Format = DXGI_FORMAT_R8_UNORM;
-							else if (It.Components == 2)
-								At.Format = DXGI_FORMAT_R8G8_UNORM;
-							else if (It.Components == 4)
-								At.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+						case vitex::graphics::attribute_type::ubyte:
+							if (it.components == 3)
+								return graphics_exception("generate input layout: no 24bit support format for this type");
+							else if (it.components == 1)
+								at.Format = DXGI_FORMAT_R8_UNORM;
+							else if (it.components == 2)
+								at.Format = DXGI_FORMAT_R8G8_UNORM;
+							else if (it.components == 4)
+								at.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
 							break;
-						case Vitex::Graphics::AttributeType::Half:
-							if (It.Components == 1)
-								At.Format = DXGI_FORMAT_R16_FLOAT;
-							else if (It.Components == 2)
-								At.Format = DXGI_FORMAT_R16G16_FLOAT;
-							else if (It.Components == 3)
-								At.Format = DXGI_FORMAT_R11G11B10_FLOAT;
-							else if (It.Components == 4)
-								At.Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
+						case vitex::graphics::attribute_type::half:
+							if (it.components == 1)
+								at.Format = DXGI_FORMAT_R16_FLOAT;
+							else if (it.components == 2)
+								at.Format = DXGI_FORMAT_R16G16_FLOAT;
+							else if (it.components == 3)
+								at.Format = DXGI_FORMAT_R11G11B10_FLOAT;
+							else if (it.components == 4)
+								at.Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
 							break;
-						case Vitex::Graphics::AttributeType::Float:
-							if (It.Components == 1)
-								At.Format = DXGI_FORMAT_R32_FLOAT;
-							else if (It.Components == 2)
-								At.Format = DXGI_FORMAT_R32G32_FLOAT;
-							else if (It.Components == 3)
-								At.Format = DXGI_FORMAT_R32G32B32_FLOAT;
-							else if (It.Components == 4)
-								At.Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
+						case vitex::graphics::attribute_type::floatf:
+							if (it.components == 1)
+								at.Format = DXGI_FORMAT_R32_FLOAT;
+							else if (it.components == 2)
+								at.Format = DXGI_FORMAT_R32G32_FLOAT;
+							else if (it.components == 3)
+								at.Format = DXGI_FORMAT_R32G32B32_FLOAT;
+							else if (it.components == 4)
+								at.Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
 							break;
-						case Vitex::Graphics::AttributeType::Int:
-							if (It.Components == 1)
-								At.Format = DXGI_FORMAT_R32_SINT;
-							else if (It.Components == 2)
-								At.Format = DXGI_FORMAT_R32G32_SINT;
-							else if (It.Components == 3)
-								At.Format = DXGI_FORMAT_R32G32B32_SINT;
-							else if (It.Components == 4)
-								At.Format = DXGI_FORMAT_R32G32B32A32_SINT;
+						case vitex::graphics::attribute_type::intf:
+							if (it.components == 1)
+								at.Format = DXGI_FORMAT_R32_SINT;
+							else if (it.components == 2)
+								at.Format = DXGI_FORMAT_R32G32_SINT;
+							else if (it.components == 3)
+								at.Format = DXGI_FORMAT_R32G32B32_SINT;
+							else if (it.components == 4)
+								at.Format = DXGI_FORMAT_R32G32B32A32_SINT;
 							break;
-						case Vitex::Graphics::AttributeType::Uint:
-							if (It.Components == 1)
-								At.Format = DXGI_FORMAT_R32_UINT;
-							else if (It.Components == 2)
-								At.Format = DXGI_FORMAT_R32G32_UINT;
-							else if (It.Components == 3)
-								At.Format = DXGI_FORMAT_R32G32B32_UINT;
-							else if (It.Components == 4)
-								At.Format = DXGI_FORMAT_R32G32B32A32_UINT;
+						case vitex::graphics::attribute_type::uint:
+							if (it.components == 1)
+								at.Format = DXGI_FORMAT_R32_UINT;
+							else if (it.components == 2)
+								at.Format = DXGI_FORMAT_R32G32_UINT;
+							else if (it.components == 3)
+								at.Format = DXGI_FORMAT_R32G32B32_UINT;
+							else if (it.components == 4)
+								at.Format = DXGI_FORMAT_R32G32B32A32_UINT;
 							break;
 						default:
 							break;
 					}
 
-					Result.push_back(std::move(At));
+					result.push_back(std::move(at));
 				}
 
-				HRESULT ResultCode = Context->CreateInputLayout(Result.data(), (uint32_t)Result.size(), Shader->Signature->GetBufferPointer(), Shader->Signature->GetBufferSize(), &Shader->VertexLayout);
-				if (ResultCode != S_OK)
-					return GetException(ResultCode, "generate input layout");
+				HRESULT result_code = context->CreateInputLayout(result.data(), (uint32_t)result.size(), shader->signature->GetBufferPointer(), shader->signature->GetBufferSize(), &shader->vertex_layout);
+				if (result_code != S_OK)
+					return get_exception(result_code, "generate input layout");
 
-				return Shader->VertexLayout;
+				return shader->vertex_layout;
 			}
-			HRESULT D3D11Device::CreateConstantBuffer(ID3D11Buffer** IBuffer, size_t Size)
+			HRESULT d3d11_device::create_constant_buffer(ID3D11Buffer** ibuffer, size_t size)
 			{
-				VI_ASSERT(IBuffer != nullptr, "buffers ptr should be set");
+				VI_ASSERT(ibuffer != nullptr, "buffers ptr should be set");
 
-				D3D11_BUFFER_DESC Description;
-				ZeroMemory(&Description, sizeof(Description));
-				Description.Usage = D3D11_USAGE_DEFAULT;
-				Description.ByteWidth = (uint32_t)Size;
-				Description.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
-				Description.CPUAccessFlags = 0;
+				D3D11_BUFFER_DESC description;
+				ZeroMemory(&description, sizeof(description));
+				description.Usage = D3D11_USAGE_DEFAULT;
+				description.ByteWidth = (uint32_t)size;
+				description.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+				description.CPUAccessFlags = 0;
 
-				return Context->CreateBuffer(&Description, nullptr, IBuffer);
+				return context->CreateBuffer(&description, nullptr, ibuffer);
 			}
-			std::string_view D3D11Device::GetCompileState(ID3DBlob* Error)
+			std::string_view d3d11_device::get_compile_state(ID3DBlob* error)
 			{
-				if (!Error)
+				if (!error)
 					return "";
 
-				char* Ptr = (char*)Error->GetBufferPointer();
-				return Ptr ? Ptr : "";
+				char* ptr = (char*)error->GetBufferPointer();
+				return ptr ? ptr : "";
 			}
-			const std::string_view& D3D11Device::GetVSProfile()
+			const std::string_view& d3d11_device::get_vs_profile()
 			{
-				return Models.Vertex;
+				return models.vertex;
 			}
-			const std::string_view& D3D11Device::GetPSProfile()
+			const std::string_view& d3d11_device::get_ps_profile()
 			{
-				return Models.Pixel;
+				return models.pixel;
 			}
-			const std::string_view& D3D11Device::GetGSProfile()
+			const std::string_view& d3d11_device::get_gs_profile()
 			{
-				return Models.Geometry;
+				return models.geometry;
 			}
-			const std::string_view& D3D11Device::GetHSProfile()
+			const std::string_view& d3d11_device::get_hs_profile()
 			{
-				return Models.Hull;
+				return models.hull;
 			}
-			const std::string_view& D3D11Device::GetCSProfile()
+			const std::string_view& d3d11_device::get_cs_profile()
 			{
-				return Models.Compute;
+				return models.compute;
 			}
-			const std::string_view& D3D11Device::GetDSProfile()
+			const std::string_view& d3d11_device::get_ds_profile()
 			{
-				return Models.Domain;
+				return models.domain;
 			}
 		}
 	}

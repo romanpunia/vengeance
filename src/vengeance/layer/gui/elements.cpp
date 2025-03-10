@@ -1,49 +1,49 @@
 #include "../gui.h"
 #ifdef VI_RMLUI
-#include <RmlUi/Core.h>
-#include <Source/Core/ElementStyle.h>
+#include <RmlUi/core.h>
+#include <source/core/ElementStyle.h>
 
-namespace Vitex
+namespace vitex
 {
-	namespace Layer
+	namespace layer
 	{
-		namespace GUI
+		namespace gui
 		{
-			class ExpandElement final : public Rml::Element
+			class expand_element final : public Rml::Element
 			{
 			private:
-				bool Hidden;
+				bool hidden;
 
 			public:
-				ExpandElement(const Rml::String& Tag) : Element(Tag), Hidden(false)
+				expand_element(const Rml::String& tag) : Element(tag), hidden(false)
 				{
 					SetPseudoClass("hidden", false);
 				}
-				virtual ~ExpandElement() = default;
-				void ProcessDefaultAction(Rml::Event& Event) override
+				virtual ~expand_element() = default;
+				void ProcessDefaultAction(Rml::Event& event) override
 				{
-					Rml::Element::ProcessDefaultAction(Event);
-					if (Event == Rml::EventId::Click && Event.GetCurrentElement() == this)
+					Rml::Element::ProcessDefaultAction(event);
+					if (event == Rml::EventId::Click && event.GetCurrentElement() == this)
 					{
-						Hidden = !Hidden;
-						SetPseudoClass("hidden", Hidden);
+						hidden = !hidden;
+						SetPseudoClass("hidden", hidden);
 					}
 				}
 			};
 
-			static Rml::ElementInstancerGeneric<ExpandElement>* IExpandInstancer = nullptr;
-			void Subsystem::CreateElements() noexcept
+			static Rml::ElementInstancerGeneric<expand_element>* iexpand_instancer = nullptr;
+			void subsystem::create_elements() noexcept
 			{
-				if (!IExpandInstancer)
+				if (!iexpand_instancer)
 				{
-					IExpandInstancer = Core::Memory::New<Rml::ElementInstancerGeneric<ExpandElement>>();
-					Rml::Factory::RegisterElementInstancer("expand", IExpandInstancer);
+					iexpand_instancer = core::memory::init<Rml::ElementInstancerGeneric<expand_element>>();
+					Rml::Factory::RegisterElementInstancer("expand", iexpand_instancer);
 				}
 			}
-			void Subsystem::ReleaseElements() noexcept
+			void subsystem::release_elements() noexcept
 			{
-				Core::Memory::Delete(IExpandInstancer);
-				IExpandInstancer = nullptr;
+				core::memory::deinit(iexpand_instancer);
+				iexpand_instancer = nullptr;
 			}
 		}
 	}

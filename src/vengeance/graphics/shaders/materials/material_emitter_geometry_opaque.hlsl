@@ -8,7 +8,7 @@ VOutputOpaque Make(VOutputOpaque V, float2 Offset, float2 Coord)
 	float Sin = sin(V.Rotation), Cos = cos(V.Rotation);
 	V.Position.xy += float2(Offset.x * Cos - Offset.y * Sin, Offset.x * Sin + Offset.y * Cos);
 	V.Position = mul(V.Position, ob_World);
-	V.TexCoord = Coord;
+	V.Texcoord = Coord;
 	V.UV = V.Position;
 	
 	return V;
@@ -33,7 +33,7 @@ VOutputOpaque vs_main(VInput V)
 	Result.Rotation = Base.Rotation;
 	Result.Color = Base.Color;
 	Result.Scale = Base.Scale;
-	Result.Normal = ob_TexCoord.xyz;
+	Result.Normal = ob_Texcoord.xyz;
 	Result.Tangent = float3(1, 0, 0);
 	Result.Bitangent = float3(0, -1, 0);
 	Result.UV = Result.Position;
@@ -46,14 +46,14 @@ GBuffer ps_main(VOutputOpaque V)
 	float4 Color = float4(Materials[ob_MaterialId].Diffuse * V.Color.xyz, V.Color.w);
 	[branch] if (ob_Diffuse > 0)
 	{
-		Color *= GetDiffuse(V.TexCoord);
+		Color *= GetDiffuse(V.Texcoord);
 		if (Color.w < 0.001)
 			discard;
 	}
 
 	float3 Normal = V.Normal;
 	[branch] if (ob_Normal > 0)
-		Normal = GetNormal(V.TexCoord, V.Normal, V.Tangent, V.Bitangent);
+		Normal = GetNormal(V.Texcoord, V.Normal, V.Tangent, V.Bitangent);
 
-	return Compose(V.TexCoord, Color, Normal, V.UV.z / V.UV.w, ob_MaterialId);
+	return Compose(V.Texcoord, Color, Normal, V.UV.z / V.UV.w, ob_MaterialId);
 };

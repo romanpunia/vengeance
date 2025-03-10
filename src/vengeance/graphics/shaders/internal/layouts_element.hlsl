@@ -7,7 +7,7 @@ struct VOutput
 {
 	float4 Position : SV_POSITION;
 	float4 Color : TEXCOORD0;
-	float2 TexCoord : TEXCOORD1;
+	float2 Texcoord : TEXCOORD1;
 	float Scale : TEXCOORD2;
 	float Rotation : TEXCOORD3;
 };
@@ -20,16 +20,16 @@ struct VOutputOpaque
 	float3 Normal : NORMAL0;
 	float3 Tangent : TANGENT0;
 	float3 Bitangent : BINORMAL0;
-	float2 TexCoord : TEXCOORD2;
+	float2 Texcoord : TEXCOORD2;
 	float Scale : TEXCOORD3;
 	float Rotation : TEXCOORD4;
 };
 
-struct VOutputCubic
+struct VOutputCube
 {
 	float4 Position : SV_POSITION;
 	float4 UV : TEXCOORD0;
-	float2 TexCoord : TEXCOORD1;
+	float2 Texcoord : TEXCOORD1;
 	float Rotation : TEXCOORD2;
 	float Scale : TEXCOORD3;
 	float Alpha : TEXCOORD4;
@@ -40,7 +40,7 @@ struct VOutputLinear
 {
 	float4 Position : SV_POSITION;
 	float4 UV : TEXCOORD0;
-	float2 TexCoord : TEXCOORD1;
+	float2 Texcoord : TEXCOORD1;
 	float Rotation : TEXCOORD2;
 	float Scale : TEXCOORD3;
 	float Alpha : TEXCOORD4;

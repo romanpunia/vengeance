@@ -2,7 +2,7 @@
 #include "internal/channels_effect.hlsl"
 #include "internal/utils_position.hlsl"
 
-cbuffer RenderConstant : register(b3)
+cbuffer RenderBuffer : register(b3)
 {
 	float2 Texel;
 	float Radius;
@@ -15,9 +15,9 @@ cbuffer RenderConstant : register(b3)
 	float FarRange;
 }
 
-float GetWeight(float2 TexCoord, float NearD, float NearR, float FarD, float FarR)
+float GetWeight(float2 Texcoord, float NearD, float NearR, float FarD, float FarR)
 {
-	float4 Position = mul(float4(GetPosition(TexCoord, GetDepth(TexCoord)), 1.0), vb_ViewProj);
+	float4 Position = mul(float4(GetPosition(Texcoord, GetDepth(Texcoord)), 1.0), vb_ViewProj);
 	float N = 1.0 - (Position.z - NearD) / NearR;
 	float F = (Position.z - (FarD - FarR)) / FarR;
 
@@ -37,14 +37,14 @@ VOutput vs_main(VInput V)
 {
 	VOutput Result = (VOutput)0;
 	Result.Position = float4(V.Position, 1.0);
-	Result.TexCoord = Result.Position;
+	Result.Texcoord = Result.Position;
 
 	return Result;
 }
 
 float4 ps_main(VOutput V) : SV_TARGET0
 {
-	float2 UV = GetTexCoord(V.TexCoord);
+	float2 UV = GetTexcoord(V.Texcoord);
 	float Amount = Radius * GetWeight(UV, NearDistance, NearRange, FarDistance, FarRange);
 	float x = 0.0, y = 0.0;
 	

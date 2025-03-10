@@ -1,2588 +1,2397 @@
 #include "renderers.h"
 #include "components.h"
 
-namespace Vitex
+namespace vitex
 {
-	namespace Layer
+	namespace layer
 	{
-		namespace Renderers
+		namespace renderers
 		{
-			SoftBody::SoftBody(Layer::RenderSystem* Lab) : GeometryRenderer(Lab), VertexBuffer(nullptr), IndexBuffer(nullptr)
+			soft_body::soft_body(layer::render_system* lab) : geometry_renderer(lab), vertex_buffer(nullptr), index_buffer(nullptr)
 			{
-				VI_ASSERT(System != nullptr, "render system should be set");
-				VI_ASSERT(System->GetDevice() != nullptr, "graphics device should be set");
+				VI_ASSERT(system != nullptr, "render system should be set");
+				VI_ASSERT(system->get_device() != nullptr, "graphics device should be set");
 
-				Graphics::GraphicsDevice* Device = System->GetDevice();
-				DepthStencil = Device->GetDepthStencilState("drw_srw_lt");
-				Rasterizer = Device->GetRasterizerState("so_co");
-				Blend = Device->GetBlendState("bo_wrgba_one");
-				Sampler = Device->GetSamplerState("a16_fa_wrap");
-				Layout = Device->GetInputLayout("vx_base");
+				graphics::graphics_device* device = system->get_device();
+				depth_stencil = device->get_depth_stencil_state("drw_srw_lt");
+				rasterizer = device->get_rasterizer_state("so_co");
+				blend = device->get_blend_state("bo_wrgba_one");
+				sampler = device->get_sampler_state("a16_fa_wrap");
+				layout[0] = device->get_input_layout("vx_base");
+				layout[1] = device->get_input_layout("vxi_base");
 
-				Shaders.Depth.Culling = *System->CompileShader("materials/material_model_depth_culling");
-				Slots.Depth.Culling.Object = *Device->GetShaderSlot(Shaders.Depth.Culling, "Object");
+				pipelines.culling.shader = *system->compile_shader("materials/material_model_culling", { });
+				pipelines.culling.object_buffer = *device->get_shader_slot(pipelines.culling.shader, "ObjectBuffer");
+				pipelines.depth.shader = *system->compile_shader("materials/material_model_depth", { });
+				pipelines.depth.slotdata.diffuse_map = *device->get_shader_slot(pipelines.depth.shader, "DiffuseMap");
+				pipelines.depth.sampler = *device->get_shader_sampler_slot(pipelines.depth.shader, "DiffuseMap", "Sampler");
+				pipelines.depth.materials = *device->get_shader_slot(pipelines.depth.shader, "Materials");
+				pipelines.depth.object_buffer = *device->get_shader_slot(pipelines.depth.shader, "ObjectBuffer");
+				pipelines.depth_cube.shader = *system->compile_shader("materials/material_model_depth_cube", { }, sizeof(trigonometry::matrix4x4) * 6);
+				pipelines.depth_cube.slotdata.diffuse_map = *device->get_shader_slot(pipelines.depth_cube.shader, "DiffuseMap");
+				pipelines.depth_cube.sampler = *device->get_shader_sampler_slot(pipelines.depth_cube.shader, "DiffuseMap", "Sampler");
+				pipelines.depth_cube.materials = *device->get_shader_slot(pipelines.depth_cube.shader, "Materials");
+				pipelines.depth_cube.object_buffer = *device->get_shader_slot(pipelines.depth_cube.shader, "ObjectBuffer");
+				pipelines.depth_cube.viewer_buffer = *device->get_shader_slot(pipelines.depth_cube.shader, "ViewerBuffer");
+				pipelines.depth_cube.cube_buffer = *device->get_shader_slot(pipelines.depth_cube.shader, "CubeBuffer");
+				pipelines.geometry.shader = *system->compile_shader("materials/material_model_geometry", { });
+				pipelines.geometry.slotdata.diffuse_map = *device->get_shader_slot(pipelines.geometry.shader, "DiffuseMap");
+				pipelines.geometry.slotdata.normal_map = *device->get_shader_slot(pipelines.geometry.shader, "NormalMap");
+				pipelines.geometry.slotdata.metallic_map = *device->get_shader_slot(pipelines.geometry.shader, "MetallicMap");
+				pipelines.geometry.slotdata.roughness_map = *device->get_shader_slot(pipelines.geometry.shader, "RoughnessMap");
+				pipelines.geometry.slotdata.height_map = *device->get_shader_slot(pipelines.geometry.shader, "HeightMap");
+				pipelines.geometry.slotdata.occlusion_map = *device->get_shader_slot(pipelines.geometry.shader, "OcclusionMap");
+				pipelines.geometry.slotdata.emission_map = *device->get_shader_slot(pipelines.geometry.shader, "EmissionMap");
+				pipelines.geometry.sampler = *device->get_shader_sampler_slot(pipelines.geometry.shader, "DiffuseMap", "Sampler");
+				pipelines.geometry.materials = *device->get_shader_slot(pipelines.geometry.shader, "Materials");
+				pipelines.geometry.object_buffer = *device->get_shader_slot(pipelines.geometry.shader, "ObjectBuffer");
+				pipelines.geometry.viewer_buffer = *device->get_shader_slot(pipelines.geometry.shader, "ViewerBuffer");
 
-				Shaders.Depth.Linear = *System->CompileShader("materials/material_model_depth_linear");
-				Slots.Depth.Linear.Slotdata.DiffuseMap = *Device->GetShaderSlot(Shaders.Depth.Linear, "DiffuseMap");
-				Slots.Depth.Linear.Sampler = *Device->GetShaderSamplerSlot(Shaders.Depth.Linear, "DiffuseMap", "Sampler");
-				Slots.Depth.Linear.Materials = *Device->GetShaderSlot(Shaders.Depth.Linear, "Materials");
-				Slots.Depth.Linear.Object = *Device->GetShaderSlot(Shaders.Depth.Linear, "Object");
-
-				Shaders.Depth.Cubic = *System->CompileShader("materials/material_model_depth_cubic", sizeof(Trigonometry::Matrix4x4) * 6);
-				Slots.Depth.Cubic.Slotdata.DiffuseMap = *Device->GetShaderSlot(Shaders.Depth.Cubic, "DiffuseMap");
-				Slots.Depth.Cubic.Sampler = *Device->GetShaderSamplerSlot(Shaders.Depth.Cubic, "DiffuseMap", "Sampler");
-				Slots.Depth.Cubic.Materials = *Device->GetShaderSlot(Shaders.Depth.Cubic, "Materials");
-				Slots.Depth.Cubic.Object = *Device->GetShaderSlot(Shaders.Depth.Cubic, "Object");
-				Slots.Depth.Cubic.Viewer = *Device->GetShaderSlot(Shaders.Depth.Cubic, "Viewer");
-				Slots.Depth.Cubic.Cubic = *Device->GetShaderSlot(Shaders.Depth.Cubic, "RenderConstant");
-
-				Shaders.Geometry = *System->CompileShader("materials/material_model_geometry");
-				Slots.Geometry.Slotdata.DiffuseMap = *Device->GetShaderSlot(Shaders.Geometry, "DiffuseMap");
-				Slots.Geometry.Slotdata.NormalMap = *Device->GetShaderSlot(Shaders.Geometry, "NormalMap");
-				Slots.Geometry.Slotdata.MetallicMap = *Device->GetShaderSlot(Shaders.Geometry, "MetallicMap");
-				Slots.Geometry.Slotdata.RoughnessMap = *Device->GetShaderSlot(Shaders.Geometry, "RoughnessMap");
-				Slots.Geometry.Slotdata.HeightMap = *Device->GetShaderSlot(Shaders.Geometry, "HeightMap");
-				Slots.Geometry.Slotdata.OcclusionMap = *Device->GetShaderSlot(Shaders.Geometry, "OcclusionMap");
-				Slots.Geometry.Slotdata.EmissionMap = *Device->GetShaderSlot(Shaders.Geometry, "EmissionMap");
-				Slots.Geometry.Sampler = *Device->GetShaderSamplerSlot(Shaders.Geometry, "DiffuseMap", "Sampler");
-				Slots.Geometry.Materials = *Device->GetShaderSlot(Shaders.Geometry, "Materials");
-				Slots.Geometry.Object = *Device->GetShaderSlot(Shaders.Geometry, "Object");
-				Slots.Geometry.Viewer = *Device->GetShaderSlot(Shaders.Geometry, "Viewer");
-
-				Shaders.Voxelizer = *System->CompileShader("materials/material_model_voxelizer", sizeof(Lighting::IVoxelBuffer));
-				Slots.Voxelizer.Slotdata.DiffuseMap = *Device->GetShaderSlot(Shaders.Voxelizer, "DiffuseMap");
-				Slots.Voxelizer.Slotdata.NormalMap = *Device->GetShaderSlot(Shaders.Voxelizer, "NormalMap");
-				Slots.Voxelizer.Slotdata.MetallicMap = *Device->GetShaderSlot(Shaders.Voxelizer, "MetallicMap");
-				Slots.Voxelizer.Slotdata.RoughnessMap = *Device->GetShaderSlot(Shaders.Voxelizer, "RoughnessMap");
-				Slots.Voxelizer.Slotdata.HeightMap = *Device->GetShaderSlot(Shaders.Voxelizer, "HeightMap");
-				Slots.Voxelizer.Slotdata.OcclusionMap = *Device->GetShaderSlot(Shaders.Voxelizer, "OcclusionMap");
-				Slots.Voxelizer.Slotdata.EmissionMap = *Device->GetShaderSlot(Shaders.Voxelizer, "EmissionMap");
-				Slots.Voxelizer.Sampler = *Device->GetShaderSamplerSlot(Shaders.Voxelizer, "DiffuseMap", "Sampler");
-				Slots.Voxelizer.Materials = *Device->GetShaderSlot(Shaders.Voxelizer, "Materials");
-				Slots.Voxelizer.DiffuseBuffer = *Device->GetShaderSlot(Shaders.Voxelizer, "DiffuseBuffer");
-				Slots.Voxelizer.NormalBuffer = *Device->GetShaderSlot(Shaders.Voxelizer, "NormalBuffer");
-				Slots.Voxelizer.SurfaceBuffer = *Device->GetShaderSlot(Shaders.Voxelizer, "SurfaceBuffer");
-				Slots.Voxelizer.Object = *Device->GetShaderSlot(Shaders.Voxelizer, "Object");
-				Slots.Voxelizer.Viewer = *Device->GetShaderSlot(Shaders.Voxelizer, "Viewer");
-				Slots.Voxelizer.Voxelizer = *Device->GetShaderSlot(Shaders.Voxelizer, "Voxelizer");
-
-				Graphics::ElementBuffer* Buffers[2];
-				if (Lab->CompileBuffers(Buffers, "soft-body", sizeof(Trigonometry::Vertex), 16384))
+				graphics::element_buffer* buffers[2];
+				if (lab->compile_buffers(buffers, "soft-body", sizeof(trigonometry::vertex), 16384))
 				{
-					IndexBuffer = Buffers[(size_t)BufferType::Index];
-					VertexBuffer = Buffers[(size_t)BufferType::Vertex];
+					index_buffer = buffers[(size_t)buffer_type::index];
+					vertex_buffer = buffers[(size_t)buffer_type::vertex];
 				}
+
+				graphics::element_buffer::desc desc = graphics::element_buffer::desc();
+				desc.access_flags = graphics::cpu_access::write;
+				desc.usage = graphics::resource_usage::dynamic;
+				desc.bind_flags = graphics::resource_bind::vertex_buffer;
+				desc.element_count = 1;
+				desc.elements = (void*)&group;
+				desc.element_width = sizeof(render_buffer::instance);
+				group_buffer = device->create_element_buffer(desc).or_else(nullptr);
 			}
-			SoftBody::~SoftBody()
+			soft_body::~soft_body()
 			{
-				Graphics::ElementBuffer* Buffers[2];
-				Buffers[(size_t)BufferType::Index] = IndexBuffer;
-				Buffers[(size_t)BufferType::Vertex] = VertexBuffer;
+				graphics::element_buffer* buffers[2];
+				buffers[(size_t)buffer_type::index] = index_buffer;
+				buffers[(size_t)buffer_type::vertex] = vertex_buffer;
+				core::memory::release(group_buffer);
 
-				System->FreeBuffers(Buffers);
-				System->FreeShader(Shaders.Geometry);
-				System->FreeShader(Shaders.Voxelizer);
-				System->FreeShader(Shaders.Depth.Culling);
-				System->FreeShader(Shaders.Depth.Linear);
-				System->FreeShader(Shaders.Depth.Cubic);
+				system->free_buffers(buffers);
+				system->free_shader(pipelines.geometry.shader);
+				system->free_shader(pipelines.culling.shader);
+				system->free_shader(pipelines.depth.shader);
+				system->free_shader(pipelines.depth_cube.shader);
 			}
-			size_t SoftBody::CullGeometry(const Viewer& View, const GeometryRenderer::Objects& Chunk)
+			size_t soft_body::cull_geometry(const viewer& view, const geometry_renderer::objects& chunk)
 			{
-				VI_ASSERT(System->GetPrimitives() != nullptr, "primitives cache should be set");
+				VI_ASSERT(system->get_primitives() != nullptr, "primitives cache should be set");
 
-				Graphics::ElementBuffer* Box[2];
-				System->GetPrimitives()->GetBoxBuffers(Box);
+				graphics::element_buffer* box[2];
+				system->get_primitives()->get_box_buffers(box);
 
-				Graphics::GraphicsDevice* Device = System->GetDevice();
-				System->SetConstantBuffer(RenderBufferType::Render, Slots.Geometry.Object, VI_VS);
-				Device->SetRasterizerState(Rasterizer);
-				Device->SetInputLayout(Layout);
-				Device->SetShader(nullptr, VI_PS);
-				Device->SetShader(Shaders.Depth.Culling, VI_VS);
+				graphics::graphics_device* device = system->get_device();
+				system->set_constant_buffer(render_buffer_type::render, pipelines.culling.object_buffer, VI_VS);
+				device->set_rasterizer_state(rasterizer);
+				device->set_input_layout(layout[0]);
+				device->set_shader(nullptr, VI_PS);
+				device->set_shader(pipelines.culling.shader, VI_VS);
 
-				size_t Count = 0;
-				if (System->PreciseCulling)
+				size_t count = 0;
+				if (system->precise_culling)
 				{
-					for (auto* Base : Chunk)
+					for (auto* base : chunk)
 					{
-						if (Base->GetIndices().empty() || !CullingBegin(Base))
+						if (base->get_indices().empty() || !culling_begin(base))
 							continue;
 
-						Base->Fill(Device, IndexBuffer, VertexBuffer);
-						System->Constants->Render.World.Identify();
-						System->Constants->Render.Transform = View.ViewProjection;
-						System->UpdateConstantBuffer(RenderBufferType::Render);
-						Device->SetVertexBuffer(VertexBuffer);
-						Device->SetIndexBuffer(IndexBuffer, Graphics::Format::R32_Uint);
-						Device->DrawIndexed((uint32_t)Base->GetIndices().size(), 0, 0);
-						CullingEnd();
-						Count++;
+						base->fill(device, index_buffer, vertex_buffer);
+						system->constants->render.world.identify();
+						system->constants->render.transform = view.view_projection;
+						system->update_constant_buffer(render_buffer_type::render);
+						device->set_vertex_buffer(vertex_buffer);
+						device->set_index_buffer(index_buffer, graphics::format::r32_uint);
+						device->draw_indexed((uint32_t)base->get_indices().size(), 0, 0);
+						culling_end();
+						count++;
 					}
 				}
 				else
 				{
-					Device->SetVertexBuffer(Box[(size_t)BufferType::Vertex]);
-					Device->SetIndexBuffer(Box[(size_t)BufferType::Index], Graphics::Format::R32_Uint);
+					device->set_vertex_buffer(box[(size_t)buffer_type::vertex]);
+					device->set_index_buffer(box[(size_t)buffer_type::index], graphics::format::r32_uint);
 
-					for (auto* Base : Chunk)
+					for (auto* base : chunk)
 					{
-						if (Base->GetIndices().empty() || !CullingBegin(Base))
+						if (base->get_indices().empty() || !culling_begin(base))
 							continue;
 
-						System->Constants->Render.World = Base->GetEntity()->GetBox();
-						System->Constants->Render.Transform = System->Constants->Render.World * View.ViewProjection;
-						System->UpdateConstantBuffer(RenderBufferType::Render);
-						Device->DrawIndexed((uint32_t)Box[(size_t)BufferType::Index]->GetElements(), 0, 0);
-						CullingEnd();
+						system->constants->render.world = base->get_entity()->get_box();
+						system->constants->render.transform = system->constants->render.world * view.view_projection;
+						system->update_constant_buffer(render_buffer_type::render);
+						device->draw_indexed((uint32_t)box[(size_t)buffer_type::index]->get_elements(), 0, 0);
+						culling_end();
 
-						Count++;
+						count++;
 					}
 				}
 
-				return Count;
+				return count;
 			}
-			size_t SoftBody::RenderGeometric(Core::Timer* Time, const GeometryRenderer::Objects& Chunk)
+			size_t soft_body::render_geometry(core::timer* time, const geometry_renderer::objects& chunk)
 			{
-				VI_ASSERT(System->GetScene() != nullptr, "scene should be set");
-				Graphics::GraphicsDevice* Device = System->GetDevice();
-				bool Static = System->State.IsSet(RenderOpt::Static);
+				VI_ASSERT(system->get_scene() != nullptr, "scene should be set");
+				graphics::graphics_device* device = system->get_device();
+				bool constant = system->state.is_set(render_opt::constant);
 
-				System->SetConstantBuffer(RenderBufferType::Render, Slots.Geometry.Object, VI_VS | VI_PS);
-				System->SetConstantBuffer(RenderBufferType::View, Slots.Geometry.Viewer, VI_VS | VI_PS);
-				Device->SetStructureBuffer(System->GetMaterialBuffer(), Slots.Geometry.Materials, VI_PS);
-				Device->SetDepthStencilState(DepthStencil);
-				Device->SetBlendState(Blend);
-				Device->SetRasterizerState(Rasterizer);
-				Device->SetInputLayout(Layout);
-				Device->SetSamplerState(Sampler, Slots.Geometry.Sampler, 7, VI_PS);
-				Device->SetShader(Shaders.Geometry, VI_VS | VI_PS);
+				system->set_constant_buffer(render_buffer_type::render, pipelines.geometry.object_buffer, VI_VS | VI_PS);
+				system->set_constant_buffer(render_buffer_type::view, pipelines.geometry.viewer_buffer, VI_VS | VI_PS);
+				device->set_structure_buffer(system->get_material_buffer(), pipelines.geometry.materials, VI_PS);
+				device->set_depth_stencil_state(depth_stencil);
+				device->set_blend_state(blend);
+				device->set_rasterizer_state(rasterizer);
+				device->set_input_layout(layout[1]);
+				device->set_sampler_state(sampler, pipelines.geometry.sampler, 7, VI_PS);
+				device->set_shader(pipelines.geometry.shader, VI_VS | VI_PS);
 
-				size_t Count = 0;
-				for (auto* Base : Chunk)
+				graphics::element_buffer* group_vertex_buffers[2];
+				group_vertex_buffers[0] = vertex_buffer;
+				group_vertex_buffers[1] = group_buffer;
+				device->set_vertex_buffers(group_vertex_buffers, sizeof(group_vertex_buffers) / sizeof(*group_vertex_buffers));
+
+				size_t count = 0;
+				for (auto* base : chunk)
 				{
-					if ((Static && !Base->Static) || Base->GetIndices().empty())
+					if ((constant && !base->constant) || base->get_indices().empty())
 						continue;
 
-					if (!System->TryGeometry(Base->GetMaterial(), &Slots.Geometry.Slotdata))
+					if (!system->try_geometry(base->get_material(), &pipelines.geometry.slotdata))
 						continue;
 
-					Base->Fill(Device, IndexBuffer, VertexBuffer);
-					System->Constants->Render.World.Identify();
-					System->Constants->Render.Transform = System->View.ViewProjection;
-					System->Constants->Render.TexCoord = Base->TexCoord;
-					Device->SetVertexBuffer(VertexBuffer);
-					Device->SetIndexBuffer(IndexBuffer, Graphics::Format::R32_Uint);
-					System->UpdateConstantBuffer(RenderBufferType::Render);
-					Device->DrawIndexed((uint32_t)Base->GetIndices().size(), 0, 0);
-					Count++;
+					group.world.identify();
+					group.transform = system->view.view_projection;
+					group.texcoord = base->texcoord;
+					base->fill(device, index_buffer, vertex_buffer);
+					device->update_buffer(group_buffer, &group, sizeof(group));
+					device->set_index_buffer(index_buffer, graphics::format::r32_uint);
+					device->draw_indexed_instanced((uint32_t)base->get_indices().size(), 1, 0, 0, 0);
+					count++;
 				}
 
-				return Count;
+				static graphics::element_buffer* vertex_buffers[2] = { nullptr, nullptr };
+				device->set_vertex_buffers(vertex_buffers, sizeof(vertex_buffers) / sizeof(*vertex_buffers));
+				return count;
 			}
-			size_t SoftBody::RenderVoxelization(Core::Timer* Time, const GeometryRenderer::Objects& Chunk)
+			size_t soft_body::render_depth(core::timer* time, const geometry_renderer::objects& chunk)
 			{
-				VI_ASSERT(System->GetScene() != nullptr, "scene should be set");
-				Graphics::GraphicsDevice* Device = System->GetDevice();
-				System->SetConstantBuffer(RenderBufferType::Render, Slots.Voxelizer.Object, VI_VS | VI_PS | VI_GS);
-				System->SetConstantBuffer(RenderBufferType::View, Slots.Voxelizer.Viewer, VI_VS | VI_PS | VI_GS);
-				Device->SetStructureBuffer(System->GetMaterialBuffer(), Slots.Voxelizer.Materials, VI_PS);
-				Device->SetInputLayout(Layout);
-				Device->SetSamplerState(Sampler, Slots.Voxelizer.Sampler, 6, VI_PS);
-				Device->SetShader(Shaders.Voxelizer, VI_VS | VI_PS | VI_GS);
-				Lighting::SetVoxelBuffer(System, Shaders.Voxelizer, 3);
+				VI_ASSERT(system->get_scene() != nullptr, "scene should be set");
+				graphics::graphics_device* device = system->get_device();
+				system->set_constant_buffer(render_buffer_type::render, pipelines.depth.object_buffer, VI_VS | VI_PS | VI_GS);
+				device->set_structure_buffer(system->get_material_buffer(), pipelines.depth.materials, VI_PS);
+				device->set_depth_stencil_state(depth_stencil);
+				device->set_blend_state(blend);
+				device->set_rasterizer_state(rasterizer);
+				device->set_input_layout(layout[1]);
+				device->set_sampler_state(sampler, pipelines.depth.sampler, 1, VI_PS);
+				device->set_shader(pipelines.depth.shader, VI_VS | VI_PS);
 
-				size_t Count = 0;
-				for (auto* Base : Chunk)
+				graphics::element_buffer* group_vertex_buffers[2];
+				group_vertex_buffers[0] = vertex_buffer;
+				group_vertex_buffers[1] = group_buffer;
+				device->set_vertex_buffers(group_vertex_buffers, sizeof(group_vertex_buffers) / sizeof(*group_vertex_buffers));
+
+				size_t count = 0;
+				for (auto* base : chunk)
 				{
-					if (!Base->Static || Base->GetIndices().empty())
+					if (base->get_indices().empty())
 						continue;
 
-					if (!System->TryGeometry(Base->GetMaterial(), &Slots.Voxelizer.Slotdata))
+					if (!system->try_geometry(base->get_material(), &pipelines.depth.slotdata))
 						continue;
 
-					Base->Fill(Device, IndexBuffer, VertexBuffer);
-					System->Constants->Render.World.Identify();
-					System->Constants->Render.Transform.Identify();
-					System->Constants->Render.TexCoord = Base->TexCoord;
-					Device->SetVertexBuffer(VertexBuffer);
-					Device->SetIndexBuffer(IndexBuffer, Graphics::Format::R32_Uint);
-					System->UpdateConstantBuffer(RenderBufferType::Render);
-					Device->DrawIndexed((uint32_t)Base->GetIndices().size(), 0, 0);
+					group.world.identify();
+					group.transform = system->view.view_projection;
+					group.texcoord = base->texcoord;
+					base->fill(device, index_buffer, vertex_buffer);
+					device->update_buffer(group_buffer, &group, sizeof(group));
+					device->set_index_buffer(index_buffer, graphics::format::r32_uint);
+					device->draw_indexed_instanced((uint32_t)base->get_indices().size(), 1, 0, 0, 0);
 
-					Count++;
+					count++;
 				}
 
-				Device->SetShader(nullptr, VI_GS);
-				return Count;
+				static graphics::element_buffer* vertex_buffers[2] = { nullptr, nullptr };
+				device->set_vertex_buffers(vertex_buffers, sizeof(vertex_buffers) / sizeof(*vertex_buffers));
+				return count;
 			}
-			size_t SoftBody::RenderLinearization(Core::Timer* Time, const GeometryRenderer::Objects& Chunk)
+			size_t soft_body::render_depth_cube(core::timer* time, const geometry_renderer::objects& chunk, trigonometry::matrix4x4* view_projection)
 			{
-				VI_ASSERT(System->GetScene() != nullptr, "scene should be set");
-				Graphics::GraphicsDevice* Device = System->GetDevice();
-				System->SetConstantBuffer(RenderBufferType::Render, Slots.Depth.Linear.Object, VI_VS | VI_PS | VI_GS);
-				Device->SetStructureBuffer(System->GetMaterialBuffer(), Slots.Depth.Linear.Materials, VI_PS);
-				Device->SetDepthStencilState(DepthStencil);
-				Device->SetBlendState(Blend);
-				Device->SetRasterizerState(Rasterizer);
-				Device->SetInputLayout(Layout);
-				Device->SetSamplerState(Sampler, Slots.Depth.Linear.Sampler, 1, VI_PS);
-				Device->SetShader(Shaders.Depth.Linear, VI_VS | VI_PS);
+				VI_ASSERT(system->get_scene() != nullptr, "scene should be set");
+				graphics::graphics_device* device = system->get_device();
+				system->set_constant_buffer(render_buffer_type::render, pipelines.depth_cube.object_buffer, VI_VS | VI_PS | VI_GS);
+				system->set_constant_buffer(render_buffer_type::view, pipelines.depth_cube.viewer_buffer, VI_VS | VI_PS | VI_GS);
+				device->set_structure_buffer(system->get_material_buffer(), pipelines.depth_cube.materials, VI_PS);
+				device->set_depth_stencil_state(depth_stencil);
+				device->set_blend_state(blend);
+				device->set_rasterizer_state(rasterizer);
+				device->set_input_layout(layout[1]);
+				device->set_sampler_state(sampler, pipelines.depth_cube.sampler, 1, VI_PS);
+				device->set_shader(pipelines.depth_cube.shader, VI_VS | VI_PS | VI_GS);
+				device->set_buffer(pipelines.depth_cube.shader, pipelines.depth_cube.cube_buffer, VI_VS | VI_PS | VI_GS);
+				device->update_buffer(pipelines.depth_cube.shader, view_projection);
 
-				size_t Count = 0;
-				for (auto* Base : Chunk)
+				graphics::element_buffer* group_vertex_buffers[2];
+				group_vertex_buffers[0] = vertex_buffer;
+				group_vertex_buffers[1] = group_buffer;
+				device->set_vertex_buffers(group_vertex_buffers, sizeof(group_vertex_buffers) / sizeof(*group_vertex_buffers));
+
+				size_t count = 0;
+				for (auto* base : chunk)
 				{
-					if (Base->GetIndices().empty())
+					if (!base->get_body())
 						continue;
 
-					if (!System->TryGeometry(Base->GetMaterial(), &Slots.Depth.Linear.Slotdata))
+					if (!system->try_geometry(base->get_material(), &pipelines.depth_cube.slotdata))
 						continue;
 
-					Base->Fill(Device, IndexBuffer, VertexBuffer);
-					System->Constants->Render.World.Identify();
-					System->Constants->Render.Transform = System->View.ViewProjection;
-					System->Constants->Render.TexCoord = Base->TexCoord;
-					System->UpdateConstantBuffer(RenderBufferType::Render);
-					Device->SetVertexBuffer(VertexBuffer);
-					Device->SetIndexBuffer(IndexBuffer, Graphics::Format::R32_Uint);
-					Device->DrawIndexed((uint32_t)Base->GetIndices().size(), 0, 0);
+					group.world.identify();
+					group.texcoord = base->texcoord;
+					base->fill(device, index_buffer, vertex_buffer);
+					device->update_buffer(group_buffer, &group, sizeof(group));
+					device->set_index_buffer(index_buffer, graphics::format::r32_uint);
+					device->draw_indexed_instanced((uint32_t)base->get_indices().size(), 1, 0, 0, 0);
 
-					Count++;
+					count++;
 				}
 
-				Device->SetTexture2D(nullptr, 1, VI_PS);
-				return Count;
-			}
-			size_t SoftBody::RenderCubic(Core::Timer* Time, const GeometryRenderer::Objects& Chunk, Trigonometry::Matrix4x4* ViewProjection)
-			{
-				VI_ASSERT(System->GetScene() != nullptr, "scene should be set");
-				Graphics::GraphicsDevice* Device = System->GetDevice();
-				System->SetConstantBuffer(RenderBufferType::Render, Slots.Depth.Cubic.Object, VI_VS | VI_PS | VI_GS);
-				System->SetConstantBuffer(RenderBufferType::View, Slots.Depth.Cubic.Viewer, VI_VS | VI_PS | VI_GS);
-				Device->SetStructureBuffer(System->GetMaterialBuffer(), Slots.Depth.Cubic.Materials, VI_PS);
-				Device->SetDepthStencilState(DepthStencil);
-				Device->SetBlendState(Blend);
-				Device->SetRasterizerState(Rasterizer);
-				Device->SetInputLayout(Layout);
-				Device->SetSamplerState(Sampler, Slots.Depth.Cubic.Sampler, 1, VI_PS);
-				Device->SetShader(Shaders.Depth.Cubic, VI_VS | VI_PS | VI_GS);
-				Device->SetBuffer(Shaders.Depth.Cubic, Slots.Depth.Cubic.Cubic, VI_VS | VI_PS | VI_GS);
-				Device->UpdateBuffer(Shaders.Depth.Cubic, ViewProjection);
-
-				size_t Count = 0;
-				for (auto* Base : Chunk)
-				{
-					if (!Base->GetBody())
-						continue;
-
-					if (!System->TryGeometry(Base->GetMaterial(), &Slots.Depth.Cubic.Slotdata))
-						continue;
-
-					Base->Fill(Device, IndexBuffer, VertexBuffer);
-					System->Constants->Render.World.Identify();
-					System->Constants->Render.TexCoord = Base->TexCoord;
-					System->UpdateConstantBuffer(RenderBufferType::Render);
-					Device->SetVertexBuffer(VertexBuffer);
-					Device->SetIndexBuffer(IndexBuffer, Graphics::Format::R32_Uint);
-					Device->DrawIndexed((uint32_t)Base->GetIndices().size(), 0, 0);
-
-					Count++;
-				}
-
-				Device->SetShader(nullptr, VI_GS);
-				Device->SetTexture2D(nullptr, 1, VI_PS);
-				return Count;
+				static graphics::element_buffer* vertex_buffers[2] = { nullptr, nullptr };
+				device->set_vertex_buffers(vertex_buffers, sizeof(vertex_buffers) / sizeof(*vertex_buffers));
+				device->set_shader(nullptr, VI_GS);
+				return count;
 			}
 
-			Model::Model(Layer::RenderSystem* Lab) : GeometryRenderer(Lab)
+			model::model(layer::render_system* lab) : geometry_renderer(lab)
 			{
-				VI_ASSERT(System != nullptr, "render system should be set");
-				VI_ASSERT(System->GetDevice() != nullptr, "graphics device should be set");
+				VI_ASSERT(system != nullptr, "render system should be set");
+				VI_ASSERT(system->get_device() != nullptr, "graphics device should be set");
 
-				Graphics::GraphicsDevice* Device = System->GetDevice();
-				DepthStencil = Device->GetDepthStencilState("drw_srw_lt");
-				BackRasterizer = Device->GetRasterizerState("so_cback");
-				FrontRasterizer = Device->GetRasterizerState("so_cfront");
-				Blend = Device->GetBlendState("bo_wrgba_one");
-				Sampler = Device->GetSamplerState("a16_fa_wrap");
-				Layout[0] = Device->GetInputLayout("vx_base");
-				Layout[1] = Device->GetInputLayout("vxi_base");
+				graphics::graphics_device* device = system->get_device();
+				depth_stencil = device->get_depth_stencil_state("drw_srw_lt");
+				back_rasterizer = device->get_rasterizer_state("so_cback");
+				front_rasterizer = device->get_rasterizer_state("so_cfront");
+				blend = device->get_blend_state("bo_wrgba_one");
+				sampler = device->get_sampler_state("a16_fa_wrap");
+				layout[0] = device->get_input_layout("vx_base");
+				layout[1] = device->get_input_layout("vxi_base");
 
-				Shaders.Geometry = *System->CompileShader("materials/material_model_geometry");
-				Shaders.Voxelizer = *System->CompileShader("materials/material_model_voxelizer", sizeof(Lighting::IVoxelBuffer));
-				Shaders.Depth.Culling = *System->CompileShader("materials/material_model_depth_culling");
-				Shaders.Depth.Linear = *System->CompileShader("materials/material_model_depth_linear");
-				Shaders.Depth.Cubic = *System->CompileShader("materials/material_model_depth_cubic", sizeof(Trigonometry::Matrix4x4) * 6);
+				pipelines.culling.shader = *system->compile_shader("materials/material_model_culling", { });
+				pipelines.culling.object_buffer = *device->get_shader_slot(pipelines.culling.shader, "ObjectBuffer");
+				pipelines.depth.shader = *system->compile_shader("materials/material_model_depth", { });
+				pipelines.depth.slotdata.diffuse_map = *device->get_shader_slot(pipelines.depth.shader, "DiffuseMap");
+				pipelines.depth.sampler = *device->get_shader_sampler_slot(pipelines.depth.shader, "DiffuseMap", "Sampler");
+				pipelines.depth.materials = *device->get_shader_slot(pipelines.depth.shader, "Materials");
+				pipelines.depth_cube.shader = *system->compile_shader("materials/material_model_depth_cube", { }, sizeof(trigonometry::matrix4x4) * 6);
+				pipelines.depth_cube.slotdata.diffuse_map = *device->get_shader_slot(pipelines.depth_cube.shader, "DiffuseMap");
+				pipelines.depth_cube.sampler = *device->get_shader_sampler_slot(pipelines.depth_cube.shader, "DiffuseMap", "Sampler");
+				pipelines.depth_cube.materials = *device->get_shader_slot(pipelines.depth_cube.shader, "Materials");
+				pipelines.depth_cube.viewer_buffer = *device->get_shader_slot(pipelines.depth_cube.shader, "ViewerBuffer");
+				pipelines.depth_cube.cube_buffer = *device->get_shader_slot(pipelines.depth_cube.shader, "CubeBuffer");
+				pipelines.geometry.shader = *system->compile_shader("materials/material_model_geometry", { });
+				pipelines.geometry.slotdata.diffuse_map = *device->get_shader_slot(pipelines.geometry.shader, "DiffuseMap");
+				pipelines.geometry.slotdata.normal_map = *device->get_shader_slot(pipelines.geometry.shader, "NormalMap");
+				pipelines.geometry.slotdata.metallic_map = *device->get_shader_slot(pipelines.geometry.shader, "MetallicMap");
+				pipelines.geometry.slotdata.roughness_map = *device->get_shader_slot(pipelines.geometry.shader, "RoughnessMap");
+				pipelines.geometry.slotdata.height_map = *device->get_shader_slot(pipelines.geometry.shader, "HeightMap");
+				pipelines.geometry.slotdata.occlusion_map = *device->get_shader_slot(pipelines.geometry.shader, "OcclusionMap");
+				pipelines.geometry.slotdata.emission_map = *device->get_shader_slot(pipelines.geometry.shader, "EmissionMap");
+				pipelines.geometry.sampler = *device->get_shader_sampler_slot(pipelines.geometry.shader, "DiffuseMap", "Sampler");
+				pipelines.geometry.materials = *device->get_shader_slot(pipelines.geometry.shader, "Materials");
+				pipelines.geometry.viewer_buffer = *device->get_shader_slot(pipelines.geometry.shader, "ViewerBuffer");
 			}
-			Model::~Model()
+			model::~model()
 			{
-				System->FreeShader(Shaders.Geometry);
-				System->FreeShader(Shaders.Voxelizer);
-				System->FreeShader(Shaders.Depth.Culling);
-				System->FreeShader(Shaders.Depth.Linear);
-				System->FreeShader(Shaders.Depth.Cubic);
+				system->free_shader(pipelines.geometry.shader);
+				system->free_shader(pipelines.culling.shader);
+				system->free_shader(pipelines.depth.shader);
+				system->free_shader(pipelines.depth_cube.shader);
 			}
-			void Model::BatchGeometry(Components::Model* Base, GeometryRenderer::Batching& Batch, size_t Chunk)
+			void model::batch_geometry(components::model* base, geometry_renderer::batching& batch, size_t chunk)
 			{
-				auto* Drawable = GetDrawable(Base);
-				if (!Base->Static && !System->State.IsSet(RenderOpt::Static))
+				auto* drawable = get_drawable(base);
+				if (!base->constant && !system->state.is_set(render_opt::constant))
 					return;
 
-				RenderBuffer::Instance Data;
-				Data.TexCoord = Base->TexCoord;
+				render_buffer::instance data;
+				data.texcoord = base->texcoord;
 
-				auto& World = Base->GetEntity()->GetBox();
-				for (auto* Mesh : Drawable->Meshes)
+				auto& world = base->get_entity()->get_box();
+				for (auto* mesh : drawable->meshes)
 				{
-					Material* Source = Base->GetMaterial(Mesh);
-					if (System->TryInstance(Source, Data))
+					material* source = base->get_material(mesh);
+					if (system->try_instance(source, data))
 					{
-						Data.World = Mesh->Transform * World;
-						Data.Transform = Data.World * System->View.ViewProjection;
-						Batch.Emplace(Mesh, Source, Data, Chunk);
+						data.world = mesh->transform * world;
+						data.transform = data.world * system->view.view_projection;
+						batch.emplace(mesh, source, data, chunk);
 					}
 				}
 			}
-			size_t Model::CullGeometry(const Viewer& View, const GeometryRenderer::Objects& Chunk)
+			size_t model::cull_geometry(const viewer& view, const geometry_renderer::objects& chunk)
 			{
-				VI_ASSERT(System->GetPrimitives() != nullptr, "primitive cache should be set");
+				VI_ASSERT(system->get_primitives() != nullptr, "primitive cache should be set");
 
-				Graphics::ElementBuffer* Box[2];
-				System->GetPrimitives()->GetBoxBuffers(Box);
+				graphics::element_buffer* box[2];
+				system->get_primitives()->get_box_buffers(box);
 
-				Graphics::GraphicsDevice* Device = System->GetDevice();
-				Device->SetRasterizerState(BackRasterizer);
-				Device->SetInputLayout(Layout[0]);
-				Device->SetShader(nullptr, VI_PS);
-				Device->SetShader(Shaders.Depth.Culling, VI_VS);
+				graphics::graphics_device* device = system->get_device();
+				system->set_constant_buffer(render_buffer_type::render, pipelines.culling.object_buffer, VI_VS);
+				device->set_rasterizer_state(back_rasterizer);
+				device->set_input_layout(layout[0]);
+				device->set_shader(nullptr, VI_PS);
+				device->set_shader(pipelines.culling.shader, VI_VS);
 
-				size_t Count = 0;
-				if (System->PreciseCulling)
+				size_t count = 0;
+				if (system->precise_culling)
 				{
-					for (auto* Base : Chunk)
+					for (auto* base : chunk)
 					{
-						if (!CullingBegin(Base))
+						if (!culling_begin(base))
 							continue;
 
-						auto* Drawable = GetDrawable(Base);
-						auto& World = Base->GetEntity()->GetBox();
-						for (auto* Mesh : Drawable->Meshes)
+						auto* drawable = get_drawable(base);
+						auto& world = base->get_entity()->get_box();
+						for (auto* mesh : drawable->meshes)
 						{
-							System->Constants->Render.World = Mesh->Transform * World;
-							System->Constants->Render.Transform = System->Constants->Render.World * View.ViewProjection;
-							System->UpdateConstantBuffer(RenderBufferType::Render);
-							Device->DrawIndexed(Mesh);
+							system->constants->render.world = mesh->transform * world;
+							system->constants->render.transform = system->constants->render.world * view.view_projection;
+							system->update_constant_buffer(render_buffer_type::render);
+							device->draw_indexed(mesh);
 						}
 
-						CullingEnd();
-						Count++;
+						culling_end();
+						count++;
 					}
 				}
 				else
 				{
-					Device->SetVertexBuffer(Box[(size_t)BufferType::Vertex]);
-					Device->SetIndexBuffer(Box[(size_t)BufferType::Index], Graphics::Format::R32_Uint);
-					for (auto* Base : Chunk)
+					device->set_vertex_buffer(box[(size_t)buffer_type::vertex]);
+					device->set_index_buffer(box[(size_t)buffer_type::index], graphics::format::r32_uint);
+					for (auto* base : chunk)
 					{
-						if (!CullingBegin(Base))
+						if (!culling_begin(base))
 							continue;
 
-						System->Constants->Render.World = Base->GetEntity()->GetBox();
-						System->Constants->Render.Transform = System->Constants->Render.World * View.ViewProjection;
-						System->UpdateConstantBuffer(RenderBufferType::Render);
-						Device->DrawIndexed((uint32_t)Box[(size_t)BufferType::Index]->GetElements(), 0, 0);
-						CullingEnd();
-						Count++;
+						system->constants->render.world = base->get_entity()->get_box();
+						system->constants->render.transform = system->constants->render.world * view.view_projection;
+						system->update_constant_buffer(render_buffer_type::render);
+						device->draw_indexed((uint32_t)box[(size_t)buffer_type::index]->get_elements(), 0, 0);
+						culling_end();
+						count++;
 					}
 				}
 
-				return Count;
+				return count;
 			}
-			size_t Model::RenderGeometricBatched(Core::Timer* Time, const GeometryRenderer::Groups& Chunk)
+			size_t model::render_geometry_batched(core::timer* time, const geometry_renderer::groups& chunk)
 			{
-				VI_ASSERT(System->GetScene() != nullptr, "scene should be set");
-				Graphics::GraphicsDevice* Device = System->GetDevice();
-				Device->SetDepthStencilState(DepthStencil);
-				Device->SetBlendState(Blend);
-				Device->SetRasterizerState(BackRasterizer);
-				Device->SetInputLayout(Layout[1]);
-				Device->SetSamplerState(Sampler, 1, 7, VI_PS);
-				Device->SetShader(Shaders.Geometry, VI_VS | VI_PS);
+				VI_ASSERT(system->get_scene() != nullptr, "scene should be set");
+				graphics::graphics_device* device = system->get_device();
+				system->set_constant_buffer(render_buffer_type::view, pipelines.geometry.viewer_buffer, VI_VS | VI_PS);
+				device->set_structure_buffer(system->get_material_buffer(), pipelines.geometry.materials, VI_PS);
+				device->set_depth_stencil_state(depth_stencil);
+				device->set_blend_state(blend);
+				device->set_rasterizer_state(back_rasterizer);
+				device->set_input_layout(layout[1]);
+				device->set_sampler_state(sampler, pipelines.geometry.sampler, 7, VI_PS);
+				device->set_shader(pipelines.geometry.shader, VI_VS | VI_PS);
 
-				for (auto& Group : Chunk)
+				for (auto& group : chunk)
 				{
-					System->TryGeometry(Group->MaterialData, true);
-					Device->DrawIndexedInstanced(Group->DataBuffer, Group->GeometryBuffer, (uint32_t)Group->Instances.size());
+					if (system->try_geometry(group->material_data, &pipelines.geometry.slotdata))
+						device->draw_indexed_instanced(group->data_buffer, group->geometry_buffer, (uint32_t)group->instances.size());
 				}
 
-				static Graphics::ElementBuffer* VertexBuffers[2] = { nullptr, nullptr };
-				Device->SetVertexBuffers(VertexBuffers, 2);
-				return Chunk.size();
+				static graphics::element_buffer* vertex_buffers[2] = { nullptr, nullptr };
+				device->set_vertex_buffers(vertex_buffers, sizeof(vertex_buffers) / sizeof(*vertex_buffers));
+				return chunk.size();
 			}
-			size_t Model::RenderVoxelizationBatched(Core::Timer* Time, const GeometryRenderer::Groups& Chunk)
+			size_t model::render_depth_batched(core::timer* time, const geometry_renderer::groups& chunk)
 			{
-				VI_ASSERT(System->GetScene() != nullptr, "scene should be set");
-				Graphics::GraphicsDevice* Device = System->GetDevice();
-				Device->SetInputLayout(Layout[1]);
-				Device->SetSamplerState(Sampler, 4, 6, VI_PS);
-				Device->SetShader(Shaders.Voxelizer, VI_VS | VI_PS | VI_GS);
-				Lighting::SetVoxelBuffer(System, Shaders.Voxelizer, 3);
+				VI_ASSERT(system->get_scene() != nullptr, "scene should be set");
+				graphics::graphics_device* device = system->get_device();
+				device->set_structure_buffer(system->get_material_buffer(), pipelines.depth.materials, VI_PS);
+				device->set_depth_stencil_state(depth_stencil);
+				device->set_blend_state(blend);
+				device->set_rasterizer_state(system->state.is_set(render_opt::backfaces) ? front_rasterizer : back_rasterizer);
+				device->set_input_layout(layout[1]);
+				device->set_sampler_state(sampler, pipelines.depth.sampler, 1, VI_PS);
+				device->set_shader(pipelines.depth.shader, VI_VS | VI_PS);
 
-				for (auto& Group : Chunk)
+				for (auto& group : chunk)
 				{
-					System->TryGeometry(Group->MaterialData, true);
-					Device->DrawIndexedInstanced(Group->DataBuffer, Group->GeometryBuffer, (uint32_t)Group->Instances.size());
+					if (system->try_geometry(group->material_data, &pipelines.depth.slotdata))
+						device->draw_indexed_instanced(group->data_buffer, group->geometry_buffer, (uint32_t)group->instances.size());
 				}
 
-				static Graphics::ElementBuffer* VertexBuffers[2] = { nullptr, nullptr };
-				Device->SetVertexBuffers(VertexBuffers, 2);
-				Device->SetShader(nullptr, VI_GS);
-				return Chunk.size();
+				static graphics::element_buffer* vertex_buffers[2] = { nullptr, nullptr };
+				device->set_vertex_buffers(vertex_buffers, sizeof(vertex_buffers) / sizeof(*vertex_buffers));
+				return chunk.size();
 			}
-			size_t Model::RenderLinearizationBatched(Core::Timer* Time, const GeometryRenderer::Groups& Chunk)
+			size_t model::render_depth_cube_batched(core::timer* time, const geometry_renderer::groups& chunk, trigonometry::matrix4x4* view_projection)
 			{
-				VI_ASSERT(System->GetScene() != nullptr, "scene should be set");
-				Graphics::GraphicsDevice* Device = System->GetDevice();
-				Device->SetDepthStencilState(DepthStencil);
-				Device->SetBlendState(Blend);
-				Device->SetRasterizerState(System->State.IsSet(RenderOpt::Backfaces) ? FrontRasterizer : BackRasterizer);
-				Device->SetInputLayout(Layout[1]);
-				Device->SetSamplerState(Sampler, 1, 1, VI_PS);
-				Device->SetShader(Shaders.Depth.Linear, VI_VS | VI_PS);
+				VI_ASSERT(system->get_scene() != nullptr, "scene should be set");
+				graphics::graphics_device* device = system->get_device();
+				system->set_constant_buffer(render_buffer_type::view, pipelines.depth_cube.viewer_buffer, VI_VS | VI_PS | VI_GS);
+				device->set_structure_buffer(system->get_material_buffer(), pipelines.depth_cube.materials, VI_PS);
+				device->set_depth_stencil_state(depth_stencil);
+				device->set_blend_state(blend);
+				device->set_rasterizer_state(system->state.is_set(render_opt::backfaces) ? front_rasterizer : back_rasterizer);
+				device->set_input_layout(layout[1]);
+				device->set_sampler_state(sampler, pipelines.depth_cube.sampler, 1, VI_PS);
+				device->set_shader(pipelines.depth_cube.shader, VI_VS | VI_PS | VI_GS);
+				device->set_buffer(pipelines.depth_cube.shader, pipelines.depth_cube.cube_buffer, VI_VS | VI_PS | VI_GS);
+				device->update_buffer(pipelines.depth_cube.shader, view_projection);
 
-				for (auto& Group : Chunk)
+				for (auto& group : chunk)
 				{
-					System->TryGeometry(Group->MaterialData, true);
-					Device->DrawIndexedInstanced(Group->DataBuffer, Group->GeometryBuffer, (uint32_t)Group->Instances.size());
+					if (system->try_geometry(group->material_data, &pipelines.depth_cube.slotdata))
+						device->draw_indexed_instanced(group->data_buffer, group->geometry_buffer, (uint32_t)group->instances.size());
 				}
 
-				static Graphics::ElementBuffer* VertexBuffers[2] = { nullptr, nullptr };
-				Device->SetVertexBuffers(VertexBuffers, 2);
-				Device->SetTexture2D(nullptr, 1, VI_PS);
-				return Chunk.size();
+				static graphics::element_buffer* vertex_buffers[2] = { nullptr, nullptr };
+				device->set_vertex_buffers(vertex_buffers, sizeof(vertex_buffers) / sizeof(*vertex_buffers));
+				device->set_shader(nullptr, VI_GS);
+				return chunk.size();
 			}
-			size_t Model::RenderCubicBatched(Core::Timer* Time, const GeometryRenderer::Groups& Chunk, Trigonometry::Matrix4x4* ViewProjection)
+			layer::model* model::get_drawable(components::model* base)
 			{
-				VI_ASSERT(System->GetScene() != nullptr, "scene should be set");
-				Graphics::GraphicsDevice* Device = System->GetDevice();
-				Device->SetDepthStencilState(DepthStencil);
-				Device->SetBlendState(Blend);
-				Device->SetRasterizerState(System->State.IsSet(RenderOpt::Backfaces) ? FrontRasterizer : BackRasterizer);
-				Device->SetInputLayout(Layout[1]);
-				Device->SetSamplerState(Sampler, 1, 1, VI_PS);
-				Device->SetShader(Shaders.Depth.Cubic, VI_VS | VI_PS | VI_GS);
-				Device->SetBuffer(Shaders.Depth.Cubic, 3, VI_VS | VI_PS | VI_GS);
-				Device->UpdateBuffer(Shaders.Depth.Cubic, ViewProjection);
+				auto* drawable = base->get_drawable();
+				if (!drawable)
+					drawable = system->get_primitives()->get_box_model();
 
-				for (auto& Group : Chunk)
+				return drawable;
+			}
+
+			skin::skin(layer::render_system* lab) : geometry_renderer(lab)
+			{
+				VI_ASSERT(system != nullptr, "render system should be set");
+				VI_ASSERT(system->get_device() != nullptr, "graphics device should be set");
+
+				graphics::graphics_device* device = system->get_device();
+				depth_stencil = device->get_depth_stencil_state("drw_srw_lt");
+				back_rasterizer = device->get_rasterizer_state("so_cback");
+				front_rasterizer = device->get_rasterizer_state("so_cfront");
+				blend = device->get_blend_state("bo_wrgba_one");
+				sampler = device->get_sampler_state("a16_fa_wrap");
+				layout = device->get_input_layout("vx_skin");
+
+				pipelines.culling.shader = *system->compile_shader("materials/material_skin_culling", { });
+				pipelines.culling.animation_buffer = *device->get_shader_slot(pipelines.culling.shader, "AnimationBuffer");
+				pipelines.culling.object_buffer = *device->get_shader_slot(pipelines.culling.shader, "ObjectBuffer");
+				pipelines.depth.shader = *system->compile_shader("materials/material_skin_depth", { });
+				pipelines.depth.slotdata.diffuse_map = *device->get_shader_slot(pipelines.depth.shader, "DiffuseMap");
+				pipelines.depth.sampler = *device->get_shader_sampler_slot(pipelines.depth.shader, "DiffuseMap", "Sampler");
+				pipelines.depth.materials = *device->get_shader_slot(pipelines.depth.shader, "Materials");
+				pipelines.depth.animation_buffer = *device->get_shader_slot(pipelines.depth.shader, "AnimationBuffer");
+				pipelines.depth.object_buffer = *device->get_shader_slot(pipelines.depth.shader, "ObjectBuffer");
+				pipelines.depth_cube.shader = *system->compile_shader("materials/material_skin_depth_cube", { }, sizeof(trigonometry::matrix4x4) * 6);
+				pipelines.depth_cube.slotdata.diffuse_map = *device->get_shader_slot(pipelines.depth_cube.shader, "DiffuseMap");
+				pipelines.depth_cube.sampler = *device->get_shader_sampler_slot(pipelines.depth_cube.shader, "DiffuseMap", "Sampler");
+				pipelines.depth_cube.materials = *device->get_shader_slot(pipelines.depth_cube.shader, "Materials");
+				pipelines.depth_cube.animation_buffer = *device->get_shader_slot(pipelines.depth_cube.shader, "AnimationBuffer");
+				pipelines.depth_cube.object_buffer = *device->get_shader_slot(pipelines.depth_cube.shader, "ObjectBuffer");
+				pipelines.depth_cube.viewer_buffer = *device->get_shader_slot(pipelines.depth_cube.shader, "ViewerBuffer");
+				pipelines.depth_cube.cube_buffer = *device->get_shader_slot(pipelines.depth_cube.shader, "CubeBuffer");
+				pipelines.geometry.shader = *system->compile_shader("materials/material_skin_geometry", { });
+				pipelines.geometry.slotdata.diffuse_map = *device->get_shader_slot(pipelines.geometry.shader, "DiffuseMap");
+				pipelines.geometry.slotdata.normal_map = *device->get_shader_slot(pipelines.geometry.shader, "NormalMap");
+				pipelines.geometry.slotdata.metallic_map = *device->get_shader_slot(pipelines.geometry.shader, "MetallicMap");
+				pipelines.geometry.slotdata.roughness_map = *device->get_shader_slot(pipelines.geometry.shader, "RoughnessMap");
+				pipelines.geometry.slotdata.height_map = *device->get_shader_slot(pipelines.geometry.shader, "HeightMap");
+				pipelines.geometry.slotdata.occlusion_map = *device->get_shader_slot(pipelines.geometry.shader, "OcclusionMap");
+				pipelines.geometry.slotdata.emission_map = *device->get_shader_slot(pipelines.geometry.shader, "EmissionMap");
+				pipelines.geometry.sampler = *device->get_shader_sampler_slot(pipelines.geometry.shader, "DiffuseMap", "Sampler");
+				pipelines.geometry.materials = *device->get_shader_slot(pipelines.geometry.shader, "Materials");
+				pipelines.geometry.animation_buffer = *device->get_shader_slot(pipelines.geometry.shader, "AnimationBuffer");
+				pipelines.geometry.object_buffer = *device->get_shader_slot(pipelines.geometry.shader, "ObjectBuffer");
+				pipelines.geometry.viewer_buffer = *device->get_shader_slot(pipelines.geometry.shader, "ViewerBuffer");
+			}
+			skin::~skin()
+			{
+				system->free_shader(pipelines.geometry.shader);
+				system->free_shader(pipelines.culling.shader);
+				system->free_shader(pipelines.depth.shader);
+				system->free_shader(pipelines.depth_cube.shader);
+			}
+			size_t skin::cull_geometry(const viewer& view, const geometry_renderer::objects& chunk)
+			{
+				VI_ASSERT(system->get_primitives() != nullptr, "primitive cache should be set");
+
+				graphics::element_buffer* box[2];
+				system->get_primitives()->get_skin_box_buffers(box);
+
+				graphics::graphics_device* device = system->get_device();
+				system->set_constant_buffer(render_buffer_type::animation, pipelines.culling.animation_buffer, VI_VS);
+				system->set_constant_buffer(render_buffer_type::render, pipelines.culling.object_buffer, VI_VS);
+				device->set_rasterizer_state(back_rasterizer);
+				device->set_input_layout(layout);
+				device->set_shader(nullptr, VI_PS);
+				device->set_shader(pipelines.culling.shader, VI_VS);
+
+				size_t count = 0;
+				if (system->precise_culling)
 				{
-					System->TryGeometry(Group->MaterialData, true);
-					Device->DrawIndexedInstanced(Group->DataBuffer, Group->GeometryBuffer, (uint32_t)Group->Instances.size());
-				}
-
-				static Graphics::ElementBuffer* VertexBuffers[2] = { nullptr, nullptr };
-				Device->SetVertexBuffers(VertexBuffers, 2);
-				Device->SetTexture2D(nullptr, 1, VI_PS);
-				Device->SetShader(nullptr, VI_GS);
-				return Chunk.size();
-			}
-			Layer::Model* Model::GetDrawable(Components::Model* Base)
-			{
-				auto* Drawable = Base->GetDrawable();
-				if (!Drawable)
-					Drawable = System->GetPrimitives()->GetBoxModel();
-
-				return Drawable;
-			}
-
-			Skin::Skin(Layer::RenderSystem* Lab) : GeometryRenderer(Lab)
-			{
-				VI_ASSERT(System != nullptr, "render system should be set");
-				VI_ASSERT(System->GetDevice() != nullptr, "graphics device should be set");
-
-				Graphics::GraphicsDevice* Device = System->GetDevice();
-				DepthStencil = Device->GetDepthStencilState("drw_srw_lt");
-				BackRasterizer = Device->GetRasterizerState("so_cback");
-				FrontRasterizer = Device->GetRasterizerState("so_cfront");
-				Blend = Device->GetBlendState("bo_wrgba_one");
-				Sampler = Device->GetSamplerState("a16_fa_wrap");
-				Layout = Device->GetInputLayout("vx_skin");
-
-				Shaders.Geometry = *System->CompileShader("materials/material_skin_geometry");
-				Shaders.Voxelizer = *System->CompileShader("materials/material_skin_voxelizer", sizeof(Lighting::IVoxelBuffer));
-				Shaders.Depth.Culling = *System->CompileShader("materials/material_skin_depth_culling");
-				Shaders.Depth.Linear = *System->CompileShader("materials/material_skin_depth_linear");
-				Shaders.Depth.Cubic = *System->CompileShader("materials/material_skin_depth_cubic", sizeof(Trigonometry::Matrix4x4) * 6);
-			}
-			Skin::~Skin()
-			{
-				System->FreeShader(Shaders.Geometry);
-				System->FreeShader(Shaders.Voxelizer);
-				System->FreeShader(Shaders.Depth.Culling);
-				System->FreeShader(Shaders.Depth.Linear);
-				System->FreeShader(Shaders.Depth.Cubic);
-			}
-			size_t Skin::CullGeometry(const Viewer& View, const GeometryRenderer::Objects& Chunk)
-			{
-				VI_ASSERT(System->GetPrimitives() != nullptr, "primitive cache should be set");
-
-				Graphics::ElementBuffer* Box[2];
-				System->GetPrimitives()->GetSkinBoxBuffers(Box);
-
-				Graphics::GraphicsDevice* Device = System->GetDevice();
-				Device->SetRasterizerState(BackRasterizer);
-				Device->SetInputLayout(Layout);
-				Device->SetShader(nullptr, VI_PS);
-				Device->SetShader(Shaders.Depth.Culling, VI_VS);
-
-				size_t Count = 0;
-				if (System->PreciseCulling)
-				{
-					for (auto* Base : Chunk)
+					for (auto* base : chunk)
 					{
-						if (!CullingBegin(Base))
+						if (!culling_begin(base))
 							continue;
 
-						auto* Drawable = GetDrawable(Base);
-						auto& World = Base->GetEntity()->GetBox();
-						System->Constants->Animation.Animated = (float)!Drawable->Skeleton.Childs.empty();
+						auto* drawable = get_drawable(base);
+						auto& world = base->get_entity()->get_box();
+						system->constants->animation.animated = (float)!drawable->skeleton.childs.empty();
 
-						for (auto* Mesh : Drawable->Meshes)
+						for (auto* mesh : drawable->meshes)
 						{
-							auto& Matrices = Base->Skeleton.Matrices[Mesh];
-							memcpy(System->Constants->Animation.Offsets, Matrices.Data, sizeof(Matrices.Data));
-							System->Constants->Render.World = Mesh->Transform * World;
-							System->Constants->Render.Transform = System->Constants->Render.World * View.ViewProjection;
-							System->UpdateConstantBuffer(RenderBufferType::Animation);
-							System->UpdateConstantBuffer(RenderBufferType::Render);
-							Device->DrawIndexed(Mesh);
+							auto& matrices = base->skeleton.matrices[mesh];
+							memcpy(system->constants->animation.offsets, matrices.data, sizeof(matrices.data));
+							system->constants->render.world = mesh->transform * world;
+							system->constants->render.transform = system->constants->render.world * view.view_projection;
+							system->update_constant_buffer(render_buffer_type::animation);
+							system->update_constant_buffer(render_buffer_type::render);
+							device->draw_indexed(mesh);
 						}
 
-						CullingEnd();
-						Count++;
+						culling_end();
+						count++;
 					}
 				}
 				else
 				{
-					Device->SetVertexBuffer(Box[(size_t)BufferType::Vertex]);
-					Device->SetIndexBuffer(Box[(size_t)BufferType::Index], Graphics::Format::R32_Uint);
-					for (auto* Base : Chunk)
+					device->set_vertex_buffer(box[(size_t)buffer_type::vertex]);
+					device->set_index_buffer(box[(size_t)buffer_type::index], graphics::format::r32_uint);
+					for (auto* base : chunk)
 					{
-						if (!CullingBegin(Base))
+						if (!culling_begin(base))
 							continue;
 
-						System->Constants->Animation.Animated = (float)false;
-						System->Constants->Render.World = Base->GetEntity()->GetBox();
-						System->Constants->Render.Transform = System->Constants->Render.World * View.ViewProjection;
-						System->UpdateConstantBuffer(RenderBufferType::Animation);
-						System->UpdateConstantBuffer(RenderBufferType::Render);
-						Device->DrawIndexed((uint32_t)Box[(size_t)BufferType::Index]->GetElements(), 0, 0);
-						CullingEnd();
-						Count++;
+						system->constants->animation.animated = (float)false;
+						system->constants->render.world = base->get_entity()->get_box();
+						system->constants->render.transform = system->constants->render.world * view.view_projection;
+						system->update_constant_buffer(render_buffer_type::animation);
+						system->update_constant_buffer(render_buffer_type::render);
+						device->draw_indexed((uint32_t)box[(size_t)buffer_type::index]->get_elements(), 0, 0);
+						culling_end();
+						count++;
 					}
 				}
 
-				return Count;
+				return count;
 			}
-			size_t Skin::RenderGeometric(Core::Timer* Time, const GeometryRenderer::Objects& Chunk)
+			size_t skin::render_geometry(core::timer* time, const geometry_renderer::objects& chunk)
 			{
-				VI_ASSERT(System->GetScene() != nullptr, "scene should be set");
-				Graphics::GraphicsDevice* Device = System->GetDevice();
-				bool Static = System->State.IsSet(RenderOpt::Static);
+				VI_ASSERT(system->get_scene() != nullptr, "scene should be set");
+				graphics::graphics_device* device = system->get_device();
+				bool constant = system->state.is_set(render_opt::constant);
 
-				Device->SetDepthStencilState(DepthStencil);
-				Device->SetBlendState(Blend);
-				Device->SetRasterizerState(BackRasterizer);
-				Device->SetInputLayout(Layout);
-				Device->SetSamplerState(Sampler, 1, 7, VI_PS);
-				Device->SetShader(Shaders.Geometry, VI_VS | VI_PS);
+				system->set_constant_buffer(render_buffer_type::animation, pipelines.geometry.animation_buffer, VI_VS);
+				system->set_constant_buffer(render_buffer_type::render, pipelines.geometry.object_buffer, VI_VS | VI_PS);
+				system->set_constant_buffer(render_buffer_type::view, pipelines.geometry.viewer_buffer, VI_VS | VI_PS);
+				device->set_structure_buffer(system->get_material_buffer(), pipelines.geometry.materials, VI_PS);
+				device->set_depth_stencil_state(depth_stencil);
+				device->set_blend_state(blend);
+				device->set_rasterizer_state(back_rasterizer);
+				device->set_input_layout(layout);
+				device->set_sampler_state(sampler, pipelines.geometry.sampler, 7, VI_PS);
+				device->set_shader(pipelines.geometry.shader, VI_VS | VI_PS);
 
-				size_t Count = 0;
-				for (auto* Base : Chunk)
+				size_t count = 0;
+				for (auto* base : chunk)
 				{
-					if (Static && !Base->Static)
+					if (constant && !base->constant)
 						continue;
 
-					auto* Drawable = GetDrawable(Base);
-					auto& World = Base->GetEntity()->GetBox();
-					System->Constants->Animation.Animated = (float)!Drawable->Skeleton.Childs.empty();
-					System->Constants->Render.TexCoord = Base->TexCoord;
+					auto* drawable = get_drawable(base);
+					auto& world = base->get_entity()->get_box();
+					system->constants->animation.animated = (float)!drawable->skeleton.childs.empty();
+					system->constants->render.texcoord = base->texcoord;
 
-					for (auto* Mesh : Drawable->Meshes)
+					for (auto* mesh : drawable->meshes)
 					{
-						if (!System->TryGeometry(Base->GetMaterial(Mesh), true))
+						if (!system->try_geometry(base->get_material(mesh), &pipelines.geometry.slotdata))
 							continue;
 
-						auto& Matrices = Base->Skeleton.Matrices[Mesh];
-						memcpy(System->Constants->Animation.Offsets, Matrices.Data, sizeof(Matrices.Data));
-						System->Constants->Render.World = Mesh->Transform * World;
-						System->Constants->Render.Transform = System->Constants->Render.World * System->View.ViewProjection;
-						System->UpdateConstantBuffer(RenderBufferType::Animation);
-						System->UpdateConstantBuffer(RenderBufferType::Render);
-						Device->DrawIndexed(Mesh);
+						auto& matrices = base->skeleton.matrices[mesh];
+						memcpy(system->constants->animation.offsets, matrices.data, sizeof(matrices.data));
+						system->constants->render.world = mesh->transform * world;
+						system->constants->render.transform = system->constants->render.world * system->view.view_projection;
+						system->update_constant_buffer(render_buffer_type::animation);
+						system->update_constant_buffer(render_buffer_type::render);
+						device->draw_indexed(mesh);
 					}
-					Count++;
+					count++;
 				}
 
-				return Count;
+				return count;
 			}
-			size_t Skin::RenderVoxelization(Core::Timer* Time, const GeometryRenderer::Objects& Chunk)
+			size_t skin::render_depth(core::timer* time, const geometry_renderer::objects& chunk)
 			{
-				VI_ASSERT(System->GetScene() != nullptr, "scene should be set");
-				Graphics::GraphicsDevice* Device = System->GetDevice();
-				Device->SetInputLayout(Layout);
-				Device->SetSamplerState(Sampler, 4, 6, VI_PS);
-				Device->SetShader(Shaders.Voxelizer, VI_VS | VI_PS | VI_GS);
-				Lighting::SetVoxelBuffer(System, Shaders.Voxelizer, 3);
+				VI_ASSERT(system->get_scene() != nullptr, "scene should be set");
+				graphics::graphics_device* device = system->get_device();
+				system->set_constant_buffer(render_buffer_type::animation, pipelines.depth.animation_buffer, VI_VS);
+				system->set_constant_buffer(render_buffer_type::render, pipelines.depth.object_buffer, VI_VS | VI_PS);
+				device->set_structure_buffer(system->get_material_buffer(), pipelines.depth.materials, VI_PS);
+				device->set_depth_stencil_state(depth_stencil);
+				device->set_blend_state(blend);
+				device->set_rasterizer_state(system->state.is_set(render_opt::backfaces) ? front_rasterizer : back_rasterizer);
+				device->set_input_layout(layout);
+				device->set_sampler_state(sampler, pipelines.depth.sampler, 1, VI_PS);
+				device->set_shader(pipelines.depth.shader, VI_VS | VI_PS);
 
-				size_t Count = 0;
-				for (auto* Base : Chunk)
+				size_t count = 0;
+				for (auto* base : chunk)
 				{
-					if (!Base->Static)
-						continue;
+					auto* drawable = get_drawable(base);
+					auto& world = base->get_entity()->get_box();
+					system->constants->animation.animated = (float)!drawable->skeleton.childs.empty();
+					system->constants->render.texcoord = base->texcoord;
 
-					auto* Drawable = GetDrawable(Base);
-					auto& World = Base->GetEntity()->GetBox();
-					System->Constants->Animation.Animated = (float)!Drawable->Skeleton.Childs.empty();
-
-					for (auto* Mesh : Drawable->Meshes)
+					for (auto* mesh : drawable->meshes)
 					{
-						if (!System->TryGeometry(Base->GetMaterial(Mesh), true))
+						if (!system->try_geometry(base->get_material(mesh), &pipelines.depth.slotdata))
 							continue;
 
-						auto& Matrices = Base->Skeleton.Matrices[Mesh];
-						memcpy(System->Constants->Animation.Offsets, Matrices.Data, sizeof(Matrices.Data));
-						System->Constants->Render.Transform = System->Constants->Render.World = Mesh->Transform * World;
-						System->UpdateConstantBuffer(RenderBufferType::Animation);
-						System->UpdateConstantBuffer(RenderBufferType::Render);
-						Device->DrawIndexed(Mesh);
+						auto& matrices = base->skeleton.matrices[mesh];
+						memcpy(system->constants->animation.offsets, matrices.data, sizeof(matrices.data));
+						system->constants->render.world = mesh->transform * world;
+						system->constants->render.transform = system->constants->render.world * system->view.view_projection;
+						system->update_constant_buffer(render_buffer_type::animation);
+						system->update_constant_buffer(render_buffer_type::render);
+						device->draw_indexed(mesh);
 					}
-					Count++;
+
+					count++;
 				}
 
-				Device->SetShader(nullptr, VI_GS);
-				return Count;
+				return count;
 			}
-			size_t Skin::RenderLinearization(Core::Timer* Time, const GeometryRenderer::Objects& Chunk)
+			size_t skin::render_depth_cube(core::timer* time, const geometry_renderer::objects& chunk, trigonometry::matrix4x4* view_projection)
 			{
-				VI_ASSERT(System->GetScene() != nullptr, "scene should be set");
-				Graphics::GraphicsDevice* Device = System->GetDevice();
-				Device->SetDepthStencilState(DepthStencil);
-				Device->SetBlendState(Blend);
-				Device->SetRasterizerState(System->State.IsSet(RenderOpt::Backfaces) ? FrontRasterizer : BackRasterizer);
-				Device->SetInputLayout(Layout);
-				Device->SetSamplerState(Sampler, 1, 1, VI_PS);
-				Device->SetShader(Shaders.Depth.Linear, VI_VS | VI_PS);
+				VI_ASSERT(system->get_scene() != nullptr, "scene should be set");
+				graphics::graphics_device* device = system->get_device();
+				system->set_constant_buffer(render_buffer_type::animation, pipelines.depth_cube.animation_buffer, VI_VS);
+				system->set_constant_buffer(render_buffer_type::render, pipelines.depth_cube.object_buffer, VI_VS | VI_PS);
+				device->set_structure_buffer(system->get_material_buffer(), pipelines.depth_cube.materials, VI_PS);
+				device->set_depth_stencil_state(depth_stencil);
+				device->set_blend_state(blend);
+				device->set_rasterizer_state(system->state.is_set(render_opt::backfaces) ? front_rasterizer : back_rasterizer);
+				device->set_input_layout(layout);
+				device->set_sampler_state(sampler, pipelines.depth_cube.sampler, 7, VI_PS);
+				device->set_shader(pipelines.depth_cube.shader, VI_VS | VI_PS | VI_GS);
+				device->set_buffer(pipelines.depth_cube.shader, pipelines.depth_cube.cube_buffer, VI_VS | VI_PS | VI_GS);
+				device->update_buffer(pipelines.depth_cube.shader, view_projection);
 
-				size_t Count = 0;
-				for (auto* Base : Chunk)
+				size_t count = 0;
+				for (auto* base : chunk)
 				{
-					auto* Drawable = GetDrawable(Base);
-					auto& World = Base->GetEntity()->GetBox();
-					System->Constants->Animation.Animated = (float)!Drawable->Skeleton.Childs.empty();
-					System->Constants->Render.TexCoord = Base->TexCoord;
+					auto* drawable = get_drawable(base);
+					auto& world = base->get_entity()->get_box();
+					system->constants->animation.animated = (float)!drawable->skeleton.childs.empty();
+					system->constants->render.texcoord = base->texcoord;
 
-					for (auto* Mesh : Drawable->Meshes)
+					for (auto* mesh : drawable->meshes)
 					{
-						if (!System->TryGeometry(Base->GetMaterial(Mesh), true))
+						if (!system->try_geometry(base->get_material(mesh), &pipelines.depth_cube.slotdata))
 							continue;
 
-						auto& Matrices = Base->Skeleton.Matrices[Mesh];
-						memcpy(System->Constants->Animation.Offsets, Matrices.Data, sizeof(Matrices.Data));
-						System->Constants->Render.World = Mesh->Transform * World;
-						System->Constants->Render.Transform = System->Constants->Render.World * System->View.ViewProjection;
-						System->UpdateConstantBuffer(RenderBufferType::Animation);
-						System->UpdateConstantBuffer(RenderBufferType::Render);
-						Device->DrawIndexed(Mesh);
+						auto& matrices = base->skeleton.matrices[mesh];
+						memcpy(system->constants->animation.offsets, matrices.data, sizeof(matrices.data));
+						system->constants->render.world = mesh->transform * world;
+						system->update_constant_buffer(render_buffer_type::animation);
+						system->update_constant_buffer(render_buffer_type::render);
+						device->draw_indexed(mesh);
 					}
 
-					Count++;
+					count++;
 				}
 
-				Device->SetTexture2D(nullptr, 1, VI_PS);
-				return Count;
+				device->set_shader(nullptr, VI_GS);
+				return count;
 			}
-			size_t Skin::RenderCubic(Core::Timer* Time, const GeometryRenderer::Objects& Chunk, Trigonometry::Matrix4x4* ViewProjection)
+			layer::skin_model* skin::get_drawable(components::skin* base)
 			{
-				VI_ASSERT(System->GetScene() != nullptr, "scene should be set");
-				Graphics::GraphicsDevice* Device = System->GetDevice();
-				Device->SetDepthStencilState(DepthStencil);
-				Device->SetBlendState(Blend);
-				Device->SetRasterizerState(System->State.IsSet(RenderOpt::Backfaces) ? FrontRasterizer : BackRasterizer);
-				Device->SetInputLayout(Layout);
-				Device->SetSamplerState(Sampler, 1, 1, VI_PS);
-				Device->SetShader(Shaders.Depth.Linear, VI_VS | VI_PS | VI_GS);
-				Device->SetBuffer(Shaders.Depth.Cubic, 3, VI_VS | VI_PS | VI_GS);
-				Device->UpdateBuffer(Shaders.Depth.Cubic, ViewProjection);
+				auto* drawable = base->get_drawable();
+				if (!drawable)
+					drawable = system->get_primitives()->get_skin_box_model();
 
-				size_t Count = 0;
-				for (auto* Base : Chunk)
+				return drawable;
+			}
+
+			emitter::emitter(render_system* lab) : geometry_renderer(lab)
+			{
+				VI_ASSERT(system != nullptr, "render system should be set");
+				VI_ASSERT(system->get_device() != nullptr, "graphics device should be set");
+
+				graphics::graphics_device* device = system->get_device();
+				depth_stencil_opaque = device->get_depth_stencil_state("drw_srw_lt");
+				depth_stencil_additive = device->get_depth_stencil_state("dro_srw_lt");
+				rasterizer = device->get_rasterizer_state("so_cback");
+				additive_blend = device->get_blend_state("bw_wrgba_alpha");
+				overwrite_blend = device->get_blend_state("bo_wrgba_one");
+				sampler = device->get_sampler_state("a16_fa_wrap");
+
+				pipelines.depth.shader = *system->compile_shader("materials/material_emitter_depth", { });
+				pipelines.depth.slotdata.diffuse_map = *device->get_shader_slot(pipelines.depth.shader, "DiffuseMap");
+				pipelines.depth.sampler = *device->get_shader_sampler_slot(pipelines.depth.shader, "DiffuseMap", "Sampler");
+				pipelines.depth.materials = *device->get_shader_slot(pipelines.depth.shader, "Materials");
+				pipelines.depth.object_buffer = *device->get_shader_slot(pipelines.depth.shader, "ObjectBuffer");
+				pipelines.depth.elements = *device->get_shader_slot(pipelines.depth.shader, "Elements");
+				pipelines.depth_point.shader = *system->compile_shader("materials/material_emitter_depth_point", { }, sizeof(quad));
+				pipelines.depth_point.slotdata.diffuse_map = *device->get_shader_slot(pipelines.depth_point.shader, "DiffuseMap");
+				pipelines.depth_point.sampler = *device->get_shader_sampler_slot(pipelines.depth_point.shader, "DiffuseMap", "Sampler");
+				pipelines.depth_point.materials = *device->get_shader_slot(pipelines.depth_point.shader, "Materials");
+				pipelines.depth_point.object_buffer = *device->get_shader_slot(pipelines.depth_point.shader, "ObjectBuffer");
+				pipelines.depth_point.viewer_buffer = *device->get_shader_slot(pipelines.depth_point.shader, "ViewerBuffer");
+				pipelines.depth_point.quad = *device->get_shader_slot(pipelines.depth_point.shader, "Quad");
+				pipelines.depth_point.elements = *device->get_shader_slot(pipelines.depth_point.shader, "Elements");
+				pipelines.depth_quad.shader = *system->compile_shader("materials/material_emitter_depth_quad", { }, sizeof(trigonometry::matrix4x4) * 6);
+				pipelines.depth_quad.slotdata.diffuse_map = *device->get_shader_slot(pipelines.depth_quad.shader, "DiffuseMap");
+				pipelines.depth_quad.sampler = *device->get_shader_sampler_slot(pipelines.depth_quad.shader, "DiffuseMap", "Sampler");
+				pipelines.depth_quad.materials = *device->get_shader_slot(pipelines.depth_quad.shader, "Materials");
+				pipelines.depth_quad.object_buffer = *device->get_shader_slot(pipelines.depth_quad.shader, "ObjectBuffer");
+				pipelines.depth_quad.viewer_buffer = *device->get_shader_slot(pipelines.depth_quad.shader, "ViewerBuffer");
+				pipelines.depth_quad.quad = *device->get_shader_slot(pipelines.depth_quad.shader, "Quad");
+				pipelines.depth_quad.elements = *device->get_shader_slot(pipelines.depth_quad.shader, "Elements");
+				pipelines.geometry_opaque.shader = *system->compile_shader("materials/material_emitter_geometry_opaque", { });
+				pipelines.geometry_opaque.slotdata.diffuse_map = *device->get_shader_slot(pipelines.geometry_opaque.shader, "DiffuseMap");
+				pipelines.geometry_opaque.slotdata.normal_map = *device->get_shader_slot(pipelines.geometry_opaque.shader, "NormalMap");
+				pipelines.geometry_opaque.materials = *device->get_shader_slot(pipelines.geometry_opaque.shader, "Materials");
+				pipelines.geometry_opaque.object_buffer = *device->get_shader_slot(pipelines.geometry_opaque.shader, "ObjectBuffer");
+				pipelines.geometry_opaque.viewer_buffer = *device->get_shader_slot(pipelines.geometry_opaque.shader, "ViewerBuffer");
+				pipelines.geometry_opaque.elements = *device->get_shader_slot(pipelines.geometry_opaque.shader, "Elements");
+				pipelines.geometry_transparent.shader = *system->compile_shader("materials/material_emitter_geometry_transparent", { });
+				pipelines.geometry_transparent.slotdata.diffuse_map = *device->get_shader_slot(pipelines.geometry_transparent.shader, "DiffuseMap");
+				pipelines.geometry_transparent.slotdata.normal_map = *device->get_shader_slot(pipelines.geometry_transparent.shader, "NormalMap");
+				pipelines.geometry_transparent.materials = *device->get_shader_slot(pipelines.geometry_transparent.shader, "Materials");
+				pipelines.geometry_transparent.object_buffer = *device->get_shader_slot(pipelines.geometry_transparent.shader, "ObjectBuffer");
+				pipelines.geometry_transparent.viewer_buffer = *device->get_shader_slot(pipelines.geometry_transparent.shader, "ViewerBuffer");
+				pipelines.geometry_transparent.elements = *device->get_shader_slot(pipelines.geometry_transparent.shader, "Elements");
+			}
+			emitter::~emitter()
+			{
+				system->free_shader(pipelines.geometry_opaque.shader);
+				system->free_shader(pipelines.geometry_transparent.shader);
+				system->free_shader(pipelines.depth.shader);
+				system->free_shader(pipelines.depth_point.shader);
+				system->free_shader(pipelines.depth_quad.shader);
+			}
+			size_t emitter::render_geometry(core::timer* time, const geometry_renderer::objects& chunk)
+			{
+				VI_ASSERT(system->get_scene() != nullptr, "scene should be set");
+				graphics::graphics_device* device = system->get_device();
+				graphics::primitive_topology t = device->get_primitive_topology();
+				graphics::shader* shader = nullptr;
+				material::slots* slotdata = nullptr;
+				uint32_t buffer_slot = (uint32_t)-1;
+				viewer& view = system->view;
+				bool constant = system->state.is_set(render_opt::constant);
+
+				if (system->state.is_set(render_opt::additive))
 				{
-					auto* Drawable = GetDrawable(Base);
-					auto& World = Base->GetEntity()->GetBox();
-					System->Constants->Animation.Animated = (float)!Drawable->Skeleton.Childs.empty();
-					System->Constants->Render.TexCoord = Base->TexCoord;
-
-					for (auto* Mesh : Drawable->Meshes)
-					{
-						if (!System->TryGeometry(Base->GetMaterial(Mesh), true))
-							continue;
-
-						auto& Matrices = Base->Skeleton.Matrices[Mesh];
-						memcpy(System->Constants->Animation.Offsets, Matrices.Data, sizeof(Matrices.Data));
-						System->Constants->Render.World = Mesh->Transform * World;
-						System->UpdateConstantBuffer(RenderBufferType::Animation);
-						System->UpdateConstantBuffer(RenderBufferType::Render);
-						Device->DrawIndexed(Mesh);
-					}
-
-					Count++;
-				}
-
-				Device->SetTexture2D(nullptr, 1, VI_PS);
-				Device->SetShader(nullptr, VI_GS);
-				return Count;
-			}
-			Layer::SkinModel* Skin::GetDrawable(Components::Skin* Base)
-			{
-				auto* Drawable = Base->GetDrawable();
-				if (!Drawable)
-					Drawable = System->GetPrimitives()->GetSkinBoxModel();
-
-				return Drawable;
-			}
-
-			Emitter::Emitter(RenderSystem* Lab) : GeometryRenderer(Lab)
-			{
-				VI_ASSERT(System != nullptr, "render system should be set");
-				VI_ASSERT(System->GetDevice() != nullptr, "graphics device should be set");
-
-				Graphics::GraphicsDevice* Device = System->GetDevice();
-				DepthStencilOpaque = Device->GetDepthStencilState("drw_srw_lt");
-				DepthStencilAdditive = Device->GetDepthStencilState("dro_srw_lt");
-				Rasterizer = Device->GetRasterizerState("so_cback");
-				AdditiveBlend = Device->GetBlendState("bw_wrgba_alpha");
-				OverwriteBlend = Device->GetBlendState("bo_wrgba_one");
-				Sampler = Device->GetSamplerState("a16_fa_wrap");
-
-				Shaders.Geometry.Opaque = *System->CompileShader("materials/material_emitter_geometry_opaque");
-				Shaders.Geometry.Transparent = *System->CompileShader("materials/material_emitter_geometry_transparent");
-				Shaders.Depth.Linear = *System->CompileShader("materials/material_emitter_depth_linear");
-				Shaders.Depth.Point = *System->CompileShader("materials/material_emitter_depth_point");
-				Shaders.Depth.Quad = *System->CompileShader("materials/material_emitter_depth_quad", sizeof(Depth));
-			}
-			Emitter::~Emitter()
-			{
-				System->FreeShader(Shaders.Geometry.Opaque);
-				System->FreeShader(Shaders.Geometry.Transparent);
-				System->FreeShader(Shaders.Depth.Linear);
-				System->FreeShader(Shaders.Depth.Point);
-				System->FreeShader(Shaders.Depth.Quad);
-			}
-			size_t Emitter::RenderGeometric(Core::Timer* Time, const GeometryRenderer::Objects& Chunk)
-			{
-				VI_ASSERT(System->GetScene() != nullptr, "scene should be set");
-				Graphics::GraphicsDevice* Device = System->GetDevice();
-				Graphics::Shader* BaseShader = nullptr;
-				Graphics::PrimitiveTopology T = Device->GetPrimitiveTopology();
-				Viewer& View = System->View;
-				bool Static = System->State.IsSet(RenderOpt::Static);
-
-				if (System->State.IsSet(RenderOpt::Additive))
-				{
-					BaseShader = Shaders.Geometry.Transparent;
-					Device->SetDepthStencilState(DepthStencilAdditive);
-					Device->SetBlendState(AdditiveBlend);
+					buffer_slot = pipelines.geometry_transparent.elements;
+					shader = pipelines.geometry_transparent.shader;
+					slotdata = &pipelines.geometry_transparent.slotdata;
+					system->set_constant_buffer(render_buffer_type::render, pipelines.geometry_transparent.object_buffer, VI_VS | VI_PS | VI_GS);
+					system->set_constant_buffer(render_buffer_type::view, pipelines.geometry_transparent.viewer_buffer, VI_VS | VI_PS | VI_GS);
+					device->set_depth_stencil_state(depth_stencil_additive);
+					device->set_blend_state(additive_blend);
+					device->set_sampler_state(sampler, pipelines.geometry_transparent.sampler, 2, VI_PS);
 				}
 				else
 				{
-					BaseShader = Shaders.Geometry.Opaque;
-					Device->SetDepthStencilState(DepthStencilOpaque);
-					Device->SetBlendState(OverwriteBlend);
+					buffer_slot = pipelines.geometry_opaque.elements;
+					shader = pipelines.geometry_opaque.shader;
+					slotdata = &pipelines.geometry_opaque.slotdata;
+					system->set_constant_buffer(render_buffer_type::render, pipelines.geometry_opaque.object_buffer, VI_VS | VI_PS | VI_GS);
+					system->set_constant_buffer(render_buffer_type::view, pipelines.geometry_opaque.viewer_buffer, VI_VS | VI_PS | VI_GS);
+					device->set_depth_stencil_state(depth_stencil_opaque);
+					device->set_blend_state(overwrite_blend);
+					device->set_sampler_state(sampler, pipelines.geometry_opaque.sampler, 2, VI_PS);
 				}
 
-				Device->SetPrimitiveTopology(Graphics::PrimitiveTopology::Point_List);
-				Device->SetRasterizerState(Rasterizer);
-				Device->SetInputLayout(Layout);
-				Device->SetSamplerState(Sampler, 1, 7, VI_PS);
-				Device->SetShader(BaseShader, VI_VS | VI_PS);
-				Device->SetVertexBuffer(nullptr);
+				device->set_primitive_topology(graphics::primitive_topology::point_list);
+				device->set_rasterizer_state(rasterizer);
+				device->set_input_layout(layout);
+				device->set_vertex_buffer(nullptr);
+				device->set_shader(shader, VI_VS | VI_PS);
 
-				size_t Count = 0;
-				for (auto* Base : Chunk)
+				size_t count = 0;
+				for (auto* base : chunk)
 				{
-					if ((Static && !Base->Static) || !Base->GetBuffer())
+					if ((constant && !base->constant) || !base->get_buffer())
 						continue;
 
-					if (!System->TryGeometry(Base->GetMaterial(), true))
+					if (!system->try_geometry(base->get_material(), slotdata))
 						continue;
 
-					System->Constants->Render.World = View.Projection;
-					System->Constants->Render.Transform = (Base->QuadBased ? View.View : View.ViewProjection);
-					System->Constants->Render.TexCoord = Base->GetEntity()->GetTransform()->Forward();
-					if (Base->Connected)
-						System->Constants->Render.Transform = Base->GetEntity()->GetBox() * System->Constants->Render.Transform;
+					system->constants->render.world = view.projection;
+					system->constants->render.transform = (base->quad_based ? view.view : view.view_projection);
+					system->constants->render.texcoord = base->get_entity()->get_transform()->forward();
+					if (base->connected)
+						system->constants->render.transform = base->get_entity()->get_box() * system->constants->render.transform;
 
-					Device->SetBuffer(Base->GetBuffer(), 8, VI_VS | VI_PS);
-					Device->SetShader(Base->QuadBased ? BaseShader : nullptr, VI_GS);
-					Device->UpdateBuffer(Base->GetBuffer());
-					System->UpdateConstantBuffer(RenderBufferType::Render);
-					Device->Draw((uint32_t)Base->GetBuffer()->GetArray().size(), 0);
+					device->set_buffer(base->get_buffer(), buffer_slot, VI_VS | VI_PS);
+					device->set_shader(base->quad_based ? shader : nullptr, VI_GS);
+					device->update_buffer(base->get_buffer());
+					system->update_constant_buffer(render_buffer_type::render);
+					device->draw((uint32_t)base->get_buffer()->get_array().size(), 0);
 
-					Count++;
+					count++;
 				}
 
-				Device->SetBuffer((Graphics::InstanceBuffer*)nullptr, 8, VI_VS | VI_PS);
-				Device->SetShader(nullptr, VI_GS);
-				Device->SetPrimitiveTopology(T);
-				return Count;
+				device->set_buffer((graphics::instance_buffer*)nullptr, buffer_slot, VI_VS | VI_PS);
+				device->set_shader(nullptr, VI_GS);
+				device->set_primitive_topology(t);
+				return count;
 			}
-			size_t Emitter::RenderLinearization(Core::Timer* Time, const GeometryRenderer::Objects& Chunk)
+			size_t emitter::render_depth(core::timer* time, const geometry_renderer::objects& chunk)
 			{
-				VI_ASSERT(System->GetScene() != nullptr, "scene should be set");
-				Graphics::GraphicsDevice* Device = System->GetDevice();
-				Graphics::PrimitiveTopology T = Device->GetPrimitiveTopology();
-				Viewer& View = System->View;
+				VI_ASSERT(system->get_scene() != nullptr, "scene should be set");
+				graphics::graphics_device* device = system->get_device();
+				graphics::primitive_topology t = device->get_primitive_topology();
+				viewer& view = system->view;
 
-				Device->SetPrimitiveTopology(Graphics::PrimitiveTopology::Point_List);
-				Device->SetDepthStencilState(DepthStencilOpaque);
-				Device->SetBlendState(OverwriteBlend);
-				Device->SetRasterizerState(Rasterizer);
-				Device->SetInputLayout(Layout);
-				Device->SetSamplerState(Sampler, 1, 1, VI_PS);
-				Device->SetShader(Shaders.Depth.Linear, VI_VS | VI_PS);
-				Device->SetVertexBuffer(nullptr);
+				system->set_constant_buffer(render_buffer_type::render, pipelines.depth.object_buffer, VI_VS | VI_PS | VI_GS);
+				device->set_primitive_topology(graphics::primitive_topology::point_list);
+				device->set_depth_stencil_state(depth_stencil_opaque);
+				device->set_blend_state(overwrite_blend);
+				device->set_rasterizer_state(rasterizer);
+				device->set_input_layout(layout);
+				device->set_sampler_state(sampler, pipelines.depth.sampler, 1, VI_PS);
+				device->set_shader(pipelines.depth.shader, VI_VS | VI_PS);
+				device->set_vertex_buffer(nullptr);
 
-				size_t Count = 0;
-				for (auto* Base : Chunk)
+				size_t count = 0;
+				for (auto* base : chunk)
 				{
-					if (!Base->GetBuffer() || !System->TryGeometry(Base->GetMaterial(), true))
+					if (!base->get_buffer() || !system->try_geometry(base->get_material(), &pipelines.depth.slotdata))
 						continue;
 
-					System->Constants->Render.World = View.Projection;
-					System->Constants->Render.Transform = (Base->QuadBased ? View.View : View.ViewProjection);
-					if (Base->Connected)
-						System->Constants->Render.Transform = Base->GetEntity()->GetBox() * System->Constants->Render.Transform;
+					system->constants->render.world = view.projection;
+					system->constants->render.transform = (base->quad_based ? view.view : view.view_projection);
+					if (base->connected)
+						system->constants->render.transform = base->get_entity()->get_box() * system->constants->render.transform;
 
-					Device->SetBuffer(Base->GetBuffer(), 8, VI_VS | VI_PS);
-					Device->SetShader(Base->QuadBased ? Shaders.Depth.Linear : nullptr, VI_GS);
-					System->UpdateConstantBuffer(RenderBufferType::Render);
-					Device->Draw((uint32_t)Base->GetBuffer()->GetArray().size(), 0);
+					device->set_buffer(base->get_buffer(), pipelines.depth.elements, VI_VS | VI_PS);
+					device->set_shader(base->quad_based ? pipelines.depth.shader : nullptr, VI_GS);
+					system->update_constant_buffer(render_buffer_type::render);
+					device->draw((uint32_t)base->get_buffer()->get_array().size(), 0);
 
-					Count++;
+					count++;
 				}
 
-				Device->SetTexture2D(nullptr, 1, VI_PS);
-				Device->SetBuffer((Graphics::InstanceBuffer*)nullptr, 8, VI_VS | VI_PS);
-				Device->SetShader(nullptr, VI_GS);
-				Device->SetPrimitiveTopology(T);
-				return Count;
+				device->set_buffer((graphics::instance_buffer*)nullptr, pipelines.depth.elements, VI_VS | VI_PS);
+				device->set_shader(nullptr, VI_GS);
+				device->set_primitive_topology(t);
+				return count;
 			}
-			size_t Emitter::RenderCubic(Core::Timer* Time, const GeometryRenderer::Objects& Chunk, Trigonometry::Matrix4x4* ViewProjection)
+			size_t emitter::render_depth_cube(core::timer* time, const geometry_renderer::objects& chunk, trigonometry::matrix4x4* view_projection)
 			{
-				VI_ASSERT(System->GetScene() != nullptr, "scene should be set");
-				auto& Source = System->View;
-				Depth.FaceView[0] = Trigonometry::Matrix4x4::CreateLookAt(Trigonometry::CubeFace::PositiveX, Source.Position);
-				Depth.FaceView[1] = Trigonometry::Matrix4x4::CreateLookAt(Trigonometry::CubeFace::NegativeX, Source.Position);
-				Depth.FaceView[2] = Trigonometry::Matrix4x4::CreateLookAt(Trigonometry::CubeFace::PositiveY, Source.Position);
-				Depth.FaceView[3] = Trigonometry::Matrix4x4::CreateLookAt(Trigonometry::CubeFace::NegativeY, Source.Position);
-				Depth.FaceView[4] = Trigonometry::Matrix4x4::CreateLookAt(Trigonometry::CubeFace::PositiveZ, Source.Position);
-				Depth.FaceView[5] = Trigonometry::Matrix4x4::CreateLookAt(Trigonometry::CubeFace::NegativeZ, Source.Position);
+				VI_ASSERT(system->get_scene() != nullptr, "scene should be set");
+				auto& source = system->view;
+				quad.face_view[0] = trigonometry::matrix4x4::create_look_at(trigonometry::cube_face::positive_x, source.position);
+				quad.face_view[1] = trigonometry::matrix4x4::create_look_at(trigonometry::cube_face::negative_x, source.position);
+				quad.face_view[2] = trigonometry::matrix4x4::create_look_at(trigonometry::cube_face::positive_y, source.position);
+				quad.face_view[3] = trigonometry::matrix4x4::create_look_at(trigonometry::cube_face::negative_y, source.position);
+				quad.face_view[4] = trigonometry::matrix4x4::create_look_at(trigonometry::cube_face::positive_z, source.position);
+				quad.face_view[5] = trigonometry::matrix4x4::create_look_at(trigonometry::cube_face::negative_z, source.position);
 
-				Graphics::GraphicsDevice* Device = System->GetDevice();
-				Graphics::PrimitiveTopology T = Device->GetPrimitiveTopology();
-				Device->SetPrimitiveTopology(Graphics::PrimitiveTopology::Point_List);
-				Device->SetDepthStencilState(DepthStencilOpaque);
-				Device->SetBlendState(OverwriteBlend);
-				Device->SetRasterizerState(Rasterizer);
-				Device->SetInputLayout(Layout);
-				Device->SetVertexBuffer(nullptr);
-				Device->SetSamplerState(Sampler, 1, 1, VI_PS);
-				Device->SetBuffer(Shaders.Depth.Quad, 3, VI_VS | VI_PS | VI_GS);
-				Device->UpdateBuffer(Shaders.Depth.Quad, &Depth);
+				graphics::graphics_device* device = system->get_device();
+				graphics::primitive_topology t = device->get_primitive_topology();
+				device->set_primitive_topology(graphics::primitive_topology::point_list);
+				device->set_depth_stencil_state(depth_stencil_opaque);
+				device->set_blend_state(overwrite_blend);
+				device->set_rasterizer_state(rasterizer);
+				device->set_input_layout(layout);
+				device->set_vertex_buffer(nullptr);
 
-				size_t Count = 0;
-				for (auto* Base : Chunk)
+				size_t count = 0;
+				for (auto* base : chunk)
 				{
-					if (!Base->GetBuffer() || !System->TryGeometry(Base->GetMaterial(), true))
+					if (!base->get_buffer() || !system->try_geometry(base->get_material(), &pipelines.depth_quad.slotdata))
 						continue;
 
-					System->Constants->Render.World = (Base->Connected ? Base->GetEntity()->GetBox() : Trigonometry::Matrix4x4::Identity());
-					Device->SetBuffer(Base->GetBuffer(), 8, VI_VS | VI_PS);
-					Device->SetShader(Base->QuadBased ? Shaders.Depth.Quad : Shaders.Depth.Point, VI_VS | VI_PS | VI_GS);
-					System->UpdateConstantBuffer(RenderBufferType::Render);
-					Device->Draw((uint32_t)Base->GetBuffer()->GetArray().size(), 0);
-
-					Count++;
-				}
-
-				Device->SetTexture2D(nullptr, 1, VI_PS);
-				Device->SetBuffer((Graphics::InstanceBuffer*)nullptr, 8, VI_VS | VI_PS);
-				Device->SetShader(nullptr, VI_GS);
-				Device->SetPrimitiveTopology(T);
-				return Count;
-			}
-
-			Decal::Decal(RenderSystem* Lab) : GeometryRenderer(Lab)
-			{
-				VI_ASSERT(System != nullptr, "render system should be set");
-				VI_ASSERT(System->GetDevice() != nullptr, "graphics device should be set");
-
-				Graphics::GraphicsDevice* Device = System->GetDevice();
-				DepthStencil = Device->GetDepthStencilState("doo_soo_lt");
-				Rasterizer = Device->GetRasterizerState("so_cback");
-				Blend = Device->GetBlendState("bw_wrgba_one");
-				Sampler = Device->GetSamplerState("a16_fa_wrap");
-				Layout = Device->GetInputLayout("vx_shape");
-
-				Shader = *System->CompileShader("materials/material_decal_geometry");
-			}
-			Decal::~Decal()
-			{
-				System->FreeShader(Shader);
-			}
-			size_t Decal::RenderGeometric(Core::Timer* Time, const GeometryRenderer::Objects& Chunk)
-			{
-				VI_ASSERT(System->GetScene() != nullptr, "scene should be set");
-
-				Graphics::MultiRenderTarget2D* MRT = System->GetMRT(TargetType::Main);
-				Graphics::GraphicsDevice* Device = System->GetDevice();
-				bool Static = System->State.IsSet(RenderOpt::Static);
-
-				Graphics::ElementBuffer* Box[2];
-				System->GetPrimitives()->GetBoxBuffers(Box);
-
-				Device->SetDepthStencilState(DepthStencil);
-				Device->SetBlendState(Blend);
-				Device->SetRasterizerState(Rasterizer);
-				Device->SetInputLayout(Layout);
-				Device->SetTarget(MRT, 0);
-				Device->SetSamplerState(Sampler, 1, 8, VI_PS);
-				Device->SetShader(Shader, VI_VS | VI_PS);
-				Device->SetTexture2D(MRT->GetTarget(2), 8, VI_PS);
-				Device->SetVertexBuffer(Box[(size_t)BufferType::Vertex]);
-				Device->SetIndexBuffer(Box[(size_t)BufferType::Index], Graphics::Format::R32_Uint);
-
-				size_t Count = 0;
-				for (auto* Base : Chunk)
-				{
-					if ((Static && !Base->Static) || !System->TryGeometry(Base->GetMaterial(), true))
-						continue;
-
-					System->Constants->Render.Transform = Base->GetEntity()->GetBox() * System->View.ViewProjection;
-					System->Constants->Render.World = System->Constants->Render.Transform.Inv();
-					System->Constants->Render.TexCoord = Base->TexCoord;
-					System->UpdateConstantBuffer(RenderBufferType::Render);
-					Device->DrawIndexed((uint32_t)Box[(size_t)BufferType::Index]->GetElements(), 0, 0);
-					Count++;
-				}
-
-				Device->SetTexture2D(nullptr, 8, VI_PS);
-				System->RestoreOutput();
-				return Count;
-			}
-
-			Lighting::Lighting(RenderSystem* Lab) : Renderer(Lab), EnableGI(true)
-			{
-				VI_ASSERT(System != nullptr, "render system should be set");
-				VI_ASSERT(System->GetDevice() != nullptr, "graphics device should be set");
-
-				Graphics::GraphicsDevice* Device = System->GetDevice();
-				DepthStencilNone = Device->GetDepthStencilState("doo_soo_lt");
-				DepthStencilGreater = Device->GetDepthStencilState("dro_sro_gte");
-				DepthStencilLess = Device->GetDepthStencilState("dro_sro_lt");
-				FrontRasterizer = Device->GetRasterizerState("so_cfront");
-				BackRasterizer = Device->GetRasterizerState("so_cback");
-				NoneRasterizer = Device->GetRasterizerState("so_co");
-				BlendAdditive = Device->GetBlendState("bw_wrgbo_one");
-				BlendOverwrite = Device->GetBlendState("bo_woooo_one");
-				BlendOverload = Device->GetBlendState("bo_wrgba_one");
-				DepthSampler = Device->GetSamplerState("a1_fl_clamp");
-				DepthLessSampler = Device->GetSamplerState("a1_fl_clamp_cmp_lt");
-				DepthGreaterSampler = Device->GetSamplerState("a1_fl_clamp_cmp_gte");
-				WrapSampler = Device->GetSamplerState("a16_fa_wrap");
-				Layout = Device->GetInputLayout("vx_shape");
-
-				Shaders.Ambient[0] = *System->CompileShader("shading/lighting_ambient_direct", sizeof(IAmbientLight));
-				Shaders.Ambient[1] = *System->CompileShader("shading/lighting_ambient_indirect", sizeof(IVoxelBuffer));
-				Shaders.Point[0] = *System->CompileShader("shading/lighting_point_performant", sizeof(IPointLight));
-				Shaders.Point[1] = *System->CompileShader("shading/lighting_point_qualitative");
-				Shaders.Spot[0] = *System->CompileShader("shading/lighting_spot_performant", sizeof(ISpotLight));
-				Shaders.Spot[1] = *System->CompileShader("shading/lighting_spot_qualitative");
-				Shaders.Line[0] = *System->CompileShader("shading/lighting_line_performant", sizeof(ILineLight));
-				Shaders.Line[1] = *System->CompileShader("shading/lighting_line_qualitative");
-				Shaders.Voxelizer = *System->CompileShader("shading/lighting_voxelizer", sizeof(IVoxelBuffer));
-				Shaders.Surface = *System->CompileShader("shading/lighting_surface", sizeof(ISurfaceLight));
-
-				Shadows.Tick.Delay = 5;
-			}
-			Lighting::~Lighting()
-			{
-				System->FreeShader(Shaders.Voxelizer);
-				System->FreeShader(Shaders.Surface);
-
-				for (uint32_t i = 0; i < 2; i++)
-				{
-					System->FreeShader(Shaders.Line[i]);
-					System->FreeShader(Shaders.Spot[i]);
-					System->FreeShader(Shaders.Point[i]);
-					System->FreeShader(Shaders.Ambient[i]);
-				}
-
-				Core::Memory::Release(Voxels.PBuffer);
-				Core::Memory::Release(Voxels.SBuffer);
-				Core::Memory::Release(Voxels.LBuffer);
-				Core::Memory::Release(Surfaces.Subresource);
-				Core::Memory::Release(Surfaces.Input);
-				Core::Memory::Release(Surfaces.Output);
-				Core::Memory::Release(Surfaces.Merger);
-				Core::Memory::Release(SkyBase);
-				Core::Memory::Release(SkyMap);
-				Core::Memory::Release(LightingMap);
-			}
-			void Lighting::Deserialize(Core::Schema* Node)
-			{
-				VI_ASSERT(Node != nullptr, "schema should be set");
-
-				Core::String Path;
-				if (Series::Unpack(Node->Find("sky-map"), &Path) && !Path.empty())
-					System->GetScene()->LoadResource<Graphics::Texture2D>(System->GetComponent(), Path, [this](ExpectsContent<Graphics::Texture2D*>&& Texture) { this->SetSkyMap(Texture.Or(nullptr)); });
-
-				HeavySeries::Unpack(Node->Find("high-emission"), &AmbientLight.HighEmission);
-				HeavySeries::Unpack(Node->Find("low-emission"), &AmbientLight.LowEmission);
-				Series::Unpack(Node->Find("sky-emission"), &AmbientLight.SkyEmission);
-				Series::Unpack(Node->Find("light-emission"), &AmbientLight.LightEmission);
-				HeavySeries::Unpack(Node->Find("sky-color"), &AmbientLight.SkyColor);
-				HeavySeries::Unpack(Node->Find("fog-color"), &AmbientLight.FogColor);
-				Series::Unpack(Node->Find("fog-amount"), &AmbientLight.FogAmount);
-				Series::Unpack(Node->Find("fog-far-off"), &AmbientLight.FogFarOff);
-				HeavySeries::Unpack(Node->Find("fog-far"), &AmbientLight.FogFar);
-				Series::Unpack(Node->Find("fog-near-off"), &AmbientLight.FogNearOff);
-				HeavySeries::Unpack(Node->Find("fog-near"), &AmbientLight.FogNear);
-				Series::Unpack(Node->Find("recursive"), &AmbientLight.Recursive);
-				Series::Unpack(Node->Find("shadow-distance"), &Shadows.Distance);
-				Series::UnpackA(Node->Find("sf-size"), &Surfaces.Size);
-				Series::Unpack(Node->Find("gi"), &EnableGI);
-			}
-			void Lighting::Serialize(Core::Schema* Node)
-			{
-				VI_ASSERT(Node != nullptr, "schema should be set");
-
-				Series::Pack(Node->Set("sky-map"), System->GetScene()->FindResourceId<Graphics::Texture2D>(SkyBase));
-				HeavySeries::Pack(Node->Set("high-emission"), AmbientLight.HighEmission);
-				HeavySeries::Pack(Node->Set("low-emission"), AmbientLight.LowEmission);
-				Series::Pack(Node->Set("sky-emission"), AmbientLight.SkyEmission);
-				Series::Pack(Node->Set("light-emission"), AmbientLight.LightEmission);
-				HeavySeries::Pack(Node->Set("sky-color"), AmbientLight.SkyColor);
-				HeavySeries::Pack(Node->Set("fog-color"), AmbientLight.FogColor);
-				Series::Pack(Node->Set("fog-amount"), AmbientLight.FogAmount);
-				Series::Pack(Node->Set("fog-far-off"), AmbientLight.FogFarOff);
-				HeavySeries::Pack(Node->Set("fog-far"), AmbientLight.FogFar);
-				Series::Pack(Node->Set("fog-near-off"), AmbientLight.FogNearOff);
-				HeavySeries::Pack(Node->Set("fog-near"), AmbientLight.FogNear);
-				Series::Pack(Node->Set("recursive"), AmbientLight.Recursive);
-				Series::Pack(Node->Set("shadow-distance"), Shadows.Distance);
-				Series::Pack(Node->Set("sf-size"), (uint64_t)Surfaces.Size);
-				Series::Pack(Node->Set("gi"), EnableGI);
-			}
-			void Lighting::ResizeBuffers()
-			{
-				Core::Memory::Release(LightingMap);
-			}
-			void Lighting::BeginPass(Core::Timer* Time)
-			{
-				if (System->State.Is(RenderState::Linearization) || System->State.Is(RenderState::Cubic))
-					return;
-
-				auto& Lines = System->GetScene()->GetComponents<Components::LineLight>();
-				Lights.Illuminators.Push(Time, System);
-				Lights.Surfaces.Push(Time, System);
-				Lights.Points.Push(Time, System);
-				Lights.Spots.Push(Time, System);
-				Lights.Lines = &Lines;
-			}
-			void Lighting::EndPass()
-			{
-				if (System->State.Is(RenderState::Linearization) || System->State.Is(RenderState::Cubic))
-					return;
-
-				Lights.Spots.Pop();
-				Lights.Points.Pop();
-				Lights.Surfaces.Pop();
-				Lights.Illuminators.Pop();
-			}
-			void Lighting::RenderResultBuffers()
-			{
-				Graphics::MultiRenderTarget2D* MRT = System->GetMRT(TargetType::Main);
-				Graphics::RenderTarget2D* RT = (System->State.IsSubpass() ? System->GetRT(TargetType::Secondary) : System->GetRT(TargetType::Main));
-				State.Backcull = true;
-
-				Graphics::ElementBuffer* Cube[2];
-				System->GetPrimitives()->GetCubeBuffers(Cube);
-
-				AmbientLight.SkyOffset = System->View.Projection.Inv() * Trigonometry::Matrix4x4::CreateRotation(System->View.Rotation);
-				State.Device->SetDepthStencilState(DepthStencilLess);
-				State.Device->SetBlendState(BlendAdditive);
-				State.Device->SetRasterizerState(BackRasterizer);
-				State.Device->SetInputLayout(Layout);
-				State.Device->CopyTarget(MRT, 0, RT, 0);
-				State.Device->SetTarget(MRT, 0, 0, 0, 0);
-				State.Device->SetSamplerState(WrapSampler, 1, 4, VI_PS);
-				State.Device->SetSamplerState(DepthSampler, 5, 1, VI_PS);
-				State.Device->SetSamplerState(DepthLessSampler, 6, 1, VI_PS);
-				State.Device->SetSamplerState(DepthGreaterSampler, 7, 1, VI_PS);
-				State.Device->SetTexture2D(RT->GetTarget(), 1, VI_PS);
-				State.Device->SetTexture2D(MRT->GetTarget(1), 2, VI_PS);
-				State.Device->SetTexture2D(MRT->GetTarget(2), 3, VI_PS);
-				State.Device->SetTexture2D(MRT->GetTarget(3), 4, VI_PS);
-				State.Device->SetVertexBuffer(Cube[(size_t)BufferType::Vertex]);
-				State.Device->SetIndexBuffer(Cube[(size_t)BufferType::Index], Graphics::Format::R32_Uint);
-
-				RenderSurfaceLights();
-				RenderPointLights();
-				RenderSpotLights();
-				RenderLineLights();
-				RenderIllumination();
-				RenderAmbient();
-
-				State.Device->FlushTexture(1, 11, VI_PS);
-			}
-			void Lighting::RenderVoxelMap(Core::Timer* Time)
-			{
-				if (!EnableGI || Lights.Illuminators.Top().empty())
-					return;
-
-				Graphics::Texture3D* In[3], *Out[3];
-				if (!State.Scene->GetVoxelBuffer(In, Out))
-					return;
-
-				auto& Buffers = State.Scene->GetVoxelsMapping();
-				auto& Top = Lights.Illuminators.Top();
-				size_t Counter = 0;
-
-				for (auto It = Top.begin(); It != Top.end(); ++It)
-				{
-					if (Counter >= Buffers.size())
-						break;
-
-					auto& Buffer = Buffers[Counter++];
-					auto* Last = (Components::Illuminator*)Buffer.second;
-					auto* Light = *It;
-
-					if (!Light->Regenerate)
-						Light->Regenerate = (Last != Light);
-
-					if (Last != nullptr && Light->Regenerate)
-						Last->Regenerate = true;
-
-					Light->VoxelMap = Buffer.first;
-					Buffer.second = Light;
-
-					if (!GetIlluminator(&VoxelBuffer, Light))
-						continue;
-
-					bool Inside = Trigonometry::Geometric::HasPointIntersectedCube(VoxelBuffer.Center, VoxelBuffer.Scale, System->View.Position);
-					auto& Delay = (Inside ? Light->Inside : Light->Outside);
-					if (!Light->Regenerate && !Delay.TickEvent(Time->GetElapsedMills()))
-						continue;
-
-					Voxels.LightBuffer = Light->VoxelMap;
-					Light->Regenerate = false;
-
-                    uint32_t Size = (uint32_t)State.Scene->GetConf().VoxelsSize;
-					State.Device->ClearWritable(In[(size_t)VoxelType::Diffuse]);
-					State.Device->ClearWritable(In[(size_t)VoxelType::Normal]);
-					State.Device->ClearWritable(In[(size_t)VoxelType::Surface]);
-					State.Device->SetTargetRect(Size, Size);
-					State.Device->SetDepthStencilState(DepthStencilNone);
-					State.Device->SetBlendState(BlendOverwrite);
-					State.Device->SetRasterizerState(NoneRasterizer);
-					State.Device->SetWriteable(In, 1, 3, false);
-
-					Trigonometry::Matrix4x4 Offset = Trigonometry::Matrix4x4::CreateTranslatedScale(VoxelBuffer.Center, VoxelBuffer.Scale);
-					System->SetView(Offset, System->View.Projection, VoxelBuffer.Center, 90.0f, 1.0f, 0.1f, GetDominant(VoxelBuffer.Scale) * 2.0f, RenderCulling::Cubic);
-					State.Scene->Statistics.DrawCalls += System->Render(Time, RenderState::Voxelization, RenderOpt::None);
-					System->RestoreViewBuffer(nullptr);
-
-					State.Device->SetWriteable(Out, 1, 3, false);
-					State.Device->GenerateMips(Voxels.LightBuffer);
-				}
-			}
-			void Lighting::RenderSurfaceMaps(Core::Timer* Time)
-			{
-				auto& Data = Lights.Surfaces.Top();
-				if (Data.empty())
-					return;
-				
-				if (!Surfaces.Merger || !Surfaces.Subresource || !Surfaces.Input || !Surfaces.Output)
-					SetSurfaceBufferSize(Surfaces.Size);
-
-				State.Scene->SwapMRT(TargetType::Main, Surfaces.Merger);
-				State.Scene->SetMRT(TargetType::Main, false);
-
-				float ElapsedTime = Time->GetElapsedMills();
-				for (auto* Light : Data)
-				{
-					if (Light->IsImageBased())
-						continue;
-
-					Graphics::TextureCube* Cache = Light->GetProbeCache();
-					if (!Cache)
+					system->constants->render.world = (base->connected ? base->get_entity()->get_box() : trigonometry::matrix4x4::identity());
+					if (base->quad_based)
 					{
-						Cache = *State.Device->CreateTextureCube();
-						Light->SetProbeCache(Cache);
+						system->set_constant_buffer(render_buffer_type::render, pipelines.depth_quad.object_buffer, VI_VS | VI_PS | VI_GS);
+						system->set_constant_buffer(render_buffer_type::view, pipelines.depth_quad.viewer_buffer, VI_VS | VI_PS | VI_GS);
+						device->set_sampler_state(sampler, pipelines.depth_quad.sampler, 1, VI_PS);
+						device->set_buffer(pipelines.depth_quad.shader, pipelines.depth_quad.quad, VI_VS | VI_PS | VI_GS);
+						device->set_shader(pipelines.depth_quad.shader, VI_VS | VI_PS | VI_GS);
+						device->set_buffer(base->get_buffer(), pipelines.depth_quad.elements, VI_VS | VI_PS);
+						device->update_buffer(pipelines.depth_quad.shader, &quad);
 					}
-					else if (!Light->Tick.TickEvent(ElapsedTime) || Light->Tick.Delay <= 0.0)
+					else
+					{
+						system->set_constant_buffer(render_buffer_type::render, pipelines.depth_point.object_buffer, VI_VS | VI_PS | VI_GS);
+						system->set_constant_buffer(render_buffer_type::view, pipelines.depth_point.viewer_buffer, VI_VS | VI_PS | VI_GS);
+						device->set_sampler_state(sampler, pipelines.depth_point.sampler, 1, VI_PS);
+						device->set_buffer(pipelines.depth_point.shader, pipelines.depth_point.quad, VI_VS | VI_PS | VI_GS);
+						device->set_shader(pipelines.depth_point.shader, VI_VS | VI_PS | VI_GS);
+						device->set_buffer(base->get_buffer(), pipelines.depth_point.elements, VI_VS | VI_PS);
+						device->update_buffer(pipelines.depth_point.shader, &quad);
+					}
+					system->update_constant_buffer(render_buffer_type::render);
+					device->draw((uint32_t)base->get_buffer()->get_array().size(), 0);
+
+					count++;
+				}
+
+				device->set_buffer((graphics::instance_buffer*)nullptr, pipelines.depth_quad.elements, VI_VS | VI_PS);
+				device->set_buffer((graphics::instance_buffer*)nullptr, pipelines.depth_quad.quad, VI_VS | VI_PS);
+				device->set_buffer((graphics::instance_buffer*)nullptr, pipelines.depth_point.elements, VI_VS | VI_PS);
+				device->set_buffer((graphics::instance_buffer*)nullptr, pipelines.depth_point.quad, VI_VS | VI_PS);
+				device->set_shader(nullptr, VI_GS);
+				device->set_primitive_topology(t);
+				return count;
+			}
+
+			decal::decal(render_system* lab) : geometry_renderer(lab)
+			{
+				VI_ASSERT(system != nullptr, "render system should be set");
+				VI_ASSERT(system->get_device() != nullptr, "graphics device should be set");
+
+				graphics::graphics_device* device = system->get_device();
+				depth_stencil = device->get_depth_stencil_state("doo_soo_lt");
+				rasterizer = device->get_rasterizer_state("so_cback");
+				blend = device->get_blend_state("bw_wrgba_one");
+				sampler = device->get_sampler_state("a16_fa_wrap");
+				layout = device->get_input_layout("vx_shape");
+
+				pipelines.geometry.shader = *system->compile_shader("materials/material_decal_geometry", { });
+				pipelines.geometry.slotdata.diffuse_map = *device->get_shader_slot(pipelines.geometry.shader, "DiffuseMap");
+				pipelines.geometry.depth_map = *device->get_shader_slot(pipelines.geometry.shader, "LDepthBuffer");
+				pipelines.geometry.sampler = *device->get_shader_sampler_slot(pipelines.geometry.shader, "DiffuseMap", "Sampler");
+				pipelines.geometry.materials = *device->get_shader_slot(pipelines.geometry.shader, "Materials");
+				pipelines.geometry.object_buffer = *device->get_shader_slot(pipelines.geometry.shader, "ObjectBuffer");
+			}
+			decal::~decal()
+			{
+				system->free_shader(pipelines.geometry.shader);
+			}
+			size_t decal::render_geometry(core::timer* time, const geometry_renderer::objects& chunk)
+			{
+				VI_ASSERT(system->get_scene() != nullptr, "scene should be set");
+
+				graphics::multi_render_target_2d* mrt = system->get_mrt(target_type::main);
+				graphics::graphics_device* device = system->get_device();
+				bool constant = system->state.is_set(render_opt::constant);
+
+				graphics::element_buffer* box[2];
+				system->get_primitives()->get_box_buffers(box);
+
+				system->set_constant_buffer(render_buffer_type::render, pipelines.geometry.object_buffer, VI_VS | VI_PS);
+				device->set_depth_stencil_state(depth_stencil);
+				device->set_blend_state(blend);
+				device->set_rasterizer_state(rasterizer);
+				device->set_input_layout(layout);
+				device->set_target(mrt, 0);
+				device->set_sampler_state(sampler, pipelines.geometry.sampler, 8, VI_PS);
+				device->set_shader(pipelines.geometry.shader, VI_VS | VI_PS);
+				device->set_texture_2d(mrt->get_target(2), pipelines.geometry.depth_map, VI_PS);
+				device->set_vertex_buffer(box[(size_t)buffer_type::vertex]);
+				device->set_index_buffer(box[(size_t)buffer_type::index], graphics::format::r32_uint);
+
+				size_t count = 0;
+				for (auto* base : chunk)
+				{
+					if ((constant && !base->constant) || !system->try_geometry(base->get_material(), &pipelines.geometry.slotdata))
 						continue;
 
-					State.Device->CubemapPush(Surfaces.Subresource, Cache);
-					Light->Locked = true;
+					system->constants->render.transform = base->get_entity()->get_box() * system->view.view_projection;
+					system->constants->render.world = system->constants->render.transform.inv();
+					system->constants->render.texcoord = base->texcoord;
+					system->update_constant_buffer(render_buffer_type::render);
+					device->draw_indexed((uint32_t)box[(size_t)buffer_type::index]->get_elements(), 0, 0);
+					count++;
+				}
 
-					Trigonometry::Vector3 Position = Light->GetEntity()->GetTransform()->GetPosition() * Light->Offset;
+				device->set_texture_2d(nullptr, pipelines.geometry.depth_map, VI_PS);
+				system->restore_output();
+				return count;
+			}
+
+			lighting::lighting(render_system* lab) : renderer(lab)
+			{
+				VI_ASSERT(system != nullptr, "render system should be set");
+				VI_ASSERT(system->get_device() != nullptr, "graphics device should be set");
+				shadows.tick.delay = 5;
+
+				graphics::graphics_device* device = system->get_device();
+				depth_stencil_none = device->get_depth_stencil_state("doo_soo_lt");
+				depth_stencil_greater = device->get_depth_stencil_state("dro_sro_gte");
+				depth_stencil_less = device->get_depth_stencil_state("dro_sro_lt");
+				front_rasterizer = device->get_rasterizer_state("so_cfront");
+				back_rasterizer = device->get_rasterizer_state("so_cback");
+				none_rasterizer = device->get_rasterizer_state("so_co");
+				blend_additive = device->get_blend_state("bw_wrgbo_one");
+				blend_overwrite = device->get_blend_state("bo_woooo_one");
+				blend_overload = device->get_blend_state("bo_wrgba_one");
+				depth_sampler = device->get_sampler_state("a1_fl_clamp");
+				depth_less_sampler = device->get_sampler_state("a1_fl_clamp_cmp_lt");
+				wrap_sampler = device->get_sampler_state("a16_fa_wrap");
+				layout = device->get_input_layout("vx_shape");
+
+				pipelines.ambient.shader = *system->compile_shader("shading/lighting_ambient", { }, sizeof(iambient_buffer));
+				pipelines.ambient.materials = *device->get_shader_slot(pipelines.ambient.shader, "Materials");
+				pipelines.ambient.sampler = *device->get_shader_sampler_slot(pipelines.ambient.shader, "DiffuseBuffer", "Sampler");
+				pipelines.ambient.viewer_buffer = *device->get_shader_slot(pipelines.ambient.shader, "ViewerBuffer");
+				pipelines.ambient.ambient_buffer = *device->get_shader_slot(pipelines.ambient.shader, "AmbientBuffer");
+				pipelines.ambient.diffuse_buffer = *device->get_shader_slot(pipelines.ambient.shader, "DiffuseBuffer");
+				pipelines.ambient.normal_buffer = *device->get_shader_slot(pipelines.ambient.shader, "NormalBuffer");
+				pipelines.ambient.depth_buffer = *device->get_shader_slot(pipelines.ambient.shader, "DepthBuffer");
+				pipelines.ambient.surface_buffer = *device->get_shader_slot(pipelines.ambient.shader, "SurfaceBuffer");
+				pipelines.ambient.light_map = *device->get_shader_slot(pipelines.ambient.shader, "LightMap");
+				pipelines.ambient.sky_map = *device->get_shader_slot(pipelines.ambient.shader, "SkyMap");
+				pipelines.point.shader_base = *system->compile_shader("shading/lighting_point", { }, sizeof(ipoint_buffer));
+				pipelines.point.shader_shadowed = *system->compile_shader("shading/lighting_point", { "SHADOWED" });
+				pipelines.point.materials = *device->get_shader_slot(pipelines.point.shader_shadowed, "Materials");
+				pipelines.point.sampler = *device->get_shader_sampler_slot(pipelines.point.shader_shadowed, "DiffuseBuffer", "Sampler");
+				pipelines.point.depth_sampler = *device->get_shader_sampler_slot(pipelines.point.shader_shadowed, "DepthMapLess", "DepthSampler");
+				pipelines.point.depth_less_sampler = *device->get_shader_sampler_slot(pipelines.point.shader_shadowed, "DepthMapLess", "DepthLessSampler");
+				pipelines.point.viewer_buffer = *device->get_shader_slot(pipelines.point.shader_shadowed, "ViewerBuffer");
+				pipelines.point.point_buffer = *device->get_shader_slot(pipelines.point.shader_shadowed, "PointBuffer");
+				pipelines.point.diffuse_buffer = *device->get_shader_slot(pipelines.point.shader_shadowed, "DiffuseBuffer");
+				pipelines.point.normal_buffer = *device->get_shader_slot(pipelines.point.shader_shadowed, "NormalBuffer");
+				pipelines.point.depth_buffer = *device->get_shader_slot(pipelines.point.shader_shadowed, "DepthBuffer");
+				pipelines.point.surface_buffer = *device->get_shader_slot(pipelines.point.shader_shadowed, "SurfaceBuffer");
+				pipelines.point.depth_map_less = *device->get_shader_slot(pipelines.point.shader_shadowed, "DepthMapLess");
+				pipelines.spot.shader_base = *system->compile_shader("shading/lighting_spot", { }, sizeof(ispot_buffer));
+				pipelines.spot.shader_shadowed = *system->compile_shader("shading/lighting_spot", { "SHADOWED" });
+				pipelines.spot.materials = *device->get_shader_slot(pipelines.spot.shader_shadowed, "Materials");
+				pipelines.spot.sampler = *device->get_shader_sampler_slot(pipelines.spot.shader_shadowed, "DiffuseBuffer", "Sampler");
+				pipelines.spot.depth_sampler = *device->get_shader_sampler_slot(pipelines.spot.shader_shadowed, "DepthMapLess", "DepthSampler");
+				pipelines.spot.depth_less_sampler = *device->get_shader_sampler_slot(pipelines.spot.shader_shadowed, "DepthMapLess", "DepthLessSampler");
+				pipelines.spot.viewer_buffer = *device->get_shader_slot(pipelines.spot.shader_shadowed, "ViewerBuffer");
+				pipelines.spot.spot_buffer = *device->get_shader_slot(pipelines.spot.shader_shadowed, "SpotBuffer");
+				pipelines.spot.diffuse_buffer = *device->get_shader_slot(pipelines.spot.shader_shadowed, "DiffuseBuffer");
+				pipelines.spot.normal_buffer = *device->get_shader_slot(pipelines.spot.shader_shadowed, "NormalBuffer");
+				pipelines.spot.depth_buffer = *device->get_shader_slot(pipelines.spot.shader_shadowed, "DepthBuffer");
+				pipelines.spot.surface_buffer = *device->get_shader_slot(pipelines.spot.shader_shadowed, "SurfaceBuffer");
+				pipelines.spot.depth_map_less = *device->get_shader_slot(pipelines.spot.shader_shadowed, "DepthMapLess");
+				pipelines.line.shader_base = *system->compile_shader("shading/lighting_line", { }, sizeof(iline_buffer));
+				pipelines.line.shader_shadowed = *system->compile_shader("shading/lighting_line", { "SHADOWED" });
+				pipelines.line.materials = *device->get_shader_slot(pipelines.line.shader_shadowed, "Materials");
+				pipelines.line.sampler = *device->get_shader_sampler_slot(pipelines.line.shader_shadowed, "DiffuseBuffer", "Sampler");
+				pipelines.line.depth_less_sampler = *device->get_shader_sampler_slot(pipelines.line.shader_shadowed, "DepthMap", "DepthLessSampler");
+				pipelines.line.viewer_buffer = *device->get_shader_slot(pipelines.line.shader_shadowed, "ViewerBuffer");
+				pipelines.line.line_buffer = *device->get_shader_slot(pipelines.line.shader_shadowed, "LineBuffer");
+				pipelines.line.diffuse_buffer = *device->get_shader_slot(pipelines.line.shader_shadowed, "DiffuseBuffer");
+				pipelines.line.normal_buffer = *device->get_shader_slot(pipelines.line.shader_shadowed, "NormalBuffer");
+				pipelines.line.depth_buffer = *device->get_shader_slot(pipelines.line.shader_shadowed, "DepthBuffer");
+				pipelines.line.surface_buffer = *device->get_shader_slot(pipelines.line.shader_shadowed, "SurfaceBuffer");
+				pipelines.line.depth_map = *device->get_shader_slot(pipelines.line.shader_shadowed, "DepthMap[0]");
+				pipelines.surface.shader = *system->compile_shader("shading/lighting_surface", { }, sizeof(isurface_buffer));
+				pipelines.surface.materials = *device->get_shader_slot(pipelines.surface.shader, "Materials");
+				pipelines.surface.sampler = *device->get_shader_sampler_slot(pipelines.surface.shader, "EnvironmentMap", "Sampler");
+				pipelines.surface.viewer_buffer = *device->get_shader_slot(pipelines.surface.shader, "ViewerBuffer");
+				pipelines.surface.environment_buffer = *device->get_shader_slot(pipelines.surface.shader, "EnvironmentBuffer");
+				pipelines.surface.normal_buffer = *device->get_shader_slot(pipelines.surface.shader, "NormalBuffer");
+				pipelines.surface.depth_buffer = *device->get_shader_slot(pipelines.surface.shader, "DepthBuffer");
+				pipelines.surface.surface_buffer = *device->get_shader_slot(pipelines.surface.shader, "SurfaceBuffer");
+				pipelines.surface.environment_map = *device->get_shader_slot(pipelines.surface.shader, "EnvironmentMap");
+			}
+			lighting::~lighting()
+			{
+				system->free_shader(pipelines.surface.shader);
+				system->free_shader(pipelines.line.shader_base);
+				system->free_shader(pipelines.line.shader_shadowed);
+				system->free_shader(pipelines.spot.shader_base);
+				system->free_shader(pipelines.spot.shader_shadowed);
+				system->free_shader(pipelines.point.shader_base);
+				system->free_shader(pipelines.point.shader_shadowed);
+				system->free_shader(pipelines.ambient.shader);
+				core::memory::release(surfaces.subresource);
+				core::memory::release(surfaces.input);
+				core::memory::release(surfaces.output);
+				core::memory::release(surfaces.merger);
+				core::memory::release(sky_base);
+				core::memory::release(sky_map);
+				core::memory::release(lighting_map);
+			}
+			void lighting::deserialize(core::schema* node)
+			{
+				VI_ASSERT(node != nullptr, "schema should be set");
+
+				core::string path;
+				if (series::unpack(node->find("sky-map"), &path) && !path.empty())
+					system->get_scene()->load_resource<graphics::texture_2d>(system->get_component(), path, [this](expects_content<graphics::texture_2d*>&& texture) { this->set_sky_map(texture.or_else(nullptr)); });
+
+				heavy_series::unpack(node->find("high-emission"), &ambient_buffer.high_emission);
+				heavy_series::unpack(node->find("low-emission"), &ambient_buffer.low_emission);
+				series::unpack(node->find("sky-emission"), &ambient_buffer.sky_emission);
+				series::unpack(node->find("light-emission"), &ambient_buffer.light_emission);
+				heavy_series::unpack(node->find("sky-color"), &ambient_buffer.sky_color);
+				heavy_series::unpack(node->find("fog-color"), &ambient_buffer.fog_color);
+				series::unpack(node->find("fog-amount"), &ambient_buffer.fog_amount);
+				series::unpack(node->find("fog-far-off"), &ambient_buffer.fog_far_off);
+				heavy_series::unpack(node->find("fog-far"), &ambient_buffer.fog_far);
+				series::unpack(node->find("fog-near-off"), &ambient_buffer.fog_near_off);
+				heavy_series::unpack(node->find("fog-near"), &ambient_buffer.fog_near);
+				series::unpack(node->find("recursive"), &ambient_buffer.recursive);
+				series::unpack(node->find("shadow-distance"), &shadows.distance);
+				series::unpack_a(node->find("sf-size"), &surfaces.size);
+			}
+			void lighting::serialize(core::schema* node)
+			{
+				VI_ASSERT(node != nullptr, "schema should be set");
+
+				series::pack(node->set("sky-map"), system->get_scene()->find_resource_id<graphics::texture_2d>(sky_base));
+				heavy_series::pack(node->set("high-emission"), ambient_buffer.high_emission);
+				heavy_series::pack(node->set("low-emission"), ambient_buffer.low_emission);
+				series::pack(node->set("sky-emission"), ambient_buffer.sky_emission);
+				series::pack(node->set("light-emission"), ambient_buffer.light_emission);
+				heavy_series::pack(node->set("sky-color"), ambient_buffer.sky_color);
+				heavy_series::pack(node->set("fog-color"), ambient_buffer.fog_color);
+				series::pack(node->set("fog-amount"), ambient_buffer.fog_amount);
+				series::pack(node->set("fog-far-off"), ambient_buffer.fog_far_off);
+				heavy_series::pack(node->set("fog-far"), ambient_buffer.fog_far);
+				series::pack(node->set("fog-near-off"), ambient_buffer.fog_near_off);
+				heavy_series::pack(node->set("fog-near"), ambient_buffer.fog_near);
+				series::pack(node->set("recursive"), ambient_buffer.recursive);
+				series::pack(node->set("shadow-distance"), shadows.distance);
+				series::pack(node->set("sf-size"), (uint64_t)surfaces.size);
+			}
+			void lighting::resize_buffers()
+			{
+				core::memory::release(lighting_map);
+			}
+			void lighting::begin_pass(core::timer* time)
+			{
+				if (system->state.is(render_state::depth) || system->state.is(render_state::depth_cube))
+					return;
+
+				auto& lines = system->get_scene()->get_components<components::line_light>();
+				lights.illuminators.push(time, system);
+				lights.surfaces.push(time, system);
+				lights.points.push(time, system);
+				lights.spots.push(time, system);
+				lights.lines = &lines;
+			}
+			void lighting::end_pass()
+			{
+				if (system->state.is(render_state::depth) || system->state.is(render_state::depth_cube))
+					return;
+
+				lights.spots.pop();
+				lights.points.pop();
+				lights.surfaces.pop();
+				lights.illuminators.pop();
+			}
+			void lighting::render_result_buffers()
+			{
+				graphics::multi_render_target_2d* mrt = system->get_mrt(target_type::main);
+				graphics::render_target_2d* rt = (system->state.is_subpass() ? system->get_rt(target_type::secondary) : system->get_rt(target_type::main));
+				graphics::element_buffer* cube[2];
+				system->get_primitives()->get_cube_buffers(cube);
+				state.device->copy_target(mrt, 0, rt, 0);
+				state.device->set_target(mrt, 0, 0, 0, 0);
+				state.device->set_input_layout(layout);
+				state.device->set_vertex_buffer(cube[(size_t)buffer_type::vertex]);
+				state.device->set_index_buffer(cube[(size_t)buffer_type::index], graphics::format::r32_uint);
+				state.device->set_blend_state(blend_additive);
+
+				render_surface_lights();
+				render_point_lights();
+				render_spot_lights();
+				render_line_lights();
+				render_ambient();
+			}
+			void lighting::render_surface_maps(core::timer* time)
+			{
+				auto& data = lights.surfaces.top();
+				if (data.empty())
+					return;
+
+				if (!surfaces.merger || !surfaces.subresource || !surfaces.input || !surfaces.output)
+					set_surface_buffer_size(surfaces.size);
+
+				state.scene->swap_mrt(target_type::main, surfaces.merger);
+				state.scene->set_mrt(target_type::main, false);
+
+				float elapsed_time = time->get_elapsed_mills();
+				for (auto* light : data)
+				{
+					if (light->is_image_based())
+						continue;
+
+					graphics::texture_cube* cache = light->get_probe_cache();
+					if (!cache)
+					{
+						cache = *state.device->create_texture_cube();
+						light->set_probe_cache(cache);
+					}
+					else if (!light->tick.tick_event(elapsed_time) || light->tick.delay <= 0.0)
+						continue;
+
+					state.device->cubemap_push(surfaces.subresource, cache);
+					light->locked = true;
+
+					trigonometry::vector3 position = light->get_entity()->get_transform()->get_position() * light->offset;
 					for (uint32_t j = 0; j < 6; j++)
 					{
-						Trigonometry::CubeFace Face = (Trigonometry::CubeFace)j;
-						State.Scene->ClearMRT(TargetType::Main, true, true);
-						System->SetView(Light->View[j] = Trigonometry::Matrix4x4::CreateLookAt(Face, Position), Light->Projection, Position, 90.0f, 1.0f, 0.1f, Light->GetSize().Radius, RenderCulling::Linear);
-						State.Scene->Statistics.DrawCalls += System->Render(Time, RenderState::Geometric, Light->StaticMask ? RenderOpt::Static : RenderOpt::None);
-						State.Device->CubemapFace(Surfaces.Subresource, Face);
+						trigonometry::cube_face face = (trigonometry::cube_face)j;
+						state.scene->clear_mrt(target_type::main, true, true);
+						system->set_view(light->view[j] = trigonometry::matrix4x4::create_look_at(face, position), light->projection, position, 90.0f, 1.0f, 0.1f, light->get_size().radius, render_culling::depth);
+						state.scene->statistics.draw_calls += system->render(time, render_state::geometry, light->static_mask ? render_opt::constant : render_opt::none);
+						state.device->cubemap_face(surfaces.subresource, face);
 					}
 
-					Light->Locked = false;
-					State.Device->CubemapPop(Surfaces.Subresource);
+					light->locked = false;
+					state.device->cubemap_pop(surfaces.subresource);
 				}
 
-				State.Scene->SwapMRT(TargetType::Main, nullptr);
-				System->RestoreViewBuffer(nullptr);
+				state.scene->swap_mrt(target_type::main, nullptr);
+				system->restore_view_buffer(nullptr);
 			}
-			void Lighting::RenderPointShadowMaps(Core::Timer* Time)
+			void lighting::render_point_shadow_maps(core::timer* time)
 			{
-				auto& Buffers = State.Scene->GetPointsMapping(); size_t Counter = 0;
-				for (auto* Light : Lights.Points.Top())
+				auto& buffers = state.scene->get_points_mapping(); size_t counter = 0;
+				for (auto* light : lights.points.top())
 				{
-					if (Counter >= Buffers.size())
+					if (counter >= buffers.size())
 						break;
 
-					Light->DepthMap = nullptr;
-					if (!Light->Shadow.Enabled)
+					light->depth_map = nullptr;
+					if (!light->shadow.enabled)
 						continue;
 
-					CubicDepthMap* Target = Buffers[Counter++];
-					Light->GenerateOrigin();
-					Light->DepthMap = Target;
+					depth_cube_map* target = buffers[counter++];
+					light->generate_origin();
+					light->depth_map = target;
 
-					State.Device->SetTarget(Target);
-					State.Device->ClearDepth(Target);
-					System->SetView(Trigonometry::Matrix4x4::Identity(), Light->Projection, Light->GetEntity()->GetTransform()->GetPosition(), 90.0f, 1.0f, 0.1f, Light->Shadow.Distance, RenderCulling::Cubic);
-					State.Scene->Statistics.DrawCalls += System->Render(Time, RenderState::Cubic, RenderOpt::None);
+					state.device->set_target(target);
+					state.device->clear_depth(target);
+					system->set_view(trigonometry::matrix4x4::identity(), light->projection, light->get_entity()->get_transform()->get_position(), 90.0f, 1.0f, 0.1f, light->shadow.distance, render_culling::depth_cube);
+					state.scene->statistics.draw_calls += system->render(time, render_state::depth_cube, render_opt::none);
 				}
 			}
-			void Lighting::RenderSpotShadowMaps(Core::Timer* Time)
+			void lighting::render_spot_shadow_maps(core::timer* time)
 			{
-				auto& Buffers = State.Scene->GetSpotsMapping(); size_t Counter = 0;
-				for (auto* Light : Lights.Spots.Top())
+				auto& buffers = state.scene->get_spots_mapping(); size_t counter = 0;
+				for (auto* light : lights.spots.top())
 				{
-					if (Counter >= Buffers.size())
+					if (counter >= buffers.size())
 						break;
 
-					Light->DepthMap = nullptr;
-					if (!Light->Shadow.Enabled)
+					light->depth_map = nullptr;
+					if (!light->shadow.enabled)
 						continue;
 
-					LinearDepthMap* Target = Buffers[Counter++];
-					Light->GenerateOrigin();
-					Light->DepthMap = Target;
+					depth_map* target = buffers[counter++];
+					light->generate_origin();
+					light->depth_map = target;
 
-					State.Device->SetTarget(Target);
-					State.Device->ClearDepth(Target);
-					System->SetView(Light->View, Light->Projection, Light->GetEntity()->GetTransform()->GetPosition(), Light->Cutoff, 1.0f, 0.1f, Light->Shadow.Distance, RenderCulling::Linear);
-					State.Scene->Statistics.DrawCalls += System->Render(Time, RenderState::Linearization, RenderOpt::Backfaces);
+					state.device->set_target(target);
+					state.device->clear_depth(target);
+					system->set_view(light->view, light->projection, light->get_entity()->get_transform()->get_position(), light->cutoff, 1.0f, 0.1f, light->shadow.distance, render_culling::depth);
+					state.scene->statistics.draw_calls += system->render(time, render_state::depth, render_opt::backfaces);
 				}
 			}
-			void Lighting::RenderLineShadowMaps(Core::Timer* Time)
+			void lighting::render_line_shadow_maps(core::timer* time)
 			{
-				auto& Buffers = State.Scene->GetLinesMapping(); size_t Counter = 0;			
-				for (auto It = Lights.Lines->Begin(); It != Lights.Lines->End(); ++It)
+				auto& buffers = state.scene->get_lines_mapping(); size_t counter = 0;
+				for (auto it = lights.lines->begin(); it != lights.lines->end(); ++it)
 				{
-					auto* Light = (Components::LineLight*)*It;
-					if (Counter >= Buffers.size())
+					auto* light = (components::line_light*)*it;
+					if (counter >= buffers.size())
 						break;
 
-					Light->DepthMap = nullptr;
-					if (!Light->Shadow.Enabled || Light->Shadow.Cascades < 1 || Light->Shadow.Cascades > 6)
+					light->depth_map = nullptr;
+					if (!light->shadow.enabled || light->shadow.cascades < 1 || light->shadow.cascades > 6)
 						continue;
 
-					CascadedDepthMap*& Target = Buffers[Counter++];
-					if (!Target || Target->size() < Light->Shadow.Cascades)
-						State.Scene->GenerateDepthCascades(&Target, Light->Shadow.Cascades);
+					depth_cascade_map*& target = buffers[counter++];
+					if (!target || target->size() < light->shadow.cascades)
+						state.scene->generate_depth_cascades(&target, light->shadow.cascades);
 
-					Light->GenerateOrigin();
-					Light->DepthMap = Target;
+					light->generate_origin();
+					light->depth_map = target;
 
-					for (size_t i = 0; i < Target->size(); i++)
+					for (size_t i = 0; i < target->size(); i++)
 					{
-						LinearDepthMap* Cascade = (*Target)[i];
-						State.Device->SetTarget(Cascade);
-						State.Device->ClearDepth(Cascade);
+						depth_map* cascade = (*target)[i];
+						state.device->set_target(cascade);
+						state.device->clear_depth(cascade);
 
-						System->SetView(Light->View[i], Light->Projection[i], 0.0f, 90.0f, 1.0f, -System->View.FarPlane, System->View.FarPlane, RenderCulling::Disable);
-						State.Scene->Statistics.DrawCalls += System->Render(Time, RenderState::Linearization, RenderOpt::None);
+						system->set_view(light->view[i], light->projection[i], 0.0f, 90.0f, 1.0f, -system->view.far_plane, system->view.far_plane, render_culling::disable);
+						state.scene->statistics.draw_calls += system->render(time, render_state::depth, render_opt::none);
 					}
 				}
 
-				System->RestoreViewBuffer(nullptr);
+				system->restore_view_buffer(nullptr);
 			}
-			void Lighting::RenderSurfaceLights()
+			void lighting::render_surface_lights()
 			{
-				Graphics::ElementBuffer* Cube[2];
-				System->GetPrimitives()->GetCubeBuffers(Cube);
-
-				if (!System->State.IsSubpass())
-				{
-					State.Device->SetShader(Shaders.Surface, VI_VS | VI_PS);
-					State.Device->SetBuffer(Shaders.Surface, 3, VI_VS | VI_PS);
-
-					Trigonometry::Vector3 Position, Scale;
-					for (auto* Light : Lights.Surfaces.Top())
-					{
-						if (!Light->GetProbeCache())
-							continue;
-
-						Entity* Base = Light->GetEntity();
-						GetLightCulling(Light, Base->GetRadius(), &Position, &Scale);
-						GetSurfaceLight(&SurfaceLight, Light, Position, Scale);
-
-						SurfaceLight.Lighting *= Base->GetVisibility(System->View);
-						State.Device->SetTextureCube(Light->GetProbeCache(), 5, VI_PS);
-						State.Device->UpdateBuffer(Shaders.Surface, &SurfaceLight);
-						State.Device->DrawIndexed((uint32_t)Cube[(size_t)BufferType::Index]->GetElements(), 0, 0);
-					}
-				}
-				else if (AmbientLight.Recursive > 0.0f)
-				{
-					State.Device->SetShader(Shaders.Surface, VI_VS | VI_PS);
-					State.Device->SetBuffer(Shaders.Surface, 3, VI_VS | VI_PS);
-
-					Trigonometry::Vector3 Position, Scale;
-					for (auto* Light : Lights.Surfaces.Top())
-					{
-						if (Light->Locked || !Light->GetProbeCache())
-							continue;
-
-						Entity* Base = Light->GetEntity();
-						GetLightCulling(Light, Base->GetRadius(), &Position, &Scale);
-						GetSurfaceLight(&SurfaceLight, Light, Position, Scale);
-
-						SurfaceLight.Lighting *= Base->GetVisibility(System->View);
-						State.Device->SetTextureCube(Light->GetProbeCache(), 5, VI_PS);
-						State.Device->UpdateBuffer(Shaders.Surface, &SurfaceLight);
-						State.Device->DrawIndexed((uint32_t)Cube[(size_t)BufferType::Index]->GetElements(), 0, 0);
-					}
-				}
-			}
-			void Lighting::RenderPointLights()
-			{
-				Graphics::ElementBuffer* Cube[2];
-				System->GetPrimitives()->GetCubeBuffers(Cube);
-
-				Graphics::Shader* BaseShader = nullptr;
-				State.Device->SetBuffer(Shaders.Point[0], 3, VI_VS | VI_PS);
-
-				Trigonometry::Vector3 Position, Scale;
-				for (auto* Light : Lights.Points.Top())
-				{
-					Entity* Base = Light->GetEntity();
-					GetLightCulling(Light, Base->GetRadius(), &Position, &Scale);
-
-					if (GetPointLight(&PointLight, Light, Position, Scale, false))
-					{
-						Graphics::TextureCube* DepthMap = Light->DepthMap->GetTarget();
-						State.Device->SetTextureCube(DepthMap, 5, VI_PS);
-						BaseShader = Shaders.Point[1];
-					}
-					else
-						BaseShader = Shaders.Point[0];
-
-					PointLight.Lighting *= Base->GetVisibility(System->View);
-					State.Device->SetShader(BaseShader, VI_VS | VI_PS);
-					State.Device->UpdateBuffer(Shaders.Point[0], &PointLight);
-					State.Device->DrawIndexed((uint32_t)Cube[(size_t)BufferType::Index]->GetElements(), 0, 0);
-				}
-			}
-			void Lighting::RenderSpotLights()
-			{
-				Graphics::ElementBuffer* Cube[2];
-				System->GetPrimitives()->GetCubeBuffers(Cube);
-
-				Graphics::Shader* BaseShader = nullptr;
-				State.Device->SetBuffer(Shaders.Spot[0], 3, VI_VS | VI_PS);
-
-				Trigonometry::Vector3 Position, Scale;
-				for (auto* Light : Lights.Spots.Top())
-				{
-					Entity* Base = Light->GetEntity();
-					GetLightCulling(Light, Base->GetRadius(), &Position, &Scale);
-
-					if (GetSpotLight(&SpotLight, Light, Position, Scale, false))
-					{
-						Graphics::Texture2D* DepthMap = Light->DepthMap->GetTarget();
-						State.Device->SetTexture2D(DepthMap, 5, VI_PS);
-						BaseShader = Shaders.Spot[1];
-					}
-					else
-						BaseShader = Shaders.Spot[0];
-
-					SpotLight.Lighting *= Base->GetVisibility(System->View);
-					State.Device->SetShader(BaseShader, VI_VS | VI_PS);
-					State.Device->UpdateBuffer(Shaders.Spot[0], &SpotLight);
-					State.Device->DrawIndexed((uint32_t)Cube[(size_t)BufferType::Index]->GetElements(), 0, 0);
-				}
-			}
-			void Lighting::RenderLineLights()
-			{
-				Graphics::Shader* BaseShader = nullptr;
-				if (!State.Backcull)
-				{
-					State.Device->SetRasterizerState(BackRasterizer);
-					State.Backcull = true;
-				}
-
-				State.Device->SetDepthStencilState(DepthStencilNone);
-				State.Device->SetBuffer(Shaders.Line[0], 3, VI_VS | VI_PS);
-				State.Device->SetVertexBuffer(System->GetPrimitives()->GetQuad());
-
-				for (auto It = Lights.Lines->Begin(); It != Lights.Lines->End(); ++It)
-				{
-					auto* Light = (Components::LineLight*)*It;
-					if (GetLineLight(&LineLight, Light))
-					{
-						uint32_t Size = (uint32_t)LineLight.Cascades;
-						for (uint32_t i = 0; i < Size; i++)
-							State.Device->SetTexture2D((*Light->DepthMap)[i]->GetTarget(), 5 + i, VI_PS);
-						for (uint32_t i = Size; i < 6; i++)
-							State.Device->SetTexture2D((*Light->DepthMap)[Size - 1]->GetTarget(), 5 + i, VI_PS);
-						BaseShader = Shaders.Line[1];
-					}
-					else
-						BaseShader = Shaders.Line[0];
-
-					State.Device->SetShader(BaseShader, VI_VS | VI_PS);
-					State.Device->UpdateBuffer(Shaders.Line[0], &LineLight);
-					State.Device->Draw(6, 0);
-				}
-
-				State.Device->SetBlendState(BlendOverload);
-			}
-			void Lighting::RenderLuminance()
-			{
-				Graphics::Texture3D* In[3], *Out[3];
-				if (!State.Scene->GetVoxelBuffer(In, Out))
+				bool recursive = ambient_buffer.recursive > 0.0f;
+				if (lights.surfaces.top().empty() || !(recursive && system->state.is_subpass()))
 					return;
 
-				uint32_t X = (uint32_t)(VoxelBuffer.Size.X / 8.0f);
-				uint32_t Y = (uint32_t)(VoxelBuffer.Size.Y / 8.0f);
-				uint32_t Z = (uint32_t)(VoxelBuffer.Size.Z / 8.0f);
-
-				State.Device->ClearWritable(Voxels.LightBuffer);
-				State.Device->SetSamplerState(nullptr, 1, 6, VI_CS);
-				State.Device->SetWriteable(Out, 1, 3, false);
-				State.Device->SetWriteable(&Voxels.LightBuffer, 1, 1, true);
-				State.Device->SetTexture3D(In[(size_t)VoxelType::Diffuse], 2, VI_CS);
-				State.Device->SetTexture3D(In[(size_t)VoxelType::Normal], 3, VI_CS);
-				State.Device->SetTexture3D(In[(size_t)VoxelType::Surface], 4, VI_CS);
-
-				size_t PointLightsCount = GeneratePointLights();
-				if (PointLightsCount > 0)
+				trigonometry::vector3 position, scale;
+				graphics::multi_render_target_2d* mrt = system->get_mrt(target_type::main);
+				graphics::render_target_2d* rt = (system->state.is_subpass() ? system->get_rt(target_type::secondary) : system->get_rt(target_type::main));
+				graphics::element_buffer* cube[2];
+				system->get_primitives()->get_cube_buffers(cube);
+				system->set_constant_buffer(render_buffer_type::view, pipelines.surface.viewer_buffer, VI_VS | VI_PS);
+				state.device->set_structure_buffer(system->get_material_buffer(), pipelines.surface.materials, VI_PS);
+				state.device->set_sampler_state(wrap_sampler, pipelines.surface.sampler, 5, VI_PS);
+				state.device->set_texture_2d(mrt->get_target(1), pipelines.surface.normal_buffer, VI_PS);
+				state.device->set_texture_2d(mrt->get_target(2), pipelines.surface.depth_buffer, VI_PS);
+				state.device->set_texture_2d(mrt->get_target(3), pipelines.surface.surface_buffer, VI_PS);
+				state.device->set_buffer(pipelines.surface.shader, pipelines.surface.environment_buffer, VI_VS | VI_PS);
+				state.device->set_shader(pipelines.surface.shader, VI_VS | VI_PS);
+				for (auto* light : lights.surfaces.top())
 				{
-					State.Device->UpdateBuffer(Voxels.PBuffer, Voxels.PArray.data(), PointLightsCount * sizeof(IPointLight));
-					State.Device->SetStructureBuffer(Voxels.PBuffer, 5, VI_CS);
-				}
-
-				size_t SpotLightsCount = GenerateSpotLights();
-				if (SpotLightsCount > 0)
-				{
-					State.Device->UpdateBuffer(Voxels.SBuffer, Voxels.SArray.data(), SpotLightsCount * sizeof(ISpotLight));
-					State.Device->SetStructureBuffer(Voxels.SBuffer, 6, VI_CS);
-				}
-
-				size_t LineLightsCount = GenerateLineLights();
-				if (LineLightsCount > 0)
-				{
-					State.Device->UpdateBuffer(Voxels.LBuffer, Voxels.LArray.data(), LineLightsCount * sizeof(ILineLight));
-					State.Device->SetStructureBuffer(Voxels.LBuffer, 7, VI_CS);
-				}
-
-				State.Device->UpdateBuffer(Shaders.Voxelizer, &VoxelBuffer);
-				State.Device->SetBuffer(Shaders.Voxelizer, 3, VI_CS);
-				State.Device->SetShader(Shaders.Voxelizer, VI_VS | VI_PS | VI_CS);
-				State.Device->Dispatch(X, Y, Z);
-				State.Device->FlushTexture(2, 3, VI_CS);
-				State.Device->SetShader(nullptr, VI_VS | VI_PS | VI_CS);
-				State.Device->SetStructureBuffer(nullptr, 5, VI_CS);
-				State.Device->SetStructureBuffer(nullptr, 6, VI_CS);
-				State.Device->SetStructureBuffer(nullptr, 7, VI_CS);
-				State.Device->SetWriteable(Out, 1, 1, true);
-				State.Device->SetWriteable(In, 1, 3, false);
-			}
-			void Lighting::RenderIllumination()
-			{
-				if (!EnableGI || System->State.IsSubpass() || Lights.Illuminators.Top().empty())
-					return;
-
-				Graphics::ElementBuffer* Cube[2];
-				System->GetPrimitives()->GetCubeBuffers(Cube);
-				State.Backcull = true;
-
-				Graphics::MultiRenderTarget2D* MRT = System->GetMRT(TargetType::Main);
-				Graphics::RenderTarget2D* RT = System->GetRT(TargetType::Secondary);
-				State.Device->CopyTarget(MRT, 0, RT, 0);
-				State.Device->SetDepthStencilState(DepthStencilLess);
-				State.Device->SetRasterizerState(BackRasterizer);
-				State.Device->SetSamplerState(WrapSampler, 1, 6, VI_PS);
-				State.Device->SetTexture2D(RT->GetTarget(), 1, VI_PS);
-				State.Device->SetShader(Shaders.Ambient[1], VI_VS | VI_PS);
-				State.Device->SetBuffer(Shaders.Ambient[1], 3, VI_VS | VI_PS);
-				State.Device->SetVertexBuffer(Cube[(size_t)BufferType::Vertex]);
-				State.Device->SetIndexBuffer(Cube[(size_t)BufferType::Index], Graphics::Format::R32_Uint);
-
-				Trigonometry::Vector3 Position, Scale;
-				for (auto* Light : Lights.Illuminators.Top())
-				{
-					if (!GetIlluminator(&VoxelBuffer, Light))
+					if (!light->get_probe_cache())
+						continue;
+					else if (recursive && light->locked)
 						continue;
 
-					GetLightCulling(Light, 0.0f, &Position, &Scale);
-					VoxelBuffer.Transform = Trigonometry::Matrix4x4::CreateTranslatedScale(Position, Scale) * System->View.ViewProjection;
+					entity* base = light->get_entity();
+					apply_light_culling(light, base->get_radius(), &position, &scale);
+					load_surface_buffer(&surface_buffer, light, position, scale);
 
-					State.Device->SetTexture3D(Light->VoxelMap, 5, VI_PS);
-					State.Device->UpdateBuffer(Shaders.Ambient[1], &VoxelBuffer);
-					State.Device->DrawIndexed((uint32_t)Cube[(size_t)BufferType::Index]->GetElements(), 0, 0);
+					surface_buffer.lighting *= base->get_visibility(system->view);
+					state.device->set_texture_cube(light->get_probe_cache(), pipelines.surface.environment_map, VI_PS);
+					state.device->update_buffer(pipelines.surface.shader, &surface_buffer);
+					state.device->draw_indexed((uint32_t)cube[(size_t)buffer_type::index]->get_elements(), 0, 0);
 				}
-
-				State.Device->SetTexture2D(System->GetRT(TargetType::Main)->GetTarget(), 1, VI_PS);
-				State.Device->SetTexture3D(nullptr, 5, VI_PS);
-				State.Device->SetVertexBuffer(System->GetPrimitives()->GetQuad());
-
-				if (!State.Backcull)
-					State.Device->SetRasterizerState(BackRasterizer);
+				state.device->flush_texture(pipelines.surface.normal_buffer, 4, VI_PS);
 			}
-			void Lighting::RenderAmbient()
+			void lighting::render_point_lights()
 			{
-				Graphics::MultiRenderTarget2D* MRT = System->GetMRT(TargetType::Main);
-				Graphics::RenderTarget2D* RT = (System->State.IsSubpass() ? System->GetRT(TargetType::Main) : System->GetRT(TargetType::Secondary));
-				State.Device->CopyTarget(MRT, 0, RT, 0);
-				State.Device->CopyTexture2D(RT, 0, &LightingMap);
-				State.Device->SetSamplerState(WrapSampler, 1, 6, VI_PS);
-				State.Device->SetTexture2D(RT->GetTarget(), 5, VI_PS);
-				State.Device->SetTextureCube(SkyMap, 6, VI_PS);
-				State.Device->SetShader(Shaders.Ambient[0], VI_VS | VI_PS);
-				State.Device->SetBuffer(Shaders.Ambient[0], 3, VI_VS | VI_PS);
-				State.Device->UpdateBuffer(Shaders.Ambient[0], &AmbientLight);
-				State.Device->Draw(6, 0);
-			}
-			void Lighting::SetSkyMap(Graphics::Texture2D* Cubemap)
-			{
-				Core::Memory::Release(SkyMap);
-				Core::Memory::Release(SkyBase);
-
-				SkyBase = Cubemap;
-				if (SkyBase != nullptr)
-				{
-					SkyMap = *System->GetDevice()->CreateTextureCube(SkyBase);
-					SkyBase->AddRef();
-				}
-			}
-			void Lighting::SetSurfaceBufferSize(size_t NewSize)
-			{
-				VI_ASSERT(System->GetScene() != nullptr, "scene should be set");
-
-				SceneGraph* Scene = System->GetScene();
-				Graphics::GraphicsDevice* Device = System->GetDevice();
-				Graphics::MultiRenderTarget2D::Desc F1 = Scene->GetDescMRT();
-				F1.MipLevels = Device->GetMipLevel((uint32_t)Surfaces.Size, (uint32_t)Surfaces.Size);
-				F1.Width = (uint32_t)Surfaces.Size;
-				F1.Height = (uint32_t)Surfaces.Size;
-				SurfaceLight.Mips = (float)F1.MipLevels;
-				Surfaces.Size = NewSize;
-
-				Core::Memory::Release(Surfaces.Merger);
-				Surfaces.Merger = *Device->CreateMultiRenderTarget2D(F1);
-
-				Graphics::Cubemap::Desc I;
-				I.Source = Surfaces.Merger;
-				I.MipLevels = F1.MipLevels;
-				I.Size = (uint32_t)Surfaces.Size;
-
-				Core::Memory::Release(Surfaces.Subresource);
-				Surfaces.Subresource = *Device->CreateCubemap(I);
-
-				Graphics::RenderTarget2D::Desc F2 = Scene->GetDescRT();
-				F2.MipLevels = F1.MipLevels;
-				F2.Width = F1.Width;
-				F2.Height = F1.Height;
-
-				Core::Memory::Release(Surfaces.Output);
-				Surfaces.Output = *Device->CreateRenderTarget2D(F2);
-
-				Core::Memory::Release(Surfaces.Input);
-				Surfaces.Input = *Device->CreateRenderTarget2D(F2);
-			}
-			void Lighting::SetVoxelBuffer(RenderSystem* System, Graphics::Shader* Src, uint32_t Slot)
-			{
-				VI_ASSERT(System != nullptr, "system should be set");
-				VI_ASSERT(System->GetScene() != nullptr, "scene should be set");
-				VI_ASSERT(Src != nullptr, "src should be set");
-
-				Lighting* Renderer = System->GetRenderer<Lighting>();
-				if (!Renderer)
+				if (lights.points.top().empty())
 					return;
 
-				Graphics::GraphicsDevice* Device = System->GetDevice();
-				Device->SetBuffer(Src, Slot, VI_VS | VI_PS | VI_GS);
-				Device->UpdateBuffer(Src, &Renderer->VoxelBuffer);
-			}
-			size_t Lighting::GeneratePointLights()
-			{
-				if (!Voxels.PBuffer)
-					GenerateLightBuffers();
+				trigonometry::vector3 position, scale;
+				graphics::multi_render_target_2d* mrt = system->get_mrt(target_type::main);
+				graphics::render_target_2d* rt = (system->state.is_subpass() ? system->get_rt(target_type::secondary) : system->get_rt(target_type::main));
+				graphics::element_buffer* cube[2];
+				system->get_primitives()->get_cube_buffers(cube);
 
-				Trigonometry::Vector3 Offset = 1.0f;
-				Offset.X = (VoxelBuffer.Center.X > 0.0f ? 1.0f : -1.0f);
-				Offset.Y = (VoxelBuffer.Center.Y > 0.0f ? 1.0f : -1.0f);
-				Offset.Z = (VoxelBuffer.Center.Z > 0.0f ? 1.0f : -1.0f);
-
-				size_t Count = 0;
-				for (auto* Light : Lights.Points.Top())
+				system->set_constant_buffer(render_buffer_type::view, pipelines.point.viewer_buffer, VI_VS | VI_PS);
+				state.device->set_structure_buffer(system->get_material_buffer(), pipelines.point.materials, VI_PS);
+				state.device->set_sampler_state(wrap_sampler, pipelines.point.sampler, 4, VI_PS);
+				state.device->set_sampler_state(depth_sampler, pipelines.point.depth_sampler, 1, VI_PS);
+				state.device->set_sampler_state(depth_less_sampler, pipelines.point.depth_less_sampler, 1, VI_PS);
+				state.device->set_texture_2d(rt->get_target(), pipelines.point.diffuse_buffer, VI_PS);
+				state.device->set_texture_2d(mrt->get_target(1), pipelines.point.normal_buffer, VI_PS);
+				state.device->set_texture_2d(mrt->get_target(2), pipelines.point.depth_buffer, VI_PS);
+				state.device->set_texture_2d(mrt->get_target(3), pipelines.point.surface_buffer, VI_PS);
+				state.device->set_buffer(pipelines.point.shader_base, pipelines.point.point_buffer, VI_VS | VI_PS);
+				for (auto* light : lights.points.top())
 				{
-					if (Count >= Voxels.MaxLights)
-						break;
+					entity* base = light->get_entity();
+					apply_light_culling(light, base->get_radius(), &position, &scale);
+					if (load_point_buffer(&point_buffer, light, position, scale, false))
+					{
+						graphics::texture_cube* depth_map = light->depth_map->get_target();
+						state.device->set_shader(pipelines.point.shader_shadowed, VI_VS | VI_PS);
+						state.device->set_texture_cube(depth_map, pipelines.point.depth_map_less, VI_PS);
+					}
+					else
+						state.device->set_shader(pipelines.point.shader_base, VI_VS | VI_PS);
 
-					auto* Base = Light->GetEntity();
-					Trigonometry::Vector3 Position(Base->GetTransform()->GetPosition());
-					Trigonometry::Vector3 Scale(Base->GetRadius());
-					Position *= Offset;
-
-					GetPointLight(&Voxels.PArray[Count++], Light, Position, Scale, true);
+					point_buffer.lighting *= base->get_visibility(system->view);
+					state.device->update_buffer(pipelines.point.shader_base, &point_buffer);
+					state.device->draw_indexed((uint32_t)cube[(size_t)buffer_type::index]->get_elements(), 0, 0);
 				}
-
-				VoxelBuffer.Lights.X = (float)Count;
-				return Count;
+				state.device->flush_texture(pipelines.point.diffuse_buffer, 5, VI_PS);
 			}
-			size_t Lighting::GenerateSpotLights()
+			void lighting::render_spot_lights()
 			{
-				if (!Voxels.SBuffer)
-					GenerateLightBuffers();
+				if (lights.spots.top().empty())
+					return;
 
-				Trigonometry::Vector3 Offset = 1.0f;
-				Offset.X = (VoxelBuffer.Center.X > 0.0f ? 1.0f : -1.0f);
-				Offset.Y = (VoxelBuffer.Center.Y > 0.0f ? 1.0f : -1.0f);
-				Offset.Z = (VoxelBuffer.Center.Z > 0.0f ? 1.0f : -1.0f);
+				trigonometry::vector3 position, scale;
+				graphics::multi_render_target_2d* mrt = system->get_mrt(target_type::main);
+				graphics::render_target_2d* rt = (system->state.is_subpass() ? system->get_rt(target_type::secondary) : system->get_rt(target_type::main));
+				graphics::element_buffer* cube[2];
+				system->get_primitives()->get_cube_buffers(cube);
 
-				size_t Count = 0;
-				for (auto* Light : Lights.Spots.Top())
+				system->set_constant_buffer(render_buffer_type::view, pipelines.spot.viewer_buffer, VI_VS | VI_PS);
+				state.device->set_structure_buffer(system->get_material_buffer(), pipelines.spot.materials, VI_PS);
+				state.device->set_sampler_state(wrap_sampler, pipelines.spot.sampler, 4, VI_PS);
+				state.device->set_sampler_state(depth_sampler, pipelines.spot.depth_sampler, 1, VI_PS);
+				state.device->set_sampler_state(depth_less_sampler, pipelines.spot.depth_less_sampler, 1, VI_PS);
+				state.device->set_texture_2d(rt->get_target(), pipelines.spot.diffuse_buffer, VI_PS);
+				state.device->set_texture_2d(mrt->get_target(1), pipelines.spot.normal_buffer, VI_PS);
+				state.device->set_texture_2d(mrt->get_target(2), pipelines.spot.depth_buffer, VI_PS);
+				state.device->set_texture_2d(mrt->get_target(3), pipelines.spot.surface_buffer, VI_PS);
+				state.device->set_buffer(pipelines.spot.shader_base, pipelines.spot.spot_buffer, VI_VS | VI_PS);
+				for (auto* light : lights.spots.top())
 				{
-					if (Count >= Voxels.MaxLights)
-						break;
+					entity* base = light->get_entity();
+					apply_light_culling(light, base->get_radius(), &position, &scale);
+					if (load_spot_buffer(&spot_buffer, light, position, scale, false))
+					{
+						graphics::texture_2d* depth_map = light->depth_map->get_target();
+						state.device->set_texture_2d(depth_map, pipelines.spot.depth_map_less, VI_PS);
+						state.device->set_shader(pipelines.spot.shader_shadowed, VI_VS | VI_PS);
+					}
+					else
+						state.device->set_shader(pipelines.spot.shader_base, VI_VS | VI_PS);
 
-					auto* Base = Light->GetEntity();
-					Trigonometry::Vector3 Position(Base->GetTransform()->GetPosition());
-					Trigonometry::Vector3 Scale(Base->GetRadius());
-					Position *= Offset;
-
-					GetSpotLight(&Voxels.SArray[Count++], Light, Position, Scale, true);
+					spot_buffer.lighting *= base->get_visibility(system->view);
+					state.device->update_buffer(pipelines.spot.shader_base, &spot_buffer);
+					state.device->draw_indexed((uint32_t)cube[(size_t)buffer_type::index]->get_elements(), 0, 0);
 				}
-
-				VoxelBuffer.Lights.Y = (float)Count;
-				return Count;
+				state.device->flush_texture(pipelines.spot.diffuse_buffer, 5, VI_PS);
 			}
-			size_t Lighting::GenerateLineLights()
+			void lighting::render_line_lights()
 			{
-				if (!Voxels.LBuffer)
-					GenerateLightBuffers();
+				if (lights.lines->empty())
+					return;
 
-				size_t Count = 0;
-				for (auto It = Lights.Lines->Begin(); It != Lights.Lines->End(); ++It)
+				graphics::multi_render_target_2d* mrt = system->get_mrt(target_type::main);
+				graphics::render_target_2d* rt = (system->state.is_subpass() ? system->get_rt(target_type::secondary) : system->get_rt(target_type::main));
+				system->set_constant_buffer(render_buffer_type::view, pipelines.line.viewer_buffer, VI_VS | VI_PS);
+				state.device->set_structure_buffer(system->get_material_buffer(), pipelines.line.materials, VI_PS);
+				state.device->set_sampler_state(wrap_sampler, pipelines.line.sampler, 4, VI_PS);
+				state.device->set_sampler_state(depth_less_sampler, pipelines.line.depth_less_sampler, 1, VI_PS);
+				state.device->set_rasterizer_state(back_rasterizer);
+				state.device->set_depth_stencil_state(depth_stencil_none);
+				state.device->set_vertex_buffer(system->get_primitives()->get_quad());
+				state.device->set_texture_2d(rt->get_target(), pipelines.line.diffuse_buffer, VI_PS);
+				state.device->set_texture_2d(mrt->get_target(1), pipelines.line.normal_buffer, VI_PS);
+				state.device->set_texture_2d(mrt->get_target(2), pipelines.line.depth_buffer, VI_PS);
+				state.device->set_texture_2d(mrt->get_target(3), pipelines.line.surface_buffer, VI_PS);
+				state.device->set_buffer(pipelines.line.shader_base, pipelines.line.line_buffer, VI_VS | VI_PS);
+				for (auto it = lights.lines->begin(); it != lights.lines->end(); ++it)
 				{
-					auto* Light = (Components::LineLight*)*It;
-					if (Count >= Voxels.MaxLights)
-						break;
+					auto* light = (components::line_light*)*it;
+					if (load_line_buffer(&line_buffer, light))
+					{
+						uint32_t size = (uint32_t)line_buffer.cascades;
+						for (uint32_t i = 0; i < size; i++)
+							state.device->set_texture_2d((*light->depth_map)[i]->get_target(), pipelines.line.depth_map + i, VI_PS);
+						for (uint32_t i = size; i < 6; i++)
+							state.device->set_texture_2d((*light->depth_map)[size - 1]->get_target(), pipelines.line.depth_map + i, VI_PS);
+						state.device->set_shader(pipelines.line.shader_shadowed, VI_VS | VI_PS);
+					}
+					else
+						state.device->set_shader(pipelines.line.shader_base, VI_VS | VI_PS);
 
-					GetLineLight(&Voxels.LArray[Count++], Light);
+					state.device->update_buffer(pipelines.line.shader_base, &line_buffer);
+					state.device->draw(6, 0);
 				}
-
-				VoxelBuffer.Lights.Z = (float)Count;
-				return Count;
+				state.device->flush_texture(pipelines.line.diffuse_buffer, 11, VI_PS);
 			}
-			size_t Lighting::RenderPass(Core::Timer* Time)
+			void lighting::render_ambient()
 			{
-				VI_ASSERT(System->GetScene() != nullptr, "scene should be set");
-				if (System->State.IsSet(RenderOpt::Additive))
+				graphics::multi_render_target_2d* mrt = system->get_mrt(target_type::main);
+				graphics::render_target_2d* rt = (system->state.is_subpass() ? system->get_rt(target_type::secondary) : system->get_rt(target_type::main));
+				ambient_buffer.sky_offset = system->view.projection.inv() * trigonometry::matrix4x4::create_rotation(system->view.rotation);
+				system->set_constant_buffer(render_buffer_type::view, pipelines.ambient.viewer_buffer, VI_VS | VI_PS);
+				state.device->set_structure_buffer(system->get_material_buffer(), pipelines.ambient.materials, VI_PS);
+				state.device->copy_texture_2d(mrt, 0, &lighting_map);
+				state.device->set_blend_state(blend_overload);
+				state.device->set_rasterizer_state(back_rasterizer);
+				state.device->set_depth_stencil_state(depth_stencil_none);
+				state.device->set_sampler_state(wrap_sampler, pipelines.ambient.sampler, 6, VI_PS);
+				state.device->set_texture_2d(rt->get_target(), pipelines.ambient.diffuse_buffer, VI_PS);
+				state.device->set_texture_2d(mrt->get_target(1), pipelines.ambient.normal_buffer, VI_PS);
+				state.device->set_texture_2d(mrt->get_target(2), pipelines.ambient.depth_buffer, VI_PS);
+				state.device->set_texture_2d(mrt->get_target(3), pipelines.ambient.surface_buffer, VI_PS);
+				state.device->set_texture_2d(lighting_map, pipelines.ambient.light_map, VI_PS);
+				state.device->set_texture_cube(sky_map, pipelines.ambient.sky_map, VI_PS);
+				state.device->set_vertex_buffer(system->get_primitives()->get_quad());
+				state.device->set_shader(pipelines.ambient.shader, VI_VS | VI_PS);
+				state.device->set_buffer(pipelines.ambient.shader, pipelines.ambient.ambient_buffer, VI_VS | VI_PS);
+				state.device->update_buffer(pipelines.ambient.shader, &ambient_buffer);
+				state.device->draw(6, 0);
+				state.device->flush_texture(pipelines.ambient.diffuse_buffer, 4, VI_PS);
+			}
+			void lighting::set_sky_map(graphics::texture_2d* cubemap)
+			{
+				core::memory::release(sky_map);
+				core::memory::release(sky_base);
+
+				sky_base = cubemap;
+				if (sky_base != nullptr)
+				{
+					sky_map = *system->get_device()->create_texture_cube(sky_base);
+					sky_base->add_ref();
+				}
+			}
+			void lighting::set_surface_buffer_size(size_t new_size)
+			{
+				VI_ASSERT(system->get_scene() != nullptr, "scene should be set");
+
+				scene_graph* scene = system->get_scene();
+				graphics::graphics_device* device = system->get_device();
+				graphics::multi_render_target_2d::desc f1 = scene->get_desc_mrt();
+				f1.mip_levels = device->get_mip_level((uint32_t)surfaces.size, (uint32_t)surfaces.size);
+				f1.width = (uint32_t)surfaces.size;
+				f1.height = (uint32_t)surfaces.size;
+				surface_buffer.mips = (float)f1.mip_levels;
+				surfaces.size = new_size;
+
+				core::memory::release(surfaces.merger);
+				surfaces.merger = *device->create_multi_render_target_2d(f1);
+
+				graphics::cubemap::desc i;
+				i.source = surfaces.merger;
+				i.mip_levels = f1.mip_levels;
+				i.size = (uint32_t)surfaces.size;
+
+				core::memory::release(surfaces.subresource);
+				surfaces.subresource = *device->create_cubemap(i);
+
+				graphics::render_target_2d::desc f2 = scene->get_desc_rt();
+				f2.mip_levels = f1.mip_levels;
+				f2.width = f1.width;
+				f2.height = f1.height;
+
+				core::memory::release(surfaces.output);
+				surfaces.output = *device->create_render_target_2d(f2);
+
+				core::memory::release(surfaces.input);
+				surfaces.input = *device->create_render_target_2d(f2);
+			}
+			size_t lighting::render_pass(core::timer* time)
+			{
+				VI_ASSERT(system->get_scene() != nullptr, "scene should be set");
+				if (system->state.is_set(render_opt::additive))
 					return 0;
 
-				State.Device = System->GetDevice();
-				State.Scene = System->GetScene();
-
-				if (System->State.Is(RenderState::Geometric))
+				state.device = system->get_device();
+				state.scene = system->get_scene();
+				if (system->state.is(render_state::geometry))
 				{
-					if (!System->State.IsSubpass() && !System->State.IsSet(RenderOpt::Transparent))
+					if (!system->state.is_subpass() && !system->state.is_set(render_opt::transparent))
 					{
-						if (Shadows.Tick.TickEvent(Time->GetElapsedMills()))
+						if (shadows.tick.tick_event(time->get_elapsed_mills()))
 						{
-							RenderPointShadowMaps(Time);
-							RenderSpotShadowMaps(Time);
-							RenderLineShadowMaps(Time);
-							System->RestoreViewBuffer(nullptr);
+							render_point_shadow_maps(time);
+							render_spot_shadow_maps(time);
+							render_line_shadow_maps(time);
+							system->restore_view_buffer(nullptr);
 						}
-
-						RenderSurfaceMaps(Time);
-						RenderVoxelMap(Time);
+						render_surface_maps(time);
 					}
 
-					RenderResultBuffers();
-					System->RestoreOutput();
+					render_result_buffers();
+					system->restore_output();
 				}
-				else if (System->State.Is(RenderState::Voxelization))
-					RenderLuminance();
 
 				return 1;
 			}
-			float Lighting::GetDominant(const Trigonometry::Vector3& Axis)
+			float lighting::get_dominant(const trigonometry::vector3& axis)
 			{
-				float Max = Axis.X;
-				if (Axis.Y > Max)
-					Max = Axis.Y;
+				float max = axis.x;
+				if (axis.y > max)
+					max = axis.y;
 
-				if (Axis.Z > Max)
-					Max = Axis.Z;
+				if (axis.z > max)
+					max = axis.z;
 
-				return Max;
+				return max;
 			}
-			bool Lighting::GetSurfaceLight(ISurfaceLight* Dest, Component* Src, Trigonometry::Vector3& Position, Trigonometry::Vector3& Scale)
+			bool lighting::load_surface_buffer(isurface_buffer* dest, component* src, trigonometry::vector3& position, trigonometry::vector3& scale)
 			{
-				Components::SurfaceLight* Light = (Components::SurfaceLight*)Src;
-				auto* Entity = Light->GetEntity();
-				auto* Transform = Entity->GetTransform();
-				auto& Size = Light->GetSize();
+				components::surface_light* light = (components::surface_light*)src;
+				auto* entity = light->get_entity();
+				auto* transform = entity->get_transform();
+				auto& size = light->get_size();
 
-				Dest->Transform = Trigonometry::Matrix4x4::CreateTranslatedScale(Position, Scale) * System->View.ViewProjection;
-				Dest->Position = Transform->GetPosition();
-				Dest->Lighting = Light->Diffuse.Mul(Light->Emission);
-				Dest->Scale = Transform->GetScale();
-				Dest->Parallax = (Light->Parallax ? 1.0f : 0.0f);
-				Dest->Infinity = Light->Infinity;
-				Dest->Attenuation.X = Size.C1;
-				Dest->Attenuation.Y = Size.C2;
-				Dest->Range = Size.Radius;
+				dest->transform = trigonometry::matrix4x4::create_translated_scale(position, scale) * system->view.view_projection;
+				dest->position = transform->get_position();
+				dest->lighting = light->diffuse.mul(light->emission);
+				dest->scale = transform->get_scale();
+				dest->parallax = (light->parallax ? 1.0f : 0.0f);
+				dest->infinity = light->infinity;
+				dest->attenuation.x = size.C1;
+				dest->attenuation.y = size.C2;
+				dest->range = size.radius;
 
 				return true;
 			}
-			bool Lighting::GetPointLight(IPointLight* Dest, Component* Src, Trigonometry::Vector3& Position, Trigonometry::Vector3& Scale, bool Reposition)
+			bool lighting::load_point_buffer(ipoint_buffer* dest, component* src, trigonometry::vector3& position, trigonometry::vector3& scale, bool reposition)
 			{
-				Components::PointLight* Light = (Components::PointLight*)Src;
-				auto* Entity = Light->GetEntity();
-				auto* Transform = Entity->GetTransform();
-				auto& Size = Light->GetSize();
+				components::point_light* light = (components::point_light*)src;
+				auto* entity = light->get_entity();
+				auto* transform = entity->get_transform();
+				auto& size = light->get_size();
 
-				Dest->Transform = Trigonometry::Matrix4x4::CreateTranslatedScale(Position, Scale) * System->View.ViewProjection;
-				Dest->Position = (Reposition ? Position : Transform->GetPosition());
-				Dest->Lighting = Light->Diffuse.Mul(Light->Emission);
-				Dest->Attenuation.X = Size.C1;
-				Dest->Attenuation.Y = Size.C2;
-				Dest->Range = Size.Radius;
+				dest->transform = trigonometry::matrix4x4::create_translated_scale(position, scale) * system->view.view_projection;
+				dest->position = (reposition ? position : transform->get_position());
+				dest->lighting = light->diffuse.mul(light->emission);
+				dest->attenuation.x = size.C1;
+				dest->attenuation.y = size.C2;
+				dest->range = size.radius;
 
-				if (!Light->Shadow.Enabled || !Light->DepthMap)
+				if (!light->shadow.enabled || !light->depth_map)
 				{
-					Dest->Softness = 0.0f;
+					dest->softness = 0.0f;
 					return false;
 				}
 
-				Dest->Softness = Light->Shadow.Softness <= 0 ? 0 : (float)State.Scene->GetConf().PointsSize / Light->Shadow.Softness;
-				Dest->Bias = Light->Shadow.Bias;
-				Dest->Distance = Light->Shadow.Distance;
-				Dest->Iterations = (float)Light->Shadow.Iterations;
-				Dest->Umbra = Light->Disperse;
+				dest->softness = light->shadow.softness <= 0 ? 0 : (float)state.scene->get_conf().points_size / light->shadow.softness;
+				dest->bias = light->shadow.bias;
+				dest->distance = light->shadow.distance;
+				dest->iterations = (float)light->shadow.iterations;
+				dest->umbra = light->disperse;
 				return true;
 			}
-			bool Lighting::GetSpotLight(ISpotLight* Dest, Component* Src, Trigonometry::Vector3& Position, Trigonometry::Vector3& Scale, bool Reposition)
+			bool lighting::load_spot_buffer(ispot_buffer* dest, component* src, trigonometry::vector3& position, trigonometry::vector3& scale, bool reposition)
 			{
-				Components::SpotLight* Light = (Components::SpotLight*)Src;
-				auto* Entity = Light->GetEntity();
-				auto* Transform = Entity->GetTransform();
-				auto& Size = Light->GetSize();
+				components::spot_light* light = (components::spot_light*)src;
+				auto* entity = light->get_entity();
+				auto* transform = entity->get_transform();
+				auto& size = light->get_size();
 
-				Dest->Transform = Trigonometry::Matrix4x4::CreateTranslatedScale(Position, Scale) * System->View.ViewProjection;
-				Dest->ViewProjection = Light->View * Light->Projection;
-				Dest->Direction = Transform->GetRotation().dDirection();
-				Dest->Position = (Reposition ? Position : Transform->GetPosition());
-				Dest->Lighting = Light->Diffuse.Mul(Light->Emission);
-				Dest->Cutoff = Compute::Mathf::Cos(Compute::Mathf::Deg2Rad() * Light->Cutoff * 0.5f);
-				Dest->Attenuation.X = Size.C1;
-				Dest->Attenuation.Y = Size.C2;
-				Dest->Range = Size.Radius;
+				dest->transform = trigonometry::matrix4x4::create_translated_scale(position, scale) * system->view.view_projection;
+				dest->view_projection = light->view * light->projection;
+				dest->direction = transform->get_rotation().ddirection();
+				dest->position = (reposition ? position : transform->get_position());
+				dest->lighting = light->diffuse.mul(light->emission);
+				dest->cutoff = compute::mathf::cos(compute::mathf::deg2rad() * light->cutoff * 0.5f);
+				dest->attenuation.x = size.C1;
+				dest->attenuation.y = size.C2;
+				dest->range = size.radius;
 
-				if (!Light->Shadow.Enabled || !Light->DepthMap)
+				if (!light->shadow.enabled || !light->depth_map)
 				{
-					Dest->Softness = 0.0f;
+					dest->softness = 0.0f;
 					return false;
 				}
 
-				Dest->Softness = Light->Shadow.Softness <= 0 ? 0 : (float)State.Scene->GetConf().SpotsSize / Light->Shadow.Softness;
-				Dest->Bias = Light->Shadow.Bias;
-				Dest->Iterations = (float)Light->Shadow.Iterations;
-				Dest->Umbra = Light->Disperse;
+				dest->softness = light->shadow.softness <= 0 ? 0 : (float)state.scene->get_conf().spots_size / light->shadow.softness;
+				dest->bias = light->shadow.bias;
+				dest->iterations = (float)light->shadow.iterations;
+				dest->umbra = light->disperse;
 				return true;
 			}
-			bool Lighting::GetLineLight(ILineLight* Dest, Component* Src)
+			bool lighting::load_line_buffer(iline_buffer* dest, component* src)
 			{
-				Components::LineLight* Light = (Components::LineLight*)Src;
-				Dest->Position = Light->GetEntity()->GetTransform()->GetPosition().sNormalize();
-				Dest->Lighting = Light->Diffuse.Mul(Light->Emission);
-				Dest->RlhEmission = Light->Sky.RlhEmission;
-				Dest->RlhHeight = Light->Sky.RlhHeight;
-				Dest->MieEmission = Light->Sky.MieEmission;
-				Dest->MieHeight = Light->Sky.MieHeight;
-				Dest->ScatterIntensity = Light->Sky.Intensity;
-				Dest->PlanetRadius = Light->Sky.InnerRadius;
-				Dest->AtmosphereRadius = Light->Sky.OuterRadius;
-				Dest->MieDirection = Light->Sky.MieDirection;
-				Dest->SkyOffset = AmbientLight.SkyOffset;
+				components::line_light* light = (components::line_light*)src;
+				dest->position = light->get_entity()->get_transform()->get_position().snormalize();
+				dest->lighting = light->diffuse.mul(light->emission);
+				dest->rlh_emission = light->sky.rlh_emission;
+				dest->rlh_height = light->sky.rlh_height;
+				dest->mie_emission = light->sky.mie_emission;
+				dest->mie_height = light->sky.mie_height;
+				dest->scatter_intensity = light->sky.intensity;
+				dest->planet_radius = light->sky.inner_radius;
+				dest->atmosphere_radius = light->sky.outer_radius;
+				dest->mie_direction = light->sky.mie_direction;
+				dest->sky_offset = ambient_buffer.sky_offset;
 
-				if (!Light->Shadow.Enabled || !Light->DepthMap)
+				if (!light->shadow.enabled || !light->depth_map)
 				{
-					Dest->Softness = 0.0f;
+					dest->softness = 0.0f;
 					return false;
 				}
 
-				Dest->Softness = Light->Shadow.Softness <= 0 ? 0 : (float)State.Scene->GetConf().LinesSize / Light->Shadow.Softness;
-				Dest->Iterations = (float)Light->Shadow.Iterations;
-				Dest->Umbra = Light->Disperse;
-				Dest->Bias = Light->Shadow.Bias;
-				Dest->Cascades = (float)std::min(Light->Shadow.Cascades, (uint32_t)Light->DepthMap->size());
+				dest->softness = light->shadow.softness <= 0 ? 0 : (float)state.scene->get_conf().lines_size / light->shadow.softness;
+				dest->iterations = (float)light->shadow.iterations;
+				dest->umbra = light->disperse;
+				dest->bias = light->shadow.bias;
+				dest->cascades = (float)std::min(light->shadow.cascades, (uint32_t)light->depth_map->size());
 
-				size_t Size = (size_t)Dest->Cascades;
-				for (size_t i = 0; i < Size; i++)
-					Dest->ViewProjection[i] = Light->View[i] * Light->Projection[i];
+				size_t size = (size_t)dest->cascades;
+				for (size_t i = 0; i < size; i++)
+					dest->view_projection[i] = light->view[i] * light->projection[i];
 
-				return Size > 0;
+				return size > 0;
 			}
-			bool Lighting::GetIlluminator(IVoxelBuffer* Dest, Component* Src)
+			void lighting::apply_light_culling(component* src, float range, trigonometry::vector3* position, trigonometry::vector3* scale)
 			{
-				auto* Light = (Components::Illuminator*)Src;
-				if (!Light->VoxelMap)
-					return false;
+				auto* transform = src->get_entity()->get_transform();
+				*position = transform->get_position();
+				*scale = (range > 0.0f ? range : transform->get_scale());
 
-				auto& Conf = State.Scene->GetConf();
-				auto* Transform = Light->GetEntity()->GetTransform();
-				VoxelBuffer.Center = Transform->GetPosition();
-				VoxelBuffer.Scale = Transform->GetScale();
-				VoxelBuffer.Mips = (float)Conf.VoxelsMips;
-				VoxelBuffer.Size = (float)Conf.VoxelsSize;
-				VoxelBuffer.RayStep = Light->RayStep;
-				VoxelBuffer.MaxSteps = Light->MaxSteps;
-				VoxelBuffer.Distance = Light->Distance;
-				VoxelBuffer.Radiance = Light->Radiance;
-				VoxelBuffer.Length = Light->Length;
-				VoxelBuffer.Margin = Light->Margin;
-				VoxelBuffer.Offset = Light->Offset;
-				VoxelBuffer.Angle = Light->Angle;
-				VoxelBuffer.Occlusion = Light->Occlusion;
-				VoxelBuffer.Specular = Light->Specular;
-				VoxelBuffer.Bleeding = Light->Bleeding;
-
-				return true;
+				bool front = trigonometry::geometric::has_point_intersected_cube(*position, scale->mul(1.01f), system->view.position);
+				state.device->set_rasterizer_state(front ? front_rasterizer : back_rasterizer);
+				state.device->set_depth_stencil_state(front ? depth_stencil_greater : depth_stencil_less);
 			}
-			void Lighting::GetLightCulling(Component* Src, float Range, Trigonometry::Vector3* Position, Trigonometry::Vector3* Scale)
+			graphics::texture_cube* lighting::get_sky_map()
 			{
-				auto* Transform = Src->GetEntity()->GetTransform();
-				*Position = Transform->GetPosition();
-				*Scale = (Range > 0.0f ? Range : Transform->GetScale());
-
-				bool Front = Trigonometry::Geometric::HasPointIntersectedCube(*Position, Scale->Mul(1.01f), System->View.Position);
-				if (!(Front && State.Backcull) && !(!Front && !State.Backcull))
-					return;
-
-				State.Device->SetRasterizerState(Front ? FrontRasterizer : BackRasterizer);
-				State.Device->SetDepthStencilState(Front ? DepthStencilGreater : DepthStencilLess);
-				State.Backcull = !State.Backcull;
-			}
-			void Lighting::GenerateLightBuffers()
-			{
-				Graphics::ElementBuffer::Desc F = Graphics::ElementBuffer::Desc();
-				F.AccessFlags = Graphics::CPUAccess::Write;
-				F.MiscFlags = Graphics::ResourceMisc::Buffer_Structured;
-				F.Usage = Graphics::ResourceUsage::Dynamic;
-				F.BindFlags = Graphics::ResourceBind::Shader_Input;
-				F.ElementCount = (uint32_t)Voxels.MaxLights;
-				F.ElementWidth = sizeof(IPointLight);
-				F.StructureByteStride = F.ElementWidth;
-
-				Core::Memory::Release(Voxels.PBuffer);
-				Voxels.PBuffer = *State.Device->CreateElementBuffer(F);
-				Voxels.PArray.resize(Voxels.MaxLights);
-
-				F.ElementWidth = sizeof(ISpotLight);
-				F.StructureByteStride = F.ElementWidth;
-				Core::Memory::Release(Voxels.SBuffer);
-				Voxels.SBuffer = *State.Device->CreateElementBuffer(F);
-				Voxels.SArray.resize(Voxels.MaxLights);
-
-				F.ElementWidth = sizeof(ILineLight);
-				F.StructureByteStride = F.ElementWidth;
-				Core::Memory::Release(Voxels.LBuffer);
-				Voxels.LBuffer = *State.Device->CreateElementBuffer(F);
-				Voxels.LArray.resize(Voxels.MaxLights);
-			}
-			Graphics::TextureCube* Lighting::GetSkyMap()
-			{
-				if (!SkyBase)
+				if (!sky_base)
 					return nullptr;
 
-				return SkyMap;
+				return sky_map;
 			}
-			Graphics::Texture2D* Lighting::GetSkyBase()
+			graphics::texture_2d* lighting::get_sky_base()
 			{
-				if (!SkyMap)
+				if (!sky_map)
 					return nullptr;
 
-				return SkyBase;
+				return sky_base;
 			}
 
-			Transparency::Transparency(RenderSystem* Lab) : Renderer(Lab)
+			transparency::transparency(render_system* lab) : renderer(lab)
 			{
-				VI_ASSERT(System != nullptr, "render system should be set");
-				VI_ASSERT(System->GetDevice() != nullptr, "graphics device should be set");
+				VI_ASSERT(system != nullptr, "render system should be set");
+				VI_ASSERT(system->get_device() != nullptr, "graphics device should be set");
 
-				Graphics::GraphicsDevice* Device = System->GetDevice();
-				DepthStencil = Device->GetDepthStencilState("doo_soo_lt");
-				Rasterizer = Device->GetRasterizerState("so_cback");
-				Blend = Device->GetBlendState("bo_wrgba_one");
-				Sampler = Device->GetSamplerState("a16_fa_wrap");
-				Layout = Device->GetInputLayout("vx_shape");
+				graphics::graphics_device* device = system->get_device();
+				depth_stencil = device->get_depth_stencil_state("doo_soo_lt");
+				rasterizer = device->get_rasterizer_state("so_cback");
+				blend = device->get_blend_state("bo_wrgba_one");
+				sampler = device->get_sampler_state("a16_fa_wrap");
+				layout = device->get_input_layout("vx_shape");
 
-				Shader = *System->CompileShader("postprocessing/transparency", sizeof(RenderData));
+				pipeline.shader = *system->compile_shader("postprocessing/transparency", { }, sizeof(render_data));
+				pipeline.materials = *device->get_shader_slot(pipeline.shader, "Materials");
+				pipeline.sampler = *device->get_shader_sampler_slot(pipeline.shader, "DiffuseBuffer", "Sampler");
+				pipeline.transparency_buffer = *device->get_shader_slot(pipeline.shader, "TransparencyBuffer");
+				pipeline.diffuse_buffer = *device->get_shader_slot(pipeline.shader, "DiffuseBuffer");
+				pipeline.depth_buffer = *device->get_shader_slot(pipeline.shader, "DepthBuffer");
+				pipeline.ldiffuse_buffer = *device->get_shader_slot(pipeline.shader, "LDiffuseBuffer");
+				pipeline.lnormal_buffer = *device->get_shader_slot(pipeline.shader, "LNormalBuffer");
+				pipeline.ldepth_buffer = *device->get_shader_slot(pipeline.shader, "LDepthBuffer");
+				pipeline.lsurface_buffer = *device->get_shader_slot(pipeline.shader, "LSurfaceBuffer");
 			}
-			Transparency::~Transparency()
+			transparency::~transparency()
 			{
-				System->FreeShader(Shader);
-				Core::Memory::Release(Merger);
-				Core::Memory::Release(Input);
+				system->free_shader(pipeline.shader);
+				core::memory::release(merger);
+				core::memory::release(input);
 			}
-			void Transparency::ResizeBuffers()
+			void transparency::resize_buffers()
 			{
-				VI_ASSERT(System->GetScene() != nullptr, "scene should be set");
+				VI_ASSERT(system->get_scene() != nullptr, "scene should be set");
 
-				SceneGraph* Scene = System->GetScene();
-				Graphics::MultiRenderTarget2D::Desc F1 = Scene->GetDescMRT();
-				Graphics::RenderTarget2D::Desc F2 = Scene->GetDescRT();
-				Graphics::GraphicsDevice* Device = System->GetDevice();
-				MipLevels[(size_t)TargetType::Main] = (float)F1.MipLevels;
+				scene_graph* scene = system->get_scene();
+				graphics::multi_render_target_2d::desc f1 = scene->get_desc_mrt();
+				graphics::render_target_2d::desc f2 = scene->get_desc_rt();
+				graphics::graphics_device* device = system->get_device();
+				mip_levels[(size_t)target_type::main] = (float)f1.mip_levels;
 
-				auto* Renderer = System->GetRenderer<Lighting>();
-				if (Renderer != nullptr)
+				auto* renderer = system->get_renderer<lighting>();
+				if (renderer != nullptr)
 				{
-					MipLevels[(size_t)TargetType::Secondary] = (float)Device->GetMipLevel((uint32_t)Renderer->Surfaces.Size, (uint32_t)Renderer->Surfaces.Size);
-					F1.MipLevels = (uint32_t)MipLevels[(size_t)TargetType::Secondary];
-					F1.Width = (uint32_t)Renderer->Surfaces.Size;
-					F1.Height = (uint32_t)Renderer->Surfaces.Size;
-					F2.MipLevels = F1.MipLevels;
-					F2.Width = F1.Width;
-					F2.Height = F1.Height;
+					mip_levels[(size_t)target_type::secondary] = (float)device->get_mip_level((uint32_t)renderer->surfaces.size, (uint32_t)renderer->surfaces.size);
+					f1.mip_levels = (uint32_t)mip_levels[(size_t)target_type::secondary];
+					f1.width = (uint32_t)renderer->surfaces.size;
+					f1.height = (uint32_t)renderer->surfaces.size;
+					f2.mip_levels = f1.mip_levels;
+					f2.width = f1.width;
+					f2.height = f1.height;
 				}
 
-				Core::Memory::Release(Merger);
-				Merger = *Device->CreateMultiRenderTarget2D(F1);
+				core::memory::release(merger);
+				merger = *device->create_multi_render_target_2d(f1);
 
-				Core::Memory::Release(Input);
-				Input = *Device->CreateRenderTarget2D(F2);
+				core::memory::release(input);
+				input = *device->create_render_target_2d(f2);
 			}
-			size_t Transparency::RenderPass(Core::Timer* Time)
+			size_t transparency::render_pass(core::timer* time)
 			{
-				VI_ASSERT(System->GetScene() != nullptr, "scene should be set");
-				if (!System->State.Is(RenderState::Geometric) || System->State.IsSet(RenderOpt::Transparent) || System->State.IsSet(RenderOpt::Additive))
+				VI_ASSERT(system->get_scene() != nullptr, "scene should be set");
+				if (!system->state.is(render_state::geometry) || system->state.is_set(render_opt::transparent) || system->state.is_set(render_opt::additive))
 					return 0;
 
-				SceneGraph* Scene = System->GetScene();
-				if (System->HasCategory(GeoCategory::Additive))
-					Scene->Statistics.DrawCalls += System->Render(Time, RenderState::Geometric, System->State.GetOpts() | RenderOpt::Additive);
+				scene_graph* scene = system->get_scene();
+				if (system->has_category(geo_category::additive))
+					scene->statistics.draw_calls += system->render(time, render_state::geometry, system->state.get_opts() | render_opt::additive);
 
-				if (!System->HasCategory(GeoCategory::Transparent))
+				if (!system->has_category(geo_category::transparent))
 					return 0;
 
-				Graphics::MultiRenderTarget2D* MainMRT = System->GetMRT(TargetType::Main);
-				Graphics::MultiRenderTarget2D* MRT = (System->State.IsSubpass() ? Merger : System->GetMRT(TargetType::Secondary));
-				Graphics::RenderTarget2D* RT = (System->State.IsSubpass() ? Input : System->GetRT(TargetType::Main));
-				Graphics::GraphicsDevice* Device = System->GetDevice();
-				RenderData.Mips = (System->State.IsSubpass() ? MipLevels[(size_t)TargetType::Secondary] : MipLevels[(size_t)TargetType::Main]);
+				graphics::multi_render_target_2d* main_mrt = system->get_mrt(target_type::main);
+				graphics::multi_render_target_2d* mrt = (system->state.is_subpass() ? merger : system->get_mrt(target_type::secondary));
+				graphics::render_target_2d* rt = (system->state.is_subpass() ? input : system->get_rt(target_type::main));
+				graphics::graphics_device* device = system->get_device();
+				render_data.mips = (system->state.is_subpass() ? mip_levels[(size_t)target_type::secondary] : mip_levels[(size_t)target_type::main]);
 
-				Scene->SwapMRT(TargetType::Main, MRT);
-				Scene->SetMRT(TargetType::Main, true);
-				Scene->Statistics.DrawCalls += System->Render(Time, RenderState::Geometric, System->State.GetOpts() | RenderOpt::Transparent);
-				Scene->SwapMRT(TargetType::Main, nullptr);
+				scene->swap_mrt(target_type::main, mrt);
+				scene->set_mrt(target_type::main, true);
+				scene->statistics.draw_calls += system->render(time, render_state::geometry, system->state.get_opts() | render_opt::transparent);
+				scene->swap_mrt(target_type::main, nullptr);
 
-				Device->CopyTarget(MainMRT, 0, RT, 0);
-				Device->GenerateMips(RT->GetTarget());
-				Device->SetTarget(MainMRT, 0);
-				Device->Clear(MainMRT, 0, 0, 0, 0);
-				Device->UpdateBuffer(Shader, &RenderData);
-				Device->SetDepthStencilState(DepthStencil);
-				Device->SetBlendState(Blend);
-				Device->SetRasterizerState(Rasterizer);
-				Device->SetInputLayout(Layout);
-				Device->SetSamplerState(Sampler, 1, 8, VI_PS);
-				Device->SetTexture2D(RT->GetTarget(), 1, VI_PS);
-				Device->SetTexture2D(MainMRT->GetTarget(1), 2, VI_PS);
-				Device->SetTexture2D(MainMRT->GetTarget(2), 3, VI_PS);
-				Device->SetTexture2D(MainMRT->GetTarget(3), 4, VI_PS);
-				Device->SetTexture2D(MRT->GetTarget(0), 5, VI_PS);
-				Device->SetTexture2D(MRT->GetTarget(1), 6, VI_PS);
-				Device->SetTexture2D(MRT->GetTarget(2), 7, VI_PS);
-				Device->SetTexture2D(MRT->GetTarget(3), 8, VI_PS);
-				Device->SetShader(Shader, VI_VS | VI_PS);
-				Device->SetBuffer(Shader, 3, VI_VS | VI_PS);
-				Device->SetVertexBuffer(System->GetPrimitives()->GetQuad());
-				System->UpdateConstantBuffer(RenderBufferType::Render);
-				Device->Draw(6, 0);
-				Device->FlushTexture(1, 8, VI_PS);
-				System->RestoreOutput();
+				device->set_structure_buffer(system->get_material_buffer(), pipeline.materials, VI_PS);
+				device->copy_target(main_mrt, 0, rt, 0);
+				device->generate_mips(rt->get_target());
+				device->set_target(main_mrt, 0);
+				device->clear(main_mrt, 0, 0, 0, 0);
+				device->update_buffer(pipeline.shader, &render_data);
+				device->set_depth_stencil_state(depth_stencil);
+				device->set_blend_state(blend);
+				device->set_rasterizer_state(rasterizer);
+				device->set_input_layout(layout);
+				device->set_sampler_state(sampler, pipeline.diffuse_buffer, 8, VI_PS);
+				device->set_texture_2d(rt->get_target(), pipeline.diffuse_buffer, VI_PS);
+				device->set_texture_2d(main_mrt->get_target(2), pipeline.depth_buffer, VI_PS);
+				device->set_texture_2d(mrt->get_target(0), pipeline.ldiffuse_buffer, VI_PS);
+				device->set_texture_2d(mrt->get_target(1), pipeline.lnormal_buffer, VI_PS);
+				device->set_texture_2d(mrt->get_target(2), pipeline.ldepth_buffer, VI_PS);
+				device->set_texture_2d(mrt->get_target(3), pipeline.lsurface_buffer, VI_PS);
+				device->set_shader(pipeline.shader, VI_VS | VI_PS);
+				device->set_buffer(pipeline.shader, pipeline.transparency_buffer, VI_VS | VI_PS);
+				device->set_vertex_buffer(system->get_primitives()->get_quad());
+				system->update_constant_buffer(render_buffer_type::render);
+				device->draw(6, 0);
+				device->flush_texture(pipeline.diffuse_buffer, 8, VI_PS);
+				system->restore_output();
 				return 1;
 			}
 
-			SSR::SSR(RenderSystem* Lab) : EffectRenderer(Lab)
+			local_reflections::local_reflections(render_system* lab) : effect_renderer(lab)
 			{
-				Shaders.Reflectance = *CompileEffect("postprocessing/reflectance", sizeof(Reflectance));
-				Shaders.Gloss[0] = *CompileEffect("postprocessing/gloss_x", sizeof(Gloss));
-				Shaders.Gloss[1] = *CompileEffect("postprocessing/gloss_y");
-				Shaders.Additive = *CompileEffect("postprocessing/additive");
+				pipelines.reflectance = *compile_effect("postprocessing/reflectance", { }, sizeof(reflectance));
+				pipelines.gloss[0] = *compile_effect("postprocessing/gloss_x", { }, sizeof(gloss));
+				pipelines.gloss[1] = *compile_effect("postprocessing/gloss_y", { });
+				pipelines.additive = *compile_effect("postprocessing/additive", { });
 			}
-			void SSR::Deserialize(Core::Schema* Node)
+			void local_reflections::deserialize(core::schema* node)
 			{
-				VI_ASSERT(Node != nullptr, "schema should be set");
+				VI_ASSERT(node != nullptr, "schema should be set");
 
-				Series::Unpack(Node->Find("samples-1"), &Reflectance.Samples);
-				Series::Unpack(Node->Find("samples-2"), &Gloss.Samples);
-				Series::Unpack(Node->Find("intensity"), &Reflectance.Intensity);
-				Series::Unpack(Node->Find("distance"), &Reflectance.Distance);
-				Series::Unpack(Node->Find("cutoff"), &Gloss.Cutoff);
-				Series::Unpack(Node->Find("blur"), &Gloss.Blur);
-				Series::Unpack(Node->Find("deadzone"), &Gloss.Deadzone);
-				Series::Unpack(Node->Find("mips"), &Gloss.Mips);
+				series::unpack(node->find("samples-1"), &reflectance.samples);
+				series::unpack(node->find("samples-2"), &gloss.samples);
+				series::unpack(node->find("intensity"), &reflectance.intensity);
+				series::unpack(node->find("distance"), &reflectance.distance);
+				series::unpack(node->find("cutoff"), &gloss.cutoff);
+				series::unpack(node->find("blur"), &gloss.blur);
+				series::unpack(node->find("deadzone"), &gloss.deadzone);
+				series::unpack(node->find("mips"), &gloss.mips);
 			}
-			void SSR::Serialize(Core::Schema* Node)
+			void local_reflections::serialize(core::schema* node)
 			{
-				VI_ASSERT(Node != nullptr, "schema should be set");
+				VI_ASSERT(node != nullptr, "schema should be set");
 
-				Series::Pack(Node->Set("samples-1"), Reflectance.Samples);
-				Series::Pack(Node->Set("samples-2"), Gloss.Samples);
-				Series::Pack(Node->Set("intensity"), Reflectance.Intensity);
-				Series::Pack(Node->Set("distance"), Reflectance.Distance);
-				Series::Pack(Node->Set("cutoff"), Gloss.Cutoff);
-				Series::Pack(Node->Set("blur"), Gloss.Blur);
-				Series::Pack(Node->Set("deadzone"), Gloss.Deadzone);
-				Series::Pack(Node->Set("mips"), Gloss.Mips);
+				series::pack(node->set("samples-1"), reflectance.samples);
+				series::pack(node->set("samples-2"), gloss.samples);
+				series::pack(node->set("intensity"), reflectance.intensity);
+				series::pack(node->set("distance"), reflectance.distance);
+				series::pack(node->set("cutoff"), gloss.cutoff);
+				series::pack(node->set("blur"), gloss.blur);
+				series::pack(node->set("deadzone"), gloss.deadzone);
+				series::pack(node->set("mips"), gloss.mips);
 			}
-			void SSR::RenderEffect(Core::Timer* Time)
+			void local_reflections::render_effect(core::timer* time)
 			{
-				Graphics::MultiRenderTarget2D* MRT = System->GetMRT(TargetType::Main);
-				System->GetDevice()->GenerateMips(MRT->GetTarget(0));
+				graphics::multi_render_target_2d* mrt = system->get_mrt(target_type::main);
+				system->get_device()->generate_mips(mrt->get_target(0));
 
-				Gloss.Mips = (float)GetMipLevels();
-				Gloss.Texel[0] = 1.0f / GetWidth();
-				Gloss.Texel[1] = 1.0f / GetHeight();
+				gloss.mips = (float)get_mip_levels();
+				gloss.texel[0] = 1.0f / get_width();
+				gloss.texel[1] = 1.0f / get_height();
 
-				RenderMerge(Shaders.Reflectance, &Reflectance);
-				SampleClamp();
-				RenderMerge(Shaders.Gloss[0], &Gloss, 2);
-				RenderMerge(Shaders.Gloss[1], nullptr, 2);
-				SampleWrap();
-				RenderResult(Shaders.Additive);
+				render_merge(pipelines.reflectance, sampler_wrap, &reflectance);
+				render_merge(pipelines.gloss[0], sampler_clamp, &gloss, 2);
+				render_merge(pipelines.gloss[1], sampler_clamp, nullptr, 2);
+				render_result(pipelines.additive, sampler_wrap);
 			}
 
-			SSGI::SSGI(RenderSystem* Lab) : EffectRenderer(Lab), EmissionMap(nullptr)
+			local_illumination::local_illumination(render_system* lab) : effect_renderer(lab), emission_map(nullptr)
 			{
-				Shaders.Stochastic = *CompileEffect("postprocessing/stochastic", sizeof(Stochastic));
-				Shaders.Indirection = *CompileEffect("postprocessing/indirection", sizeof(Indirection));
-				Shaders.Denoise[0] = *CompileEffect("postprocessing/denoise_x", sizeof(Denoise));
-				Shaders.Denoise[1] = *CompileEffect("postprocessing/denoise_y");
-				Shaders.Additive = *CompileEffect("postprocessing/additive");
+				pipelines.stochastic = *compile_effect("postprocessing/stochastic", { }, sizeof(stochastic));
+				pipelines.indirection = *compile_effect("postprocessing/indirection", { }, sizeof(indirection));
+				pipelines.denoise[0] = *compile_effect("postprocessing/denoise_x", { }, sizeof(denoise));
+				pipelines.denoise[1] = *compile_effect("postprocessing/denoise_y", { });
+				pipelines.additive = *compile_effect("postprocessing/additive", { });
 			}
-			SSGI::~SSGI()
+			local_illumination::~local_illumination()
 			{
-				Core::Memory::Release(EmissionMap);
+				core::memory::release(emission_map);
 			}
-			void SSGI::Deserialize(Core::Schema* Node)
+			void local_illumination::deserialize(core::schema* node)
 			{
-				VI_ASSERT(Node != nullptr, "schema should be set");
+				VI_ASSERT(node != nullptr, "schema should be set");
 
-				Series::Unpack(Node->Find("samples-1"), &Indirection.Samples);
-				Series::Unpack(Node->Find("samples-2"), &Denoise.Samples);
-				Series::Unpack(Node->Find("cutoff-1"), &Indirection.Cutoff);
-				Series::Unpack(Node->Find("cutoff-2"), &Denoise.Cutoff);
-				Series::Unpack(Node->Find("attenuation"), &Indirection.Attenuation);
-				Series::Unpack(Node->Find("swing"), &Indirection.Swing);
-				Series::Unpack(Node->Find("bias"), &Indirection.Bias);
-				Series::Unpack(Node->Find("distance"), &Indirection.Distance);
-				Series::Unpack(Node->Find("blur"), &Denoise.Blur);
+				series::unpack(node->find("samples-1"), &indirection.samples);
+				series::unpack(node->find("samples-2"), &denoise.samples);
+				series::unpack(node->find("cutoff-1"), &indirection.cutoff);
+				series::unpack(node->find("cutoff-2"), &denoise.cutoff);
+				series::unpack(node->find("attenuation"), &indirection.attenuation);
+				series::unpack(node->find("swing"), &indirection.swing);
+				series::unpack(node->find("bias"), &indirection.bias);
+				series::unpack(node->find("distance"), &indirection.distance);
+				series::unpack(node->find("blur"), &denoise.blur);
 			}
-			void SSGI::Serialize(Core::Schema* Node)
+			void local_illumination::serialize(core::schema* node)
 			{
-				VI_ASSERT(Node != nullptr, "schema should be set");
+				VI_ASSERT(node != nullptr, "schema should be set");
 
-				Series::Pack(Node->Set("samples-1"), Indirection.Samples);
-				Series::Pack(Node->Set("samples-2"), Denoise.Samples);
-				Series::Pack(Node->Set("cutoff-1"), Indirection.Cutoff);
-				Series::Pack(Node->Set("cutoff-2"), Denoise.Cutoff);
-				Series::Pack(Node->Set("attenuation"), Indirection.Attenuation);
-				Series::Pack(Node->Set("swing"), Indirection.Swing);
-				Series::Pack(Node->Set("bias"), Indirection.Bias);
-				Series::Pack(Node->Set("distance"), Indirection.Distance);
-				Series::Pack(Node->Set("blur"), Denoise.Blur);
+				series::pack(node->set("samples-1"), indirection.samples);
+				series::pack(node->set("samples-2"), denoise.samples);
+				series::pack(node->set("cutoff-1"), indirection.cutoff);
+				series::pack(node->set("cutoff-2"), denoise.cutoff);
+				series::pack(node->set("attenuation"), indirection.attenuation);
+				series::pack(node->set("swing"), indirection.swing);
+				series::pack(node->set("bias"), indirection.bias);
+				series::pack(node->set("distance"), indirection.distance);
+				series::pack(node->set("blur"), denoise.blur);
 			}
-			void SSGI::RenderEffect(Core::Timer* Time)
+			void local_illumination::render_effect(core::timer* time)
 			{
-				Indirection.Random[0] = Compute::Math<float>::Random();
-				Indirection.Random[1] = Compute::Math<float>::Random();
-				Denoise.Texel[0] = 1.0f / (float)GetWidth();
-				Denoise.Texel[1] = 1.0f / (float)GetHeight();
-				Stochastic.Texel[0] = (float)GetWidth();
-				Stochastic.Texel[1] = (float)GetHeight();
-				Stochastic.FrameId++;
+				indirection.random[0] = compute::math<float>::random();
+				indirection.random[1] = compute::math<float>::random();
+				denoise.texel[0] = 1.0f / (float)get_width();
+				denoise.texel[1] = 1.0f / (float)get_height();
+				stochastic.texel[0] = (float)get_width();
+				stochastic.texel[1] = (float)get_height();
+				stochastic.frame_id++;
 
-				float Distance = Indirection.Distance;
-				float Swing = Indirection.Swing;
-				float Bias = Indirection.Bias;
-				RenderTexture(0, EmissionMap);
-				RenderCopyMain(0, EmissionMap);
-				RenderMerge(Shaders.Stochastic, &Stochastic);
-				for (uint32_t i = 0; i < Bounces; i++)
+				float distance = indirection.distance;
+				float swing = indirection.swing;
+				float bias = indirection.bias;
+				render_copy_from_main(0, emission_map);
+				render_merge(pipelines.stochastic, sampler_wrap, &stochastic);
+				render_texture(pipelines.indirection, "EmissionBuffer", emission_map);
+				for (uint32_t i = 0; i < bounces; i++)
 				{
-					float Bounce = (float)(i + 1);
-					Indirection.Distance = Distance * Bounce;
-					Indirection.Swing = Swing / Bounce;
-					Indirection.Bias = Bias * Bounce;
-					Indirection.Initial = i > 0 ? 0.0f : 1.0f;
-					RenderMerge(Shaders.Indirection, &Indirection);
-					if (i + 1 < Bounces)
-						RenderCopyLast(EmissionMap);
+					float bounce = (float)(i + 1);
+					indirection.distance = distance * bounce;
+					indirection.swing = swing / bounce;
+					indirection.bias = bias * bounce;
+					indirection.initial = i > 0 ? 0.0f : 1.0f;
+					render_merge(pipelines.indirection, sampler_wrap, &indirection);
+					if (i + 1 < bounces)
+						render_copy_from_last(emission_map);
 				}
-				SampleClamp();
-				RenderMerge(Shaders.Denoise[0], &Denoise, 3);
-				RenderMerge(Shaders.Denoise[1], nullptr, 3);
-				SampleWrap();
-				RenderResult(Shaders.Additive);
-				Indirection.Distance = Distance;
-				Indirection.Swing = Swing;
-				Indirection.Bias = Bias;
+				render_merge(pipelines.denoise[0], sampler_clamp, &denoise, 3);
+				render_merge(pipelines.denoise[1], sampler_clamp, nullptr, 3);
+				render_result(pipelines.additive, sampler_wrap);
+				indirection.distance = distance;
+				indirection.swing = swing;
+				indirection.bias = bias;
 			}
-			void SSGI::ResizeEffect()
+			void local_illumination::resize_effect()
 			{
-				VI_ASSERT(System->GetScene() != nullptr, "scene should be set");
-				Core::Memory::Release(EmissionMap);
+				VI_ASSERT(system->get_scene() != nullptr, "scene should be set");
+				core::memory::release(emission_map);
 
-				SceneGraph* Scene = System->GetScene();
-				Graphics::GraphicsDevice* Device = System->GetDevice();
-				Device->CopyTexture2D(Scene->GetRT(TargetType::Main), 0, &EmissionMap);
+				scene_graph* scene = system->get_scene();
+				graphics::graphics_device* device = system->get_device();
+				device->copy_texture_2d(scene->get_rt(target_type::main), 0, &emission_map);
 			}
 
-			SSAO::SSAO(RenderSystem* Lab) : EffectRenderer(Lab)
+			local_ambient::local_ambient(render_system* lab) : effect_renderer(lab)
 			{
-				Shaders.Shading = *CompileEffect("postprocessing/shading", sizeof(Shading));
-				Shaders.Fibo[0] = *CompileEffect("postprocessing/fibo_x", sizeof(Fibo));
-				Shaders.Fibo[1] = *CompileEffect("postprocessing/fibo_y");
-				Shaders.Multiply = *CompileEffect("postprocessing/multiply");
+				pipelines.shading = *compile_effect("postprocessing/shading", { }, sizeof(shading));
+				pipelines.fibo[0] = *compile_effect("postprocessing/fibo_x", { }, sizeof(fibo));
+				pipelines.fibo[1] = *compile_effect("postprocessing/fibo_y", { });
+				pipelines.multiply = *compile_effect("postprocessing/multiply", { });
 			}
-			void SSAO::Deserialize(Core::Schema* Node)
+			void local_ambient::deserialize(core::schema* node)
 			{
-				VI_ASSERT(Node != nullptr, "schema should be set");
+				VI_ASSERT(node != nullptr, "schema should be set");
 
-				Series::Unpack(Node->Find("samples-1"), &Shading.Samples);
-				Series::Unpack(Node->Find("scale"), &Shading.Scale);
-				Series::Unpack(Node->Find("intensity"), &Shading.Intensity);
-				Series::Unpack(Node->Find("bias"), &Shading.Bias);
-				Series::Unpack(Node->Find("radius"), &Shading.Radius);
-				Series::Unpack(Node->Find("distance"), &Shading.Distance);
-				Series::Unpack(Node->Find("fade"), &Shading.Fade);
-				Series::Unpack(Node->Find("power"), &Fibo.Power);
-				Series::Unpack(Node->Find("samples-2"), &Fibo.Samples);
-				Series::Unpack(Node->Find("blur"), &Fibo.Blur);
+				series::unpack(node->find("samples-1"), &shading.samples);
+				series::unpack(node->find("scale"), &shading.scale);
+				series::unpack(node->find("intensity"), &shading.intensity);
+				series::unpack(node->find("bias"), &shading.bias);
+				series::unpack(node->find("radius"), &shading.radius);
+				series::unpack(node->find("distance"), &shading.distance);
+				series::unpack(node->find("fade"), &shading.fade);
+				series::unpack(node->find("power"), &fibo.power);
+				series::unpack(node->find("samples-2"), &fibo.samples);
+				series::unpack(node->find("blur"), &fibo.blur);
 			}
-			void SSAO::Serialize(Core::Schema* Node)
+			void local_ambient::serialize(core::schema* node)
 			{
-				VI_ASSERT(Node != nullptr, "schema should be set");
+				VI_ASSERT(node != nullptr, "schema should be set");
 
-				Series::Pack(Node->Set("samples-1"), Shading.Samples);
-				Series::Pack(Node->Set("scale"), Shading.Scale);
-				Series::Pack(Node->Set("intensity"), Shading.Intensity);
-				Series::Pack(Node->Set("bias"), Shading.Bias);
-				Series::Pack(Node->Set("radius"), Shading.Radius);
-				Series::Pack(Node->Set("distance"), Shading.Distance);
-				Series::Pack(Node->Set("fade"), Shading.Fade);
-				Series::Pack(Node->Set("power"), Fibo.Power);
-				Series::Pack(Node->Set("samples-2"), Fibo.Samples);
-				Series::Pack(Node->Set("blur"), Fibo.Blur);
+				series::pack(node->set("samples-1"), shading.samples);
+				series::pack(node->set("scale"), shading.scale);
+				series::pack(node->set("intensity"), shading.intensity);
+				series::pack(node->set("bias"), shading.bias);
+				series::pack(node->set("radius"), shading.radius);
+				series::pack(node->set("distance"), shading.distance);
+				series::pack(node->set("fade"), shading.fade);
+				series::pack(node->set("power"), fibo.power);
+				series::pack(node->set("samples-2"), fibo.samples);
+				series::pack(node->set("blur"), fibo.blur);
 			}
-			void SSAO::RenderEffect(Core::Timer* Time)
+			void local_ambient::render_effect(core::timer* time)
 			{
-				Fibo.Texel[0] = 1.0f / GetWidth();
-				Fibo.Texel[1] = 1.0f / GetHeight();
+				fibo.texel[0] = 1.0f / get_width();
+				fibo.texel[1] = 1.0f / get_height();
 
-				RenderMerge(Shaders.Shading, &Shading);
-				SampleClamp();
-				RenderMerge(Shaders.Fibo[0], &Fibo, 2);
-				RenderMerge(Shaders.Fibo[1], nullptr, 2);
-				SampleWrap();
-				RenderResult(Shaders.Multiply);
+				render_merge(pipelines.shading, sampler_wrap, &shading);
+				render_merge(pipelines.fibo[0], sampler_clamp, &fibo, 2);
+				render_merge(pipelines.fibo[1], sampler_clamp, nullptr, 2);
+				render_result(pipelines.multiply, sampler_wrap);
 			}
 
-			DoF::DoF(RenderSystem* Lab) : EffectRenderer(Lab)
+			depth_of_field::depth_of_field(render_system* lab) : effect_renderer(lab)
 			{
-				*CompileEffect("postprocessing/focus", sizeof(Focus));
+				*compile_effect("postprocessing/focus", { }, sizeof(focus));
 			}
-			void DoF::Deserialize(Core::Schema* Node)
+			void depth_of_field::deserialize(core::schema* node)
 			{
-				VI_ASSERT(Node != nullptr, "schema should be set");
+				VI_ASSERT(node != nullptr, "schema should be set");
 
-				Series::Unpack(Node->Find("distance"), &Distance);
-				Series::Unpack(Node->Find("time"), &Time);
-				Series::Unpack(Node->Find("radius"), &Radius);
-				Series::Unpack(Node->Find("radius"), &Focus.Radius);
-				Series::Unpack(Node->Find("bokeh"), &Focus.Bokeh);
-				Series::Unpack(Node->Find("scale"), &Focus.Scale);
-				Series::Unpack(Node->Find("near-distance"), &Focus.NearDistance);
-				Series::Unpack(Node->Find("near-range"), &Focus.NearRange);
-				Series::Unpack(Node->Find("far-distance"), &Focus.FarDistance);
-				Series::Unpack(Node->Find("far-range"), &Focus.FarRange);
+				series::unpack(node->find("distance"), &distance);
+				series::unpack(node->find("time"), &time);
+				series::unpack(node->find("base-radius"), &radius);
+				series::unpack(node->find("radius"), &focus.radius);
+				series::unpack(node->find("bokeh"), &focus.bokeh);
+				series::unpack(node->find("scale"), &focus.scale);
+				series::unpack(node->find("near-distance"), &focus.near_distance);
+				series::unpack(node->find("near-range"), &focus.near_range);
+				series::unpack(node->find("far-distance"), &focus.far_distance);
+				series::unpack(node->find("far-range"), &focus.far_range);
 			}
-			void DoF::Serialize(Core::Schema* Node)
+			void depth_of_field::serialize(core::schema* node)
 			{
-				VI_ASSERT(Node != nullptr, "schema should be set");
+				VI_ASSERT(node != nullptr, "schema should be set");
 
-				Series::Pack(Node->Set("distance"), Distance);
-				Series::Pack(Node->Set("time"), Time);
-				Series::Pack(Node->Set("radius"), Radius);
-				Series::Pack(Node->Set("radius"), Focus.Radius);
-				Series::Pack(Node->Set("bokeh"), Focus.Bokeh);
-				Series::Pack(Node->Set("scale"), Focus.Scale);
-				Series::Pack(Node->Set("near-distance"), Focus.NearDistance);
-				Series::Pack(Node->Set("near-range"), Focus.NearRange);
-				Series::Pack(Node->Set("far-distance"), Focus.FarDistance);
-				Series::Pack(Node->Set("far-range"), Focus.FarRange);
+				series::pack(node->set("distance"), distance);
+				series::pack(node->set("time"), time);
+				series::pack(node->set("base-radius"), radius);
+				series::pack(node->set("radius"), focus.radius);
+				series::pack(node->set("bokeh"), focus.bokeh);
+				series::pack(node->set("scale"), focus.scale);
+				series::pack(node->set("near-distance"), focus.near_distance);
+				series::pack(node->set("near-range"), focus.near_range);
+				series::pack(node->set("far-distance"), focus.far_distance);
+				series::pack(node->set("far-range"), focus.far_range);
 			}
-			void DoF::RenderEffect(Core::Timer* fTime)
+			void depth_of_field::render_effect(core::timer* time)
 			{
-				VI_ASSERT(fTime != nullptr, "time should be set");
-				if (Distance > 0.0f)
-					FocusAtNearestTarget(fTime->GetStep());
+				VI_ASSERT(time != nullptr, "time should be set");
+				if (distance > 0.0f)
+					focus_at_nearest_target(time->get_step());
 
-				Focus.Texel[0] = 1.0f / GetWidth();
-				Focus.Texel[1] = 1.0f / GetHeight();
-				RenderResult(nullptr, &Focus);
+				focus.texel[0] = 1.0f / get_width();
+				focus.texel[1] = 1.0f / get_height();
+				render_result(nullptr, sampler_wrap, &focus);
 			}
-			void DoF::FocusAtNearestTarget(float Step)
+			void depth_of_field::focus_at_nearest_target(float step)
 			{
-				VI_ASSERT(System->GetScene() != nullptr, "scene should be set");
+				VI_ASSERT(system->get_scene() != nullptr, "scene should be set");
 
-				Trigonometry::Ray Origin;
-				Origin.Origin = System->View.Position;
-				Origin.Direction = System->View.Rotation.dDirection();
+				trigonometry::ray origin;
+				origin.origin = system->view.position;
+				origin.direction = system->view.rotation.ddirection();
 
-				bool Change = false;
-				for (auto& Hit : System->GetScene()->QueryByRay<Components::Model>(Origin))
+				bool change = false;
+				for (auto& hit : system->get_scene()->query_by_ray<components::model>(origin))
 				{
-					float Radius = Hit.first->GetEntity()->GetRadius();
-					float Spacing = Origin.Origin.Distance(Hit.second) + Radius / 2.0f;
-					if (Spacing <= Focus.NearRange || Spacing + Radius / 2.0f >= Distance)
+					float radius = hit.first->get_entity()->get_radius();
+					float spacing = origin.origin.distance(hit.second) + radius / 2.0f;
+					if (spacing <= focus.near_range || spacing + radius / 2.0f >= distance)
 						continue;
 
-					if (Spacing < State.Distance || State.Distance <= 0.0f)
+					if (spacing < state.distance || state.distance <= 0.0f)
 					{
-						State.Distance = Spacing;
-						State.Range = Radius;
-						Change = true;
+						state.distance = spacing;
+						state.range = radius;
+						change = true;
 					}
 				};
 
-				if (Change)
+				if (change)
 				{
-					State.Radius = Focus.Radius;
-					State.Factor = 0.0f;
+					state.radius = focus.radius;
+					state.factor = 0.0f;
 				}
 
-				State.Factor += Time * Step;
-				if (State.Factor > 1.0f)
-					State.Factor = 1.0f;
+				state.factor += time * step;
+				if (state.factor > 1.0f)
+					state.factor = 1.0f;
 
-				if (State.Distance > 0.0f)
+				if (state.distance > 0.0f)
 				{
-					State.Distance += State.Range / 2.0f + Focus.FarRange;
-					Focus.FarDistance = State.Distance;
-					Focus.Radius = Compute::Math<float>::Lerp(State.Radius, Radius, State.Factor);
+					state.distance += state.range / 2.0f + focus.far_range;
+					focus.far_distance = state.distance;
+					focus.radius = compute::math<float>::lerp(state.radius, radius, state.factor);
 				}
 				else
 				{
-					State.Distance = 0.0f;
-					if (State.Factor >= 1.0f)
-						Focus.FarDistance = State.Distance;
+					state.distance = 0.0f;
+					if (state.factor >= 1.0f)
+						focus.far_distance = state.distance;
 
-					Focus.Radius = Compute::Math<float>::Lerp(State.Radius, 0.0f, State.Factor);
+					focus.radius = compute::math<float>::lerp(state.radius, 0.0f, state.factor);
 				}
 
-				if (Focus.Radius < 0.0f)
-					Focus.Radius = 0.0f;
+				if (focus.radius < 0.0f)
+					focus.radius = 0.0f;
 			}
 
-			MotionBlur::MotionBlur(RenderSystem* Lab) : EffectRenderer(Lab)
+			motion_blur::motion_blur(render_system* lab) : effect_renderer(lab), prev_diffuse_map(nullptr), velocity_map(nullptr)
 			{
-				Shaders.Velocity = *CompileEffect("postprocessing/velocity", sizeof(Velocity));
-				Shaders.Motion = *CompileEffect("postprocessing/motion", sizeof(Motion));
+				pipelines.velocity = *compile_effect("postprocessing/velocity", { }, sizeof(velocity));
+				pipelines.motion[0] = *compile_effect("postprocessing/motion_x", { }, sizeof(motion));
+				pipelines.motion[1] = *compile_effect("postprocessing/motion_y", { });
 			}
-			void MotionBlur::Deserialize(Core::Schema* Node)
+			motion_blur::~motion_blur()
 			{
-				VI_ASSERT(Node != nullptr, "schema should be set");
+				core::memory::release(prev_diffuse_map);
+				core::memory::release(velocity_map);
+			}
+			void motion_blur::deserialize(core::schema* node)
+			{
+				VI_ASSERT(node != nullptr, "schema should be set");
 
-				Series::Unpack(Node->Find("samples"), &Motion.Samples);
-				Series::Unpack(Node->Find("blur"), &Motion.Blur);
-				Series::Unpack(Node->Find("motion"), &Motion.Motion);
+				series::unpack(node->find("power"), &velocity.power);
+				series::unpack(node->find("threshold"), &velocity.threshold);
+				series::unpack(node->find("samples"), &motion.samples);
+				series::unpack(node->find("motion"), &motion.motion);
 			}
-			void MotionBlur::Serialize(Core::Schema* Node)
+			void motion_blur::serialize(core::schema* node)
 			{
-				VI_ASSERT(Node != nullptr, "schema should be set");
+				VI_ASSERT(node != nullptr, "schema should be set");
 
-				Series::Pack(Node->Set("samples"), Motion.Samples);
-				Series::Pack(Node->Set("blur"), Motion.Blur);
-				Series::Pack(Node->Set("motion"), Motion.Motion);
+				series::pack(node->set("power"), velocity.power);
+				series::pack(node->set("threshold"), velocity.threshold);
+				series::pack(node->set("samples"), motion.samples);
+				series::pack(node->set("motion"), motion.motion);
 			}
-			void MotionBlur::RenderEffect(Core::Timer* Time)
+			void motion_blur::render_effect(core::timer* time)
 			{
-				VI_ASSERT(System->GetScene() != nullptr, "scene should be set");
-				RenderMerge(Shaders.Velocity, &Velocity);
-				RenderResult(Shaders.Motion, &Motion);
-				Velocity.LastViewProjection = System->View.ViewProjection;
-			}
+				VI_ASSERT(system->get_scene() != nullptr, "scene should be set");
+				motion.texel[0] = 1.0f / get_width();
+				motion.texel[1] = 1.0f / get_height();
+				motion.motion = 10.0f;
+				velocity.power = 6.0f;
+				velocity.threshold = 0.50f;
 
-			Bloom::Bloom(RenderSystem* Lab) : EffectRenderer(Lab)
-			{
-				Shaders.Bloom = *CompileEffect("postprocessing/bloom", sizeof(Extraction));
-				Shaders.Fibo[0] = *CompileEffect("postprocessing/fibo_x", sizeof(Fibo));
-				Shaders.Fibo[1] = *CompileEffect("postprocessing/fibo_y");
-				Shaders.Additive = *CompileEffect("postprocessing/additive");
+				render_texture(pipelines.velocity, "PrevDiffuseBuffer", prev_diffuse_map);
+				render_merge(pipelines.velocity, sampler_wrap, &velocity);
+				render_copy_from_main(0, prev_diffuse_map);
+				render_copy_from_last(velocity_map);
+				render_copy_to_last(prev_diffuse_map);
+				render_texture(pipelines.motion[0], "VelocityBuffer", velocity_map);
+				render_merge(pipelines.motion[0], sampler_clamp, &motion);
+				render_result(pipelines.motion[1], sampler_clamp);
 			}
-			void Bloom::Deserialize(Core::Schema* Node)
+			void motion_blur::resize_effect()
 			{
-				Series::Unpack(Node->Find("intensity"), &Extraction.Intensity);
-				Series::Unpack(Node->Find("threshold"), &Extraction.Threshold);
-				Series::Unpack(Node->Find("power"), &Fibo.Power);
-				Series::Unpack(Node->Find("samples"), &Fibo.Samples);
-				Series::Unpack(Node->Find("blur"), &Fibo.Blur);
-			}
-			void Bloom::Serialize(Core::Schema* Node)
-			{
-				Series::Pack(Node->Set("intensity"), Extraction.Intensity);
-				Series::Pack(Node->Set("threshold"), Extraction.Threshold);
-				Series::Pack(Node->Set("power"), Fibo.Power);
-				Series::Pack(Node->Set("samples"), Fibo.Samples);
-				Series::Pack(Node->Set("blur"), Fibo.Blur);
-			}
-			void Bloom::RenderEffect(Core::Timer* Time)
-			{
-				Fibo.Texel[0] = 1.0f / GetWidth();
-				Fibo.Texel[1] = 1.0f / GetHeight();
+				core::memory::release(prev_diffuse_map);
+				core::memory::release(velocity_map);
 
-				RenderMerge(Shaders.Bloom, &Extraction);
-				SampleClamp();
-				RenderMerge(Shaders.Fibo[0], &Fibo, 3);
-				RenderMerge(Shaders.Fibo[1], nullptr, 3);
-				SampleWrap();
-				RenderResult(Shaders.Additive);
+				scene_graph* scene = system->get_scene();
+				auto* target = scene->get_mrt(target_type::main);
+				auto* texture = target->get_target_2d(0);
+				graphics::graphics_device* device = system->get_device();
+				device->copy_texture_2d(target, 0, &prev_diffuse_map);
+				device->copy_texture_2d(target, 0, &velocity_map);
 			}
 
-			Tone::Tone(RenderSystem* Lab) : EffectRenderer(Lab)
+			bloom::bloom(render_system* lab) : effect_renderer(lab)
 			{
-				Shaders.Luminance = *CompileEffect("postprocessing/luminance", sizeof(Luminance));
-				Shaders.Tone = *CompileEffect("postprocessing/tone", sizeof(Mapping));
+				pipelines.bloom = *compile_effect("postprocessing/bloom", { }, sizeof(extraction));
+				pipelines.fibo[0] = *compile_effect("postprocessing/fibo_x", { }, sizeof(fibo));
+				pipelines.fibo[1] = *compile_effect("postprocessing/fibo_y", { });
+				pipelines.additive = *compile_effect("postprocessing/additive", { });
 			}
-			Tone::~Tone()
+			void bloom::deserialize(core::schema* node)
 			{
-				Core::Memory::Release(LutTarget);
-				Core::Memory::Release(LutMap);
+				series::unpack(node->find("intensity"), &extraction.intensity);
+				series::unpack(node->find("threshold"), &extraction.threshold);
+				series::unpack(node->find("power"), &fibo.power);
+				series::unpack(node->find("samples"), &fibo.samples);
+				series::unpack(node->find("blur"), &fibo.blur);
 			}
-			void Tone::Deserialize(Core::Schema* Node)
+			void bloom::serialize(core::schema* node)
 			{
-				VI_ASSERT(Node != nullptr, "schema should be set");
-
-				Series::Unpack(Node->Find("grayscale"), &Mapping.Grayscale);
-				Series::Unpack(Node->Find("aces"), &Mapping.ACES);
-				Series::Unpack(Node->Find("filmic"), &Mapping.Filmic);
-				Series::Unpack(Node->Find("lottes"), &Mapping.Lottes);
-				Series::Unpack(Node->Find("reinhard"), &Mapping.Reinhard);
-				Series::Unpack(Node->Find("reinhard2"), &Mapping.Reinhard2);
-				Series::Unpack(Node->Find("unreal"), &Mapping.Unreal);
-				Series::Unpack(Node->Find("uchimura"), &Mapping.Uchimura);
-				Series::Unpack(Node->Find("ubrightness"), &Mapping.UBrightness);
-				Series::Unpack(Node->Find("usontrast"), &Mapping.UContrast);
-				Series::Unpack(Node->Find("ustart"), &Mapping.UStart);
-				Series::Unpack(Node->Find("ulength"), &Mapping.ULength);
-				Series::Unpack(Node->Find("ublack"), &Mapping.UBlack);
-				Series::Unpack(Node->Find("upedestal"), &Mapping.UPedestal);
-				Series::Unpack(Node->Find("exposure"), &Mapping.Exposure);
-				Series::Unpack(Node->Find("eintensity"), &Mapping.EIntensity);
-				Series::Unpack(Node->Find("egamma"), &Mapping.EGamma);
-				Series::Unpack(Node->Find("adaptation"), &Mapping.Adaptation);
-				Series::Unpack(Node->Find("agray"), &Mapping.AGray);
-				Series::Unpack(Node->Find("awhite"), &Mapping.AWhite);
-				Series::Unpack(Node->Find("ablack"), &Mapping.ABlack);
-				Series::Unpack(Node->Find("aspeed"), &Mapping.ASpeed);
+				series::pack(node->set("intensity"), extraction.intensity);
+				series::pack(node->set("threshold"), extraction.threshold);
+				series::pack(node->set("power"), fibo.power);
+				series::pack(node->set("samples"), fibo.samples);
+				series::pack(node->set("blur"), fibo.blur);
 			}
-			void Tone::Serialize(Core::Schema* Node)
+			void bloom::render_effect(core::timer* time)
 			{
-				VI_ASSERT(Node != nullptr, "schema should be set");
+				fibo.texel[0] = 1.0f / get_width();
+				fibo.texel[1] = 1.0f / get_height();
 
-				Series::Pack(Node->Set("grayscale"), Mapping.Grayscale);
-				Series::Pack(Node->Set("aces"), Mapping.ACES);
-				Series::Pack(Node->Set("filmic"), Mapping.Filmic);
-				Series::Pack(Node->Set("lottes"), Mapping.Lottes);
-				Series::Pack(Node->Set("reinhard"), Mapping.Reinhard);
-				Series::Pack(Node->Set("reinhard2"), Mapping.Reinhard2);
-				Series::Pack(Node->Set("unreal"), Mapping.Unreal);
-				Series::Pack(Node->Set("uchimura"), Mapping.Uchimura);
-				Series::Pack(Node->Set("ubrightness"), Mapping.UBrightness);
-				Series::Pack(Node->Set("usontrast"), Mapping.UContrast);
-				Series::Pack(Node->Set("ustart"), Mapping.UStart);
-				Series::Pack(Node->Set("ulength"), Mapping.ULength);
-				Series::Pack(Node->Set("ublack"), Mapping.UBlack);
-				Series::Pack(Node->Set("upedestal"), Mapping.UPedestal);
-				Series::Pack(Node->Set("exposure"), Mapping.Exposure);
-				Series::Pack(Node->Set("eintensity"), Mapping.EIntensity);
-				Series::Pack(Node->Set("egamma"), Mapping.EGamma);
-				Series::Pack(Node->Set("adaptation"), Mapping.Adaptation);
-				Series::Pack(Node->Set("agray"), Mapping.AGray);
-				Series::Pack(Node->Set("awhite"), Mapping.AWhite);
-				Series::Pack(Node->Set("ablack"), Mapping.ABlack);
-				Series::Pack(Node->Set("aspeed"), Mapping.ASpeed);
-			}
-			void Tone::RenderEffect(Core::Timer* Time)
-			{
-				if (Mapping.Adaptation > 0.0f)
-					RenderLUT(Time);
-
-				RenderResult(Shaders.Tone, &Mapping);
-			}
-			void Tone::RenderLUT(Core::Timer* Time)
-			{
-				VI_ASSERT(Time != nullptr, "time should be set");
-				if (!LutMap || !LutTarget)
-					SetLUTSize(1);
-
-				Graphics::MultiRenderTarget2D* MRT = System->GetMRT(TargetType::Main);
-				Graphics::GraphicsDevice* Device = System->GetDevice();
-				Device->GenerateMips(MRT->GetTarget(0));
-				Device->CopyTexture2D(LutTarget, 0, &LutMap);
-
-				Luminance.Texel[0] = 1.0f / (float)GetWidth();
-				Luminance.Texel[1] = 1.0f / (float)GetHeight();
-				Luminance.Mips = (float)GetMipLevels();
-				Luminance.Time = Time->GetStep() * Mapping.ASpeed;
-
-				RenderTexture(0, LutMap);
-				RenderOutput(LutTarget);
-				RenderMerge(Shaders.Luminance, &Luminance);
-			}
-			void Tone::SetLUTSize(size_t Size)
-			{
-				VI_ASSERT(System->GetScene() != nullptr, "scene should be set");
-				Core::Memory::Release(LutTarget);
-				Core::Memory::Release(LutMap);
-
-				SceneGraph* Scene = System->GetScene();
-				Graphics::GraphicsDevice* Device = System->GetDevice();
-				Graphics::RenderTarget2D::Desc RT = Scene->GetDescRT();
-				RT.MipLevels = Device->GetMipLevel((uint32_t)Size, (uint32_t)Size);
-				RT.FormatMode = Graphics::Format::R16_Float;
-				RT.Width = (uint32_t)Size;
-				RT.Height = (uint32_t)Size;
-
-				LutTarget = *Device->CreateRenderTarget2D(RT);
-				Device->CopyTexture2D(LutTarget, 0, &LutMap);
+				render_merge(pipelines.bloom, sampler_wrap, &extraction);
+				render_merge(pipelines.fibo[0], sampler_clamp, &fibo, 3);
+				render_merge(pipelines.fibo[1], sampler_clamp, nullptr, 3);
+				render_result(pipelines.additive, sampler_wrap);
 			}
 
-			Glitch::Glitch(RenderSystem* Lab) : EffectRenderer(Lab), ScanLineJitter(0), VerticalJump(0), HorizontalShake(0), ColorDrift(0)
+			tone::tone(render_system* lab) : effect_renderer(lab)
 			{
-				*CompileEffect("postprocessing/glitch", sizeof(Distortion));
+				pipelines.luminance = *compile_effect("postprocessing/luminance", { }, sizeof(luminance));
+				pipelines.tone = *compile_effect("postprocessing/tone", { }, sizeof(mapping));
 			}
-			void Glitch::Deserialize(Core::Schema* Node)
+			tone::~tone()
 			{
-				VI_ASSERT(Node != nullptr, "schema should be set");
+				core::memory::release(lut_target);
+				core::memory::release(lut_map);
+			}
+			void tone::deserialize(core::schema* node)
+			{
+				VI_ASSERT(node != nullptr, "schema should be set");
 
-				Series::Unpack(Node->Find("scanline-jitter"), &ScanLineJitter);
-				Series::Unpack(Node->Find("vertical-jump"), &VerticalJump);
-				Series::Unpack(Node->Find("horizontal-shake"), &HorizontalShake);
-				Series::Unpack(Node->Find("color-drift"), &ColorDrift);
-				Series::Unpack(Node->Find("horizontal-shake"), &HorizontalShake);
-				Series::Unpack(Node->Find("elapsed-time"), &Distortion.ElapsedTime);
-				Series::Unpack(Node->Find("scanline-jitter-displacement"), &Distortion.ScanLineJitterDisplacement);
-				Series::Unpack(Node->Find("scanline-jitter-threshold"), &Distortion.ScanLineJitterThreshold);
-				Series::Unpack(Node->Find("vertical-jump-amount"), &Distortion.VerticalJumpAmount);
-				Series::Unpack(Node->Find("vertical-jump-time"), &Distortion.VerticalJumpTime);
-				Series::Unpack(Node->Find("color-drift-amount"), &Distortion.ColorDriftAmount);
-				Series::Unpack(Node->Find("color-drift-time"), &Distortion.ColorDriftTime);
+				series::unpack(node->find("grayscale"), &mapping.grayscale);
+				series::unpack(node->find("aces"), &mapping.aces);
+				series::unpack(node->find("filmic"), &mapping.filmic);
+				series::unpack(node->find("lottes"), &mapping.lottes);
+				series::unpack(node->find("reinhard"), &mapping.reinhard);
+				series::unpack(node->find("reinhard2"), &mapping.reinhard2);
+				series::unpack(node->find("unreal"), &mapping.unreal);
+				series::unpack(node->find("uchimura"), &mapping.uchimura);
+				series::unpack(node->find("ubrightness"), &mapping.ubrightness);
+				series::unpack(node->find("usontrast"), &mapping.ucontrast);
+				series::unpack(node->find("ustart"), &mapping.ustart);
+				series::unpack(node->find("ulength"), &mapping.ulength);
+				series::unpack(node->find("ublack"), &mapping.ublack);
+				series::unpack(node->find("upedestal"), &mapping.upedestal);
+				series::unpack(node->find("exposure"), &mapping.exposure);
+				series::unpack(node->find("eintensity"), &mapping.eintensity);
+				series::unpack(node->find("egamma"), &mapping.egamma);
+				series::unpack(node->find("adaptation"), &mapping.adaptation);
+				series::unpack(node->find("agray"), &mapping.agray);
+				series::unpack(node->find("awhite"), &mapping.awhite);
+				series::unpack(node->find("ablack"), &mapping.ablack);
+				series::unpack(node->find("aspeed"), &mapping.aspeed);
 			}
-			void Glitch::Serialize(Core::Schema* Node)
+			void tone::serialize(core::schema* node)
 			{
-				VI_ASSERT(Node != nullptr, "schema should be set");
+				VI_ASSERT(node != nullptr, "schema should be set");
 
-				Series::Pack(Node->Set("scanline-jitter"), ScanLineJitter);
-				Series::Pack(Node->Set("vertical-jump"), VerticalJump);
-				Series::Pack(Node->Set("horizontal-shake"), HorizontalShake);
-				Series::Pack(Node->Set("color-drift"), ColorDrift);
-				Series::Pack(Node->Set("horizontal-shake"), HorizontalShake);
-				Series::Pack(Node->Set("elapsed-time"), Distortion.ElapsedTime);
-				Series::Pack(Node->Set("scanline-jitter-displacement"), Distortion.ScanLineJitterDisplacement);
-				Series::Pack(Node->Set("scanline-jitter-threshold"), Distortion.ScanLineJitterThreshold);
-				Series::Pack(Node->Set("vertical-jump-amount"), Distortion.VerticalJumpAmount);
-				Series::Pack(Node->Set("vertical-jump-time"), Distortion.VerticalJumpTime);
-				Series::Pack(Node->Set("color-drift-amount"), Distortion.ColorDriftAmount);
-				Series::Pack(Node->Set("color-drift-time"), Distortion.ColorDriftTime);
+				series::pack(node->set("grayscale"), mapping.grayscale);
+				series::pack(node->set("aces"), mapping.aces);
+				series::pack(node->set("filmic"), mapping.filmic);
+				series::pack(node->set("lottes"), mapping.lottes);
+				series::pack(node->set("reinhard"), mapping.reinhard);
+				series::pack(node->set("reinhard2"), mapping.reinhard2);
+				series::pack(node->set("unreal"), mapping.unreal);
+				series::pack(node->set("uchimura"), mapping.uchimura);
+				series::pack(node->set("ubrightness"), mapping.ubrightness);
+				series::pack(node->set("usontrast"), mapping.ucontrast);
+				series::pack(node->set("ustart"), mapping.ustart);
+				series::pack(node->set("ulength"), mapping.ulength);
+				series::pack(node->set("ublack"), mapping.ublack);
+				series::pack(node->set("upedestal"), mapping.upedestal);
+				series::pack(node->set("exposure"), mapping.exposure);
+				series::pack(node->set("eintensity"), mapping.eintensity);
+				series::pack(node->set("egamma"), mapping.egamma);
+				series::pack(node->set("adaptation"), mapping.adaptation);
+				series::pack(node->set("agray"), mapping.agray);
+				series::pack(node->set("awhite"), mapping.awhite);
+				series::pack(node->set("ablack"), mapping.ablack);
+				series::pack(node->set("aspeed"), mapping.aspeed);
 			}
-			void Glitch::RenderEffect(Core::Timer* Time)
+			void tone::render_effect(core::timer* time)
 			{
-				if (Distortion.ElapsedTime >= 32000.0f)
-					Distortion.ElapsedTime = 0.0f;
+				if (mapping.adaptation > 0.0f)
+					render_lut(time);
 
-				float Step = Time->GetStep() * 10.0f;
-				Distortion.ElapsedTime += Step * 10.0f;
-				Distortion.VerticalJumpAmount = VerticalJump;
-				Distortion.VerticalJumpTime += Step * VerticalJump * 11.3f;
-				Distortion.ScanLineJitterThreshold = Compute::Mathf::Saturate(1.0f - ScanLineJitter * 1.2f);
-				Distortion.ScanLineJitterDisplacement = 0.002f + Compute::Mathf::Pow(ScanLineJitter, 3) * 0.05f;
-				Distortion.HorizontalShake = HorizontalShake * 0.2f;
-				Distortion.ColorDriftAmount = ColorDrift * 0.04f;
-				Distortion.ColorDriftTime = Distortion.ElapsedTime * 606.11f;
-				RenderResult(nullptr, &Distortion);
+				render_result(pipelines.tone, sampler_wrap, &mapping);
+			}
+			void tone::render_lut(core::timer* time)
+			{
+				VI_ASSERT(time != nullptr, "time should be set");
+				if (!lut_map || !lut_target)
+					set_lut_size(1);
+
+				graphics::multi_render_target_2d* mrt = system->get_mrt(target_type::main);
+				graphics::graphics_device* device = system->get_device();
+				device->generate_mips(mrt->get_target(0));
+				device->copy_texture_2d(lut_target, 0, &lut_map);
+
+				luminance.texel[0] = 1.0f / (float)get_width();
+				luminance.texel[1] = 1.0f / (float)get_height();
+				luminance.mips = (float)get_mip_levels();
+				luminance.time = time->get_step() * mapping.aspeed;
+
+				render_texture(pipelines.luminance, "LutBuffer", lut_map);
+				render_output(lut_target);
+				render_merge(pipelines.luminance, sampler_wrap, &luminance);
+			}
+			void tone::set_lut_size(size_t size)
+			{
+				VI_ASSERT(system->get_scene() != nullptr, "scene should be set");
+				core::memory::release(lut_target);
+				core::memory::release(lut_map);
+
+				scene_graph* scene = system->get_scene();
+				graphics::graphics_device* device = system->get_device();
+				graphics::render_target_2d::desc rt = scene->get_desc_rt();
+				rt.mip_levels = device->get_mip_level((uint32_t)size, (uint32_t)size);
+				rt.format_mode = graphics::format::r16_float;
+				rt.width = (uint32_t)size;
+				rt.height = (uint32_t)size;
+
+				lut_target = *device->create_render_target_2d(rt);
+				device->copy_texture_2d(lut_target, 0, &lut_map);
 			}
 
-			UserInterface::UserInterface(RenderSystem* Lab) : UserInterface(Lab, HeavyApplication::HasInstance() ? HeavyApplication::Get()->FetchUI() : nullptr, HeavyApplication::HasInstance() ? HeavyApplication::Get()->Activity : nullptr)
+			glitch::glitch(render_system* lab) : effect_renderer(lab), scan_line_jitter(0), vertical_jump(0), horizontal_shake(0), color_drift(0)
+			{
+				*compile_effect("postprocessing/glitch", { }, sizeof(distortion));
+			}
+			void glitch::deserialize(core::schema* node)
+			{
+				VI_ASSERT(node != nullptr, "schema should be set");
+
+				series::unpack(node->find("scanline-jitter"), &scan_line_jitter);
+				series::unpack(node->find("vertical-jump"), &vertical_jump);
+				series::unpack(node->find("horizontal-shake"), &horizontal_shake);
+				series::unpack(node->find("color-drift"), &color_drift);
+				series::unpack(node->find("horizontal-shake"), &horizontal_shake);
+				series::unpack(node->find("elapsed-time"), &distortion.elapsed_time);
+				series::unpack(node->find("scanline-jitter-displacement"), &distortion.scan_line_jitter_displacement);
+				series::unpack(node->find("scanline-jitter-threshold"), &distortion.scan_line_jitter_threshold);
+				series::unpack(node->find("vertical-jump-amount"), &distortion.vertical_jump_amount);
+				series::unpack(node->find("vertical-jump-time"), &distortion.vertical_jump_time);
+				series::unpack(node->find("color-drift-amount"), &distortion.color_drift_amount);
+				series::unpack(node->find("color-drift-time"), &distortion.color_drift_time);
+			}
+			void glitch::serialize(core::schema* node)
+			{
+				VI_ASSERT(node != nullptr, "schema should be set");
+
+				series::pack(node->set("scanline-jitter"), scan_line_jitter);
+				series::pack(node->set("vertical-jump"), vertical_jump);
+				series::pack(node->set("horizontal-shake"), horizontal_shake);
+				series::pack(node->set("color-drift"), color_drift);
+				series::pack(node->set("horizontal-shake"), horizontal_shake);
+				series::pack(node->set("elapsed-time"), distortion.elapsed_time);
+				series::pack(node->set("scanline-jitter-displacement"), distortion.scan_line_jitter_displacement);
+				series::pack(node->set("scanline-jitter-threshold"), distortion.scan_line_jitter_threshold);
+				series::pack(node->set("vertical-jump-amount"), distortion.vertical_jump_amount);
+				series::pack(node->set("vertical-jump-time"), distortion.vertical_jump_time);
+				series::pack(node->set("color-drift-amount"), distortion.color_drift_amount);
+				series::pack(node->set("color-drift-time"), distortion.color_drift_time);
+			}
+			void glitch::render_effect(core::timer* time)
+			{
+				if (distortion.elapsed_time >= 32000.0f)
+					distortion.elapsed_time = 0.0f;
+
+				float step = time->get_step() * 10.0f;
+				distortion.elapsed_time += step * 10.0f;
+				distortion.vertical_jump_amount = vertical_jump;
+				distortion.vertical_jump_time += step * vertical_jump * 11.3f;
+				distortion.scan_line_jitter_threshold = compute::mathf::saturate(1.0f - scan_line_jitter * 1.2f);
+				distortion.scan_line_jitter_displacement = 0.002f + compute::mathf::pow(scan_line_jitter, 3) * 0.05f;
+				distortion.horizontal_shake = horizontal_shake * 0.2f;
+				distortion.color_drift_amount = color_drift * 0.04f;
+				distortion.color_drift_time = distortion.elapsed_time * 606.11f;
+				render_result(nullptr, sampler_wrap, &distortion);
+			}
+
+			user_interface::user_interface(render_system* lab) : user_interface(lab, heavy_application::has_instance() ? heavy_application::get()->fetch_ui() : nullptr, heavy_application::has_instance() ? heavy_application::get()->activity : nullptr)
 			{
 			}
-			UserInterface::UserInterface(RenderSystem* Lab, GUI::Context* NewContext, Graphics::Activity* NewActivity) : Renderer(Lab), Activity(NewActivity), Context(NewContext)
+			user_interface::user_interface(render_system* lab, gui::context* new_context, graphics::activity* new_activity) : renderer(lab), activity(new_activity), context(new_context)
 			{
-				VI_ASSERT(System != nullptr, "render system should be set");
-				VI_ASSERT(System->GetDevice() != nullptr, "graphics device should be set");
-				VI_ASSERT(Activity != nullptr, "activity should be set");
-				VI_ASSERT(Context != nullptr, "context should be set");
+				VI_ASSERT(system != nullptr, "render system should be set");
+				VI_ASSERT(system->get_device() != nullptr, "graphics device should be set");
+				VI_ASSERT(activity != nullptr, "activity should be set");
+				VI_ASSERT(context != nullptr, "context should be set");
 			}
-			size_t UserInterface::RenderPass(Core::Timer* Timer)
+			size_t user_interface::render_pass(core::timer* timer)
 			{
-				VI_ASSERT(Context != nullptr, "context should be set");
-				if (!System->State.Is(RenderState::Geometric) || System->State.IsSubpass() || System->State.IsSet(RenderOpt::Transparent) || System->State.IsSet(RenderOpt::Additive))
+				VI_ASSERT(context != nullptr, "context should be set");
+				if (!system->state.is(render_state::geometry) || system->state.is_subpass() || system->state.is_set(render_opt::transparent) || system->state.is_set(render_opt::additive))
 					return 0;
 
-				Context->UpdateEvents(Activity);
-				Context->RenderLists(System->GetMRT(TargetType::Main)->GetTarget(0));
-				System->RestoreOutput();
+				context->update_events(activity);
+				context->render_lists(system->get_mrt(target_type::main)->get_target(0));
+				system->restore_output();
 
 				return 1;
 			}
-			GUI::Context* UserInterface::GetContext()
+			gui::context* user_interface::get_context()
 			{
-				return Context;
+				return context;
 			}
 		}
 	}

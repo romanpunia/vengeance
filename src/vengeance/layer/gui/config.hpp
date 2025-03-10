@@ -25,33 +25,33 @@ namespace Rml
 	{
 		inline size_t operator()(const T& Value) const
 		{
-			auto Result = Vitex::Core::KeyHasher<T>()(Value);
+			auto Result = vitex::core::key_hasher<T>()(Value);
 			return robin_hood::hash_int(static_cast<robin_hood::detail::SizeT>(Result));
 		}
 	};
 
 	template <typename T>
-	using Vector = Vitex::Core::Vector<T>;
+	using Vector = vitex::core::vector<T>;
 	template <typename T, size_t N = 1>
 	using Array = std::array<T, N>;
 	template <typename T>
 	using Stack = std::stack<T>;
 	template <typename T>
-	using List = Vitex::Core::LinkedList<T>;
+	using List = vitex::core::linked_list<T>;
 	template <typename T>
-	using Queue = Vitex::Core::SingleQueue<T>;
+	using Queue = vitex::core::single_queue<T>;
 	template <typename T1, typename T2>
 	using Pair = std::pair<T1, T2>;
 	template <typename Key, typename Value>
-	using StableMap = Vitex::Core::OrderedMap<Key, Value>;
+	using StableMap = vitex::core::ordered_map<Key, Value>;
 	template <typename Key, typename Value>
-	using UnorderedMultimap = Vitex::Core::UnorderedMultiMap<Key, Value>;
+	using UnorderedMultimap = vitex::core::unordered_multi_map<Key, Value>;
 	template <typename Key, typename Value>
-	using UnorderedMap = robin_hood::unordered_flat_map<Key, Value, MixedHasher<Key>, Vitex::Core::EqualTo<Key>>;
+	using UnorderedMap = robin_hood::unordered_flat_map<Key, Value, MixedHasher<Key>, vitex::core::equal_to<Key>>;
 	template <typename Key, typename Value>
 	using SmallUnorderedMap = itlib::flat_map<Key, Value>;
 	template <typename T>
-	using UnorderedSet = robin_hood::unordered_flat_set<T, MixedHasher<T>, Vitex::Core::EqualTo<T>>;
+	using UnorderedSet = robin_hood::unordered_flat_set<T, MixedHasher<T>, vitex::core::equal_to<T>>;
 	template <typename T>
 	using SmallUnorderedSet = itlib::flat_set<T>;
 	template <typename T>
@@ -62,10 +62,10 @@ namespace Rml
 		return std::make_move_iterator(It);
 	}
 	template <typename T>
-	using Hash = typename Vitex::Core::KeyHasher<T>;
+	using Hash = typename vitex::core::key_hasher<T>;
 	template <typename T>
 	using Function = std::function<T>;
-	using String = Vitex::Core::String;
+	using String = vitex::core::string;
 	using StringList = Vector<String>;
 	template <typename T>
 	using UniquePtr = std::unique_ptr<T>;

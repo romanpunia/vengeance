@@ -1,4 +1,4 @@
-cbuffer Viewer : register(b2)
+cbuffer ViewerBuffer : register(b2)
 {
 	matrix vb_InvViewProj;
 	matrix vb_ViewProj;

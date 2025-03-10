@@ -5,45 +5,44 @@
 #include "audio.h"
 #include "physics.h"
 
-namespace Vitex
+namespace vitex
 {
-	namespace Layer
+	namespace layer
 	{
-		namespace GUI
+		namespace gui
 		{
-			class Context;
+			class context;
 		}
 
-		typedef std::pair<Graphics::Texture3D*, class Component*> VoxelMapping;
-		typedef Graphics::DepthTarget2D LinearDepthMap;
-		typedef Graphics::DepthTargetCube CubicDepthMap;
-		typedef Core::Vector<LinearDepthMap*> CascadedDepthMap;
-		typedef std::function<void(Core::Timer*, struct Viewer*)> RenderCallback;
-		typedef std::function<void(const std::string_view&, Core::VariantArgs&)> MessageCallback;
-		typedef std::function<bool(class Component*, const Trigonometry::Vector3&)> RayCallback;
-		typedef std::function<bool(Graphics::RenderTarget*)> TargetCallback;
+		typedef graphics::depth_target_2d depth_map;
+		typedef graphics::depth_target_cube depth_cube_map;
+		typedef core::vector<depth_map*> depth_cascade_map;
+		typedef std::function<void(core::timer*, struct viewer*)> render_callback;
+		typedef std::function<void(const std::string_view&, core::variant_args&)> message_callback;
+		typedef std::function<bool(class component*, const trigonometry::vector3&)> ray_callback;
+		typedef std::function<bool(graphics::render_target*)> target_callback;
 
-		class HeavySeries;
+		class heavy_series;
 
-		class SceneGraph;
+		class scene_graph;
 
-		class HeavyContentManager;
+		class heavy_content_manager;
 
-		class HeavyApplication;
+		class heavy_application;
 
-		class Entity;
+		class entity;
 
-		class Component;
+		class component;
 
-		class Drawable;
+		class drawable;
 
-		class PrimitiveCache;
+		class primitive_cache;
 
-		class RenderSystem;
+		class render_system;
 
-		class Material;
+		class material;
 
-		class SkinModel;
+		class skin_model;
 
 		enum
 		{
@@ -55,2329 +54,2280 @@ namespace Vitex
 			THRESHOLD_PER_THREAD = 1
 		};
 
-		enum class RenderOpt
+		enum class render_opt
 		{
-			None = 0,
-			Transparent = 1,
-			Static = 2,
-			Additive = 4,
-			Backfaces = 8
+			none = 0,
+			transparent = 1,
+			constant = 2,
+			additive = 4,
+			backfaces = 8
 		};
 
-		enum class RenderCulling
+		enum class render_culling
 		{
-			Linear,
-			Cubic,
-			Disable
+			depth,
+			depth_cube,
+			disable
 		};
 
-		enum class RenderState
+		enum class render_state
 		{
-			Geometric,
-			Voxelization,
-			Linearization,
-			Cubic
+			geometry,
+			depth,
+			depth_cube
 		};
 
-		enum class GeoCategory
+		enum class geo_category
 		{
-			Opaque,
-			Transparent,
-			Additive,
-			Count
+			opaque,
+			transparent,
+			additive,
+			count
 		};
 
-		enum class BufferType
+		enum class buffer_type
 		{
-			Index = 0,
-			Vertex = 1
+			index = 0,
+			vertex = 1
 		};
 
-		enum class TargetType
+		enum class target_type
 		{
-			Main = 0,
-			Secondary = 1,
-			Count
+			main = 0,
+			secondary = 1,
+			count
 		};
 
-		enum class VoxelType
+		enum class event_target
 		{
-			Diffuse = 0,
-			Normal = 1,
-			Surface = 2
+			scene = 0,
+			entity = 1,
+			component = 2,
+			listener = 3
 		};
 
-		enum class EventTarget
+		enum class actor_set
 		{
-			Scene = 0,
-			Entity = 1,
-			Component = 2,
-			Listener = 3
+			none = 0,
+			update = 1 << 0,
+			synchronize = 1 << 1,
+			animate = 1 << 2,
+			message = 1 << 3,
+			cullable = 1 << 4,
+			drawable = 1 << 5
 		};
 
-		enum class ActorSet
+		enum class actor_type
 		{
-			None = 0,
-			Update = 1 << 0,
-			Synchronize = 1 << 1,
-			Animate = 1 << 2,
-			Message = 1 << 3,
-			Cullable = 1 << 4,
-			Drawable = 1 << 5
+			update,
+			synchronize,
+			animate,
+			message,
+			count
 		};
 
-		enum class ActorType
+		enum class task_type
 		{
-			Update,
-			Synchronize,
-			Animate,
-			Message,
-			Count
+			processing,
+			rendering,
+			count
 		};
 
-		enum class TaskType
+		enum class composer_tag
 		{
-			Processing,
-			Rendering,
-			Count
+			component,
+			renderer,
+			effect,
+			filter
 		};
 
-		enum class ComposerTag
+		enum class render_buffer_type
 		{
-			Component,
-			Renderer,
-			Effect,
-			Filter
+			animation,
+			render,
+			view
 		};
 
-		enum class RenderBufferType
+		inline actor_set operator |(actor_set a, actor_set b)
 		{
-			Animation,
-			Render,
-			View
-		};
-
-		inline ActorSet operator |(ActorSet A, ActorSet B)
-		{
-			return static_cast<ActorSet>(static_cast<size_t>(A) | static_cast<size_t>(B));
+			return static_cast<actor_set>(static_cast<size_t>(a) | static_cast<size_t>(b));
 		}
-		inline RenderOpt operator |(RenderOpt A, RenderOpt B)
+		inline render_opt operator |(render_opt a, render_opt b)
 		{
-			return static_cast<RenderOpt>(static_cast<size_t>(A) | static_cast<size_t>(B));
+			return static_cast<render_opt>(static_cast<size_t>(a) | static_cast<size_t>(b));
 		}
 
-		struct VI_OUT Ticker
+		struct ticker
 		{
 		private:
-			float Time;
+			float time;
 
 		public:
-			float Delay;
+			float delay;
 
 		public:
-			Ticker() noexcept;
-			bool TickEvent(float ElapsedTime);
-			float GetTime();
+			ticker() noexcept;
+			bool tick_event(float elapsed_time);
+			float get_time();
 		};
 
-		struct VI_OUT Event
+		struct event
 		{
-			Core::String Name;
-			Core::VariantArgs Args;
+			core::string name;
+			core::variant_args args;
 
-			Event(const std::string_view& NewName) noexcept;
-			Event(const std::string_view& NewName, const Core::VariantArgs& NewArgs) noexcept;
-			Event(const std::string_view& NewName, Core::VariantArgs&& NewArgs) noexcept;
-			Event(const Event& Other) noexcept;
-			Event(Event&& Other) noexcept;
-			Event& operator= (const Event& Other) noexcept;
-			Event& operator= (Event&& Other) noexcept;
+			event(const std::string_view& new_name) noexcept;
+			event(const std::string_view& new_name, const core::variant_args& new_args) noexcept;
+			event(const std::string_view& new_name, core::variant_args&& new_args) noexcept;
+			event(const event& other) noexcept;
+			event(event&& other) noexcept;
+			event& operator= (const event& other) noexcept;
+			event& operator= (event&& other) noexcept;
 		};
 
-		struct VI_OUT BatchData
+		struct batch_data
 		{
-			Graphics::ElementBuffer* InstanceBuffer;
-			void* GeometryBuffer;
-			Material* BatchMaterial;
-			size_t InstancesCount;
+			graphics::element_buffer* instance_buffer;
+			void* geometry_buffer;
+			material* batch_material;
+			size_t instances_count;
 		};
 
-		struct VI_OUT IdxSnapshot
+		struct idx_snapshot
 		{
-			Core::UnorderedMap<Entity*, size_t> To;
-			Core::UnorderedMap<size_t, Entity*> From;
+			core::unordered_map<entity*, size_t> to;
+			core::unordered_map<size_t, entity*> from;
 		};
 
-		struct VI_OUT VisibilityQuery
+		struct visibility_query
 		{
-			GeoCategory Category = GeoCategory::Opaque;
-			bool BoundaryVisible = false;
-			bool QueryPixels = false;
+			geo_category category = geo_category::opaque;
+			bool boundary_visible = false;
+			bool query_pixels = false;
 		};
 
-		struct VI_OUT AnimatorState
+		struct animator_state
 		{
-			bool Paused = false;
-			bool Looped = false;
-			bool Blended = false;
-			float Duration = -1.0f;
-			float Rate = 1.0f;
-			float Time = 0.0f;
-			int64_t Frame = -1;
-			int64_t Clip = -1;
+			bool paused = false;
+			bool looped = false;
+			bool blended = false;
+			float duration = -1.0f;
+			float rate = 1.0f;
+			float time = 0.0f;
+			int64_t frame = -1;
+			int64_t clip = -1;
 
-			float GetTimeline(Core::Timer* Time) const;
-			float GetSecondsDuration() const;
-			float GetProgressTotal() const;
-			float GetProgress() const;
-			bool IsPlaying() const;
+			float get_timeline(core::timer* time) const;
+			float get_seconds_duration() const;
+			float get_progress_total() const;
+			float get_progress() const;
+			bool is_playing() const;
 		};
 
-		struct VI_OUT SpawnerProperties
+		struct spawner_properties
 		{
-			Trigonometry::RandomVector4 Diffusion;
-			Trigonometry::RandomVector3 Position;
-			Trigonometry::RandomVector3 Velocity;
-			Trigonometry::RandomVector3 Noise;
-			Trigonometry::RandomFloat Rotation;
-			Trigonometry::RandomFloat Scale;
-			Trigonometry::RandomFloat Angular;
-			int Iterations = 1;
+			trigonometry::random_vector4 diffusion;
+			trigonometry::random_vector3 position;
+			trigonometry::random_vector3 velocity;
+			trigonometry::random_vector3 noise;
+			trigonometry::random_float rotation;
+			trigonometry::random_float scale;
+			trigonometry::random_float angular;
+			int iterations = 1;
 		};
 
-		struct VI_OUT Viewer
+		struct viewer
 		{
-			RenderSystem* Renderer = nullptr;
-			RenderCulling Culling = RenderCulling::Linear;
-			Trigonometry::Matrix4x4 CubicViewProjection[6];
-			Trigonometry::Matrix4x4 InvViewProjection;
-			Trigonometry::Matrix4x4 ViewProjection;
-			Trigonometry::Matrix4x4 Projection;
-			Trigonometry::Matrix4x4 View;
-			Trigonometry::Vector3 InvPosition;
-			Trigonometry::Vector3 Position;
-			Trigonometry::Vector3 Rotation;
-			float FarPlane = 0.0f;
-			float NearPlane = 0.0f;
-			float Ratio = 0.0f;
-			float Fov = 0.0f;
+			render_system* renderer = nullptr;
+			render_culling culling = render_culling::depth;
+			trigonometry::matrix4x4 cube_view_projection[6];
+			trigonometry::matrix4x4 inv_view_projection;
+			trigonometry::matrix4x4 view_projection;
+			trigonometry::matrix4x4 projection;
+			trigonometry::matrix4x4 view;
+			trigonometry::vector3 inv_position;
+			trigonometry::vector3 position;
+			trigonometry::vector3 rotation;
+			float far_plane = 0.0f;
+			float near_plane = 0.0f;
+			float ratio = 0.0f;
+			float fov = 0.0f;
 
-			void Set(const Trigonometry::Matrix4x4& View, const Trigonometry::Matrix4x4& Projection, const Trigonometry::Vector3& Position, float Fov, float Ratio, float Near, float Far, RenderCulling Type);
-			void Set(const Trigonometry::Matrix4x4& View, const Trigonometry::Matrix4x4& Projection, const Trigonometry::Vector3& Position, const Trigonometry::Vector3& Rotation, float Fov, float Ratio, float Near, float Far, RenderCulling Type);
+			void set(const trigonometry::matrix4x4& view, const trigonometry::matrix4x4& projection, const trigonometry::vector3& position, float fov, float ratio, float near, float far, render_culling type);
+			void set(const trigonometry::matrix4x4& view, const trigonometry::matrix4x4& projection, const trigonometry::vector3& position, const trigonometry::vector3& rotation, float fov, float ratio, float near, float far, render_culling type);
 		};
 
-		struct VI_OUT Attenuation
+		struct attenuation
 		{
-			float Radius = 10.0f;
+			float radius = 10.0f;
 			float C1 = 0.6f;
 			float C2 = 0.6f;
 		};
 
-		struct VI_OUT Subsurface
+		struct subsurface
 		{
-			Trigonometry::Vector4 Emission = { 0.0f, 0.0f, 0.0f, 0.0f };
-			Trigonometry::Vector4 Metallic = { 0.0f, 0.0f, 0.0f, 0.0f };
-			Trigonometry::Vector4 Penetration = { 0.75f, 0.75f, 0.75f, 0.0f };
-			Trigonometry::Vector3 Diffuse = { 1.0f, 1.0f, 1.0f };
-			float Fresnel = 0.0f;
-			Trigonometry::Vector3 Scattering = { 1.0f, 0.25f, 0.04f };
-			float Transparency = 0.0f;
-			Trigonometry::Vector3 Padding;
-			float Bias = 0.0f;
-			Trigonometry::Vector2 Roughness = { 1.0f, 0.0f };
-			float Refraction = 0.0f;
-			float Environment = 0.0f;
-			Trigonometry::Vector2 Occlusion = { 1.0f, 0.0f };
-			float Radius = 0.0f;
-			float Height = 0.0f;
+			trigonometry::vector4 emission = { 0.0f, 0.0f, 0.0f, 0.0f };
+			trigonometry::vector4 metallic = { 0.0f, 0.0f, 0.0f, 0.0f };
+			trigonometry::vector4 penetration = { 0.75f, 0.75f, 0.75f, 0.0f };
+			trigonometry::vector3 diffuse = { 1.0f, 1.0f, 1.0f };
+			float fresnel = 0.0f;
+			trigonometry::vector3 scattering = { 1.0f, 0.25f, 0.04f };
+			float transparency = 0.0f;
+			trigonometry::vector3 padding;
+			float bias = 0.0f;
+			trigonometry::vector2 roughness = { 1.0f, 0.0f };
+			float refraction = 0.0f;
+			float environment = 0.0f;
+			trigonometry::vector2 occlusion = { 1.0f, 0.0f };
+			float radius = 0.0f;
+			float height = 0.0f;
 		};
 
-		struct VI_OUT SparseIndex
+		struct sparse_index
 		{
-			Core::Pool<Component*> Data;
-			Trigonometry::Cosmos Index;
+			core::pool<component*> data;
+			trigonometry::cosmos index;
 		};
 
-		struct VI_OUT AnimationBuffer
+		struct animation_buffer
 		{
-			Trigonometry::Matrix4x4 Offsets[Graphics::JOINTS_SIZE];
-			Trigonometry::Vector3 Padding;
-			float Animated = 0.0f;
+			trigonometry::matrix4x4 offsets[graphics::joints_size];
+			trigonometry::vector3 padding;
+			float animated = 0.0f;
 		};
 
-		struct VI_OUT RenderBuffer
+		struct render_buffer
 		{
-			struct Instance
+			struct instance
 			{
-				Trigonometry::Matrix4x4 Transform;
-				Trigonometry::Matrix4x4 World;
-				Trigonometry::Vector2 TexCoord;
-				float Diffuse = 0.0f;
-				float Normal = 0.0f;
-				float Height = 0.0f;
-				float MaterialId = 0.0f;
+				trigonometry::matrix4x4 transform;
+				trigonometry::matrix4x4 world;
+				trigonometry::vector2 texcoord;
+				float diffuse = 0.0f;
+				float normal = 0.0f;
+				float height = 0.0f;
+				float material_id = 0.0f;
 			};
 
-			Trigonometry::Matrix4x4 Transform;
-			Trigonometry::Matrix4x4 World;
-			Trigonometry::Vector4 TexCoord;
-			float Diffuse = 0.0f;
-			float Normal = 0.0f;
-			float Height = 0.0f;
-			float MaterialId = 0.0f;
+			trigonometry::matrix4x4 transform;
+			trigonometry::matrix4x4 world;
+			trigonometry::vector4 texcoord;
+			float diffuse = 0.0f;
+			float normal = 0.0f;
+			float height = 0.0f;
+			float material_id = 0.0f;
 		};
 
-		struct VI_OUT ViewBuffer
+		struct view_buffer
 		{
-			Trigonometry::Matrix4x4 InvViewProj;
-			Trigonometry::Matrix4x4 ViewProj;
-			Trigonometry::Matrix4x4 Proj;
-			Trigonometry::Matrix4x4 View;
-			Trigonometry::Vector3 Position;
-			float Far = 1000.0f;
-			Trigonometry::Vector3 Direction;
-			float Near = 0.1f;
+			trigonometry::matrix4x4 inv_view_proj;
+			trigonometry::matrix4x4 view_proj;
+			trigonometry::matrix4x4 proj;
+			trigonometry::matrix4x4 view;
+			trigonometry::vector3 position;
+			float far = 1000.0f;
+			trigonometry::vector3 direction;
+			float near = 0.1f;
 		};
 
-		struct VI_OUT PoseNode
+		struct pose_node
 		{
-			Trigonometry::Vector3 Position;
-			Trigonometry::Vector3 Scale = Trigonometry::Vector3::One();
-			Trigonometry::Quaternion Rotation;
+			trigonometry::vector3 position;
+			trigonometry::vector3 scale = trigonometry::vector3::one();
+			trigonometry::quaternion rotation;
 		};
 
-		struct VI_OUT PoseData
+		struct pose_data
 		{
-			PoseNode Frame;
-			PoseNode Offset;
-			PoseNode Default;
+			pose_node frame;
+			pose_node offset;
+			pose_node defaults;
 		};
 
-		struct VI_OUT PoseMatrices
+		struct pose_matrices
 		{
-			Trigonometry::Matrix4x4 Data[Graphics::JOINTS_SIZE];
+			trigonometry::matrix4x4 data[graphics::joints_size];
 		};
 
-		struct VI_OUT PoseBuffer
+		struct pose_buffer
 		{
-			Core::UnorderedMap<Graphics::SkinMeshBuffer*, PoseMatrices> Matrices;
-			Core::UnorderedMap<size_t, PoseData> Offsets;
+			core::unordered_map<graphics::skin_mesh_buffer*, pose_matrices> matrices;
+			core::unordered_map<size_t, pose_data> offsets;
 
-			void Fill(SkinModel* Mesh);
-			void Fill(Trigonometry::Joint& Next);
+			void fill(skin_model* mesh);
+			void fill(trigonometry::joint& next);
 		};
 
-		class VI_OUT_TS HeavySeries
-		{
-		public:
-			static void Pack(Core::Schema* V, const Trigonometry::Vector2& Value);
-			static void Pack(Core::Schema* V, const Trigonometry::Vector3& Value);
-			static void Pack(Core::Schema* V, const Trigonometry::Vector4& Value);
-			static void Pack(Core::Schema* V, const Trigonometry::Quaternion& Value);
-			static void Pack(Core::Schema* V, const Trigonometry::Matrix4x4& Value);
-			static void Pack(Core::Schema* V, const Attenuation& Value);
-			static void Pack(Core::Schema* V, const AnimatorState& Value);
-			static void Pack(Core::Schema* V, const SpawnerProperties& Value);
-			static void Pack(Core::Schema* V, const Trigonometry::KeyAnimatorClip& Value);
-			static void Pack(Core::Schema* V, const Trigonometry::AnimatorKey& Value);
-			static void Pack(Core::Schema* V, const Trigonometry::SkinAnimatorKey& Value);
-			static void Pack(Core::Schema* V, const Trigonometry::ElementVertex& Value);
-			static void Pack(Core::Schema* V, const Trigonometry::Joint& Value);
-			static void Pack(Core::Schema* V, const Trigonometry::Vertex& Value);
-			static void Pack(Core::Schema* V, const Trigonometry::SkinVertex& Value);
-			static void Pack(Core::Schema* V, const Ticker& Value);
-			static void Pack(Core::Schema* V, const Core::Vector<Trigonometry::Vector2>& Value);
-			static void Pack(Core::Schema* V, const Core::Vector<Trigonometry::Vector3>& Value);
-			static void Pack(Core::Schema* V, const Core::Vector<Trigonometry::Vector4>& Value);
-			static void Pack(Core::Schema* V, const Core::Vector<Trigonometry::Matrix4x4>& Value);
-			static void Pack(Core::Schema* V, const Core::Vector<AnimatorState>& Value);
-			static void Pack(Core::Schema* V, const Core::Vector<SpawnerProperties>& Value);
-			static void Pack(Core::Schema* V, const Core::Vector<Trigonometry::KeyAnimatorClip>& Value);
-			static void Pack(Core::Schema* V, const Core::Vector<Trigonometry::AnimatorKey>& Value);
-			static void Pack(Core::Schema* V, const Core::Vector<Trigonometry::ElementVertex>& Value);
-			static void Pack(Core::Schema* V, const Core::Vector<Trigonometry::Joint>& Value);
-			static void Pack(Core::Schema* V, const Core::Vector<Trigonometry::Vertex>& Value);
-			static void Pack(Core::Schema* V, const Core::Vector<Trigonometry::SkinVertex>& Value);
-			static void Pack(Core::Schema* V, const Core::Vector<Ticker>& Value);
-			static bool Unpack(Core::Schema* V, Trigonometry::Vector2* O);
-			static bool Unpack(Core::Schema* V, Trigonometry::Vector3* O);
-			static bool Unpack(Core::Schema* V, Trigonometry::Vector4* O);
-			static bool Unpack(Core::Schema* V, Trigonometry::Quaternion* O);
-			static bool Unpack(Core::Schema* V, Trigonometry::Matrix4x4* O);
-			static bool Unpack(Core::Schema* V, Attenuation* O);
-			static bool Unpack(Core::Schema* V, AnimatorState* O);
-			static bool Unpack(Core::Schema* V, SpawnerProperties* O);
-			static bool Unpack(Core::Schema* V, Trigonometry::KeyAnimatorClip* O);
-			static bool Unpack(Core::Schema* V, Trigonometry::AnimatorKey* O);
-			static bool Unpack(Core::Schema* V, Trigonometry::SkinAnimatorKey* O);
-			static bool Unpack(Core::Schema* V, Trigonometry::ElementVertex* O);
-			static bool Unpack(Core::Schema* V, Trigonometry::Joint* O);
-			static bool Unpack(Core::Schema* V, Trigonometry::Vertex* O);
-			static bool Unpack(Core::Schema* V, Trigonometry::SkinVertex* O);
-			static bool Unpack(Core::Schema* V, Ticker* O);
-			static bool Unpack(Core::Schema* V, Core::Vector<Trigonometry::Vector2>* O);
-			static bool Unpack(Core::Schema* V, Core::Vector<Trigonometry::Vector3>* O);
-			static bool Unpack(Core::Schema* V, Core::Vector<Trigonometry::Vector4>* O);
-			static bool Unpack(Core::Schema* V, Core::Vector<Trigonometry::Matrix4x4>* O);
-			static bool Unpack(Core::Schema* V, Core::Vector<AnimatorState>* O);
-			static bool Unpack(Core::Schema* V, Core::Vector<SpawnerProperties>* O);
-			static bool Unpack(Core::Schema* V, Core::Vector<Trigonometry::KeyAnimatorClip>* O);
-			static bool Unpack(Core::Schema* V, Core::Vector<Trigonometry::AnimatorKey>* O);
-			static bool Unpack(Core::Schema* V, Core::Vector<Trigonometry::ElementVertex>* O);
-			static bool Unpack(Core::Schema* V, Core::Vector<Trigonometry::Joint>* O);
-			static bool Unpack(Core::Schema* V, Core::Vector<Trigonometry::Vertex>* O);
-			static bool Unpack(Core::Schema* V, Core::Vector<Trigonometry::SkinVertex>* O);
-			static bool Unpack(Core::Schema* V, Core::Vector<Ticker>* O);
-		};
-
-		class VI_OUT Model final : public Core::Reference<Model>
+		class heavy_series
 		{
 		public:
-			Core::Vector<Graphics::MeshBuffer*> Meshes;
-			Trigonometry::Vector4 Max;
-			Trigonometry::Vector4 Min;
-
-		public:
-			Model() noexcept;
-			~Model() noexcept;
-			void Cleanup();
-			Graphics::MeshBuffer* FindMesh(const std::string_view& Name);
+			static void pack(core::schema* v, const trigonometry::vector2& value);
+			static void pack(core::schema* v, const trigonometry::vector3& value);
+			static void pack(core::schema* v, const trigonometry::vector4& value);
+			static void pack(core::schema* v, const trigonometry::quaternion& value);
+			static void pack(core::schema* v, const trigonometry::matrix4x4& value);
+			static void pack(core::schema* v, const attenuation& value);
+			static void pack(core::schema* v, const animator_state& value);
+			static void pack(core::schema* v, const spawner_properties& value);
+			static void pack(core::schema* v, const trigonometry::key_animator_clip& value);
+			static void pack(core::schema* v, const trigonometry::animator_key& value);
+			static void pack(core::schema* v, const trigonometry::skin_animator_key& value);
+			static void pack(core::schema* v, const trigonometry::element_vertex& value);
+			static void pack(core::schema* v, const trigonometry::joint& value);
+			static void pack(core::schema* v, const trigonometry::vertex& value);
+			static void pack(core::schema* v, const trigonometry::skin_vertex& value);
+			static void pack(core::schema* v, const ticker& value);
+			static void pack(core::schema* v, const core::vector<trigonometry::vector2>& value);
+			static void pack(core::schema* v, const core::vector<trigonometry::vector3>& value);
+			static void pack(core::schema* v, const core::vector<trigonometry::vector4>& value);
+			static void pack(core::schema* v, const core::vector<trigonometry::matrix4x4>& value);
+			static void pack(core::schema* v, const core::vector<animator_state>& value);
+			static void pack(core::schema* v, const core::vector<spawner_properties>& value);
+			static void pack(core::schema* v, const core::vector<trigonometry::key_animator_clip>& value);
+			static void pack(core::schema* v, const core::vector<trigonometry::animator_key>& value);
+			static void pack(core::schema* v, const core::vector<trigonometry::element_vertex>& value);
+			static void pack(core::schema* v, const core::vector<trigonometry::joint>& value);
+			static void pack(core::schema* v, const core::vector<trigonometry::vertex>& value);
+			static void pack(core::schema* v, const core::vector<trigonometry::skin_vertex>& value);
+			static void pack(core::schema* v, const core::vector<ticker>& value);
+			static bool unpack(core::schema* v, trigonometry::vector2* o);
+			static bool unpack(core::schema* v, trigonometry::vector3* o);
+			static bool unpack(core::schema* v, trigonometry::vector4* o);
+			static bool unpack(core::schema* v, trigonometry::quaternion* o);
+			static bool unpack(core::schema* v, trigonometry::matrix4x4* o);
+			static bool unpack(core::schema* v, attenuation* o);
+			static bool unpack(core::schema* v, animator_state* o);
+			static bool unpack(core::schema* v, spawner_properties* o);
+			static bool unpack(core::schema* v, trigonometry::key_animator_clip* o);
+			static bool unpack(core::schema* v, trigonometry::animator_key* o);
+			static bool unpack(core::schema* v, trigonometry::skin_animator_key* o);
+			static bool unpack(core::schema* v, trigonometry::element_vertex* o);
+			static bool unpack(core::schema* v, trigonometry::joint* o);
+			static bool unpack(core::schema* v, trigonometry::vertex* o);
+			static bool unpack(core::schema* v, trigonometry::skin_vertex* o);
+			static bool unpack(core::schema* v, ticker* o);
+			static bool unpack(core::schema* v, core::vector<trigonometry::vector2>* o);
+			static bool unpack(core::schema* v, core::vector<trigonometry::vector3>* o);
+			static bool unpack(core::schema* v, core::vector<trigonometry::vector4>* o);
+			static bool unpack(core::schema* v, core::vector<trigonometry::matrix4x4>* o);
+			static bool unpack(core::schema* v, core::vector<animator_state>* o);
+			static bool unpack(core::schema* v, core::vector<spawner_properties>* o);
+			static bool unpack(core::schema* v, core::vector<trigonometry::key_animator_clip>* o);
+			static bool unpack(core::schema* v, core::vector<trigonometry::animator_key>* o);
+			static bool unpack(core::schema* v, core::vector<trigonometry::element_vertex>* o);
+			static bool unpack(core::schema* v, core::vector<trigonometry::joint>* o);
+			static bool unpack(core::schema* v, core::vector<trigonometry::vertex>* o);
+			static bool unpack(core::schema* v, core::vector<trigonometry::skin_vertex>* o);
+			static bool unpack(core::schema* v, core::vector<ticker>* o);
 		};
 
-		class VI_OUT SkinModel final : public Core::Reference<SkinModel>
+		class model final : public core::reference<model>
 		{
 		public:
-			Core::Vector<Graphics::SkinMeshBuffer*> Meshes;
-			Trigonometry::Joint Skeleton;
-			Trigonometry::Matrix4x4 InvTransform;
-			Trigonometry::Matrix4x4 Transform;
-			Trigonometry::Vector4 Max;
-			Trigonometry::Vector4 Min;
+			core::vector<graphics::mesh_buffer*> meshes;
+			trigonometry::vector4 max;
+			trigonometry::vector4 min;
 
 		public:
-			SkinModel() noexcept;
-			~SkinModel() noexcept;
-			bool FindJoint(const std::string_view& Name, Trigonometry::Joint* Output);
-			bool FindJoint(size_t Index, Trigonometry::Joint* Output);
-			void Synchronize(PoseBuffer* Map);
-			void Cleanup();
-			Graphics::SkinMeshBuffer* FindMesh(const std::string_view& Name);
+			model() noexcept;
+			~model() noexcept;
+			void cleanup();
+			graphics::mesh_buffer* find_mesh(const std::string_view& name);
+		};
+
+		class skin_model final : public core::reference<skin_model>
+		{
+		public:
+			core::vector<graphics::skin_mesh_buffer*> meshes;
+			trigonometry::joint skeleton;
+			trigonometry::matrix4x4 inv_transform;
+			trigonometry::matrix4x4 transform;
+			trigonometry::vector4 max;
+			trigonometry::vector4 min;
+
+		public:
+			skin_model() noexcept;
+			~skin_model() noexcept;
+			bool find_joint(const std::string_view& name, trigonometry::joint* output);
+			bool find_joint(size_t index, trigonometry::joint* output);
+			void synchronize(pose_buffer* map);
+			void cleanup();
+			graphics::skin_mesh_buffer* find_mesh(const std::string_view& name);
 
 		private:
-			void Synchronize(PoseBuffer* Map, Trigonometry::Joint& Next, const Trigonometry::Matrix4x4& ParentOffset);
+			void synchronize(pose_buffer* map, trigonometry::joint& next, const trigonometry::matrix4x4& parent_offset);
 		};
 
-		class VI_OUT SkinAnimation final : public Core::Reference<SkinAnimation>
+		class skin_animation final : public core::reference<skin_animation>
 		{
 		private:
-			Core::Vector<Trigonometry::SkinAnimatorClip> Clips;
+			core::vector<trigonometry::skin_animator_clip> clips;
 
 		public:
-			SkinAnimation(Core::Vector<Trigonometry::SkinAnimatorClip>&& Data) noexcept;
-			~SkinAnimation() = default;
-			const Core::Vector<Trigonometry::SkinAnimatorClip>& GetClips();
-			bool IsValid();
+			skin_animation(core::vector<trigonometry::skin_animator_clip>&& data) noexcept;
+			~skin_animation() = default;
+			const core::vector<trigonometry::skin_animator_clip>& get_clips();
+			bool is_valid();
 		};
 
-		class VI_OUT Material final : public Core::Reference<Material>
+		class material final : public core::reference<material>
 		{
-			friend HeavySeries;
-			friend RenderSystem;
-			friend SceneGraph;
+			friend heavy_series;
+			friend render_system;
+			friend scene_graph;
 
 		public:
-			struct VI_OUT Slots
+			struct slots
 			{
-				uint32_t DiffuseMap = (uint32_t)-1;
-				uint32_t NormalMap = (uint32_t)-1;
-				uint32_t MetallicMap = (uint32_t)-1;
-				uint32_t RoughnessMap = (uint32_t)-1;
-				uint32_t HeightMap = (uint32_t)-1;
-				uint32_t OcclusionMap = (uint32_t)-1;
-				uint32_t EmissionMap = (uint32_t)-1;
+				uint32_t diffuse_map = (uint32_t)-1;
+				uint32_t normal_map = (uint32_t)-1;
+				uint32_t metallic_map = (uint32_t)-1;
+				uint32_t roughness_map = (uint32_t)-1;
+				uint32_t height_map = (uint32_t)-1;
+				uint32_t occlusion_map = (uint32_t)-1;
+				uint32_t emission_map = (uint32_t)-1;
 			};
 
 		private:
-			Graphics::Texture2D* DiffuseMap;
-			Graphics::Texture2D* NormalMap;
-			Graphics::Texture2D* MetallicMap;
-			Graphics::Texture2D* RoughnessMap;
-			Graphics::Texture2D* HeightMap;
-			Graphics::Texture2D* OcclusionMap;
-			Graphics::Texture2D* EmissionMap;
-			Core::String Name;
-			SceneGraph* Scene;
+			graphics::texture_2d* diffuse_map;
+			graphics::texture_2d* normal_map;
+			graphics::texture_2d* metallic_map;
+			graphics::texture_2d* roughness_map;
+			graphics::texture_2d* height_map;
+			graphics::texture_2d* occlusion_map;
+			graphics::texture_2d* emission_map;
+			core::string name;
+			scene_graph* scene;
 
 		public:
-			Subsurface Surface;
-			size_t Slot;
+			subsurface surface;
+			size_t slot;
 
 		public:
-			Material(SceneGraph* NewScene = nullptr) noexcept;
-			Material(const Material& Other) noexcept;
-			~Material() noexcept;
-			void SetName(const std::string_view& Value);
-			const Core::String& GetName() const;
-			void SetDiffuseMap(Graphics::Texture2D* New);
-			Graphics::Texture2D* GetDiffuseMap() const;
-			void SetNormalMap(Graphics::Texture2D* New);
-			Graphics::Texture2D* GetNormalMap() const;
-			void SetMetallicMap(Graphics::Texture2D* New);
-			Graphics::Texture2D* GetMetallicMap() const;
-			void SetRoughnessMap(Graphics::Texture2D* New);
-			Graphics::Texture2D* GetRoughnessMap() const;
-			void SetHeightMap(Graphics::Texture2D* New);
-			Graphics::Texture2D* GetHeightMap() const;
-			void SetOcclusionMap(Graphics::Texture2D* New);
-			Graphics::Texture2D* GetOcclusionMap() const;
-			void SetEmissionMap(Graphics::Texture2D* New);
-			Graphics::Texture2D* GetEmissionMap() const;
-			SceneGraph* GetScene() const;
+			material(scene_graph* new_scene = nullptr) noexcept;
+			material(const material& other) noexcept;
+			~material() noexcept;
+			void set_name(const std::string_view& value);
+			const core::string& get_name() const;
+			void set_diffuse_map(graphics::texture_2d* init);
+			graphics::texture_2d* get_diffuse_map() const;
+			void set_normal_map(graphics::texture_2d* init);
+			graphics::texture_2d* get_normal_map() const;
+			void set_metallic_map(graphics::texture_2d* init);
+			graphics::texture_2d* get_metallic_map() const;
+			void set_roughness_map(graphics::texture_2d* init);
+			graphics::texture_2d* get_roughness_map() const;
+			void set_height_map(graphics::texture_2d* init);
+			graphics::texture_2d* get_height_map() const;
+			void set_occlusion_map(graphics::texture_2d* init);
+			graphics::texture_2d* get_occlusion_map() const;
+			void set_emission_map(graphics::texture_2d* init);
+			graphics::texture_2d* get_emission_map() const;
+			scene_graph* get_scene() const;
 		};
 
-		class VI_OUT Component : public Core::Reference<Component>
+		class component : public core::reference<component>
 		{
-			friend Core::Reference<Component>;
-			friend SceneGraph;
-			friend RenderSystem;
-			friend Entity;
+			friend core::reference<component>;
+			friend scene_graph;
+			friend render_system;
+			friend entity;
 
 		protected:
-			Entity* Parent;
+			entity* parent;
 
 		private:
-			size_t Set;
-			bool Indexed;
-			bool Active;
+			size_t set;
+			bool indexed;
+			bool active;
 
 		public:
-			virtual void Serialize(Core::Schema* Node);
-			virtual void Deserialize(Core::Schema* Node);
-			virtual void Activate(Component* New);
-			virtual void Deactivate();
-			virtual void Synchronize(Core::Timer* Time);
-			virtual void Animate(Core::Timer* Time);
-			virtual void Update(Core::Timer* Time);
-			virtual void Message(const std::string_view& Name, Core::VariantArgs& Args);
-			virtual void Movement();
-			virtual size_t GetUnitBounds(Trigonometry::Vector3& Min, Trigonometry::Vector3& Max) const;
-			virtual float GetVisibility(const Viewer& View, float Distance) const;
-			virtual Core::Unique<Component> Copy(Entity* New) const = 0;
-			Entity* GetEntity() const;
-			void SetActive(bool Enabled);
-			bool IsDrawable() const;
-			bool IsCullable() const;
-			bool IsActive() const;
+			virtual void serialize(core::schema* node);
+			virtual void deserialize(core::schema* node);
+			virtual void activate(component* init);
+			virtual void deactivate();
+			virtual void synchronize(core::timer* time);
+			virtual void animate(core::timer* time);
+			virtual void update(core::timer* time);
+			virtual void message(const std::string_view& name, core::variant_args& args);
+			virtual void movement();
+			virtual size_t get_unit_bounds(trigonometry::vector3& min, trigonometry::vector3& max) const;
+			virtual float get_visibility(const viewer& view, float distance) const;
+			virtual core::unique<component> copy(entity* init) const = 0;
+			entity* get_entity() const;
+			void set_active(bool enabled);
+			bool is_drawable() const;
+			bool is_cullable() const;
+			bool is_active() const;
 
 		protected:
-			Component(Entity* Ref, ActorSet Rule) noexcept;
-			virtual ~Component() noexcept;
+			component(entity* ref, actor_set rule) noexcept;
+			virtual ~component() noexcept;
 
 		public:
 			VI_COMPONENT_ROOT("base_component");
 		};
 
-		class VI_OUT Entity final : public Core::Reference<Entity>
+		class entity final : public core::reference<entity>
 		{
-			friend Core::Reference<Entity>;
-			friend SceneGraph;
-			friend RenderSystem;
+			friend core::reference<entity>;
+			friend scene_graph;
+			friend render_system;
 
 		private:
 			struct
 			{
-				Trigonometry::Matrix4x4 Box;
-				Trigonometry::Vector3 Min;
-				Trigonometry::Vector3 Max;
-				float Distance = 0.0f;
-				float Visibility = 0.0f;
-			} Snapshot;
+				trigonometry::matrix4x4 box;
+				trigonometry::vector3 min;
+				trigonometry::vector3 max;
+				float distance = 0.0f;
+				float visibility = 0.0f;
+			} snapshot;
 
 			struct
 			{
-				Core::UnorderedMap<uint64_t, Component*> Components;
-				Core::String Name;
-			} Type;
+				core::unordered_map<uint64_t, component*> components;
+				core::string name;
+			} type;
 
 		private:
-			Trigonometry::Transform* Transform;
-			SceneGraph* Scene;
-			bool Active;
+			trigonometry::transform* transform;
+			scene_graph* scene;
+			bool active;
 
 		public:
-			void SetName(const std::string_view& Value);
-			void SetRoot(Entity* Parent);
-			void UpdateBounds();
-			void RemoveComponent(uint64_t Id);
-			void RemoveChilds();
-			Component* AddComponent(Core::Unique<Component> In);
-			Component* GetComponent(uint64_t Id);
-			size_t GetComponentsCount() const;
-			SceneGraph* GetScene() const;
-			Entity* GetParent() const;
-			Entity* GetChild(size_t Index) const;
-			Trigonometry::Transform* GetTransform() const;
-			const Trigonometry::Matrix4x4& GetBox() const;
-			const Trigonometry::Vector3& GetMin() const;
-			const Trigonometry::Vector3& GetMax() const;
-			const Core::String& GetName() const;
-			size_t GetChildsCount() const;
-			float GetVisibility(const Viewer& Base) const;
-			bool IsActive() const;
-			Trigonometry::Vector3 GetRadius3() const;
-			float GetRadius() const;
+			void set_name(const std::string_view& value);
+			void set_root(entity* parent);
+			void update_bounds();
+			void remove_component(uint64_t id);
+			void remove_childs();
+			component* add_component(core::unique<component> in);
+			component* get_component(uint64_t id);
+			size_t get_components_count() const;
+			scene_graph* get_scene() const;
+			entity* get_parent() const;
+			entity* get_child(size_t index) const;
+			trigonometry::transform* get_transform() const;
+			const trigonometry::matrix4x4& get_box() const;
+			const trigonometry::vector3& get_min() const;
+			const trigonometry::vector3& get_max() const;
+			const core::string& get_name() const;
+			size_t get_childs_count() const;
+			float get_visibility(const viewer& base) const;
+			bool is_active() const;
+			trigonometry::vector3 get_radius3() const;
+			float get_radius() const;
 
 		private:
-			Entity(SceneGraph* NewScene) noexcept;
-			~Entity() noexcept;
+			entity(scene_graph* new_scene) noexcept;
+			~entity() noexcept;
 
 		public:
-			Core::UnorderedMap<uint64_t, Component*>::iterator begin()
+			core::unordered_map<uint64_t, component*>::iterator begin()
 			{
-				return Type.Components.begin();
+				return type.components.begin();
 			}
-			Core::UnorderedMap<uint64_t, Component*>::iterator end()
+			core::unordered_map<uint64_t, component*>::iterator end()
 			{
-				return Type.Components.end();
-			}
-
-		public:
-			template <typename In>
-			void RemoveComponent()
-			{
-				RemoveComponent(In::GetTypeId());
-			}
-			template <typename In>
-			In* AddComponent()
-			{
-				return (In*)AddComponent(new In(this));
-			}
-			template <typename In>
-			In* GetComponent()
-			{
-				return (In*)GetComponent(In::GetTypeId());
+				return type.components.end();
 			}
 
 		public:
-			template <typename T>
-			static bool Sortout(T* A, T* B)
+			template <typename in>
+			void remove_component()
 			{
-				return A->Parent->Snapshot.Distance - B->Parent->Snapshot.Distance < 0;
+				remove_component(in::get_type_id());
+			}
+			template <typename in>
+			in* add_component()
+			{
+				return (in*)add_component(new in(this));
+			}
+			template <typename in>
+			in* get_component()
+			{
+				return (in*)get_component(in::get_type_id());
+			}
+
+		public:
+			template <typename t>
+			static bool sortout(t* a, t* b)
+			{
+				return a->parent->snapshot.distance - b->parent->snapshot.distance < 0;
 			}
 		};
 
-		class VI_OUT Drawable : public Component
+		class drawable : public component
 		{
-			friend SceneGraph;
+			friend scene_graph;
 
 		protected:
-			Core::UnorderedMap<void*, Material*> Materials;
+			core::unordered_map<void*, material*> materials;
 
 		private:
-			GeoCategory Category;
-			uint64_t Source;
+			geo_category category;
+			uint64_t source;
 
 		public:
-			float Overlapping;
-			bool Static;
+			float overlapping;
+			bool constant;
 
 		public:
-			Drawable(Entity* Ref, ActorSet Rule, uint64_t Hash) noexcept;
-			virtual ~Drawable() noexcept;
-			virtual void Message(const std::string_view& Name, Core::VariantArgs& Args) override;
-			virtual void Movement() override;
-			virtual Core::Unique<Component> Copy(Entity* New) const override = 0;
-			void ClearMaterials();
-			bool SetCategory(GeoCategory NewCategory);
-			bool SetMaterial(void* Instance, Material* Value);
-			bool SetMaterial(Material* Value);
-			GeoCategory GetCategory() const;
-			int64_t GetSlot(void* Surface);
-			int64_t GetSlot();
-			Material* GetMaterial(void* Surface);
-			Material* GetMaterial();
-			const Core::UnorderedMap<void*, Material*>& GetMaterials();
+			drawable(entity* ref, actor_set rule, uint64_t hash) noexcept;
+			virtual ~drawable() noexcept;
+			virtual void message(const std::string_view& name, core::variant_args& args) override;
+			virtual void movement() override;
+			virtual core::unique<component> copy(entity* init) const override = 0;
+			void clear_materials();
+			bool set_category(geo_category new_category);
+			bool set_material(void* instance, material* value);
+			bool set_material(material* value);
+			geo_category get_category() const;
+			int64_t get_slot(void* surface);
+			int64_t get_slot();
+			material* get_material(void* surface);
+			material* get_material();
+			const core::unordered_map<void*, material*>& get_materials();
 
 		public:
 			VI_COMPONENT("drawable_component");
 		};
 
-		class VI_OUT Renderer : public Core::Reference<Renderer>
+		class renderer : public core::reference<renderer>
 		{
-			friend SceneGraph;
+			friend scene_graph;
 
 		protected:
-			RenderSystem* System;
+			render_system* system;
 
 		public:
-			bool Active;
+			bool active;
 
 		public:
-			Renderer(RenderSystem* Lab) noexcept;
-			virtual ~Renderer() noexcept;
-			virtual void Serialize(Core::Schema* Node);
-			virtual void Deserialize(Core::Schema* Node);
-			virtual void ClearCulling();
-			virtual void ResizeBuffers();
-			virtual void Activate();
-			virtual void Deactivate();
-			virtual void BeginPass(Core::Timer* Time);
-			virtual void EndPass();
-			virtual bool HasCategory(GeoCategory Category);
-			virtual size_t RenderPrepass(Core::Timer* Time);
-			virtual size_t RenderPass(Core::Timer* Time) = 0;
-			void SetRenderer(RenderSystem* NewSystem);
-			RenderSystem* GetRenderer() const;
+			renderer(render_system* lab) noexcept;
+			virtual ~renderer() noexcept;
+			virtual void serialize(core::schema* node);
+			virtual void deserialize(core::schema* node);
+			virtual void clear_culling();
+			virtual void resize_buffers();
+			virtual void activate();
+			virtual void deactivate();
+			virtual void begin_pass(core::timer* time);
+			virtual void end_pass();
+			virtual bool has_category(geo_category category);
+			virtual size_t render_prepass(core::timer* time);
+			virtual size_t render_pass(core::timer* time) = 0;
+			void set_renderer(render_system* new_system);
+			render_system* get_renderer() const;
 
 		public:
 			VI_COMPONENT_ROOT("base_renderer");
 		};
 
-		class VI_OUT RenderConstants final : public Core::Reference<RenderConstants>
+		class render_constants final : public core::reference<render_constants>
 		{
 		private:
 			struct
 			{
-				Graphics::ElementBuffer* Buffers[3] = { nullptr };
-				Graphics::Shader* BasicEffect = nullptr;
-				void* Pointers[3] = { nullptr };
-				size_t Sizes[3] = { 0 };
-			} Binding;
+				graphics::element_buffer* buffers[3] = { nullptr };
+				graphics::shader* basic_effect = nullptr;
+				void* pointers[3] = { nullptr };
+				size_t sizes[3] = { 0 };
+			} binding;
 
 		private:
-			Graphics::GraphicsDevice* Device;
+			graphics::graphics_device* device;
 
 		public:
-			AnimationBuffer Animation;
-			RenderBuffer Render;
-			ViewBuffer View;
+			animation_buffer animation;
+			render_buffer render;
+			view_buffer view;
 
 		public:
-			RenderConstants(Graphics::GraphicsDevice* NewDevice) noexcept;
-			~RenderConstants() noexcept;
-			void SetConstantBuffer(RenderBufferType Buffer, uint32_t Slot, uint32_t Type);
-			void SetUpdatedConstantBuffer(RenderBufferType Buffer, uint32_t Slot, uint32_t Type);
-			void UpdateConstantBuffer(RenderBufferType Buffer);
-			Graphics::Shader* GetBasicEffect() const;
-			Graphics::GraphicsDevice* GetDevice() const;
-			Graphics::ElementBuffer* GetConstantBuffer(RenderBufferType Buffer) const;
+			render_constants(graphics::graphics_device* new_device) noexcept;
+			~render_constants() noexcept;
+			void set_constant_buffer(render_buffer_type buffer, uint32_t slot, uint32_t type);
+			void set_updated_constant_buffer(render_buffer_type buffer, uint32_t slot, uint32_t type);
+			void update_constant_buffer(render_buffer_type buffer);
+			graphics::shader* get_basic_effect() const;
+			graphics::graphics_device* get_device() const;
+			graphics::element_buffer* get_constant_buffer(render_buffer_type buffer) const;
 		};
 
-		class VI_OUT RenderSystem final : public Core::Reference<RenderSystem>
+		class render_system final : public core::reference<render_system>
 		{
 		public:
-			struct RsIndex
+			struct rs_index
 			{
-				Trigonometry::Cosmos::Iterator Stack;
-				Trigonometry::Frustum6P Frustum;
-				Trigonometry::Bounding Bounds;
-				Core::Vector<void*> Queue;
-			} Indexing;
+				trigonometry::cosmos::iterator stack;
+				trigonometry::frustum6p frustum;
+				trigonometry::bounding bounds;
+				core::vector<void*> queue;
+			} indexing;
 
-			struct RsState
+			struct rs_state
 			{
-				friend RenderSystem;
+				friend render_system;
 
 			private:
-				RenderState Target = RenderState::Geometric;
-				RenderOpt Options = RenderOpt::None;
-				size_t Top = 0;
+				render_state target = render_state::geometry;
+				render_opt options = render_opt::none;
+				size_t top = 0;
 
 			public:
-				bool Is(RenderState State) const
+				bool is(render_state state) const
 				{
-					return Target == State;
+					return target == state;
 				}
-				bool IsSet(RenderOpt Option) const
+				bool is_set(render_opt option) const
 				{
-					return (size_t)Options & (size_t)Option;
+					return (size_t)options & (size_t)option;
 				}
-				bool IsTop() const
+				bool is_top() const
 				{
-					return Top <= 1;
+					return top <= 1;
 				}
-				bool IsSubpass() const
+				bool is_subpass() const
 				{
-					return !IsTop();
+					return !is_top();
 				}
-				RenderOpt GetOpts() const
+				render_opt get_opts() const
 				{
-					return Options;
+					return options;
 				}
-				RenderState Get() const
+				render_state get() const
 				{
-					return Target;
+					return target;
 				}
-			} State;
+			} state;
 
 		protected:
-			Core::Vector<Renderer*> Renderers;
-			Graphics::GraphicsDevice* Device;
-			Material* BaseMaterial;
-			SceneGraph* Scene;
-			Component* Owner;
+			core::vector<renderer*> renderers;
+			graphics::graphics_device* device;
+			material* base_material;
+			scene_graph* scene;
+			component* owner;
 
 		public:
-			RenderConstants* Constants;
-			Viewer View;
-			size_t MaxQueries;
-			size_t SortingFrequency;
-			size_t OcclusionSkips;
-			size_t OccluderSkips;
-			size_t OccludeeSkips;
-			float OccludeeScaling;
-			float OverflowVisibility;
-			float Threshold;
-			bool OcclusionCulling;
-			bool PreciseCulling;
-			bool AllowInputLag;
+			render_constants* constants;
+			viewer view;
+			size_t max_queries;
+			size_t sorting_frequency;
+			size_t occlusion_skips;
+			size_t occluder_skips;
+			size_t occludee_skips;
+			float occludee_scaling;
+			float overflow_visibility;
+			float threshold;
+			bool occlusion_culling;
+			bool precise_culling;
+			bool allow_input_lag;
 
 		public:
-			RenderSystem(SceneGraph* NewScene, Component* NewComponent) noexcept;
-			~RenderSystem() noexcept;
-			void SetView(const Trigonometry::Matrix4x4& View, const Trigonometry::Matrix4x4& Projection, const Trigonometry::Vector3& Position, float Fov, float Ratio, float Near, float Far, RenderCulling Type);
-			void ClearCulling();
-			void RemoveRenderers();
-			void RestoreViewBuffer(Viewer* View);
-			void Remount(Renderer* Target);
-			void Remount();
-			void Mount();
-			void Unmount();
-			void MoveRenderer(uint64_t Id, size_t Offset);
-			void RemoveRenderer(uint64_t Id);
-			void RestoreOutput();
-			void FreeShader(const std::string_view& Name, Graphics::Shader* Shader);
-			void FreeShader(Graphics::Shader* Shader);
-			void FreeBuffers(const std::string_view& Name, Graphics::ElementBuffer** Buffers);
-			void FreeBuffers(Graphics::ElementBuffer** Buffers);
-			void SetConstantBuffer(RenderBufferType Buffer, uint32_t Slot, uint32_t Type);
-			void SetUpdatedConstantBuffer(RenderBufferType Buffer, uint32_t Slot, uint32_t Type);
-			void UpdateConstantBuffer(RenderBufferType Buffer);
-			void ClearMaterials();
-			void FetchVisibility(Component* Base, VisibilityQuery& Data);
-			size_t Render(Core::Timer* Time, RenderState Stage, RenderOpt Options);
-			bool TryInstance(Material* Next, RenderBuffer::Instance& Target);
-			bool TryGeometry(Material* Next, Material::Slots* Slotdata);
-			bool HasCategory(GeoCategory Category);
-			Graphics::ExpectsGraphics<Graphics::Shader*> CompileShader(Graphics::Shader::Desc& Desc, size_t BufferSize = 0);
-			Graphics::ExpectsGraphics<Graphics::Shader*> CompileShader(const std::string_view& SectionName, size_t BufferSize = 0);
-			Graphics::ExpectsGraphics<void> CompileBuffers(Graphics::ElementBuffer** Result, const std::string_view& Name, size_t ElementSize, size_t ElementsCount);
-			Renderer* AddRenderer(Core::Unique<Renderer> In);
-			Renderer* GetRenderer(uint64_t Id);
-			bool GetOffset(uint64_t Id, size_t& Offset) const;
-			Core::Vector<Renderer*>& GetRenderers();
-			Graphics::MultiRenderTarget2D* GetMRT(TargetType Type) const;
-			Graphics::RenderTarget2D* GetRT(TargetType Type) const;
-			Graphics::ElementBuffer* GetMaterialBuffer() const;
-			Graphics::Texture2D** GetMerger();
-			Graphics::GraphicsDevice* GetDevice() const;
-			Graphics::Shader* GetBasicEffect() const;
-			RenderConstants* GetConstants() const;
-			PrimitiveCache* GetPrimitives() const;
-			SceneGraph* GetScene() const;
-			Component* GetComponent() const;
+			render_system(scene_graph* new_scene, component* new_component) noexcept;
+			~render_system() noexcept;
+			void set_view(const trigonometry::matrix4x4& view, const trigonometry::matrix4x4& projection, const trigonometry::vector3& position, float fov, float ratio, float near, float far, render_culling type);
+			void clear_culling();
+			void remove_renderers();
+			void restore_view_buffer(viewer* view);
+			void remount(renderer* target);
+			void remount();
+			void mount();
+			void unmount();
+			void move_renderer(uint64_t id, size_t offset);
+			void remove_renderer(uint64_t id);
+			void restore_output();
+			void free_shader(const std::string_view& name, graphics::shader* shader);
+			void free_shader(graphics::shader* shader);
+			void free_buffers(const std::string_view& name, graphics::element_buffer** buffers);
+			void free_buffers(graphics::element_buffer** buffers);
+			void set_constant_buffer(render_buffer_type buffer, uint32_t slot, uint32_t type);
+			void set_updated_constant_buffer(render_buffer_type buffer, uint32_t slot, uint32_t type);
+			void update_constant_buffer(render_buffer_type buffer);
+			void clear_materials();
+			void fetch_visibility(component* base, visibility_query& data);
+			size_t render(core::timer* time, render_state stage, render_opt options);
+			bool try_instance(material* next, render_buffer::instance& target);
+			bool try_geometry(material* next, material::slots* slotdata);
+			bool has_category(geo_category category);
+			graphics::expects_graphics<graphics::shader*> compile_shader(graphics::shader::desc& desc, size_t buffer_size = 0);
+			graphics::expects_graphics<graphics::shader*> compile_shader(const std::string_view& section_name, core::vector<core::string>&& features, size_t buffer_size = 0);
+			graphics::expects_graphics<void> compile_buffers(graphics::element_buffer** result, const std::string_view& name, size_t element_size, size_t elements_count);
+			renderer* add_renderer(core::unique<renderer> in);
+			renderer* get_renderer(uint64_t id);
+			bool get_offset(uint64_t id, size_t& offset) const;
+			core::vector<renderer*>& get_renderers();
+			graphics::multi_render_target_2d* get_mrt(target_type type) const;
+			graphics::render_target_2d* get_rt(target_type type) const;
+			graphics::element_buffer* get_material_buffer() const;
+			graphics::texture_2d** get_merger();
+			graphics::graphics_device* get_device() const;
+			graphics::shader* get_basic_effect() const;
+			render_constants* get_constants() const;
+			primitive_cache* get_primitives() const;
+			scene_graph* get_scene() const;
+			component* get_component() const;
 
 		private:
-			SparseIndex& GetStorageWrapper(uint64_t Section);
-			void Watch(Core::Vector<Core::Promise<void>>&& Tasks);
+			sparse_index& get_storage_wrapper(uint64_t section);
+			void watch(core::vector<core::promise<void>>&& tasks);
 
 		private:
-			template <typename T, typename OverlapsFunction, typename MatchFunction>
-			void QueryDispatch(Trigonometry::Cosmos& Index, const OverlapsFunction& Overlaps, const MatchFunction& Match)
+			template <typename t, typename overlaps_function, typename match_function>
+			void query_dispatch(trigonometry::cosmos& index, const overlaps_function& overlaps, const match_function& match)
 			{
-				Indexing.Stack.clear();
-				if (!Index.Empty())
-					Indexing.Stack.push_back(Index.GetRoot());
+				indexing.stack.clear();
+				if (!index.empty())
+					indexing.stack.push_back(index.get_root());
 
-				while (!Indexing.Stack.empty())
+				while (!indexing.stack.empty())
 				{
-					auto& Next = Index.GetNode(Indexing.Stack.back());
-					Indexing.Stack.pop_back();
+					auto& next = index.get_node(indexing.stack.back());
+					indexing.stack.pop_back();
 
-					if (Overlaps(Next.Bounds))
+					if (overlaps(next.bounds))
 					{
-						if (!Next.IsLeaf())
+						if (!next.is_leaf())
 						{
-							Indexing.Stack.push_back(Next.Left);
-							Indexing.Stack.push_back(Next.Right);
+							indexing.stack.push_back(next.left);
+							indexing.stack.push_back(next.right);
 						}
-						else if (Next.Item != nullptr)
-							Match((T*)Next.Item);
+						else if (next.item != nullptr)
+							match((t*)next.item);
 					}
 				}
 			}
-			template <typename T, typename OverlapsFunction, typename MatchFunction>
-			void ParallelQueryDispatch(Trigonometry::Cosmos& Index, const OverlapsFunction& Overlaps, const MatchFunction& Match)
+			template <typename t, typename overlaps_function, typename match_function>
+			void parallel_query_dispatch(trigonometry::cosmos& index, const overlaps_function& overlaps, const match_function& match)
 			{
-				Indexing.Stack.clear();
-				Indexing.Queue.clear();
+				indexing.stack.clear();
+				indexing.queue.clear();
 
-				if (!Index.Empty())
-					Indexing.Stack.push_back(Index.GetRoot());
+				if (!index.empty())
+					indexing.stack.push_back(index.get_root());
 
-				while (!Indexing.Stack.empty())
+				while (!indexing.stack.empty())
 				{
-					auto& Next = Index.GetNode(Indexing.Stack.back());
-					Indexing.Stack.pop_back();
+					auto& next = index.get_node(indexing.stack.back());
+					indexing.stack.pop_back();
 
-					if (Overlaps(Next.Bounds))
+					if (overlaps(next.bounds))
 					{
-						if (!Next.IsLeaf())
+						if (!next.is_leaf())
 						{
-							Indexing.Stack.push_back(Next.Left);
-							Indexing.Stack.push_back(Next.Right);
+							indexing.stack.push_back(next.left);
+							indexing.stack.push_back(next.right);
 						}
-						else if (Next.Item != nullptr)
-							Indexing.Queue.push_back(Next.Item);
+						else if (next.item != nullptr)
+							indexing.queue.push_back(next.item);
 					}
 				}
 
-				if (Indexing.Queue.empty())
+				if (indexing.queue.empty())
 					return;
 
-				Watch(Parallel::ForEach(Indexing.Queue.begin(), Indexing.Queue.end(), THRESHOLD_PER_THREAD, [Match](void* Item)
+				watch(parallel::for_each(indexing.queue.begin(), indexing.queue.end(), THRESHOLD_PER_THREAD, [match](void* item)
 				{
-					Match(Parallel::GetThreadIndex(), (T*)Item);
+					match(parallel::get_thread_index(), (t*)item);
 				}));
 			}
 
 		public:
-			template <typename MatchFunction>
-			void QueryGroup(uint64_t Id, MatchFunction&& Callback)
+			template <typename match_function>
+			void query_group(uint64_t id, match_function&& callback)
 			{
-				auto& Storage = GetStorageWrapper(Id);
-				switch (View.Culling)
+				auto& storage = get_storage_wrapper(id);
+				switch (view.culling)
 				{
-					case RenderCulling::Linear:
+					case render_culling::depth:
 					{
-						auto Overlaps = [this](const Trigonometry::Bounding& Bounds) { return Indexing.Frustum.OverlapsAABB(Bounds); };
-						QueryDispatch<Component, decltype(Overlaps), decltype(Callback)>(Storage.Index, Overlaps, Callback);
+						auto overlaps = [this](const trigonometry::bounding& bounds) { return indexing.frustum.overlaps_aabb(bounds); };
+						query_dispatch<component, decltype(overlaps), decltype(callback)>(storage.index, overlaps, callback);
 						break;
 					}
-					case RenderCulling::Cubic:
+					case render_culling::depth_cube:
 					{
-						auto Overlaps = [this](const Trigonometry::Bounding& Bounds) { return Indexing.Bounds.Overlaps(Bounds); };
-						QueryDispatch<Component, decltype(Overlaps), decltype(Callback)>(Storage.Index, Overlaps, Callback);
+						auto overlaps = [this](const trigonometry::bounding& bounds) { return indexing.bounds.overlaps(bounds); };
+						query_dispatch<component, decltype(overlaps), decltype(callback)>(storage.index, overlaps, callback);
 						break;
 					}
 					default:
-						std::for_each(Storage.Data.Begin(), Storage.Data.End(), std::move(Callback));
+						std::for_each(storage.data.begin(), storage.data.end(), std::move(callback));
 						break;
 				}
 			}
-			template <typename InitFunction, typename MatchFunction>
-			void ParallelQueryGroup(uint64_t Id, InitFunction&& InitCallback, MatchFunction&& ElementCallback)
+			template <typename init_function, typename match_function>
+			void parallel_query_group(uint64_t id, init_function&& init_callback, match_function&& element_callback)
 			{
-				auto& Storage = GetStorageWrapper(Id);
-				switch (View.Culling)
+				auto& storage = get_storage_wrapper(id);
+				switch (view.culling)
 				{
-					case RenderCulling::Linear:
+					case render_culling::depth:
 					{
-						auto Overlaps = [this](const Trigonometry::Bounding& Bounds) { return Indexing.Frustum.OverlapsAABB(Bounds); };
-						InitCallback(Parallel::GetThreads());
-						ParallelQueryDispatch<Component, decltype(Overlaps), decltype(ElementCallback)>(Storage.Index, Overlaps, ElementCallback);
+						auto overlaps = [this](const trigonometry::bounding& bounds) { return indexing.frustum.overlaps_aabb(bounds); };
+						init_callback(parallel::get_threads());
+						parallel_query_dispatch<component, decltype(overlaps), decltype(element_callback)>(storage.index, overlaps, element_callback);
 						break;
 					}
-					case RenderCulling::Cubic:
+					case render_culling::depth_cube:
 					{
-						auto Overlaps = [this](const Trigonometry::Bounding& Bounds) { return Indexing.Bounds.Overlaps(Bounds); };
-						InitCallback(Parallel::GetThreads());
-						ParallelQueryDispatch<Component, decltype(Overlaps), decltype(ElementCallback)>(Storage.Index, Overlaps, ElementCallback);
+						auto overlaps = [this](const trigonometry::bounding& bounds) { return indexing.bounds.overlaps(bounds); };
+						init_callback(parallel::get_threads());
+						parallel_query_dispatch<component, decltype(overlaps), decltype(element_callback)>(storage.index, overlaps, element_callback);
 						break;
 					}
 					default:
-						if (!Storage.Data.Empty())
-							Watch(Parallel::Distribute(Storage.Data.Begin(), Storage.Data.End(), std::move(InitCallback), std::move(ElementCallback)));
+						if (!storage.data.empty())
+							watch(parallel::distribute(storage.data.begin(), storage.data.end(), std::move(init_callback), std::move(element_callback)));
 						break;
 				}
 			}
-			template <typename T, typename MatchFunction>
-			void Query(MatchFunction&& Callback)
+			template <typename t, typename match_function>
+			void query(match_function&& callback)
 			{
-				auto& Storage = GetStorageWrapper(T::GetTypeId());
-				switch (View.Culling)
+				auto& storage = get_storage_wrapper(t::get_type_id());
+				switch (view.culling)
 				{
-					case RenderCulling::Linear:
+					case render_culling::depth:
 					{
-						auto Overlaps = [this](const Trigonometry::Bounding& Bounds) { return Indexing.Frustum.OverlapsAABB(Bounds); };
-						QueryDispatch<T, decltype(Overlaps), decltype(Callback)>(Storage.Index, Overlaps, Callback);
+						auto overlaps = [this](const trigonometry::bounding& bounds) { return indexing.frustum.overlaps_aabb(bounds); };
+						query_dispatch<t, decltype(overlaps), decltype(callback)>(storage.index, overlaps, callback);
 						break;
 					}
-					case RenderCulling::Cubic:
+					case render_culling::depth_cube:
 					{
-						auto Overlaps = [this](const Trigonometry::Bounding& Bounds) { return Indexing.Bounds.Overlaps(Bounds); };
-						QueryDispatch<T, decltype(Overlaps), decltype(Callback)>(Storage.Index, Overlaps, Callback);
+						auto overlaps = [this](const trigonometry::bounding& bounds) { return indexing.bounds.overlaps(bounds); };
+						query_dispatch<t, decltype(overlaps), decltype(callback)>(storage.index, overlaps, callback);
 						break;
 					}
 					default:
-						std::for_each(Storage.Data.Begin(), Storage.Data.End(), std::move(Callback));
+						std::for_each(storage.data.begin(), storage.data.end(), std::move(callback));
 						break;
 				}
 			}
-			template <typename T, typename InitFunction, typename MatchFunction>
-			void ParallelQuery(InitFunction&& InitCallback, MatchFunction&& ElementCallback)
+			template <typename t, typename init_function, typename match_function>
+			void parallel_query(init_function&& init_callback, match_function&& element_callback)
 			{
-				auto& Storage = GetStorageWrapper(T::GetTypeId());
-				switch (View.Culling)
+				auto& storage = get_storage_wrapper(t::get_type_id());
+				switch (view.culling)
 				{
-					case RenderCulling::Linear:
+					case render_culling::depth:
 					{
-						auto Overlaps = [this](const Trigonometry::Bounding& Bounds) { return Indexing.Frustum.OverlapsAABB(Bounds); };
-						InitCallback(Parallel::GetThreads());
-						ParallelQueryDispatch<T, decltype(Overlaps), decltype(ElementCallback)>(Storage.Index, Overlaps, ElementCallback);
+						auto overlaps = [this](const trigonometry::bounding& bounds) { return indexing.frustum.overlaps_aabb(bounds); };
+						init_callback(parallel::get_threads());
+						parallel_query_dispatch<t, decltype(overlaps), decltype(element_callback)>(storage.index, overlaps, element_callback);
 						break;
 					}
-					case RenderCulling::Cubic:
+					case render_culling::depth_cube:
 					{
-						auto Overlaps = [this](const Trigonometry::Bounding& Bounds) { return Indexing.Bounds.Overlaps(Bounds); };
-						InitCallback(Parallel::GetThreads());
-						ParallelQueryDispatch<T, decltype(Overlaps), decltype(ElementCallback)>(Storage.Index, Overlaps, ElementCallback);
+						auto overlaps = [this](const trigonometry::bounding& bounds) { return indexing.bounds.overlaps(bounds); };
+						init_callback(parallel::get_threads());
+						parallel_query_dispatch<t, decltype(overlaps), decltype(element_callback)>(storage.index, overlaps, element_callback);
 						break;
 					}
 					default:
-						if (!Storage.Data.Empty())
-							Watch(Parallel::Distribute(Storage.Data.Begin(), Storage.Data.End(), THRESHOLD_PER_THREAD, std::move(InitCallback), std::move(ElementCallback)));
+						if (!storage.data.empty())
+							watch(parallel::distribute(storage.data.begin(), storage.data.end(), THRESHOLD_PER_THREAD, std::move(init_callback), std::move(element_callback)));
 						break;
 				}
 			}
-			template <typename T>
-			void RemoveRenderer()
+			template <typename t>
+			void remove_renderer()
 			{
-				RemoveRenderer(T::GetTypeId());
+				remove_renderer(t::get_type_id());
 			}
-			template <typename T, typename... Args>
-			T* AddRenderer(Args&& ... Data)
+			template <typename t, typename... args>
+			t* add_renderer(args&& ... data)
 			{
-				return (T*)AddRenderer(new T(this, Data...));
+				return (t*)add_renderer(new t(this, data...));
 			}
-			template <typename T>
-			T* GetRenderer()
+			template <typename t>
+			t* get_renderer()
 			{
-				return (T*)GetRenderer(T::GetTypeId());
+				return (t*)get_renderer(t::get_type_id());
 			}
-			template <typename In>
-			int64_t GetOffset()
+			template <typename in>
+			int64_t get_offset()
 			{
-				size_t Offset = 0;
-				if (!GetOffset(In::GetTypeId(), Offset))
+				size_t offset = 0;
+				if (!get_offset(in::get_type_id(), offset))
 					return -1;
 
-				return (int64_t)Offset;
+				return (int64_t)offset;
 			}
 		};
 
-		class VI_OUT_TS ShaderCache final : public Core::Reference<ShaderCache>
+		class shader_cache final : public core::reference<shader_cache>
 		{
 		public:
-			struct SCache
+			struct scache
 			{
-				Graphics::Shader* Shader;
-				size_t Count;
+				graphics::shader* shader;
+				size_t count;
 			};
 
 		private:
-			Core::UnorderedMap<Core::String, SCache> Cache;
-			Graphics::GraphicsDevice* Device;
-			std::mutex Exclusive;
+			core::unordered_map<core::string, scache> cache;
+			graphics::graphics_device* device;
+			std::mutex exclusive;
 
 		public:
-			ShaderCache(Graphics::GraphicsDevice* Device) noexcept;
-			~ShaderCache() noexcept;
-			Graphics::ExpectsGraphics<Graphics::Shader*> Compile(const std::string_view& Name, const Graphics::Shader::Desc& Desc, size_t BufferSize = 0);
-			Graphics::Shader* Get(const std::string_view& Name);
-			Core::String Find(Graphics::Shader* Shader);
-			const Core::UnorderedMap<Core::String, SCache>& GetCaches() const;
-			bool Has(const std::string_view& Name);
-			bool Free(const std::string_view& Name, Graphics::Shader* Shader = nullptr);
-			void ClearCache();
+			shader_cache(graphics::graphics_device* device) noexcept;
+			~shader_cache() noexcept;
+			graphics::expects_graphics<graphics::shader*> compile(const std::string_view& name, const graphics::shader::desc& desc, size_t buffer_size = 0);
+			graphics::shader* get(const std::string_view& name);
+			core::string find(graphics::shader* shader);
+			const core::unordered_map<core::string, scache>& get_caches() const;
+			bool has(const std::string_view& name);
+			bool free(const std::string_view& name, graphics::shader* shader = nullptr);
+			void clear_cache();
 		};
 
-		class VI_OUT_TS PrimitiveCache final : public Core::Reference<PrimitiveCache>
+		class primitive_cache final : public core::reference<primitive_cache>
 		{
 		public:
-			struct SCache
+			struct scache
 			{
-				Graphics::ElementBuffer* Buffers[2];
-				size_t Count;
+				graphics::element_buffer* buffers[2];
+				size_t count;
 			};
 
 		private:
-			Core::UnorderedMap<Core::String, SCache> Cache;
-			Graphics::GraphicsDevice* Device;
-			Graphics::ElementBuffer* Sphere[2];
-			Graphics::ElementBuffer* Cube[2];
-			Graphics::ElementBuffer* Box[2];
-			Graphics::ElementBuffer* SkinBox[2];
-			Graphics::ElementBuffer* Quad;
-			Model* BoxModel;
-			SkinModel* SkinBoxModel;
-			std::recursive_mutex Exclusive;
+			core::unordered_map<core::string, scache> cache;
+			graphics::graphics_device* device;
+			graphics::element_buffer* sphere[2];
+			graphics::element_buffer* cube[2];
+			graphics::element_buffer* box[2];
+			graphics::element_buffer* skin_box[2];
+			graphics::element_buffer* quad;
+			model* box_model;
+			skin_model* skin_box_model;
+			std::recursive_mutex exclusive;
 
 		public:
-			PrimitiveCache(Graphics::GraphicsDevice* Device) noexcept;
-			~PrimitiveCache() noexcept;
-			Graphics::ExpectsGraphics<void> Compile(Graphics::ElementBuffer** Result, const std::string_view& Name, size_t ElementSize, size_t ElementsCount);
-			bool Get(Graphics::ElementBuffer** Result, const std::string_view& Name);
-			bool Has(const std::string_view& Name);
-			bool Free(const std::string_view& Name, Graphics::ElementBuffer** Buffers);
-			Core::String Find(Graphics::ElementBuffer** Buffer);
-			Model* GetBoxModel();
-			SkinModel* GetSkinBoxModel();
-			Graphics::ElementBuffer* GetQuad();
-			Graphics::ElementBuffer* GetSphere(BufferType Type);
-			Graphics::ElementBuffer* GetCube(BufferType Type);
-			Graphics::ElementBuffer* GetBox(BufferType Type);
-			Graphics::ElementBuffer* GetSkinBox(BufferType Type);
-			const Core::UnorderedMap<Core::String, SCache>& GetCaches() const;
-			void GetSphereBuffers(Graphics::ElementBuffer** Result);
-			void GetCubeBuffers(Graphics::ElementBuffer** Result);
-			void GetBoxBuffers(Graphics::ElementBuffer** Result);
-			void GetSkinBoxBuffers(Graphics::ElementBuffer** Result);
-			void ClearCache();
+			primitive_cache(graphics::graphics_device* device) noexcept;
+			~primitive_cache() noexcept;
+			graphics::expects_graphics<void> compile(graphics::element_buffer** result, const std::string_view& name, size_t element_size, size_t elements_count);
+			bool get(graphics::element_buffer** result, const std::string_view& name);
+			bool has(const std::string_view& name);
+			bool free(const std::string_view& name, graphics::element_buffer** buffers);
+			core::string find(graphics::element_buffer** buffer);
+			model* get_box_model();
+			skin_model* get_skin_box_model();
+			graphics::element_buffer* get_quad();
+			graphics::element_buffer* get_sphere(buffer_type type);
+			graphics::element_buffer* get_cube(buffer_type type);
+			graphics::element_buffer* get_box(buffer_type type);
+			graphics::element_buffer* get_skin_box(buffer_type type);
+			const core::unordered_map<core::string, scache>& get_caches() const;
+			void get_sphere_buffers(graphics::element_buffer** result);
+			void get_cube_buffers(graphics::element_buffer** result);
+			void get_box_buffers(graphics::element_buffer** result);
+			void get_skin_box_buffers(graphics::element_buffer** result);
+			void clear_cache();
 		};
 
-		class VI_OUT SceneGraph final : public Core::Reference<SceneGraph>
+		class scene_graph final : public core::reference<scene_graph>
 		{
-			friend RenderSystem;
-			friend Renderer;
-			friend Component;
-			friend Entity;
-			friend Drawable;
+			friend render_system;
+			friend renderer;
+			friend component;
+			friend entity;
+			friend drawable;
 
 		public:
-			struct VI_OUT Desc
+			struct desc
 			{
-				struct Dependencies
+				struct dependencies
 				{
-					Graphics::GraphicsDevice* Device = nullptr;
-					Graphics::Activity* Activity = nullptr;
-					Scripting::VirtualMachine* VM = nullptr;
-					HeavyContentManager* Content = nullptr;
-					PrimitiveCache* Primitives = nullptr;
-					ShaderCache* Shaders = nullptr;
-					RenderConstants* Constants = nullptr;
-				} Shared;
+					graphics::graphics_device* device = nullptr;
+					graphics::activity* activity = nullptr;
+					scripting::virtual_machine* vm = nullptr;
+					heavy_content_manager* content = nullptr;
+					primitive_cache* primitives = nullptr;
+					shader_cache* shaders = nullptr;
+					render_constants* constants = nullptr;
+				} shared;
 
-				Physics::Simulator::Desc Simulator;
-				size_t StartMaterials = 1ll << 8;
-				size_t StartEntities = 1ll << 8;
-				size_t StartComponents = 1ll << 8;
-				size_t GrowMargin = 128;
-				size_t MaxUpdates = 256;
-				size_t PointsSize = 256;
-				size_t PointsMax = 4;
-				size_t SpotsSize = 512;
-				size_t SpotsMax = 8;
-				size_t LinesSize = 1024;
-				size_t LinesMax = 2;
-				size_t VoxelsSize = 128;
-				size_t VoxelsMax = 4;
-				size_t VoxelsMips = 0;
-				double GrowRate = 0.25f;
-				float RenderQuality = 1.0f;
-				bool EnableHDR = false;
-				bool Mutations = false;
+				physics::simulator::desc simulator;
+				size_t start_materials = 1ll << 8;
+				size_t start_entities = 1ll << 8;
+				size_t start_components = 1ll << 8;
+				size_t grow_margin = 128;
+				size_t max_updates = 256;
+				size_t points_size = 256;
+				size_t points_max = 4;
+				size_t spots_size = 512;
+				size_t spots_max = 8;
+				size_t lines_size = 1024;
+				size_t lines_max = 2;
+				double grow_rate = 0.25f;
+				float render_quality = 1.0f;
+				bool enable_hdr = false;
+				bool mutations = false;
 
-				void AddRef();
-				void Release();
-				static Desc Get(HeavyApplication* Base);
+				void add_ref();
+				void release();
+				static desc get(heavy_application* base);
 			};
 
 		private:
 			struct
 			{
-				Graphics::MultiRenderTarget2D* MRT[(size_t)TargetType::Count * 2];
-				Graphics::RenderTarget2D* RT[(size_t)TargetType::Count * 2];
-				Graphics::Texture3D* VoxelBuffers[3];
-				Graphics::ElementBuffer* MaterialBuffer;
-				Graphics::DepthStencilState* DepthStencil;
-				Graphics::RasterizerState* Rasterizer;
-				Graphics::BlendState* Blend;
-				Graphics::SamplerState* Sampler;
-				Graphics::InputLayout* Layout;
-				Graphics::Texture2D* Merger;
-				Core::Vector<CubicDepthMap*> Points;
-				Core::Vector<LinearDepthMap*> Spots;
-				Core::Vector<CascadedDepthMap*> Lines;
-				Core::Vector<VoxelMapping> Voxels;
-			} Display;
+				graphics::multi_render_target_2d* mrt[(size_t)target_type::count * 2];
+				graphics::render_target_2d* rt[(size_t)target_type::count * 2];
+				graphics::element_buffer* material_buffer;
+				graphics::depth_stencil_state* depth_stencil;
+				graphics::rasterizer_state* rasterizer;
+				graphics::blend_state* blend;
+				graphics::sampler_state* sampler;
+				graphics::input_layout* layout;
+				graphics::texture_2d* merger;
+				core::vector<depth_cube_map*> points;
+				core::vector<depth_map*> spots;
+				core::vector<depth_cascade_map*> lines;
+			} display;
 
 			struct
 			{
-				uint32_t DiffuseMap = (uint32_t)-1;
-				uint32_t Sampler = (uint32_t)-1;
-				uint32_t Object = (uint32_t)-1;
-			} Slots;
+				uint32_t diffuse_map = (uint32_t)-1;
+				uint32_t sampler = (uint32_t)-1;
+				uint32_t object = (uint32_t)-1;
+			} slots;
 
 			struct
 			{
-				std::atomic<Material*> Default;
-				float Progress = 1.0f;
-			} Loading;
+				std::atomic<material*> defaults;
+				float progress = 1.0f;
+			} loading;
 
 			struct
 			{
-				Core::SingleQueue<Core::Promise<void>> Queue[(size_t)TaskType::Count];
-				std::mutex Update[(size_t)TaskType::Count];
-				bool IsRendering = false;
-			} Tasking;
+				core::single_queue<core::promise<void>> queue[(size_t)task_type::count];
+				std::mutex update[(size_t)task_type::count];
+				bool is_rendering = false;
+			} tasking;
 
 		protected:
-			Core::UnorderedMap<Core::String, Core::UnorderedSet<MessageCallback*>> Listeners;
-			Core::UnorderedMap<uint64_t, Core::UnorderedSet<Component*>> Changes;
-			Core::UnorderedMap<uint64_t, SparseIndex*> Registry;
-			Core::UnorderedMap<Component*, size_t> Incomplete;
-			Core::SingleQueue<Core::TaskCallback> Transactions;
-			Core::SingleQueue<Event> Events;
-			Core::Pool<Component*> Actors[(size_t)ActorType::Count];
-			Core::Pool<Material*> Materials;
-			Core::Pool<Entity*> Entities;
-			Core::Pool<Entity*> Dirty;
-			Physics::Simulator* Simulator;
-			std::atomic<Component*> Camera;
-			std::atomic<bool> Active;
-			std::mutex Exclusive;
-			Desc Conf;
+			core::unordered_map<core::string, core::unordered_set<message_callback*>> listeners;
+			core::unordered_map<uint64_t, core::unordered_set<component*>> changes;
+			core::unordered_map<uint64_t, sparse_index*> registry;
+			core::unordered_map<component*, size_t> incomplete;
+			core::single_queue<core::task_callback> transactions;
+			core::single_queue<event> events;
+			core::pool<component*> actors[(size_t)actor_type::count];
+			core::pool<material*> materials;
+			core::pool<entity*> entities;
+			core::pool<entity*> dirty;
+			physics::simulator* simulator;
+			std::atomic<component*> camera;
+			std::atomic<bool> active;
+			std::mutex exclusive;
+			desc conf;
 
 		public:
-			struct SgStatistics
+			struct sg_statistics
 			{
-				size_t Batching = 0;
-				size_t Sorting = 0;
-				size_t Instances = 0;
-				size_t DrawCalls = 0;
-			} Statistics;
+				size_t batching = 0;
+				size_t sorting = 0;
+				size_t instances = 0;
+				size_t draw_calls = 0;
+			} statistics;
 
 		public:
-			IdxSnapshot* Snapshot;
+			idx_snapshot* snapshot;
 
 		public:
-			SceneGraph(const Desc& I) noexcept;
-			~SceneGraph() noexcept;
-			void Configure(const Desc& Conf);
-			void Actualize();
-			void ResizeBuffers();
-			void Submit();
-			void Dispatch(Core::Timer* Time);
-			void Publish(Core::Timer* Time);
-			void PublishAndSubmit(Core::Timer* Time, float R, float G, float B, bool IsParallel);
-			void DeleteMaterial(Core::Unique<Material> Value);
-			void RemoveEntity(Core::Unique<Entity> Entity);
-			void DeleteEntity(Core::Unique<Entity> Entity);
-			void SetCamera(Entity* Camera);
-			void RayTest(uint64_t Section, const Trigonometry::Ray& Origin, const RayCallback& Callback);
-			void ScriptHook(const std::string_view& Name = "main");
-			void SetActive(bool Enabled);
-			void SetMRT(TargetType Type, bool Clear);
-			void SetRT(TargetType Type, bool Clear);
-			void SwapMRT(TargetType Type, Graphics::MultiRenderTarget2D* New);
-			void SwapRT(TargetType Type, Graphics::RenderTarget2D* New);
-			void ClearMRT(TargetType Type, bool Color, bool Depth);
-			void ClearRT(TargetType Type, bool Color, bool Depth);
-			void Mutate(Entity* Parent, Entity* Child, const std::string_view& Type);
-			void Mutate(Entity* Target, const std::string_view& Type);
-			void Mutate(Component* Target, const std::string_view& Type);
-			void Mutate(Material* Target, const std::string_view& Type);
-			void MakeSnapshot(IdxSnapshot* Result);
-			void Transaction(Core::TaskCallback&& Callback);
-			void Watch(TaskType Type, Core::Promise<void>&& Awaitable);
-			void Watch(TaskType Type, Core::Vector<Core::Promise<void>>&& Awaitables);
-			void Await(TaskType Type);
-			void ClearCulling();
-			void ReserveMaterials(size_t Size);
-			void ReserveEntities(size_t Size);
-			void ReserveComponents(uint64_t Section, size_t Size);
-			void GenerateDepthCascades(Core::Unique<CascadedDepthMap>* Result, uint32_t Size) const;
-			bool GetVoxelBuffer(Graphics::Texture3D** In, Graphics::Texture3D** Out);
-			bool PushEvent(const std::string_view& EventName, Core::VariantArgs&& Args, bool Propagate);
-			bool PushEvent(const std::string_view& EventName, Core::VariantArgs&& Args, Component* Target);
-			bool PushEvent(const std::string_view& EventName, Core::VariantArgs&& Args, Entity* Target);
-			MessageCallback* SetListener(const std::string_view& Event, MessageCallback&& Callback);
-			bool ClearListener(const std::string_view& Event, MessageCallback* Id);
-			bool AddMaterial(Core::Unique<Material> Base);
-			void LoadResource(uint64_t Id, Component* Context, const std::string_view& Path, const Core::VariantArgs& Keys, std::function<void(ExpectsContent<void*>&&)>&& Callback);
-			Core::String FindResourceId(uint64_t Id, void* Resource);
-			Material* GetInvalidMaterial();
-			Material* AddMaterial();
-			Material* CloneMaterial(Material* Base);
-			Entity* GetEntity(size_t Entity);
-			Entity* GetLastEntity();
-			Entity* GetCameraEntity();
-			Component* GetComponent(uint64_t Section, size_t Component);
-			Component* GetCamera();
-			RenderSystem* GetRenderer();
-			Viewer GetCameraViewer() const;
-			Material* GetMaterial(const std::string_view& Material);
-			Material* GetMaterial(size_t Material);
-			SparseIndex& GetStorage(uint64_t Section);
-			Core::Pool<Component*>& GetComponents(uint64_t Section);
-			Core::Pool<Component*>& GetActors(ActorType Type);
-			Graphics::RenderTarget2D::Desc GetDescRT() const;
-			Graphics::MultiRenderTarget2D::Desc GetDescMRT() const;
-			Graphics::Format GetFormatMRT(unsigned int Target) const;
-			Core::Vector<Entity*> CloneEntityAsArray(Entity* Value);
-			Core::Vector<Entity*> QueryByParent(Entity* Parent) const;
-			Core::Vector<Entity*> QueryByName(const std::string_view& Name) const;
-			Core::Vector<Component*> QueryByPosition(uint64_t Section, const Trigonometry::Vector3& Position, float Radius);
-			Core::Vector<Component*> QueryByArea(uint64_t Section, const Trigonometry::Vector3& Min, const Trigonometry::Vector3& Max);
-			Core::Vector<Component*> QueryByMatch(uint64_t Section, std::function<bool(const Trigonometry::Bounding&)>&& MatchCallback);
-			Core::Vector<std::pair<Component*, Trigonometry::Vector3>> QueryByRay(uint64_t Section, const Trigonometry::Ray& Origin);
-			Core::Vector<CubicDepthMap*>& GetPointsMapping();
-			Core::Vector<LinearDepthMap*>& GetSpotsMapping();
-			Core::Vector<CascadedDepthMap*>& GetLinesMapping();
-			Core::Vector<VoxelMapping>& GetVoxelsMapping();
-			const Core::UnorderedMap<uint64_t, SparseIndex*>& GetRegistry() const;
-			Core::String AsResourcePath(const std::string_view& Path);
-			Entity* AddEntity();
-			Entity* CloneEntity(Entity* Value);
-			bool AddEntity(Core::Unique<Entity> Entity);
-			bool IsActive() const;
-			bool IsLeftHanded() const;
-			bool IsIndexed() const;
-			bool IsBusy(TaskType Type);
-			size_t GetMaterialsCount() const;
-			size_t GetEntitiesCount() const;
-			size_t GetComponentsCount(uint64_t Section);
-			bool HasEntity(Entity* Entity) const;
-			bool HasEntity(size_t Entity) const;
-			Graphics::MultiRenderTarget2D* GetMRT(TargetType Type) const;
-			Graphics::RenderTarget2D* GetRT(TargetType Type) const;
-			Graphics::Texture2D** GetMerger();
-			Graphics::ElementBuffer* GetMaterialBuffer() const;
-			Graphics::GraphicsDevice* GetDevice() const;
-			Physics::Simulator* GetSimulator() const;
-			Graphics::Activity* GetActivity() const;
-			RenderConstants* GetConstants() const;
-			ShaderCache* GetShaders() const;
-			PrimitiveCache* GetPrimitives() const;
-			Desc& GetConf();
+			scene_graph(const desc& i) noexcept;
+			~scene_graph() noexcept;
+			void configure(const desc& conf);
+			void actualize();
+			void resize_buffers();
+			void submit();
+			void dispatch(core::timer* time);
+			void publish(core::timer* time);
+			void publish_and_submit(core::timer* time, float r, float g, float b, bool is_parallel);
+			void delete_material(core::unique<material> value);
+			void remove_entity(core::unique<entity> entity);
+			void delete_entity(core::unique<entity> entity);
+			void set_camera(entity* camera);
+			void ray_test(uint64_t section, const trigonometry::ray& origin, const ray_callback& callback);
+			void script_hook(const std::string_view& name = "main");
+			void set_active(bool enabled);
+			void set_mrt(target_type type, bool clear);
+			void set_rt(target_type type, bool clear);
+			void swap_mrt(target_type type, graphics::multi_render_target_2d* init);
+			void swap_rt(target_type type, graphics::render_target_2d* init);
+			void clear_mrt(target_type type, bool color, bool depth);
+			void clear_rt(target_type type, bool color, bool depth);
+			void mutate(entity* parent, entity* child, const std::string_view& type);
+			void mutate(entity* target, const std::string_view& type);
+			void mutate(component* target, const std::string_view& type);
+			void mutate(material* target, const std::string_view& type);
+			void make_snapshot(idx_snapshot* result);
+			void transaction(core::task_callback&& callback);
+			void watch(task_type type, core::promise<void>&& awaitable);
+			void watch(task_type type, core::vector<core::promise<void>>&& awaitables);
+			void await(task_type type);
+			void clear_culling();
+			void reserve_materials(size_t size);
+			void reserve_entities(size_t size);
+			void reserve_components(uint64_t section, size_t size);
+			void generate_depth_cascades(core::unique<depth_cascade_map>* result, uint32_t size) const;
+			bool push_event(const std::string_view& event_name, core::variant_args&& args, bool propagate);
+			bool push_event(const std::string_view& event_name, core::variant_args&& args, component* target);
+			bool push_event(const std::string_view& event_name, core::variant_args&& args, entity* target);
+			message_callback* set_listener(const std::string_view& event, message_callback&& callback);
+			bool clear_listener(const std::string_view& event, message_callback* id);
+			bool add_material(core::unique<material> base);
+			void load_resource(uint64_t id, component* context, const std::string_view& path, const core::variant_args& keys, std::function<void(expects_content<void*>&&)>&& callback);
+			core::string find_resource_id(uint64_t id, void* resource);
+			material* get_invalid_material();
+			material* add_material();
+			material* clone_material(material* base);
+			entity* get_entity(size_t entity);
+			entity* get_last_entity();
+			entity* get_camera_entity();
+			component* get_component(uint64_t section, size_t component);
+			component* get_camera();
+			render_system* get_renderer();
+			viewer get_camera_viewer() const;
+			material* get_material(const std::string_view& material);
+			material* get_material(size_t material);
+			sparse_index& get_storage(uint64_t section);
+			core::pool<component*>& get_components(uint64_t section);
+			core::pool<component*>& get_actors(actor_type type);
+			graphics::render_target_2d::desc get_desc_rt() const;
+			graphics::multi_render_target_2d::desc get_desc_mrt() const;
+			graphics::format get_format_mrt(unsigned int target) const;
+			core::vector<entity*> clone_entity_as_array(entity* value);
+			core::vector<entity*> query_by_parent(entity* parent) const;
+			core::vector<entity*> query_by_name(const std::string_view& name) const;
+			core::vector<component*> query_by_position(uint64_t section, const trigonometry::vector3& position, float radius);
+			core::vector<component*> query_by_area(uint64_t section, const trigonometry::vector3& min, const trigonometry::vector3& max);
+			core::vector<component*> query_by_match(uint64_t section, std::function<bool(const trigonometry::bounding&)>&& match_callback);
+			core::vector<std::pair<component*, trigonometry::vector3>> query_by_ray(uint64_t section, const trigonometry::ray& origin);
+			core::vector<depth_cube_map*>& get_points_mapping();
+			core::vector<depth_map*>& get_spots_mapping();
+			core::vector<depth_cascade_map*>& get_lines_mapping();
+			const core::unordered_map<uint64_t, sparse_index*>& get_registry() const;
+			core::string as_resource_path(const std::string_view& path);
+			entity* add_entity();
+			entity* clone_entity(entity* value);
+			bool add_entity(core::unique<entity> entity);
+			bool is_active() const;
+			bool is_left_handed() const;
+			bool is_indexed() const;
+			bool is_busy(task_type type);
+			size_t get_materials_count() const;
+			size_t get_entities_count() const;
+			size_t get_components_count(uint64_t section);
+			bool has_entity(entity* entity) const;
+			bool has_entity(size_t entity) const;
+			graphics::multi_render_target_2d* get_mrt(target_type type) const;
+			graphics::render_target_2d* get_rt(target_type type) const;
+			graphics::texture_2d** get_merger();
+			graphics::element_buffer* get_material_buffer() const;
+			graphics::graphics_device* get_device() const;
+			physics::simulator* get_simulator() const;
+			graphics::activity* get_activity() const;
+			render_constants* get_constants() const;
+			shader_cache* get_shaders() const;
+			primitive_cache* get_primitives() const;
+			desc& get_conf();
 
 		private:
-			void StepSimulate(Core::Timer* Time);
-			void StepSynchronize(Core::Timer* Time);
-			void StepAnimate(Core::Timer* Time);
-			void StepGameplay(Core::Timer* Time);
-			void StepTransactions();
-			void StepEvents();
-			void StepIndexing();
-			void StepFinalize();
+			void step_simulate(core::timer* time);
+			void step_synchronize(core::timer* time);
+			void step_animate(core::timer* time);
+			void step_gameplay(core::timer* time);
+			void step_transactions();
+			void step_events();
+			void step_indexing();
+			void step_finalize();
 
 		protected:
-			void LoadComponent(Component* Base);
-			void UnloadComponentAll(Component* Base);
-			bool UnloadComponent(Component* Base);
-			void RegisterComponent(Component* Base, bool Verify);
-			void UnregisterComponent(Component* Base);
-			void CloneEntities(Entity* Instance, Core::Vector<Entity*>* Array);
-			void GenerateMaterialBuffer();
-			void GenerateVoxelBuffers();
-			void GenerateDepthBuffers();
-			void NotifyCosmos(Component* Base);
-			void ClearCosmos(Component* Base);
-			void UpdateCosmos(SparseIndex& Storage, Component* Base);
-			void FillMaterialBuffers();
-			void ResizeRenderBuffers();
-			void RegisterEntity(Entity* In);
-			bool UnregisterEntity(Entity* In);
-			bool ResolveEvent(Event& Data);
-			void WatchMovement(Entity* Base);
-			void UnwatchMovement(Entity* Base);
-			Entity* CloneEntityInstance(Entity* Entity);
+			void load_component(component* base);
+			void unload_component_all(component* base);
+			bool unload_component(component* base);
+			void register_component(component* base, bool verify);
+			void unregister_component(component* base);
+			void clone_entities(entity* instance, core::vector<entity*>* array);
+			void generate_material_buffer();
+			void generate_depth_buffers();
+			void notify_cosmos(component* base);
+			void clear_cosmos(component* base);
+			void update_cosmos(sparse_index& storage, component* base);
+			void fill_material_buffers();
+			void resize_render_buffers();
+			void register_entity(entity* in);
+			bool unregister_entity(entity* in);
+			bool resolve_event(event& data);
+			void watch_movement(entity* base);
+			void unwatch_movement(entity* base);
+			entity* clone_entity_instance(entity* entity);
 
 		public:
-			template <typename T, typename MatchFunction>
-			Core::Vector<Component*> QueryByMatch(MatchFunction&& MatchCallback)
+			template <typename t, typename match_function>
+			core::vector<component*> query_by_match(match_function&& match_callback)
 			{
-				Core::Vector<Component*> Result;
-				Trigonometry::Cosmos::Iterator Context;
-				auto& Storage = GetStorage(T::GetTypeId());
-				auto Enqueue = [&Result](Component* Item) { Result.push_back(Item); };
-				Storage.Index.template QueryIndex<Component, MatchFunction, decltype(Enqueue)>(Context, std::move(MatchCallback), std::move(Enqueue));
+				core::vector<component*> result;
+				trigonometry::cosmos::iterator context;
+				auto& storage = get_storage(t::get_type_id());
+				auto enqueue = [&result](component* item) { result.push_back(item); };
+				storage.index.template query_index<component, match_function, decltype(enqueue)>(context, std::move(match_callback), std::move(enqueue));
 
-				return Result;
+				return result;
 			}
-			template <typename T>
-			Core::Vector<Component*> QueryByPosition(const Trigonometry::Vector3& Position, float Radius)
+			template <typename t>
+			core::vector<component*> query_by_position(const trigonometry::vector3& position, float radius)
 			{
-				return QueryByPosition(T::GetTypeId(), Position, Radius);
+				return query_by_position(t::get_type_id(), position, radius);
 			}
-			template <typename T>
-			Core::Vector<Component*> QueryByArea(const Trigonometry::Vector3& Min, const Trigonometry::Vector3& Max)
+			template <typename t>
+			core::vector<component*> query_by_area(const trigonometry::vector3& min, const trigonometry::vector3& max)
 			{
-				return QueryByArea(T::GetTypeId(), Min, Max);
+				return query_by_area(t::get_type_id(), min, max);
 			}
-			template <typename T>
-			Core::Vector<std::pair<Component*, Trigonometry::Vector3>> QueryByRay(const Trigonometry::Ray& Origin)
+			template <typename t>
+			core::vector<std::pair<component*, trigonometry::vector3>> query_by_ray(const trigonometry::ray& origin)
 			{
-				return QueryByRay(T::GetTypeId(), Origin);
+				return query_by_ray(t::get_type_id(), origin);
 			}
-			template <typename T>
-			void RayTest(const Trigonometry::Ray& Origin, RayCallback&& Callback)
+			template <typename t>
+			void ray_test(const trigonometry::ray& origin, ray_callback&& callback)
 			{
-				RayTest(T::GetTypeId(), Origin, std::move(Callback));
+				ray_test(t::get_type_id(), origin, std::move(callback));
 			}
-			template <typename T>
-			void LoadResource(Component* Context, const std::string_view& Path, std::function<void(ExpectsContent<T*>&&)>&& Callback)
+			template <typename t>
+			void load_resource(component* context, const std::string_view& path, std::function<void(expects_content<t*>&&)>&& callback)
 			{
-				LoadResource<T>(Context, Path, Core::VariantArgs(), std::move(Callback));
+				load_resource<t>(context, path, core::variant_args(), std::move(callback));
 			}
-			template <typename T>
-			void LoadResource(Component* Context, const std::string_view& Path, const Core::VariantArgs& Keys, std::function<void(ExpectsContent<T*>&&)>&& Callback)
+			template <typename t>
+			void load_resource(component* context, const std::string_view& path, const core::variant_args& keys, std::function<void(expects_content<t*>&&)>&& callback)
 			{
-				VI_ASSERT(Callback != nullptr, "callback should be set");
-				LoadResource((uint64_t)typeid(T).hash_code(), Context, Path, Keys, [Callback = std::move(Callback)](ExpectsContent<void*> Object)
+				VI_ASSERT(callback != nullptr, "callback should be set");
+				load_resource((uint64_t)typeid(t).hash_code(), context, path, keys, [callback = std::move(callback)](expects_content<void*> object)
 				{
-					if (Object)
-						Callback((T*)*Object);
+					if (object)
+						callback((t*)*object);
 					else
-						Callback(Object.Error());
+						callback(object.error());
 				});
 			}
-			template <typename T>
-			Core::String FindResourceId(T* Resource)
+			template <typename t>
+			core::string find_resource_id(t* resource)
 			{
-				return FindResourceId(typeid(T).hash_code(), (void*)Resource);
+				return find_resource_id(typeid(t).hash_code(), (void*)resource);
 			}
-			template <typename T>
-			SparseIndex& GetStorage()
+			template <typename t>
+			sparse_index& get_storage()
 			{
-				return GetStorage(T::GetTypeId());
+				return get_storage(t::get_type_id());
 			}
-			template <typename T>
-			Core::Pool<Component*>& GetComponents()
+			template <typename t>
+			core::pool<component*>& get_components()
 			{
-				return GetComponents(T::GetTypeId());
+				return get_components(t::get_type_id());
 			}
 		};
 
-		class VI_OUT_TS HeavyContentManager final : public ContentManager
+		class heavy_content_manager final : public content_manager
 		{
 		private:
-			Graphics::GraphicsDevice* Device;
+			graphics::graphics_device* device;
 
 		public:
-			virtual ~HeavyContentManager() noexcept override = default;
-			void SetDevice(Graphics::GraphicsDevice* NewDevice);
-			Graphics::GraphicsDevice* GetDevice() const;
+			virtual ~heavy_content_manager() noexcept override = default;
+			void set_device(graphics::graphics_device* new_device);
+			graphics::graphics_device* get_device() const;
 		};
 
-		class VI_OUT HeavyApplication : public Core::Singleton<HeavyApplication>
+		class heavy_application : public core::singleton<heavy_application>
 		{
 		public:
-			struct Desc : Application::Desc
+			struct desc : application::desc
 			{
-				Graphics::GraphicsDevice::Desc GraphicsDevice;
-				Graphics::Activity::Desc Activity;
-				size_t AdvancedUsage =
+				graphics::graphics_device::desc graphics_device;
+				graphics::activity::desc activity;
+				size_t advanced_usage =
 					(size_t)USE_GRAPHICS |
 					(size_t)USE_ACTIVITY |
 					(size_t)USE_AUDIO;
-				bool BlockingDispatch = true;
-				bool Cursor = true;
+				bool blocking_dispatch = true;
+				bool cursor = true;
 			};
 
 		public:
-			struct CacheInfo
+			struct cache_info
 			{
-				ShaderCache* Shaders = nullptr;
-				PrimitiveCache* Primitives = nullptr;
-			} Cache;
+				shader_cache* shaders = nullptr;
+				primitive_cache* primitives = nullptr;
+			} cache;
 
 		private:
-			Core::Timer* InternalClock = nullptr;
-			GUI::Context* InternalUI = nullptr;
-			ApplicationState State = ApplicationState::Terminated;
-			int ExitCode = 0;
+			core::timer* internal_clock = nullptr;
+			gui::context* internal_ui = nullptr;
+			application_state state = application_state::terminated;
+			int exit_code = 0;
 
 		public:
-			Audio::AudioDevice* Audio = nullptr;
-			Graphics::GraphicsDevice* Renderer = nullptr;
-			Graphics::Activity* Activity = nullptr;
-			Scripting::VirtualMachine* VM = nullptr;
-			RenderConstants* Constants = nullptr;
-			HeavyContentManager* Content = nullptr;
-			AppData* Database = nullptr;
-			SceneGraph* Scene = nullptr;
-			Desc Control;
+			audio::audio_device* audio = nullptr;
+			graphics::graphics_device* renderer = nullptr;
+			graphics::activity* activity = nullptr;
+			scripting::virtual_machine* vm = nullptr;
+			render_constants* constants = nullptr;
+			heavy_content_manager* content = nullptr;
+			app_data* database = nullptr;
+			scene_graph* scene = nullptr;
+			desc control;
 
 		public:
-			HeavyApplication(Desc* I) noexcept;
-			virtual ~HeavyApplication() noexcept;
-			virtual void KeyEvent(Graphics::KeyCode Key, Graphics::KeyMod Mod, int Virtual, int Repeat, bool Pressed);
-			virtual void InputEvent(char* Buffer, size_t Length);
-			virtual void WheelEvent(int X, int Y, bool Normal);
-			virtual void WindowEvent(Graphics::WindowState NewState, int X, int Y);
-			virtual void Dispatch(Core::Timer* Time);
-			virtual void Publish(Core::Timer* Time);
-			virtual void Composition();
-			virtual void ScriptHook();
-			virtual void Initialize();
-			virtual Core::Promise<void> Startup();
-			virtual Core::Promise<void> Shutdown();
-			GUI::Context* TryGetUI() const;
-			GUI::Context* FetchUI();
-			ApplicationState GetState() const;
-			int Start();
-			void Restart();
-			void Stop(int ExitCode = 0);
+			heavy_application(desc* i) noexcept;
+			virtual ~heavy_application() noexcept;
+			virtual void key_event(graphics::key_code key, graphics::key_mod mod, int computed, int repeat, bool pressed);
+			virtual void input_event(char* buffer, size_t length);
+			virtual void wheel_event(int x, int y, bool normal);
+			virtual void window_event(graphics::window_state new_state, int x, int y);
+			virtual void dispatch(core::timer* time);
+			virtual void publish(core::timer* time);
+			virtual void composition();
+			virtual void script_hook();
+			virtual void initialize();
+			virtual core::promise<void> startup();
+			virtual core::promise<void> shutdown();
+			gui::context* try_get_ui() const;
+			gui::context* fetch_ui();
+			application_state get_state() const;
+			int start();
+			void restart();
+			void stop(int exit_code = 0);
 
 		private:
-			void LoopTrigger();
+			void loop_trigger();
 
 		private:
-			static bool Status(HeavyApplication* App);
-			static void Compose();
+			static bool status(heavy_application* app);
+			static void compose();
 
 		public:
-			template <typename T, typename ...A>
-			static int StartApp(A... Args)
+			template <typename t, typename ...a>
+			static int start_app(a... args)
 			{
-				Core::UPtr<T> App = new T(Args...);
-				int ExitCode = App->Start();
-				VI_ASSERT(ExitCode != EXIT_RESTART, "application cannot be restarted");
-				return ExitCode;
+				core::uptr<t> app = new t(args...);
+				int exit_code = app->start();
+				VI_ASSERT(exit_code != EXIT_RESTART, "application cannot be restarted");
+				return exit_code;
 			}
-			template <typename T, typename ...A>
-			static int StartAppWithRestart(A... Args)
+			template <typename t, typename ...a>
+			static int start_app_with_restart(a... args)
 			{
-			RestartApp:
-				Core::UPtr<T> App = new T(Args...);
-				int ExitCode = App->Start();
-				if (ExitCode == EXIT_RESTART)
-					goto RestartApp;
+			restart_app:
+				core::uptr<t> app = new t(args...);
+				int exit_code = app->start();
+				if (exit_code == EXIT_RESTART)
+					goto restart_app;
 
-				return ExitCode;
+				return exit_code;
 			}
 		};
 
-		template <typename Geometry, typename Instance>
-		struct BatchingGroup
+		template <typename geometry, typename instance>
+		struct batching_group
 		{
-			Core::Vector<Instance> Instances;
-			Graphics::ElementBuffer* DataBuffer = nullptr;
-			Geometry* GeometryBuffer = nullptr;
-			Material* MaterialData = nullptr;
+			core::vector<instance> instances;
+			graphics::element_buffer* data_buffer = nullptr;
+			geometry* geometry_buffer = nullptr;
+			material* material_data = nullptr;
 		};
 
-		template <typename Geometry, typename Instance>
-		struct BatchDispatchable
+		template <typename geometry, typename instance>
+		struct batch_dispatchable
 		{
-			size_t Name;
-			Geometry* Data;
-			Material* Surface;
-			Instance Params;
+			size_t name;
+			geometry* data;
+			material* surface;
+			instance params;
 
-			BatchDispatchable(size_t NewName, Geometry* NewData, Material* NewSurface, const Instance& NewParams) noexcept : Name(NewName), Data(NewData), Surface(NewSurface), Params(NewParams)
+			batch_dispatchable(size_t new_name, geometry* new_data, material* new_surface, const instance& new_params) noexcept : name(new_name), data(new_data), surface(new_surface), params(new_params)
 			{
 			}
 		};
 
-		template <typename Geometry, typename Instance>
-		class BatchingProxy
+		template <typename geometry, typename instance>
+		class batching_proxy
 		{
 		public:
-			typedef BatchingGroup<Geometry, Instance> BatchGroup;
-			typedef BatchDispatchable<Geometry, Instance> Dispatchable;
+			typedef batching_group<geometry, instance> batch_group;
+			typedef batch_dispatchable<geometry, instance> dispatchable;
 
 		public:
-			Core::SingleQueue<BatchGroup*>* Cache = nullptr;
-			Core::Vector<Core::Vector<Dispatchable>>* Queue = nullptr;
-			Core::Vector<Dispatchable>* Instances = nullptr;
-			Core::Vector<BatchGroup*> Groups;
+			core::single_queue<batch_group*>* cache = nullptr;
+			core::vector<core::vector<dispatchable>>* queue = nullptr;
+			core::vector<dispatchable>* instances = nullptr;
+			core::vector<batch_group*> groups;
 
 		public:
-			void Clear()
+			void clear()
 			{
-				for (auto* Group : Groups)
+				for (auto* group : groups)
 				{
-					Group->Instances.clear();
-					Cache->push(Group);
+					group->instances.clear();
+					cache->push(group);
 				}
 
-				Queue->clear();
-				Groups.clear();
+				queue->clear();
+				groups.clear();
 			}
-			void Prepare(size_t MaxSize)
+			void prepare(size_t max_size)
 			{
-				if (MaxSize > 0)
-					Queue->resize(MaxSize);
-				
-				for (auto* Group : Groups)
+				if (max_size > 0)
+					queue->resize(max_size);
+
+				for (auto* group : groups)
 				{
-					Group->Instances.clear();
-					Cache->push(Group);
+					group->instances.clear();
+					cache->push(group);
 				}
-				Groups.clear();
+				groups.clear();
 			}
-			void Emplace(Geometry* Data, Material* Surface, const Instance& Params, size_t Chunk)
+			void emplace(geometry* data, material* surface, const instance& params, size_t chunk)
 			{
-				VI_ASSERT(Chunk < Queue->size(), "chunk index is out of range");
-				(*Queue)[Chunk].emplace_back(GetKeyId(Data, Surface), Data, Surface, Params);
+				VI_ASSERT(chunk < queue->size(), "chunk index is out of range");
+				(*queue)[chunk].emplace_back(get_key_id(data, surface), data, surface, params);
 			}
-			size_t Compile(Graphics::GraphicsDevice* Device)
+			size_t compile(graphics::graphics_device* device)
 			{
-				VI_ASSERT(Device != nullptr, "device should be set");
-				PopulateInstances();
-				PopulateGroups();
-				CompileGroups(Device);
-				return Groups.size();
+				VI_ASSERT(device != nullptr, "device should be set");
+				populate_instances();
+				populate_groups();
+				compile_groups(device);
+				return groups.size();
 			}
 
 		private:
-			void PopulateInstances()
+			void populate_instances()
 			{
-				size_t Total = 0;
-				for (auto& Context : *Queue)
-					Total += Context.size();
-				
-				Instances->reserve(Total);
-				for (auto& Context : *Queue)
+				size_t total = 0;
+				for (auto& context : *queue)
+					total += context.size();
+
+				instances->reserve(total);
+				for (auto& context : *queue)
 				{
-					std::move(Context.begin(), Context.end(), std::back_inserter(*Instances));
-					Context.clear();
+					std::move(context.begin(), context.end(), std::back_inserter(*instances));
+					context.clear();
 				}
 
-				VI_SORT(Instances->begin(), Instances->end(), [](Dispatchable& A, Dispatchable& B)
+				VI_SORT(instances->begin(), instances->end(), [](dispatchable& a, dispatchable& b)
 				{
-					return A.Name < B.Name;
+					return a.name < b.name;
 				});
 			}
-			void PopulateGroups()
+			void populate_groups()
 			{
-				size_t Name = 0;
-				BatchGroup* Next = nullptr;
-				for (auto& Item : *Instances)
+				size_t name = 0;
+				batch_group* next = nullptr;
+				for (auto& item : *instances)
 				{
-					if (Next != nullptr && Name == Item.Name)
+					if (next != nullptr && name == item.name)
 					{
-						Next->Instances.emplace_back(std::move(Item.Params));
+						next->instances.emplace_back(std::move(item.params));
 						continue;
 					}
 
-					Name = Item.Name;
-					Next = FetchGroup();
-					Next->GeometryBuffer = Item.Data;
-					Next->MaterialData = Item.Surface;
-					Next->Instances.emplace_back(std::move(Item.Params));
-					Groups.push_back(Next);
+					name = item.name;
+					next = fetch_group();
+					next->geometry_buffer = item.data;
+					next->material_data = item.surface;
+					next->instances.emplace_back(std::move(item.params));
+					groups.push_back(next);
 				}
-				Instances->clear();
+				instances->clear();
 			}
-			void CompileGroups(Graphics::GraphicsDevice* Device)
+			void compile_groups(graphics::graphics_device* device)
 			{
-				for (auto* Group : Groups)
+				for (auto* group : groups)
 				{
-					if (Group->DataBuffer && Group->Instances.size() < (size_t)Group->DataBuffer->GetElements())
+					if (group->data_buffer && group->instances.size() < (size_t)group->data_buffer->get_elements())
 					{
-						Device->UpdateBuffer(Group->DataBuffer, (void*)Group->Instances.data(), sizeof(Instance) * Group->Instances.size());
+						device->update_buffer(group->data_buffer, (void*)group->instances.data(), sizeof(instance) * group->instances.size());
 						continue;
 					}
 
-					Graphics::ElementBuffer::Desc Desc = Graphics::ElementBuffer::Desc();
-					Desc.AccessFlags = Graphics::CPUAccess::Write;
-					Desc.Usage = Graphics::ResourceUsage::Dynamic;
-					Desc.BindFlags = Graphics::ResourceBind::Vertex_Buffer;
-					Desc.ElementCount = (unsigned int)Group->Instances.size();
-					Desc.Elements = (void*)Group->Instances.data();
-					Desc.ElementWidth = sizeof(Instance);
+					graphics::element_buffer::desc desc = graphics::element_buffer::desc();
+					desc.access_flags = graphics::cpu_access::write;
+					desc.usage = graphics::resource_usage::dynamic;
+					desc.bind_flags = graphics::resource_bind::vertex_buffer;
+					desc.element_count = (unsigned int)group->instances.size();
+					desc.elements = (void*)group->instances.data();
+					desc.element_width = sizeof(instance);
 
-					Core::Memory::Release(Group->DataBuffer);
-					Group->DataBuffer = Device->CreateElementBuffer(Desc).Or(nullptr);
-					if (!Group->DataBuffer)
-						Group->Instances.clear();
+					core::memory::release(group->data_buffer);
+					group->data_buffer = device->create_element_buffer(desc).or_else(nullptr);
+					if (!group->data_buffer)
+						group->instances.clear();
 				}
 			}
-			BatchGroup* FetchGroup()
+			batch_group* fetch_group()
 			{
-				if (Cache->empty())
-					return Core::Memory::New<BatchGroup>();
+				if (cache->empty())
+					return core::memory::init<batch_group>();
 
-				BatchGroup* Result = Cache->front();
-				Cache->pop();
-				return Result;
+				batch_group* result = cache->front();
+				cache->pop();
+				return result;
 			}
-			size_t GetKeyId(Geometry* Data, Material* Surface)
+			size_t get_key_id(geometry* data, material* surface)
 			{
-				std::hash<void*> Hash;
-				size_t Seed = Hash((void*)Data);
-				Seed ^= Hash((void*)Surface) + 0x9e3779b9 + (Seed << 6) + (Seed >> 2);
-				return Seed;
+				std::hash<void*> hash;
+				size_t seed = hash((void*)data);
+				seed ^= hash((void*)surface) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
+				return seed;
 			}
 		};
 
-		template <typename T, typename Geometry = char, typename Instance = char, size_t Max = (size_t)MAX_STACK_DEPTH>
-		class RendererProxy
+		template <typename t, typename geometry = char, typename instance = char, size_t max = (size_t)MAX_STACK_DEPTH>
+		class renderer_proxy
 		{
-			static_assert(std::is_base_of<Component, T>::value, "parameter must be derived from a component");
+			static_assert(std::is_base_of<component, t>::value, "parameter must be derived from a component");
 
 		public:
-			typedef BatchingProxy<Geometry, Instance> Batching;
-			typedef BatchingGroup<Geometry, Instance> BatchGroup;
-			typedef BatchDispatchable<Geometry, Instance> Dispatchable;
-			typedef std::pair<T*, VisibilityQuery> QueryGroup;
-			typedef Core::Vector<BatchGroup*> Groups;
-			typedef Core::Vector<T*> Storage;
+			typedef batching_proxy<geometry, instance> batching;
+			typedef batching_group<geometry, instance> batch_group;
+			typedef batch_dispatchable<geometry, instance> dispatchable;
+			typedef std::pair<t*, visibility_query> query_group;
+			typedef core::vector<batch_group*> groups;
+			typedef core::vector<t*> storage;
 
 		public:
-			static const size_t Depth = Max;
+			static const size_t depth = max;
 
 		private:
 			struct
 			{
-				Core::Vector<Core::Vector<Dispatchable>> Queue;
-				Core::Vector<Dispatchable> Instances;
-				Core::SingleQueue<BatchGroup*> Groups;
-			} Caching;
+				core::vector<core::vector<dispatchable>> queue;
+				core::vector<dispatchable> instances;
+				core::single_queue<batch_group*> groups;
+			} caching;
 
 		private:
-			Batching Batchers[Max][(size_t)GeoCategory::Count];
-			Storage Data[Max][(size_t)GeoCategory::Count];
-			Core::Vector<Core::Vector<QueryGroup>> Queries;
-			size_t Offset;
+			batching batchers[max][(size_t)geo_category::count];
+			storage data[max][(size_t)geo_category::count];
+			core::vector<core::vector<query_group>> queries;
+			size_t offset;
 
 		public:
-			Storage Culling;
+			storage culling;
 
 		public:
-			RendererProxy() noexcept : Offset(0)
+			renderer_proxy() noexcept : offset(0)
 			{
-				for (size_t i = 0; i < (size_t)GeoCategory::Count; ++i)
+				for (size_t i = 0; i < (size_t)geo_category::count; ++i)
 				{
-					for (size_t j = 0; j < Depth; ++j)
+					for (size_t j = 0; j < depth; ++j)
 					{
-						auto& Next = Batchers[j][i];
-						Next.Queue = &Caching.Queue;
-						Next.Instances = &Caching.Instances;
-						Next.Cache = &Caching.Groups;
+						auto& next = batchers[j][i];
+						next.queue = &caching.queue;
+						next.instances = &caching.instances;
+						next.cache = &caching.groups;
 					}
 				}
 			}
-			~RendererProxy() noexcept
+			~renderer_proxy() noexcept
 			{
-				for (size_t i = 0; i < (size_t)GeoCategory::Count; ++i)
+				for (size_t i = 0; i < (size_t)geo_category::count; ++i)
 				{
-					for (size_t j = 0; j < Depth; ++j)
-						Batchers[j][i].Clear();
+					for (size_t j = 0; j < depth; ++j)
+						batchers[j][i].clear();
 				}
 
-				while (!Caching.Groups.empty())
+				while (!caching.groups.empty())
 				{
-					auto* Next = Caching.Groups.front();
-					Core::Memory::Release(Next->DataBuffer);
-					Core::Memory::Delete(Next);
-					Caching.Groups.pop();
+					auto* next = caching.groups.front();
+					core::memory::release(next->data_buffer);
+					core::memory::deinit(next);
+					caching.groups.pop();
 				}
 			}
-			Batching& Batcher(GeoCategory Category = GeoCategory::Opaque)
+			batching& batcher(geo_category category = geo_category::opaque)
 			{
-				return Batchers[Offset > 0 ? Offset - 1 : 0][(size_t)Category];
+				return batchers[offset > 0 ? offset - 1 : 0][(size_t)category];
 			}
-			Groups& Batches(GeoCategory Category = GeoCategory::Opaque)
+			groups& batches(geo_category category = geo_category::opaque)
 			{
-				return Batchers[Offset > 0 ? Offset - 1 : 0][(size_t)Category].Groups;
+				return batchers[offset > 0 ? offset - 1 : 0][(size_t)category].groups;
 			}
-			Storage& Top(GeoCategory Category = GeoCategory::Opaque)
+			storage& top(geo_category category = geo_category::opaque)
 			{
-				return Data[Offset > 0 ? Offset - 1 : 0][(size_t)Category];
+				return data[offset > 0 ? offset - 1 : 0][(size_t)category];
 			}
-			bool Push(Core::Timer* Time, RenderSystem* Base, GeoCategory Category = GeoCategory::Opaque)
+			bool push(core::timer* time, render_system* base, geo_category category = geo_category::opaque)
 			{
-				VI_ASSERT(Base != nullptr, "render system should be present");
-				VI_ASSERT(Offset < Max - 1, "storage heap stack overflow");
+				VI_ASSERT(base != nullptr, "render system should be present");
+				VI_ASSERT(offset < max - 1, "storage heap stack overflow");
 
-				Storage* Frame = Data[Offset++];
-				if (Base->State.IsSubpass())
+				storage* frame = data[offset++];
+				if (base->state.is_subpass())
 				{
-					Subcull(Base, Frame);
+					subcull(base, frame);
 					return true;
 				}
-				
-				bool AssumeSorted = (Time->GetFrameIndex() % Base->SortingFrequency != 0);
-				Cullout(Base, Frame, AssumeSorted);
-				return !AssumeSorted;
+
+				bool assume_sorted = (time->get_frame_index() % base->sorting_frequency != 0);
+				cullout(base, frame, assume_sorted);
+				return !assume_sorted;
 			}
-			void Pop()
+			void pop()
 			{
-				VI_ASSERT(Offset > 0, "storage heap stack underflow");
-				Offset--;
+				VI_ASSERT(offset > 0, "storage heap stack underflow");
+				offset--;
 			}
-			bool HasBatching()
+			bool has_batching()
 			{
-				return !std::is_same<Geometry, char>::value && !std::is_same<Instance, char>::value;
+				return !std::is_same<geometry, char>::value && !std::is_same<instance, char>::value;
 			}
 
 		private:
-			void Prepare(size_t Threads)
+			void prepare(size_t threads)
 			{
-				Queries.resize(Threads);
-				for (auto& Queue : Queries)
-					Queue.clear();
+				queries.resize(threads);
+				for (auto& queue : queries)
+					queue.clear();
 			}
 
 		private:
-			template <typename PushFunction>
-			void Dispatch(PushFunction&& Callback)
+			template <typename push_function>
+			void dispatch(push_function&& callback)
 			{
-				for (auto& Queue : Queries)
-					std::for_each(Queue.begin(), Queue.end(), std::move(Callback));
+				for (auto& queue : queries)
+					std::for_each(queue.begin(), queue.end(), std::move(callback));
 			}
-			template <class Q = T>
-			typename std::enable_if<std::is_base_of<Drawable, Q>::value>::type Cullout(RenderSystem* System, Storage* Top, bool AssumeSorted)
+			template <class q = t>
+			typename std::enable_if<std::is_base_of<drawable, q>::value>::type cullout(render_system* system, storage* top, bool assume_sorted)
 			{
-				VI_MEASURE(Core::Timings::Frame);
-				if (AssumeSorted)
+				VI_MEASURE(core::timings::frame);
+				if (assume_sorted)
 				{
-					auto* Scene = System->GetScene();
-					Scene->Statistics.Instances += Culling.size();
-					for (size_t i = 0; i < (size_t)GeoCategory::Count; ++i)
-						Scene->Statistics.Instances += Top[i].size();
+					auto* scene = system->get_scene();
+					scene->statistics.instances += culling.size();
+					for (size_t i = 0; i < (size_t)geo_category::count; ++i)
+						scene->statistics.instances += top[i].size();
 					return;
 				}
 
-				for (size_t i = 0; i < (size_t)GeoCategory::Count; ++i)
-					Top[i].clear();
-				Culling.clear();
+				for (size_t i = 0; i < (size_t)geo_category::count; ++i)
+					top[i].clear();
+				culling.clear();
 
-				System->ParallelQuery<T>([this](size_t Threads)
+				system->parallel_query<t>([this](size_t threads)
 				{
-					Prepare(Threads);
-				}, [this, &System](size_t Chunk, Component* Item)
+					prepare(threads);
+				}, [this, &system](size_t chunk, component* item)
 				{
-					VisibilityQuery Info;
-					System->FetchVisibility(Item, Info);
-					if (Info.BoundaryVisible || Info.QueryPixels)
-						Queries[Chunk].emplace_back(std::make_pair((T*)Item, std::move(Info)));
+					visibility_query info;
+					system->fetch_visibility(item, info);
+					if (info.boundary_visible || info.query_pixels)
+						queries[chunk].emplace_back(std::make_pair((t*)item, std::move(info)));
 				});
 
-				auto* Scene = System->GetScene();
-				Scene->Await(TaskType::Rendering);
+				auto* scene = system->get_scene();
+				scene->await(task_type::rendering);
 
-				Dispatch([this, Top](QueryGroup& Group)
+				dispatch([this, top](query_group& group)
 				{
-					if (Group.second.BoundaryVisible)
-						Top[(size_t)Group.second.Category].push_back(Group.first);
+					if (group.second.boundary_visible)
+						top[(size_t)group.second.category].push_back(group.first);
 
-					if (Group.second.QueryPixels)
-						Culling.push_back(Group.first);
+					if (group.second.query_pixels)
+						culling.push_back(group.first);
 				});
 
-				++Scene->Statistics.Sorting;
-				if (!HasBatching())
+				++scene->statistics.sorting;
+				if (!has_batching())
 				{
-					for (size_t i = 0; i < (size_t)GeoCategory::Count; ++i)
+					for (size_t i = 0; i < (size_t)geo_category::count; ++i)
 					{
-						auto& Array = Top[i];
-						Scene->Statistics.Instances += Array.size();
-						Scene->Watch(TaskType::Rendering, Parallel::Enqueue([&Array]()
+						auto& array = top[i];
+						scene->statistics.instances += array.size();
+						scene->watch(task_type::rendering, parallel::enqueue([&array]()
 						{
-							VI_SORT(Array.begin(), Array.end(), Entity::Sortout<T>);
+							VI_SORT(array.begin(), array.end(), entity::sortout<t>);
 						}));
 					}
 
-					Scene->Statistics.Instances += Culling.size();
-					Scene->Watch(TaskType::Rendering, Parallel::Enqueue([this]()
+					scene->statistics.instances += culling.size();
+					scene->watch(task_type::rendering, parallel::enqueue([this]()
 					{
-						VI_SORT(Culling.begin(), Culling.end(), Entity::Sortout<T>);
+						VI_SORT(culling.begin(), culling.end(), entity::sortout<t>);
 					}));
-					Scene->Await(TaskType::Rendering);
+					scene->await(task_type::rendering);
 				}
 				else
 				{
-					Scene->Statistics.Instances += Culling.size();
-					for (size_t i = 0; i < (size_t)GeoCategory::Count; ++i)
-						Scene->Statistics.Instances += Top[i].size();
+					scene->statistics.instances += culling.size();
+					for (size_t i = 0; i < (size_t)geo_category::count; ++i)
+						scene->statistics.instances += top[i].size();
 				}
 			}
-			template <class Q = T>
-			typename std::enable_if<!std::is_base_of<Drawable, Q>::value>::type Cullout(RenderSystem* System, Storage* Top, bool AssumeSorted)
+			template <class q = t>
+			typename std::enable_if<!std::is_base_of<drawable, q>::value>::type cullout(render_system* system, storage* top, bool assume_sorted)
 			{
-				VI_MEASURE(Core::Timings::Frame);
-				auto& Subframe = Top[(size_t)GeoCategory::Opaque];
-				if (AssumeSorted)
+				VI_MEASURE(core::timings::frame);
+				auto& subframe = top[(size_t)geo_category::opaque];
+				if (assume_sorted)
 				{
-					auto* Scene = System->GetScene();
-					Scene->Statistics.Instances += Subframe.size();
+					auto* scene = system->get_scene();
+					scene->statistics.instances += subframe.size();
 					return;
 				}
 
-				Subframe.clear();
-				System->ParallelQuery<T>([this](size_t Threads)
+				subframe.clear();
+				system->parallel_query<t>([this](size_t threads)
 				{
-					Prepare(Threads);
-				}, [this, &System](size_t Chunk, Component* Item)
+					prepare(threads);
+				}, [this, &system](size_t chunk, component* item)
 				{
-					VisibilityQuery Info;
-					System->FetchVisibility(Item, Info);
-					if (Info.BoundaryVisible)
-						Queries[Chunk].emplace_back(std::make_pair((T*)Item, std::move(Info)));
+					visibility_query info;
+					system->fetch_visibility(item, info);
+					if (info.boundary_visible)
+						queries[chunk].emplace_back(std::make_pair((t*)item, std::move(info)));
 				});
 
-				auto* Scene = System->GetScene();
-				Scene->Await(TaskType::Rendering);
+				auto* scene = system->get_scene();
+				scene->await(task_type::rendering);
 
-				Dispatch([&Subframe](QueryGroup& Group)
+				dispatch([&subframe](query_group& group)
 				{
-					Subframe.push_back(Group.first);
+					subframe.push_back(group.first);
 				});
 
-				++Scene->Statistics.Sorting;
-				Scene->Statistics.Instances += Subframe.size();
-				if (!HasBatching())
-					VI_SORT(Subframe.begin(), Subframe.end(), Entity::Sortout<T>);
+				++scene->statistics.sorting;
+				scene->statistics.instances += subframe.size();
+				if (!has_batching())
+					VI_SORT(subframe.begin(), subframe.end(), entity::sortout<t>);
 			}
-			template <class Q = T>
-			typename std::enable_if<std::is_base_of<Drawable, Q>::value>::type Subcull(RenderSystem* System, Storage* Top)
+			template <class q = t>
+			typename std::enable_if<std::is_base_of<drawable, q>::value>::type subcull(render_system* system, storage* top)
 			{
-				VI_MEASURE(Core::Timings::Frame);
-				for (size_t i = 0; i < (size_t)GeoCategory::Count; ++i)
-					Top[i].clear();
+				VI_MEASURE(core::timings::frame);
+				for (size_t i = 0; i < (size_t)geo_category::count; ++i)
+					top[i].clear();
 
-				System->ParallelQuery<T>([this](size_t Threads)
+				system->parallel_query<t>([this](size_t threads)
 				{
-					Prepare(Threads);
-				}, [this, &System](size_t Chunk, Component* Item)
+					prepare(threads);
+				}, [this, &system](size_t chunk, component* item)
 				{
-					VisibilityQuery Info;
-					System->FetchVisibility(Item, Info);
-					if (Info.BoundaryVisible)
-						Queries[Chunk].emplace_back(std::make_pair((T*)Item, std::move(Info)));
+					visibility_query info;
+					system->fetch_visibility(item, info);
+					if (info.boundary_visible)
+						queries[chunk].emplace_back(std::make_pair((t*)item, std::move(info)));
 				});
 
-				auto* Scene = System->GetScene();
-				Scene->Await(TaskType::Rendering);
+				auto* scene = system->get_scene();
+				scene->await(task_type::rendering);
 
-				Dispatch([Top](QueryGroup& Group)
+				dispatch([top](query_group& group)
 				{
-					Top[(size_t)Group.second.Category].push_back(Group.first);
+					top[(size_t)group.second.category].push_back(group.first);
 				});
 
-				++Scene->Statistics.Sorting;
-				if (!HasBatching())
+				++scene->statistics.sorting;
+				if (!has_batching())
 				{
-					for (size_t i = 0; i < (size_t)GeoCategory::Count; ++i)
+					for (size_t i = 0; i < (size_t)geo_category::count; ++i)
 					{
-						auto& Array = Top[i];
-						Scene->Statistics.Instances += Array.size();
-						Scene->Watch(TaskType::Rendering, Parallel::Enqueue([&Array]()
+						auto& array = top[i];
+						scene->statistics.instances += array.size();
+						scene->watch(task_type::rendering, parallel::enqueue([&array]()
 						{
-							VI_SORT(Array.begin(), Array.end(), Entity::Sortout<T>);
+							VI_SORT(array.begin(), array.end(), entity::sortout<t>);
 						}));
 					}
-					Scene->Await(TaskType::Rendering);
+					scene->await(task_type::rendering);
 				}
 				else
 				{
-					for (size_t i = 0; i < (size_t)GeoCategory::Count; ++i)
-						Scene->Statistics.Instances += Top[i].size();
+					for (size_t i = 0; i < (size_t)geo_category::count; ++i)
+						scene->statistics.instances += top[i].size();
 				}
 			}
-			template <class Q = T>
-			typename std::enable_if<!std::is_base_of<Drawable, Q>::value>::type Subcull(RenderSystem* System, Storage* Top)
+			template <class q = t>
+			typename std::enable_if<!std::is_base_of<drawable, q>::value>::type subcull(render_system* system, storage* top)
 			{
-				auto& Subframe = Top[(size_t)GeoCategory::Opaque];
-				Subframe.clear();
+				auto& subframe = top[(size_t)geo_category::opaque];
+				subframe.clear();
 
-				System->ParallelQuery<T>([this](size_t Threads)
+				system->parallel_query<t>([this](size_t threads)
 				{
-					Prepare(Threads);
-				}, [this, &System](size_t Chunk, Component* Item)
+					prepare(threads);
+				}, [this, &system](size_t chunk, component* item)
 				{
-					VisibilityQuery Info;
-					System->FetchVisibility(Item, Info);
-					if (Info.BoundaryVisible)
-						Queries[Chunk].emplace_back(std::make_pair((T*)Item, std::move(Info)));
+					visibility_query info;
+					system->fetch_visibility(item, info);
+					if (info.boundary_visible)
+						queries[chunk].emplace_back(std::make_pair((t*)item, std::move(info)));
 				});
 
-				auto* Scene = System->GetScene();
-				Scene->Await(TaskType::Rendering);
+				auto* scene = system->get_scene();
+				scene->await(task_type::rendering);
 
-				Dispatch([&Subframe](QueryGroup& Group)
+				dispatch([&subframe](query_group& group)
 				{
-					Subframe.push_back(Group.first);
+					subframe.push_back(group.first);
 				});
 
-				++Scene->Statistics.Sorting;
-				Scene->Statistics.Instances += Subframe.size();
-				if (!HasBatching())
-					VI_SORT(Subframe.begin(), Subframe.end(), Entity::Sortout<T>);
+				++scene->statistics.sorting;
+				scene->statistics.instances += subframe.size();
+				if (!has_batching())
+					VI_SORT(subframe.begin(), subframe.end(), entity::sortout<t>);
 			}
 		};
 
-		template <typename T, typename Geometry = char, typename Instance = char>
-		class VI_OUT GeometryRenderer : public Renderer
+		template <typename t, typename geometry = char, typename instance = char>
+		class geometry_renderer : public renderer
 		{
-			static_assert(std::is_base_of<Drawable, T>::value, "component must be drawable to work within geometry renderer");
+			static_assert(std::is_base_of<drawable, t>::value, "component must be drawable to work within geometry renderer");
 
 		public:
-			typedef BatchingGroup<Geometry, Instance> BatchGroup;
-			typedef BatchingProxy<Geometry, Instance> Batching;
-			typedef Core::Vector<BatchGroup*> Groups;
-			typedef Core::Vector<T*> Objects;
+			typedef batching_group<geometry, instance> batch_group;
+			typedef batching_proxy<geometry, instance> batching;
+			typedef core::vector<batch_group*> groups;
+			typedef core::vector<t*> objects;
 
 		private:
-			RendererProxy<T, Geometry, Instance> Proxy;
-			std::function<void(T*, Instance&, Batching&)> Upsert;
-			Core::UnorderedMap<T*, Graphics::Query*> Active;
-			Core::SingleQueue<Graphics::Query*> Inactive;
-			Graphics::DepthStencilState* DepthStencil;
-			Graphics::BlendState* Blend;
-			Graphics::Query* Current;
-			size_t FrameTop[3];
-			bool Skippable[2];
+			renderer_proxy<t, geometry, instance> proxy;
+			std::function<void(t*, instance&, batching&)> upsert;
+			core::unordered_map<t*, graphics::query*> active;
+			core::single_queue<graphics::query*> inactive;
+			graphics::depth_stencil_state* depth_stencil;
+			graphics::blend_state* blend;
+			graphics::query* current;
+			size_t frame_top[3];
+			bool skippable[2];
 
 		public:
-			GeometryRenderer(RenderSystem* Lab) noexcept : Renderer(Lab), Current(nullptr)
+			geometry_renderer(render_system* lab) noexcept : renderer(lab), current(nullptr)
 			{
-				Graphics::GraphicsDevice* Device = System->GetDevice();
-				DepthStencil = Device->GetDepthStencilState("dro_soo_lte");
-				Blend = Device->GetBlendState("bo_woooo_one");
-				FrameTop[0] = 0;
-				Skippable[0] = false;
-				FrameTop[1] = 0;
-				Skippable[1] = false;
-				FrameTop[2] = 0;
+				graphics::graphics_device* device = system->get_device();
+				depth_stencil = device->get_depth_stencil_state("dro_soo_lte");
+				blend = device->get_blend_state("bo_woooo_one");
+				frame_top[0] = 0;
+				skippable[0] = false;
+				frame_top[1] = 0;
+				skippable[1] = false;
+				frame_top[2] = 0;
 			}
-			virtual ~GeometryRenderer() noexcept override
+			virtual ~geometry_renderer() noexcept override
 			{
-				for (auto& Item : Active)
-					Core::Memory::Release(Item.second);
-				
-				while (!Inactive.empty())
+				for (auto& item : active)
+					core::memory::release(item.second);
+
+				while (!inactive.empty())
 				{
-					Core::Memory::Release(Inactive.front());
-					Inactive.pop();
+					core::memory::release(inactive.front());
+					inactive.pop();
 				}
 			}
-			virtual void BatchGeometry(T* Base, Batching& Batch, size_t Chunk)
+			virtual void batch_geometry(t* base, batching& batch, size_t chunk)
 			{
 			}
-			virtual size_t CullGeometry(const Viewer& View, const Objects& Chunk)
+			virtual size_t cull_geometry(const viewer& view, const objects& chunk)
 			{
 				return 0;
 			}
-			virtual size_t RenderLinearization(Core::Timer* TimeStep, const Objects& Chunk)
+			virtual size_t render_depth(core::timer* time_step, const objects& chunk)
 			{
 				return 0;
 			}
-			virtual size_t RenderLinearizationBatched(Core::Timer* TimeStep, const Groups& Chunk)
+			virtual size_t render_depth_batched(core::timer* time_step, const groups& chunk)
 			{
 				return 0;
 			}
-			virtual size_t RenderCubic(Core::Timer* TimeStep, const Objects& Chunk, Trigonometry::Matrix4x4* ViewProjection)
+			virtual size_t render_depth_cube(core::timer* time_step, const objects& chunk, trigonometry::matrix4x4* view_projection)
 			{
 				return 0;
 			}
-			virtual size_t RenderCubicBatched(Core::Timer* TimeStep, const Groups& Chunk, Trigonometry::Matrix4x4* ViewProjection)
+			virtual size_t render_depth_cube_batched(core::timer* time_step, const groups& chunk, trigonometry::matrix4x4* view_projection)
 			{
 				return 0;
 			}
-			virtual size_t RenderVoxelization(Core::Timer* TimeStep, const Objects& Chunk)
+			virtual size_t render_geometry(core::timer* time_step, const objects& chunk)
 			{
 				return 0;
 			}
-			virtual size_t RenderVoxelizationBatched(Core::Timer* TimeStep, const Groups& Chunk)
+			virtual size_t render_geometry_batched(core::timer* time_step, const groups& chunk)
 			{
 				return 0;
 			}
-			virtual size_t RenderGeometric(Core::Timer* TimeStep, const Objects& Chunk)
+			virtual size_t render_geometry_prepass(core::timer* time_step, const objects& chunk)
 			{
 				return 0;
 			}
-			virtual size_t RenderGeometricBatched(Core::Timer* TimeStep, const Groups& Chunk)
+			virtual size_t render_geometry_prepass_batched(core::timer* time_step, const groups& chunk)
 			{
 				return 0;
 			}
-			virtual size_t RenderGeometricPrepass(Core::Timer* TimeStep, const Objects& Chunk)
+			void clear_culling() override
 			{
-				return 0;
+				for (auto& item : active)
+					inactive.push(item.second);
+				active.clear();
 			}
-			virtual size_t RenderGeometricPrepassBatched(Core::Timer* TimeStep, const Groups& Chunk)
+			void begin_pass(core::timer* time) override
 			{
-				return 0;
-			}
-			void ClearCulling() override
-			{
-				for (auto& Item : Active)
-					Inactive.push(Item.second);
-				Active.clear();
-			}
-			void BeginPass(Core::Timer* Time) override
-			{
-				bool Proceed = Proxy.Push(Time, System);
-				if (!System->AllowInputLag)
-					Proceed = true;
+				bool proceed = proxy.push(time, system);
+				if (!system->allow_input_lag)
+					proceed = true;
 
-				if (!Proceed || !Proxy.HasBatching())
+				if (!proceed || !proxy.has_batching())
 					return;
 
-				Graphics::GraphicsDevice* Device = System->GetDevice();
-				for (size_t i = 0; i < (size_t)GeoCategory::Count; ++i)
+				graphics::graphics_device* device = system->get_device();
+				for (size_t i = 0; i < (size_t)geo_category::count; ++i)
 				{
-					auto& Batcher = Proxy.Batcher((GeoCategory)i);
-					auto& Frame = Proxy.Top((GeoCategory)i);
-					Parallel::WailAll(Parallel::Distribute(Frame.begin(), Frame.end(), THRESHOLD_PER_THREAD, [&Batcher](size_t Threads)
+					auto& batcher = proxy.batcher((geo_category)i);
+					auto& frame = proxy.top((geo_category)i);
+					parallel::wail_all(parallel::distribute(frame.begin(), frame.end(), THRESHOLD_PER_THREAD, [&batcher](size_t threads)
 					{
-						Batcher.Prepare(Threads);
-					}, [this, &Batcher](size_t Thread, T* Next)
+						batcher.prepare(threads);
+					}, [this, &batcher](size_t thread, t* next)
 					{
-						BatchGeometry(Next, Batcher, Thread);
+						batch_geometry(next, batcher, thread);
 					}));
-						
-					auto* Scene = System->GetScene();
-					Scene->Statistics.Batching += Batcher.Compile(Device);
+
+					auto* scene = system->get_scene();
+					scene->statistics.batching += batcher.compile(device);
 				}
 			}
-			void EndPass() override
+			void end_pass() override
 			{
-				Proxy.Pop();
+				proxy.pop();
 			}
-			bool HasCategory(GeoCategory Category) override
+			bool has_category(geo_category category) override
 			{
-				return !Proxy.Top(Category).empty();
+				return !proxy.top(category).empty();
 			}
-			size_t RenderPrepass(Core::Timer* Time) override
+			size_t render_prepass(core::timer* time) override
 			{
-				size_t Count = 0;
-				if (!System->State.Is(RenderState::Geometric))
-					return Count;
+				size_t count = 0;
+				if (!system->state.is(render_state::geometry))
+					return count;
 
-				GeoCategory Category = GeoCategory::Opaque;
-				if (System->State.IsSet(RenderOpt::Transparent))
-					Category = GeoCategory::Transparent;
-				else if (System->State.IsSet(RenderOpt::Additive))
-					Category = GeoCategory::Additive;
+				geo_category category = geo_category::opaque;
+				if (system->state.is_set(render_opt::transparent))
+					category = geo_category::transparent;
+				else if (system->state.is_set(render_opt::additive))
+					category = geo_category::additive;
 
-				VI_MEASURE(Core::Timings::Frame);
-				if (Proxy.HasBatching())
+				VI_MEASURE(core::timings::frame);
+				if (proxy.has_batching())
 				{
-					auto& Frame = Proxy.Batches(Category);
-					if (!Frame.empty())
-						Count += RenderGeometricPrepassBatched(Time, Frame);
+					auto& frame = proxy.batches(category);
+					if (!frame.empty())
+						count += render_geometry_prepass_batched(time, frame);
 				}
 				else
 				{
-					auto& Frame = Proxy.Top(Category);
-					if (!Frame.empty())
-						Count += RenderGeometricPrepass(Time, Frame);
+					auto& frame = proxy.top(category);
+					if (!frame.empty())
+						count += render_geometry_prepass(time, frame);
 				}
 
-				if (System->State.IsTop())
-					Count += CullingPass();
+				if (system->state.is_top())
+					count += culling_pass();
 
-				return Count;
+				return count;
 			}
-			size_t RenderPass(Core::Timer* Time) override
+			size_t render_pass(core::timer* time) override
 			{
-				size_t Count = 0;
-				if (System->State.Is(RenderState::Geometric))
+				size_t count = 0;
+				if (system->state.is(render_state::geometry))
 				{
-					GeoCategory Category = GeoCategory::Opaque;
-					if (System->State.IsSet(RenderOpt::Transparent))
-						Category = GeoCategory::Transparent;
-					else if (System->State.IsSet(RenderOpt::Additive))
-						Category = GeoCategory::Additive;
+					geo_category category = geo_category::opaque;
+					if (system->state.is_set(render_opt::transparent))
+						category = geo_category::transparent;
+					else if (system->state.is_set(render_opt::additive))
+						category = geo_category::additive;
 
-					VI_MEASURE(Core::Timings::Frame);
-					if (Proxy.HasBatching())
+					VI_MEASURE(core::timings::frame);
+					if (proxy.has_batching())
 					{
-						auto& Frame = Proxy.Batches(Category);
-						if (!Frame.empty())
+						auto& frame = proxy.batches(category);
+						if (!frame.empty())
 						{
-							System->ClearMaterials();
-							Count += RenderGeometricBatched(Time, Frame);
+							system->clear_materials();
+							count += render_geometry_batched(time, frame);
 						}
 					}
 					else
 					{
-						auto& Frame = Proxy.Top(Category);
-						if (!Frame.empty())
+						auto& frame = proxy.top(category);
+						if (!frame.empty())
 						{
-							System->ClearMaterials();
-							Count += RenderGeometric(Time, Frame);
+							system->clear_materials();
+							count += render_geometry(time, frame);
 						}
 					}
 				}
-				else if (System->State.Is(RenderState::Voxelization))
+				else if (system->state.is(render_state::depth))
 				{
-					if (System->State.IsSet(RenderOpt::Transparent) || System->State.IsSet(RenderOpt::Additive))
+					if (!system->state.is_subpass())
 						return 0;
 
-					VI_MEASURE(Core::Timings::Mixed);
-					if (Proxy.HasBatching())
+					VI_MEASURE(core::timings::pass);
+					if (proxy.has_batching())
 					{
-						auto& Frame = Proxy.Batches(GeoCategory::Opaque);
-						if (!Frame.empty())
-						{
-							System->ClearMaterials();
-							Count += RenderVoxelizationBatched(Time, Frame);
-						}
+						auto& frame1 = proxy.batches(geo_category::opaque);
+						auto& frame2 = proxy.batches(geo_category::transparent);
+						if (!frame1.empty() || !frame2.empty())
+							system->clear_materials();
+
+						if (!frame1.empty())
+							count += render_depth_batched(time, frame1);
+
+						if (!frame2.empty())
+							count += render_depth_batched(time, frame2);
 					}
 					else
 					{
-						auto& Frame = Proxy.Top(GeoCategory::Opaque);
-						if (!Frame.empty())
-						{
-							System->ClearMaterials();
-							Count += RenderVoxelization(Time, Frame);
-						}
+						auto& frame1 = proxy.top(geo_category::opaque);
+						auto& frame2 = proxy.top(geo_category::transparent);
+						if (!frame1.empty() || !frame2.empty())
+							system->clear_materials();
+
+						if (!frame1.empty())
+							count += render_depth(time, frame1);
+
+						if (!frame2.empty())
+							count += render_depth(time, frame2);
 					}
 				}
-				else if (System->State.Is(RenderState::Linearization))
+				else if (system->state.is(render_state::depth_cube))
 				{
-					if (!System->State.IsSubpass())
+					if (!system->state.is_subpass())
 						return 0;
 
-					VI_MEASURE(Core::Timings::Pass);
-					if (Proxy.HasBatching())
+					VI_MEASURE(core::timings::pass);
+					if (proxy.has_batching())
 					{
-						auto& Frame1 = Proxy.Batches(GeoCategory::Opaque);
-						auto& Frame2 = Proxy.Batches(GeoCategory::Transparent);
-						if (!Frame1.empty() || !Frame2.empty())
-							System->ClearMaterials();
+						auto& frame1 = proxy.batches(geo_category::opaque);
+						auto& frame2 = proxy.batches(geo_category::transparent);
+						if (!frame1.empty() || !frame2.empty())
+							system->clear_materials();
 
-						if (!Frame1.empty())
-							Count += RenderLinearizationBatched(Time, Frame1);
+						if (!frame1.empty())
+							count += render_depth_cube_batched(time, frame1, system->view.cube_view_projection);
 
-						if (!Frame2.empty())
-							Count += RenderLinearizationBatched(Time, Frame2);
+						if (!frame2.empty())
+							count += render_depth_cube_batched(time, frame2, system->view.cube_view_projection);
 					}
 					else
 					{
-						auto& Frame1 = Proxy.Top(GeoCategory::Opaque);
-						auto& Frame2 = Proxy.Top(GeoCategory::Transparent);
-						if (!Frame1.empty() || !Frame2.empty())
-							System->ClearMaterials();
+						auto& frame1 = proxy.top(geo_category::opaque);
+						auto& frame2 = proxy.top(geo_category::transparent);
+						if (!frame1.empty() || !frame2.empty())
+							system->clear_materials();
 
-						if (!Frame1.empty())
-							Count += RenderLinearization(Time, Frame1);
+						if (!frame1.empty())
+							count += render_depth_cube(time, frame1, system->view.cube_view_projection);
 
-						if (!Frame2.empty())
-							Count += RenderLinearization(Time, Frame2);
-					}
-				}
-				else if (System->State.Is(RenderState::Cubic))
-				{
-					if (!System->State.IsSubpass())
-						return 0;
-
-					VI_MEASURE(Core::Timings::Pass);
-					if (Proxy.HasBatching())
-					{
-						auto& Frame1 = Proxy.Batches(GeoCategory::Opaque);
-						auto& Frame2 = Proxy.Batches(GeoCategory::Transparent);
-						if (!Frame1.empty() || !Frame2.empty())
-							System->ClearMaterials();
-
-						if (!Frame1.empty())
-							Count += RenderCubicBatched(Time, Frame1, System->View.CubicViewProjection);
-
-						if (!Frame2.empty())
-							Count += RenderCubicBatched(Time, Frame2, System->View.CubicViewProjection);
-					}
-					else
-					{
-						auto& Frame1 = Proxy.Top(GeoCategory::Opaque);
-						auto& Frame2 = Proxy.Top(GeoCategory::Transparent);
-						if (!Frame1.empty() || !Frame2.empty())
-							System->ClearMaterials();
-
-						if (!Frame1.empty())
-							Count += RenderCubic(Time, Frame1, System->View.CubicViewProjection);
-
-						if (!Frame2.empty())
-							Count += RenderCubic(Time, Frame2, System->View.CubicViewProjection);
+						if (!frame2.empty())
+							count += render_depth_cube(time, frame2, system->view.cube_view_projection);
 					}
 				}
 
-				return Count;
+				return count;
 			}
-			size_t CullingPass()
+			size_t culling_pass()
 			{
-				if (!System->OcclusionCulling)
+				if (!system->occlusion_culling)
 					return 0;
 
-				VI_MEASURE(Core::Timings::Pass);
-				Graphics::GraphicsDevice* Device = System->GetDevice();
-				size_t Count = 0; size_t Fragments = 0;
+				VI_MEASURE(core::timings::pass);
+				graphics::graphics_device* device = system->get_device();
+				size_t count = 0; size_t fragments = 0;
 
-				for (auto It = Active.begin(); It != Active.end();)
+				for (auto it = active.begin(); it != active.end();)
 				{
-					auto* Query = It->second;
-					if (Device->GetQueryData(Query, &Fragments))
+					auto* query = it->second;
+					if (device->get_query_data(query, &fragments))
 					{
-						It->first->Overlapping = (Fragments > 0 ? 1.0f : 0.0f);
-						It = Active.erase(It);
-						Inactive.push(Query);
+						it->first->overlapping = (fragments > 0 ? 1.0f : 0.0f);
+						it = active.erase(it);
+						inactive.push(query);
 					}
 					else
-						++It;
+						++it;
 				}
 
-				Skippable[0] = (FrameTop[0]++ < System->OccluderSkips);
-				if (!Skippable[0])
-					FrameTop[0] = 0;
+				skippable[0] = (frame_top[0]++ < system->occluder_skips);
+				if (!skippable[0])
+					frame_top[0] = 0;
 
-				Skippable[1] = (FrameTop[1]++ < System->OccludeeSkips);
-				if (!Skippable[1])
-					FrameTop[1] = 0;
+				skippable[1] = (frame_top[1]++ < system->occludee_skips);
+				if (!skippable[1])
+					frame_top[1] = 0;
 
-				if (FrameTop[2]++ >= System->OcclusionSkips && !Proxy.Culling.empty())
+				if (frame_top[2]++ >= system->occlusion_skips && !proxy.culling.empty())
 				{
-					auto ViewProjection = System->View.ViewProjection;
-					System->View.ViewProjection = Trigonometry::Matrix4x4::CreateScale(System->OccludeeScaling) * ViewProjection;
-					Device->SetDepthStencilState(DepthStencil);
-					Device->SetBlendState(Blend);
-					Count += CullGeometry(System->View, Proxy.Culling);
-					System->View.ViewProjection = ViewProjection;
+					auto view_projection = system->view.view_projection;
+					system->view.view_projection = trigonometry::matrix4x4::create_scale(system->occludee_scaling) * view_projection;
+					device->set_depth_stencil_state(depth_stencil);
+					device->set_blend_state(blend);
+					count += cull_geometry(system->view, proxy.culling);
+					system->view.view_projection = view_projection;
 				}
 
-				return Count;
+				return count;
 			}
-			bool CullingBegin(T* Base)
+			bool culling_begin(t* base)
 			{
-				VI_ASSERT(Base != nullptr, "base should be set");
-				if (Skippable[1] && Base->Overlapping < System->Threshold)
+				VI_ASSERT(base != nullptr, "base should be set");
+				if (skippable[1] && base->overlapping < system->threshold)
 					return false;
-				else if (Skippable[0] && Base->Overlapping >= System->Threshold)
+				else if (skippable[0] && base->overlapping >= system->threshold)
 					return false;
 
-				if (Inactive.empty() && Active.size() >= System->MaxQueries)
+				if (inactive.empty() && active.size() >= system->max_queries)
 				{
-					Base->Overlapping = System->OverflowVisibility;
+					base->overlapping = system->overflow_visibility;
 					return false;
 				}
 
-				if (Active.find(Base) != Active.end())
+				if (active.find(base) != active.end())
 					return false;
 
-				Graphics::GraphicsDevice* Device = System->GetDevice();
-				if (Inactive.empty())
+				graphics::graphics_device* device = system->get_device();
+				if (inactive.empty())
 				{
-					Graphics::Query::Desc I;
-					I.Predicate = false;
+					graphics::query::desc i;
+					i.predicate = false;
 
-					Current = Device->CreateQuery(I).Or(nullptr);	
-					if (!Current)
+					current = device->create_query(i).or_else(nullptr);
+					if (!current)
 						return false;
 				}
 				else
 				{
-					Current = Inactive.front();
-					Inactive.pop();
+					current = inactive.front();
+					inactive.pop();
 				}
 
-				Active[Base] = Current;
-				Device->QueryBegin(Current);
+				active[base] = current;
+				device->query_begin(current);
 				return true;
 			}
-			bool CullingEnd()
+			bool culling_end()
 			{
-				VI_ASSERT(Current != nullptr, "culling query must be started");
-				if (!Current)
+				VI_ASSERT(current != nullptr, "culling query must be started");
+				if (!current)
 					return false;
 
-				System->GetDevice()->QueryEnd(Current);
-				Current = nullptr;
+				system->get_device()->query_end(current);
+				current = nullptr;
 
 				return true;
 			}
@@ -2386,71 +2336,77 @@ namespace Vitex
 			VI_COMPONENT("geometry_renderer");
 		};
 
-		class VI_OUT EffectRenderer : public Renderer
+		class effect_renderer : public renderer
 		{
 		protected:
-			struct ShaderData
+			struct shader_data
 			{
 				struct
 				{
-					uint32_t DiffuseBuffer = (uint32_t)-1;
-					uint32_t NormalBuffer = (uint32_t)-1;
-					uint32_t DepthBuffer = (uint32_t)-1;
-					uint32_t SurfaceBuffer = (uint32_t)-1;
-					uint32_t ImageBuffer = (uint32_t)-1;
-					uint32_t Constant = (uint32_t)-1;
-					uint32_t Sampler = (uint32_t)-1;
-				} Slots;
-				Graphics::Shader* Effect = nullptr;
-				Core::String Filename;
+					uint32_t diffuse_buffer = (uint32_t)-1;
+					uint32_t normal_buffer = (uint32_t)-1;
+					uint32_t depth_buffer = (uint32_t)-1;
+					uint32_t surface_buffer = (uint32_t)-1;
+					uint32_t image_buffer = (uint32_t)-1;
+					uint32_t render_buffer = (uint32_t)-1;
+					uint32_t sampler = (uint32_t)-1;
+				} slots;
+				core::unordered_map<core::string, uint32_t> offsets;
+				core::unordered_set<uint32_t> regs;
+				graphics::shader* effect = nullptr;
+				core::string filename;
 			};
 
 			struct
 			{
-				uint32_t DiffuseMap = (uint32_t)-1;
-				uint32_t Sampler = (uint32_t)-1;
-				uint32_t Object = (uint32_t)-1;
-			} Slots;
+				uint32_t diffuse_map = (uint32_t)-1;
+				uint32_t sampler = (uint32_t)-1;
+				uint32_t object = (uint32_t)-1;
+			} slots;
 
 		protected:
-			Core::UnorderedMap<Graphics::Shader*, ShaderData> Effects;
-			Graphics::DepthStencilState* DepthStencil;
-			Graphics::RasterizerState* Rasterizer;
-			Graphics::BlendState* Blend;
-			Graphics::SamplerState* SamplerWrap;
-			Graphics::SamplerState* SamplerClamp;
-			Graphics::SamplerState* SamplerMirror;
-			Graphics::InputLayout* Layout;
-			Graphics::RenderTarget2D* Output;
-			Graphics::RenderTarget2D* Swap;
-			unsigned int MaxSlot;
+			core::unordered_map<graphics::shader*, shader_data> effects;
+			graphics::depth_stencil_state* depth_stencil;
+			graphics::rasterizer_state* rasterizer;
+			graphics::blend_state* blend;
+			graphics::sampler_state* sampler_wrap;
+			graphics::sampler_state* sampler_clamp;
+			graphics::sampler_state* sampler_mirror;
+			graphics::input_layout* layout;
+			graphics::render_target_2d* output;
+			graphics::render_target_2d* swap;
 
 		public:
-			EffectRenderer(RenderSystem* Lab) noexcept;
-			virtual ~EffectRenderer() noexcept override;
-			virtual void ResizeEffect();
-			virtual void RenderEffect(Core::Timer* Time) = 0;
-			size_t RenderPass(Core::Timer* Time) override;
-			void ResizeBuffers() override;
-			unsigned int GetMipLevels() const;
-			unsigned int GetWidth() const;
-			unsigned int GetHeight() const;
+			effect_renderer(render_system* lab) noexcept;
+			virtual ~effect_renderer() noexcept override;
+			virtual void resize_effect();
+			virtual void render_effect(core::timer* time) = 0;
+			size_t render_pass(core::timer* time) override;
+			void resize_buffers() override;
+			unsigned int get_mip_levels() const;
+			unsigned int get_width() const;
+			unsigned int get_height() const;
+
+		private:
+			uint32_t texture_count_of(shader_data& data);
 
 		protected:
-			void RenderCopyMain(uint32_t Slot, Graphics::Texture2D* Target);
-			void RenderCopyLast(Graphics::Texture2D* Target);
-			void RenderOutput(Graphics::RenderTarget2D* Resource = nullptr);
-			void RenderTexture(uint32_t Slot, Graphics::Texture2D* Resource = nullptr);
-			void RenderTexture(uint32_t Slot, Graphics::Texture3D* Resource = nullptr);
-			void RenderTexture(uint32_t Slot, Graphics::TextureCube* Resource = nullptr);
-			void RenderMerge(Graphics::Shader* Effect, Graphics::SamplerState* Sampler, void* Buffer = nullptr, size_t Count = 1);
-			void RenderResult(Graphics::Shader* Effect, Graphics::SamplerState* Sampler, void* Buffer = nullptr);
-			void RenderResult(Graphics::SamplerState* Sampler);
-			void GenerateMips();
-			ShaderData* GetEffectByFilename(const std::string_view& Name);
-			ShaderData* GetEffectByShader(Graphics::Shader* Shader);
-			Graphics::ExpectsGraphics<Graphics::Shader*> CompileEffect(Graphics::Shader::Desc& Desc, size_t BufferSize = 0);
-			Graphics::ExpectsGraphics<Graphics::Shader*> CompileEffect(const std::string_view& SectionName, size_t BufferSize = 0);
+			void render_copy_from_main(uint32_t slot, graphics::texture_2d* dest);
+			void render_copy_to_main(uint32_t slot, graphics::texture_2d* src);
+			void render_copy_from_last(graphics::texture_2d* dest);
+			void render_copy_to_last(graphics::texture_2d* src);
+			void render_output(graphics::render_target_2d* resource = nullptr);
+			void render_texture(graphics::shader* effect, const std::string_view& name, graphics::texture_2d* resource = nullptr);
+			void render_texture(graphics::shader* effect, const std::string_view& name, graphics::texture_3d* resource = nullptr);
+			void render_texture(graphics::shader* effect, const std::string_view& name, graphics::texture_cube* resource = nullptr);
+			void render_merge(graphics::shader* effect, graphics::sampler_state* sampler, void* buffer = nullptr, size_t count = 1);
+			void render_result(graphics::shader* effect, graphics::sampler_state* sampler, void* buffer = nullptr);
+			void render_result(graphics::sampler_state* sampler);
+			void generate_mips();
+			shader_data* get_effect_by_filename(const std::string_view& name);
+			shader_data* get_effect_by_shader(graphics::shader* shader);
+			graphics::expects_graphics<graphics::shader*> compile_effect(graphics::shader::desc& desc, size_t buffer_size = 0);
+			graphics::expects_graphics<graphics::shader*> compile_effect(const std::string_view& section_name, core::vector<core::string>&& features, size_t buffer_size = 0);
 
 		public:
 			VI_COMPONENT("effect_renderer");

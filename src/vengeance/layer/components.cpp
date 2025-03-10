@@ -15,4055 +15,4050 @@ namespace
 	};
 }
 
-namespace Vitex
+namespace vitex
 {
-	namespace Layer
+	namespace layer
 	{
-		namespace Components
+		namespace components
 		{
-			static float GetVisibilityRadius(Entity* Base, const Viewer& View, float Distance)
+			static float get_visibility_radius(entity* base, const viewer& view, float distance)
 			{
-				float Visibility = 1.0f - Distance / View.FarPlane;
-				if (Visibility <= 0.0f)
+				float visibility = 1.0f - distance / view.far_plane;
+				if (visibility <= 0.0f)
 					return 0.0f;
 
-				const Trigonometry::Matrix4x4& Box = Base->GetTransform()->GetBiasUnscaled();
-				return Trigonometry::Geometric::IsCubeInFrustum(Box * View.ViewProjection, Base->GetRadius()) ? Visibility : 0.0f;
+				const trigonometry::matrix4x4& box = base->get_transform()->get_bias_unscaled();
+				return trigonometry::geometric::is_cube_in_frustum(box * view.view_projection, base->get_radius()) ? visibility : 0.0f;
 			}
 
-			RigidBody::RigidBody(Entity* Ref) : Component(Ref, ActorSet::Synchronize)
+			rigid_body::rigid_body(entity* ref) : component(ref, actor_set::synchronize)
 			{
 			}
-			RigidBody::~RigidBody()
+			rigid_body::~rigid_body()
 			{
-				Clear();
+				clear();
 			}
-			void RigidBody::DeserializeBody(Core::Schema* Node)
+			void rigid_body::deserialize_body(core::schema* node)
 			{
-				size_t ActivationState;
-				if (Series::UnpackA(Node->Find("activation-state"), &ActivationState))
-					Instance->SetActivationState((Physics::MotionState)ActivationState);
+				size_t activation_state;
+				if (series::unpack_a(node->find("activation-state"), &activation_state))
+					instance->set_activation_state((physics::motion_state)activation_state);
 
-				float AngularDamping;
-				if (Series::Unpack(Node->Find("angular-damping"), &AngularDamping))
-					Instance->SetAngularDamping(AngularDamping);
+				float angular_damping;
+				if (series::unpack(node->find("angular-damping"), &angular_damping))
+					instance->set_angular_damping(angular_damping);
 
-				float AngularSleepingThreshold;
-				if (Series::Unpack(Node->Find("angular-sleeping-threshold"), &AngularSleepingThreshold))
-					Instance->SetAngularSleepingThreshold(AngularSleepingThreshold);
+				float angular_sleeping_threshold;
+				if (series::unpack(node->find("angular-sleeping-threshold"), &angular_sleeping_threshold))
+					instance->set_angular_sleeping_threshold(angular_sleeping_threshold);
 
-				float Friction;
-				if (Series::Unpack(Node->Find("friction"), &Friction))
-					Instance->SetFriction(Friction);
+				float friction;
+				if (series::unpack(node->find("friction"), &friction))
+					instance->set_friction(friction);
 
-				float Restitution;
-				if (Series::Unpack(Node->Find("restitution"), &Restitution))
-					Instance->SetRestitution(Restitution);
+				float restitution;
+				if (series::unpack(node->find("restitution"), &restitution))
+					instance->set_restitution(restitution);
 
-				float HitFraction;
-				if (Series::Unpack(Node->Find("hit-fraction"), &HitFraction))
-					Instance->SetHitFraction(HitFraction);
+				float hit_fraction;
+				if (series::unpack(node->find("hit-fraction"), &hit_fraction))
+					instance->set_hit_fraction(hit_fraction);
 
-				float LinearDamping;
-				if (Series::Unpack(Node->Find("linear-damping"), &LinearDamping))
-					Instance->SetLinearDamping(LinearDamping);
+				float linear_damping;
+				if (series::unpack(node->find("linear-damping"), &linear_damping))
+					instance->set_linear_damping(linear_damping);
 
-				float LinearSleepingThreshold;
-				if (Series::Unpack(Node->Find("linear-sleeping-threshold"), &LinearSleepingThreshold))
-					Instance->SetLinearSleepingThreshold(LinearSleepingThreshold);
+				float linear_sleeping_threshold;
+				if (series::unpack(node->find("linear-sleeping-threshold"), &linear_sleeping_threshold))
+					instance->set_linear_sleeping_threshold(linear_sleeping_threshold);
 
-				float CcdSweptSphereRadius;
-				if (Series::Unpack(Node->Find("ccd-swept-sphere-radius"), &CcdSweptSphereRadius))
-					Instance->SetCcdSweptSphereRadius(CcdSweptSphereRadius);
+				float ccd_swept_sphere_radius;
+				if (series::unpack(node->find("ccd-swept-sphere-radius"), &ccd_swept_sphere_radius))
+					instance->set_ccd_swept_sphere_radius(ccd_swept_sphere_radius);
 
-				float ContactProcessingThreshold;
-				if (Series::Unpack(Node->Find("contact-processing-threshold"), &ContactProcessingThreshold))
-					Instance->SetContactProcessingThreshold(ContactProcessingThreshold);
+				float contact_processing_threshold;
+				if (series::unpack(node->find("contact-processing-threshold"), &contact_processing_threshold))
+					instance->set_contact_processing_threshold(contact_processing_threshold);
 
-				float DeactivationTime;
-				if (Series::Unpack(Node->Find("deactivation-time"), &DeactivationTime))
-					Instance->SetDeactivationTime(DeactivationTime);
+				float deactivation_time;
+				if (series::unpack(node->find("deactivation-time"), &deactivation_time))
+					instance->set_deactivation_time(deactivation_time);
 
-				float RollingFriction;
-				if (Series::Unpack(Node->Find("rolling-friction"), &RollingFriction))
-					Instance->SetRollingFriction(RollingFriction);
+				float rolling_friction;
+				if (series::unpack(node->find("rolling-friction"), &rolling_friction))
+					instance->set_rolling_friction(rolling_friction);
 
-				float SpinningFriction;
-				if (Series::Unpack(Node->Find("spinning-friction"), &SpinningFriction))
-					Instance->SetSpinningFriction(SpinningFriction);
+				float spinning_friction;
+				if (series::unpack(node->find("spinning-friction"), &spinning_friction))
+					instance->set_spinning_friction(spinning_friction);
 
-				float ContactStiffness;
-				if (Series::Unpack(Node->Find("contact-stiffness"), &ContactStiffness))
-					Instance->SetContactStiffness(ContactStiffness);
+				float contact_stiffness;
+				if (series::unpack(node->find("contact-stiffness"), &contact_stiffness))
+					instance->set_contact_stiffness(contact_stiffness);
 
-				float ContactDamping;
-				if (Series::Unpack(Node->Find("contact-damping"), &ContactDamping))
-					Instance->SetContactDamping(ContactDamping);
+				float contact_damping;
+				if (series::unpack(node->find("contact-damping"), &contact_damping))
+					instance->set_contact_damping(contact_damping);
 
-				Trigonometry::Vector3 AngularFactor;
-				if (HeavySeries::Unpack(Node->Find("angular-factor"), &AngularFactor))
-					Instance->SetAngularFactor(AngularFactor);
+				trigonometry::vector3 angular_factor;
+				if (heavy_series::unpack(node->find("angular-factor"), &angular_factor))
+					instance->set_angular_factor(angular_factor);
 
-				Trigonometry::Vector3 AngularVelocity;
-				if (HeavySeries::Unpack(Node->Find("angular-velocity"), &AngularVelocity))
-					Instance->SetAngularVelocity(AngularVelocity);
+				trigonometry::vector3 angular_velocity;
+				if (heavy_series::unpack(node->find("angular-velocity"), &angular_velocity))
+					instance->set_angular_velocity(angular_velocity);
 
-				Trigonometry::Vector3 AnisotropicFriction;
-				if (HeavySeries::Unpack(Node->Find("anisotropic-friction"), &AnisotropicFriction))
-					Instance->SetAnisotropicFriction(AnisotropicFriction);
+				trigonometry::vector3 anisotropic_friction;
+				if (heavy_series::unpack(node->find("anisotropic-friction"), &anisotropic_friction))
+					instance->set_anisotropic_friction(anisotropic_friction);
 
-				Trigonometry::Vector3 Gravity;
-				if (HeavySeries::Unpack(Node->Find("gravity"), &Gravity))
-					Instance->SetGravity(Gravity);
+				trigonometry::vector3 gravity;
+				if (heavy_series::unpack(node->find("gravity"), &gravity))
+					instance->set_gravity(gravity);
 
-				Trigonometry::Vector3 LinearFactor;
-				if (HeavySeries::Unpack(Node->Find("linear-factor"), &LinearFactor))
-					Instance->SetLinearFactor(LinearFactor);
+				trigonometry::vector3 linear_factor;
+				if (heavy_series::unpack(node->find("linear-factor"), &linear_factor))
+					instance->set_linear_factor(linear_factor);
 
-				Trigonometry::Vector3 LinearVelocity;
-				if (HeavySeries::Unpack(Node->Find("linear-velocity"), &LinearVelocity))
-					Instance->SetLinearVelocity(LinearVelocity);
+				trigonometry::vector3 linear_velocity;
+				if (heavy_series::unpack(node->find("linear-velocity"), &linear_velocity))
+					instance->set_linear_velocity(linear_velocity);
 
-				size_t CollisionFlags;
-				if (Series::UnpackA(Node->Find("collision-flags"), &CollisionFlags))
-					Instance->SetCollisionFlags(CollisionFlags);
+				size_t collision_flags;
+				if (series::unpack_a(node->find("collision-flags"), &collision_flags))
+					instance->set_collision_flags(collision_flags);
 			}
-			void RigidBody::Deserialize(Core::Schema* Node)
+			void rigid_body::deserialize(core::schema* node)
 			{
-				VI_ASSERT(Node != nullptr, "schema should be set");
+				VI_ASSERT(node != nullptr, "schema should be set");
 
-				Core::Schema* Shaping = Node->Find("shape");
-				Core::Vector<Trigonometry::Vector3> Vertices;
-				Core::String Path; size_t Type;
-				float Mass = 0.0f, Anticipation = 0.0f;
-				bool Extended = false;
+				core::schema* shaping = node->find("shape");
+				core::vector<trigonometry::vector3> vertices;
+				core::string path; size_t type;
+				float mass = 0.0f, anticipation = 0.0f;
+				bool extended = false;
 
-				Series::Unpack(Node->Find("mass"), &Mass);
-				Series::Unpack(Node->Find("ccd-motion-threshold"), &Anticipation);
-				Series::Unpack(Node->Find("kinematic"), &Kinematic);
-				Series::Unpack(Node->Find("manage"), &Manage);
-				Series::Unpack(Node->Find("extended"), &Extended);
+				series::unpack(node->find("mass"), &mass);
+				series::unpack(node->find("ccd-motion-threshold"), &anticipation);
+				series::unpack(node->find("kinematic"), &kinematic);
+				series::unpack(node->find("manage"), &manage);
+				series::unpack(node->find("extended"), &extended);
 
-				if (!Extended)
+				if (!extended)
 					return;
 
-				if (Shaping != nullptr)
+				if (shaping != nullptr)
 				{
-					if (Series::Unpack(Shaping->Find("path"), &Path))
+					if (series::unpack(shaping->find("path"), &path))
 					{
-						Node->AddRef();
-						return Load(Path, Mass, Anticipation, [this, Node]()
+						node->add_ref();
+						return load(path, mass, anticipation, [this, node]()
 						{
-							if (Instance != nullptr)
-								DeserializeBody(Node);
-							Node->Release();
+							if (instance != nullptr)
+								deserialize_body(node);
+							node->release();
 						});
 					}
-					else if (Series::UnpackA(Shaping->Find("type"), &Type))
+					else if (series::unpack_a(shaping->find("type"), &type))
 					{
-						btCollisionShape* Shape = Parent->GetScene()->GetSimulator()->CreateShape((Physics::Shape)Type);
-						if (Shape != nullptr)
-							Load(Shape, Mass, Anticipation);
+						btCollisionShape* shape = parent->get_scene()->get_simulator()->create_shape((physics::shape)type);
+						if (shape != nullptr)
+							load(shape, mass, anticipation);
 					}
-					else if (HeavySeries::Unpack(Shaping->Find("data"), &Vertices))
+					else if (heavy_series::unpack(shaping->find("data"), &vertices))
 					{
-						btCollisionShape* Shape = Parent->GetScene()->GetSimulator()->CreateConvexHull(Vertices);
-						if (Shape != nullptr)
-							Load(Shape, Mass, Anticipation);
+						btCollisionShape* shape = parent->get_scene()->get_simulator()->create_convex_hull(vertices);
+						if (shape != nullptr)
+							load(shape, mass, anticipation);
 					}
 				}
 
-				if (Instance != nullptr)
-					DeserializeBody(Node);
+				if (instance != nullptr)
+					deserialize_body(node);
 			}
-			void RigidBody::Serialize(Core::Schema* Node)
+			void rigid_body::serialize(core::schema* node)
 			{
-				VI_ASSERT(Node != nullptr, "schema should be set");
+				VI_ASSERT(node != nullptr, "schema should be set");
 
-				SceneGraph* Scene = Parent->GetScene();
-				Series::Pack(Node->Set("kinematic"), Kinematic);
-				Series::Pack(Node->Set("manage"), Manage);
-				Series::Pack(Node->Set("extended"), Instance != nullptr);
+				scene_graph* scene = parent->get_scene();
+				series::pack(node->set("kinematic"), kinematic);
+				series::pack(node->set("manage"), manage);
+				series::pack(node->set("extended"), instance != nullptr);
 
-				if (!Instance)
+				if (!instance)
 					return;
 
-				Core::Schema* Shaping = Node->Set("shape");
-				if (Instance->GetCollisionShapeType() == Physics::Shape::Convex_Hull)
+				core::schema* shaping = node->set("shape");
+				if (instance->get_collision_shape_type() == physics::shape::convex_hull)
 				{
-					Core::String Path = Scene->FindResourceId<Physics::HullShape>(Hull);
-					if (Path.empty())
+					core::string path = scene->find_resource_id<physics::hull_shape>(hull);
+					if (path.empty())
 					{
-						Core::Vector<Trigonometry::Vector3> Vertices = Scene->GetSimulator()->GetShapeVertices(Instance->GetCollisionShape());
-						HeavySeries::Pack(Shaping->Set("data"), Vertices);
+						core::vector<trigonometry::vector3> vertices = scene->get_simulator()->get_shape_vertices(instance->get_collision_shape());
+						heavy_series::pack(shaping->set("data"), vertices);
 					}
 					else
-						Series::Pack(Shaping->Set("path"), Path);
+						series::pack(shaping->set("path"), path);
 				}
 				else
-					Series::Pack(Shaping->Set("type"), (uint64_t)Instance->GetCollisionShapeType());
+					series::pack(shaping->set("type"), (uint64_t)instance->get_collision_shape_type());
 
-				Series::Pack(Node->Set("mass"), Instance->GetMass());
-				Series::Pack(Node->Set("ccd-motion-threshold"), Instance->GetCcdMotionThreshold());
-				Series::Pack(Node->Set("activation-state"), (uint64_t)Instance->GetActivationState());
-				Series::Pack(Node->Set("angular-damping"), Instance->GetAngularDamping());
-				Series::Pack(Node->Set("angular-sleeping-threshold"), Instance->GetAngularSleepingThreshold());
-				Series::Pack(Node->Set("friction"), Instance->GetFriction());
-				Series::Pack(Node->Set("restitution"), Instance->GetRestitution());
-				Series::Pack(Node->Set("hit-fraction"), Instance->GetHitFraction());
-				Series::Pack(Node->Set("linear-damping"), Instance->GetLinearDamping());
-				Series::Pack(Node->Set("linear-sleeping-threshold"), Instance->GetLinearSleepingThreshold());
-				Series::Pack(Node->Set("ccd-swept-sphere-radius"), Instance->GetCcdSweptSphereRadius());
-				Series::Pack(Node->Set("contact-processing-threshold"), Instance->GetContactProcessingThreshold());
-				Series::Pack(Node->Set("deactivation-time"), Instance->GetDeactivationTime());
-				Series::Pack(Node->Set("rolling-friction"), Instance->GetRollingFriction());
-				Series::Pack(Node->Set("spinning-friction"), Instance->GetSpinningFriction());
-				Series::Pack(Node->Set("contact-stiffness"), Instance->GetContactStiffness());
-				Series::Pack(Node->Set("contact-damping"), Instance->GetContactDamping());
-				HeavySeries::Pack(Node->Set("angular-factor"), Instance->GetAngularFactor());
-				HeavySeries::Pack(Node->Set("angular-velocity"), Instance->GetAngularVelocity());
-				HeavySeries::Pack(Node->Set("anisotropic-friction"), Instance->GetAnisotropicFriction());
-				HeavySeries::Pack(Node->Set("gravity"), Instance->GetGravity());
-				HeavySeries::Pack(Node->Set("linear-factor"), Instance->GetLinearFactor());
-				HeavySeries::Pack(Node->Set("linear-velocity"), Instance->GetLinearVelocity());
-				Series::Pack(Node->Set("collision-flags"), (uint64_t)Instance->GetCollisionFlags());
+				series::pack(node->set("mass"), instance->get_mass());
+				series::pack(node->set("ccd-motion-threshold"), instance->get_ccd_motion_threshold());
+				series::pack(node->set("activation-state"), (uint64_t)instance->get_activation_state());
+				series::pack(node->set("angular-damping"), instance->get_angular_damping());
+				series::pack(node->set("angular-sleeping-threshold"), instance->get_angular_sleeping_threshold());
+				series::pack(node->set("friction"), instance->get_friction());
+				series::pack(node->set("restitution"), instance->get_restitution());
+				series::pack(node->set("hit-fraction"), instance->get_hit_fraction());
+				series::pack(node->set("linear-damping"), instance->get_linear_damping());
+				series::pack(node->set("linear-sleeping-threshold"), instance->get_linear_sleeping_threshold());
+				series::pack(node->set("ccd-swept-sphere-radius"), instance->get_ccd_swept_sphere_radius());
+				series::pack(node->set("contact-processing-threshold"), instance->get_contact_processing_threshold());
+				series::pack(node->set("deactivation-time"), instance->get_deactivation_time());
+				series::pack(node->set("rolling-friction"), instance->get_rolling_friction());
+				series::pack(node->set("spinning-friction"), instance->get_spinning_friction());
+				series::pack(node->set("contact-stiffness"), instance->get_contact_stiffness());
+				series::pack(node->set("contact-damping"), instance->get_contact_damping());
+				heavy_series::pack(node->set("angular-factor"), instance->get_angular_factor());
+				heavy_series::pack(node->set("angular-velocity"), instance->get_angular_velocity());
+				heavy_series::pack(node->set("anisotropic-friction"), instance->get_anisotropic_friction());
+				heavy_series::pack(node->set("gravity"), instance->get_gravity());
+				heavy_series::pack(node->set("linear-factor"), instance->get_linear_factor());
+				heavy_series::pack(node->set("linear-velocity"), instance->get_linear_velocity());
+				series::pack(node->set("collision-flags"), (uint64_t)instance->get_collision_flags());
 			}
-			void RigidBody::Synchronize(Core::Timer* Time)
+			void rigid_body::synchronize(core::timer* time)
 			{
-				if (Instance && Manage)
-					Instance->Synchronize(Parent->GetTransform(), Kinematic);
+				if (instance && manage)
+					instance->synchronize(parent->get_transform(), kinematic);
 			}
-			void RigidBody::Deactivate()
+			void rigid_body::deactivate()
 			{
-				if (Instance != nullptr)
-					Instance->SetAsGhost();
+				if (instance != nullptr)
+					instance->set_as_ghost();
 			}
-			void RigidBody::Load(btCollisionShape* Shape, float Mass, float Anticipation)
+			void rigid_body::load(btCollisionShape* shape, float mass, float anticipation)
 			{
-				SceneGraph* Scene = Parent->GetScene();
-				VI_ASSERT(Scene != nullptr, "scene should be set");
-				VI_ASSERT(Shape != nullptr, "collision shape should be set");
+				scene_graph* scene = parent->get_scene();
+				VI_ASSERT(scene != nullptr, "scene should be set");
+				VI_ASSERT(shape != nullptr, "collision shape should be set");
 
-				Physics::RigidBody::Desc I;
-				I.Anticipation = Anticipation;
-				I.Mass = Mass;
-				I.Shape = Shape;
+				physics::rigid_body::desc i;
+				i.anticipation = anticipation;
+				i.mass = mass;
+				i.shape = shape;
 
-				Core::Memory::Release(Instance);
-				Instance = Scene->GetSimulator()->CreateRigidBody(I, Parent->GetTransform());
-				Instance->UserPointer = this;
-				Instance->SetActivity(true);
+				core::memory::release(instance);
+				instance = scene->get_simulator()->create_rigid_body(i, parent->get_transform());
+				instance->user_pointer = this;
+				instance->set_activity(true);
 
-				GetEntity()->GetTransform()->MakeDirty();
+				get_entity()->get_transform()->make_dirty();
 			}
-			void RigidBody::Load(const std::string_view& Path, float Mass, float Anticipation, std::function<void()>&& Callback)
+			void rigid_body::load(const std::string_view& path, float mass, float anticipation, std::function<void()>&& callback)
 			{
-				Parent->GetScene()->LoadResource<Physics::HullShape>(this, Path, [this, Mass, Anticipation, Callback = std::move(Callback)](ExpectsContent<Physics::HullShape*> NewHull)
+				parent->get_scene()->load_resource<physics::hull_shape>(this, path, [this, mass, anticipation, callback = std::move(callback)](expects_content<physics::hull_shape*> new_hull)
 				{
-					Core::Memory::Release(Hull);
-					Hull = NewHull.Or(nullptr);
-					if (Hull != nullptr)
-						Load(Hull->GetShape(), Mass, Anticipation);
+					core::memory::release(hull);
+					hull = new_hull.or_else(nullptr);
+					if (hull != nullptr)
+						load(hull->get_shape(), mass, anticipation);
 					else
-						Clear();
+						clear();
 
-					if (Callback)
-						Callback();
+					if (callback)
+						callback();
 				});
 			}
-			void RigidBody::Clear()
+			void rigid_body::clear()
 			{
-				Core::Memory::Release(Instance);
-				Core::Memory::Release(Hull);
+				core::memory::release(instance);
+				core::memory::release(hull);
 			}
-			void RigidBody::SetTransform(const Trigonometry::Vector3& Position, const Trigonometry::Vector3& Scale, const Trigonometry::Vector3& Rotation)
+			void rigid_body::set_transform(const trigonometry::vector3& position, const trigonometry::vector3& scale, const trigonometry::vector3& rotation)
 			{
-				if (!Instance)
+				if (!instance)
 					return;
 
-				Trigonometry::Transform::Spacing Space;
-				Space.Position = Position;
-				Space.Rotation = Rotation;
-				Space.Scale = Scale;
+				trigonometry::transform::spacing space;
+				space.position = position;
+				space.rotation = rotation;
+				space.scale = scale;
 
-				auto* Transform = Parent->GetTransform();
-				Transform->SetSpacing(Trigonometry::Positioning::Global, Space);
-				Instance->Synchronize(Transform, true);
-				Instance->SetActivity(true);
+				auto* transform = parent->get_transform();
+				transform->set_spacing(trigonometry::positioning::global, space);
+				instance->synchronize(transform, true);
+				instance->set_activity(true);
 			}
-			void RigidBody::SetTransform(bool Kinematics)
+			void rigid_body::set_transform(bool kinematics)
 			{
-				if (!Instance)
+				if (!instance)
 					return;
 
-				auto* Transform = Parent->GetTransform();
-				Instance->Synchronize(Transform, Kinematics);
-				Instance->SetActivity(true);
+				auto* transform = parent->get_transform();
+				instance->synchronize(transform, kinematics);
+				instance->set_activity(true);
 			}
-			void RigidBody::SetMass(float Mass)
+			void rigid_body::set_mass(float mass)
 			{
-				if (Instance != nullptr)
-					Instance->SetMass(Mass);
+				if (instance != nullptr)
+					instance->set_mass(mass);
 			}
-			Component* RigidBody::Copy(Entity* New) const
+			component* rigid_body::copy(entity* init) const
 			{
-				RigidBody* Target = new RigidBody(New);
-				Target->Kinematic = Kinematic;
+				rigid_body* target = new rigid_body(init);
+				target->kinematic = kinematic;
 
-				if (Instance != nullptr)
+				if (instance != nullptr)
 				{
-					Target->Instance = Instance->Copy();
-					Target->Instance->UserPointer = Target;
+					target->instance = instance->copy();
+					target->instance->user_pointer = target;
 				}
 
-				return Target;
+				return target;
 			}
-			Physics::RigidBody* RigidBody::GetBody() const
+			physics::rigid_body* rigid_body::get_body() const
 			{
-				return Instance;
+				return instance;
 			}
 
-			SoftBody::SoftBody(Entity* Ref) : Drawable(Ref, ActorSet::Synchronize, SoftBody::GetTypeId())
+			soft_body::soft_body(entity* ref) : drawable(ref, actor_set::synchronize, soft_body::get_type_id())
 			{
 			}
-			SoftBody::~SoftBody()
+			soft_body::~soft_body()
 			{
-				Clear();
+				clear();
 			}
-			void SoftBody::DeserializeBody(Core::Schema* Node)
+			void soft_body::deserialize_body(core::schema* node)
 			{
-				Core::Schema* Conf = Node->Get("config");
-				if (Conf != nullptr)
+				core::schema* conf = node->get("config");
+				if (conf != nullptr)
 				{
-					Physics::SoftBody::Desc::SConfig I;
-					Series::Unpack(Conf->Get("vcf"), &I.VCF);
-					Series::Unpack(Conf->Get("dp"), &I.DP);
-					Series::Unpack(Conf->Get("dg"), &I.DG);
-					Series::Unpack(Conf->Get("lf"), &I.LF);
-					Series::Unpack(Conf->Get("pr"), &I.PR);
-					Series::Unpack(Conf->Get("vc"), &I.VC);
-					Series::Unpack(Conf->Get("df"), &I.DF);
-					Series::Unpack(Conf->Get("mt"), &I.MT);
-					Series::Unpack(Conf->Get("chr"), &I.CHR);
-					Series::Unpack(Conf->Get("khr"), &I.KHR);
-					Series::Unpack(Conf->Get("shr"), &I.SHR);
-					Series::Unpack(Conf->Get("ahr"), &I.AHR);
-					Series::Unpack(Conf->Get("srhr-cl"), &I.SRHR_CL);
-					Series::Unpack(Conf->Get("skhr-cl"), &I.SKHR_CL);
-					Series::Unpack(Conf->Get("sshr-cl"), &I.SSHR_CL);
-					Series::Unpack(Conf->Get("sr-splt-cl"), &I.SR_SPLT_CL);
-					Series::Unpack(Conf->Get("sk-splt-cl"), &I.SK_SPLT_CL);
-					Series::Unpack(Conf->Get("ss-splt-cl"), &I.SS_SPLT_CL);
-					Series::Unpack(Conf->Get("max-volume"), &I.MaxVolume);
-					Series::Unpack(Conf->Get("time-scale"), &I.TimeScale);
-					Series::Unpack(Conf->Get("drag"), &I.Drag);
-					Series::Unpack(Conf->Get("max-stress"), &I.MaxStress);
-					Series::Unpack(Conf->Get("constraints"), &I.Constraints);
-					Series::Unpack(Conf->Get("clusters"), &I.Clusters);
-					Series::Unpack(Conf->Get("v-it"), &I.VIterations);
-					Series::Unpack(Conf->Get("p-it"), &I.PIterations);
-					Series::Unpack(Conf->Get("d-it"), &I.DIterations);
-					Series::Unpack(Conf->Get("c-it"), &I.CIterations);
-					Series::Unpack(Conf->Get("collisions"), &I.Collisions);
+					physics::soft_body::desc::sconfig i;
+					series::unpack(conf->get("vcf"), &i.vcf);
+					series::unpack(conf->get("dp"), &i.dp);
+					series::unpack(conf->get("dg"), &i.dg);
+					series::unpack(conf->get("lf"), &i.lf);
+					series::unpack(conf->get("pr"), &i.pr);
+					series::unpack(conf->get("vc"), &i.vc);
+					series::unpack(conf->get("df"), &i.df);
+					series::unpack(conf->get("mt"), &i.mt);
+					series::unpack(conf->get("chr"), &i.chr);
+					series::unpack(conf->get("khr"), &i.khr);
+					series::unpack(conf->get("shr"), &i.shr);
+					series::unpack(conf->get("ahr"), &i.ahr);
+					series::unpack(conf->get("srhr-cl"), &i.srhr_cl);
+					series::unpack(conf->get("skhr-cl"), &i.skhr_cl);
+					series::unpack(conf->get("sshr-cl"), &i.sshr_cl);
+					series::unpack(conf->get("sr-splt-cl"), &i.sr_splt_cl);
+					series::unpack(conf->get("sk-splt-cl"), &i.sk_splt_cl);
+					series::unpack(conf->get("ss-splt-cl"), &i.ss_splt_cl);
+					series::unpack(conf->get("max-volume"), &i.max_volume);
+					series::unpack(conf->get("time-scale"), &i.time_scale);
+					series::unpack(conf->get("drag"), &i.drag);
+					series::unpack(conf->get("max-stress"), &i.max_stress);
+					series::unpack(conf->get("constraints"), &i.constraints);
+					series::unpack(conf->get("clusters"), &i.clusters);
+					series::unpack(conf->get("v-it"), &i.viterations);
+					series::unpack(conf->get("p-it"), &i.piterations);
+					series::unpack(conf->get("d-it"), &i.diterations);
+					series::unpack(conf->get("c-it"), &i.citerations);
+					series::unpack(conf->get("collisions"), &i.collisions);
 
-					size_t AeroModel;
-					if (Series::UnpackA(Conf->Get("aero-model"), &AeroModel))
-						I.AeroModel = (Physics::SoftAeroModel)AeroModel;
+					size_t aero_model;
+					if (series::unpack_a(conf->get("aero-model"), &aero_model))
+						i.aero_model = (physics::soft_aero_model)aero_model;
 
-					Instance->SetConfig(I);
+					instance->set_config(i);
 				}
 
-				size_t ActivationState;
-				if (Series::UnpackA(Node->Find("activation-state"), &ActivationState))
-					Instance->SetActivationState((Physics::MotionState)ActivationState);
+				size_t activation_state;
+				if (series::unpack_a(node->find("activation-state"), &activation_state))
+					instance->set_activation_state((physics::motion_state)activation_state);
 
-				float Friction;
-				if (Series::Unpack(Node->Find("friction"), &Friction))
-					Instance->SetFriction(Friction);
+				float friction;
+				if (series::unpack(node->find("friction"), &friction))
+					instance->set_friction(friction);
 
-				float Restitution;
-				if (Series::Unpack(Node->Find("restitution"), &Restitution))
-					Instance->SetRestitution(Restitution);
+				float restitution;
+				if (series::unpack(node->find("restitution"), &restitution))
+					instance->set_restitution(restitution);
 
-				float HitFraction;
-				if (Series::Unpack(Node->Find("hit-fraction"), &HitFraction))
-					Instance->SetHitFraction(HitFraction);
+				float hit_fraction;
+				if (series::unpack(node->find("hit-fraction"), &hit_fraction))
+					instance->set_hit_fraction(hit_fraction);
 
-				float CcdSweptSphereRadius;
-				if (Series::Unpack(Node->Find("ccd-swept-sphere-radius"), &CcdSweptSphereRadius))
-					Instance->SetCcdSweptSphereRadius(CcdSweptSphereRadius);
+				float ccd_swept_sphere_radius;
+				if (series::unpack(node->find("ccd-swept-sphere-radius"), &ccd_swept_sphere_radius))
+					instance->set_ccd_swept_sphere_radius(ccd_swept_sphere_radius);
 
-				float ContactProcessingThreshold;
-				if (Series::Unpack(Node->Find("contact-processing-threshold"), &ContactProcessingThreshold))
-					Instance->SetContactProcessingThreshold(ContactProcessingThreshold);
+				float contact_processing_threshold;
+				if (series::unpack(node->find("contact-processing-threshold"), &contact_processing_threshold))
+					instance->set_contact_processing_threshold(contact_processing_threshold);
 
-				float DeactivationTime;
-				if (Series::Unpack(Node->Find("deactivation-time"), &DeactivationTime))
-					Instance->SetDeactivationTime(DeactivationTime);
+				float deactivation_time;
+				if (series::unpack(node->find("deactivation-time"), &deactivation_time))
+					instance->set_deactivation_time(deactivation_time);
 
-				float RollingFriction;
-				if (Series::Unpack(Node->Find("rolling-friction"), &RollingFriction))
-					Instance->SetRollingFriction(RollingFriction);
+				float rolling_friction;
+				if (series::unpack(node->find("rolling-friction"), &rolling_friction))
+					instance->set_rolling_friction(rolling_friction);
 
-				float SpinningFriction;
-				if (Series::Unpack(Node->Find("spinning-friction"), &SpinningFriction))
-					Instance->SetSpinningFriction(SpinningFriction);
+				float spinning_friction;
+				if (series::unpack(node->find("spinning-friction"), &spinning_friction))
+					instance->set_spinning_friction(spinning_friction);
 
-				float ContactStiffness;
-				if (Series::Unpack(Node->Find("contact-stiffness"), &ContactStiffness))
-					Instance->SetContactStiffness(ContactStiffness);
+				float contact_stiffness;
+				if (series::unpack(node->find("contact-stiffness"), &contact_stiffness))
+					instance->set_contact_stiffness(contact_stiffness);
 
-				float ContactDamping;
-				if (Series::Unpack(Node->Find("contact-damping"), &ContactDamping))
-					Instance->SetContactDamping(ContactDamping);
+				float contact_damping;
+				if (series::unpack(node->find("contact-damping"), &contact_damping))
+					instance->set_contact_damping(contact_damping);
 
-				Trigonometry::Vector3 AnisotropicFriction;
-				if (HeavySeries::Unpack(Node->Find("anisotropic-friction"), &AnisotropicFriction))
-					Instance->SetAnisotropicFriction(AnisotropicFriction);
+				trigonometry::vector3 anisotropic_friction;
+				if (heavy_series::unpack(node->find("anisotropic-friction"), &anisotropic_friction))
+					instance->set_anisotropic_friction(anisotropic_friction);
 
-				Trigonometry::Vector3 WindVelocity;
-				if (HeavySeries::Unpack(Node->Find("wind-velocity"), &WindVelocity))
-					Instance->SetWindVelocity(WindVelocity);
+				trigonometry::vector3 wind_velocity;
+				if (heavy_series::unpack(node->find("wind-velocity"), &wind_velocity))
+					instance->set_wind_velocity(wind_velocity);
 
-				float TotalMass;
-				if (Series::Unpack(Node->Find("total-mass"), &TotalMass))
-					Instance->SetTotalMass(TotalMass);
+				float total_mass;
+				if (series::unpack(node->find("total-mass"), &total_mass))
+					instance->set_total_mass(total_mass);
 
-				float RestLengthScale;
-				if (Series::Unpack(Node->Find("core-length-scale"), &RestLengthScale))
-					Instance->SetRestLengthScale(RestLengthScale);
+				float rest_length_scale;
+				if (series::unpack(node->find("core-length-scale"), &rest_length_scale))
+					instance->set_rest_length_scale(rest_length_scale);
 			}
-			void SoftBody::Deserialize(Core::Schema* Node)
+			void soft_body::deserialize(core::schema* node)
 			{
-				VI_ASSERT(Node != nullptr, "schema should be set");
+				VI_ASSERT(node != nullptr, "schema should be set");
 
-				float Anticipation = 0.0f; bool Extended = false;
-				uint32_t NewCategory = (uint32_t)GeoCategory::Opaque;
-				Series::Unpack(Node->Find("ccd-motion-threshold"), &Anticipation);
-				HeavySeries::Unpack(Node->Find("texcoord"), &TexCoord);
-				Series::Unpack(Node->Find("extended"), &Extended);
-				Series::Unpack(Node->Find("kinematic"), &Kinematic);
-				Series::Unpack(Node->Find("manage"), &Manage);
-				Series::Unpack(Node->Find("static"), &Static);
-				Series::Unpack(Node->Find("category"), &NewCategory);
-				SetCategory((GeoCategory)NewCategory);
+				float anticipation = 0.0f; bool extended = false;
+				uint32_t new_category = (uint32_t)geo_category::opaque;
+				series::unpack(node->find("ccd-motion-threshold"), &anticipation);
+				heavy_series::unpack(node->find("texcoord"), &texcoord);
+				series::unpack(node->find("extended"), &extended);
+				series::unpack(node->find("kinematic"), &kinematic);
+				series::unpack(node->find("manage"), &manage);
+				series::unpack(node->find("static"), &constant);
+				series::unpack(node->find("category"), &new_category);
+				set_category((geo_category)new_category);
 
-				size_t Slot = 0;
-				if (Series::UnpackA(Node->Find("material"), &Slot))
-					SetMaterial(nullptr, Parent->GetScene()->GetMaterial(Slot));
+				size_t slot = 0;
+				if (series::unpack_a(node->find("material"), &slot))
+					set_material(nullptr, parent->get_scene()->get_material(slot));
 
-				if (!Extended)
+				if (!extended)
 					return;
 
-				Core::Schema* Shaping = nullptr;
-				if ((Shaping = Node->Find("shape")) != nullptr)
+				core::schema* shaping = nullptr;
+				if ((shaping = node->find("shape")) != nullptr)
 				{
-					Core::String Path;
-					if (Series::Unpack(Shaping->Find("path"), &Path))
+					core::string path;
+					if (series::unpack(shaping->find("path"), &path))
 					{
-						Node->AddRef();
-						return Load(Path, Anticipation, [this, Node]()
+						node->add_ref();
+						return load(path, anticipation, [this, node]()
 						{
-							if (Instance != nullptr)
-								DeserializeBody(Node);
-							Node->Release();
+							if (instance != nullptr)
+								deserialize_body(node);
+							node->release();
 						});
 					}
 				}
-				else if ((Shaping = Node->Find("ellipsoid")) != nullptr)
+				else if ((shaping = node->find("ellipsoid")) != nullptr)
 				{
-					Physics::SoftBody::Desc::CV::SEllipsoid Shape;
-					HeavySeries::Unpack(Shaping->Get("center"), &Shape.Center);
-					HeavySeries::Unpack(Shaping->Get("radius"), &Shape.Radius);
-					Series::Unpack(Shaping->Get("count"), &Shape.Count);
-					LoadEllipsoid(Shape, Anticipation);
+					physics::soft_body::desc::cv::sellipsoid shape;
+					heavy_series::unpack(shaping->get("center"), &shape.center);
+					heavy_series::unpack(shaping->get("radius"), &shape.radius);
+					series::unpack(shaping->get("count"), &shape.count);
+					load_ellipsoid(shape, anticipation);
 				}
-				else if ((Shaping = Node->Find("patch")) != nullptr)
+				else if ((shaping = node->find("patch")) != nullptr)
 				{
-					Physics::SoftBody::Desc::CV::SPatch Shape;
-					HeavySeries::Unpack(Shaping->Get("corner-00"), &Shape.Corner00);
-					Series::Unpack(Shaping->Get("corner-00-fixed"), &Shape.Corner00Fixed);
-					HeavySeries::Unpack(Shaping->Get("corner-01"), &Shape.Corner01);
-					Series::Unpack(Shaping->Get("corner-01-fixed"), &Shape.Corner01Fixed);
-					HeavySeries::Unpack(Shaping->Get("corner-10"), &Shape.Corner10);
-					Series::Unpack(Shaping->Get("corner-10-fixed"), &Shape.Corner10Fixed);
-					HeavySeries::Unpack(Shaping->Get("corner-11"), &Shape.Corner11);
-					Series::Unpack(Shaping->Get("corner-11-fixed"), &Shape.Corner11Fixed);
-					Series::Unpack(Shaping->Get("count-x"), &Shape.CountX);
-					Series::Unpack(Shaping->Get("count-y"), &Shape.CountY);
-					Series::Unpack(Shaping->Get("diagonals"), &Shape.GenerateDiagonals);
-					LoadPatch(Shape, Anticipation);
+					physics::soft_body::desc::cv::spatch shape;
+					heavy_series::unpack(shaping->get("corner-00"), &shape.corner00);
+					series::unpack(shaping->get("corner-00-fixed"), &shape.corner00_fixed);
+					heavy_series::unpack(shaping->get("corner-01"), &shape.corner01);
+					series::unpack(shaping->get("corner-01-fixed"), &shape.corner01_fixed);
+					heavy_series::unpack(shaping->get("corner-10"), &shape.corner10);
+					series::unpack(shaping->get("corner-10-fixed"), &shape.corner10_fixed);
+					heavy_series::unpack(shaping->get("corner-11"), &shape.corner11);
+					series::unpack(shaping->get("corner-11-fixed"), &shape.corner11_fixed);
+					series::unpack(shaping->get("count-x"), &shape.count_x);
+					series::unpack(shaping->get("count-y"), &shape.count_y);
+					series::unpack(shaping->get("diagonals"), &shape.generate_diagonals);
+					load_patch(shape, anticipation);
 				}
-				else if ((Shaping = Node->Find("rope")) != nullptr)
+				else if ((shaping = node->find("rope")) != nullptr)
 				{
-					Physics::SoftBody::Desc::CV::SRope Shape;
-					HeavySeries::Unpack(Shaping->Get("start"), &Shape.Start);
-					Series::Unpack(Shaping->Get("start-fixed"), &Shape.StartFixed);
-					HeavySeries::Unpack(Shaping->Get("end"), &Shape.End);
-					Series::Unpack(Shaping->Get("end-fixed"), &Shape.EndFixed);
-					Series::Unpack(Shaping->Get("count"), &Shape.Count);
-					LoadRope(Shape, Anticipation);
+					physics::soft_body::desc::cv::srope shape;
+					heavy_series::unpack(shaping->get("start"), &shape.start);
+					series::unpack(shaping->get("start-fixed"), &shape.start_fixed);
+					heavy_series::unpack(shaping->get("end"), &shape.end);
+					series::unpack(shaping->get("end-fixed"), &shape.end_fixed);
+					series::unpack(shaping->get("count"), &shape.count);
+					load_rope(shape, anticipation);
 				}
 
-				if (Instance != nullptr)
-					DeserializeBody(Node);
+				if (instance != nullptr)
+					deserialize_body(node);
 			}
-			void SoftBody::Serialize(Core::Schema* Node)
+			void soft_body::serialize(core::schema* node)
 			{
-				VI_ASSERT(Node != nullptr, "schema should be set");
+				VI_ASSERT(node != nullptr, "schema should be set");
 
-				Material* Slot = GetMaterial();
-				if (Slot != nullptr)
-					Series::Pack(Node->Set("material"), (uint64_t)Slot->Slot);
+				material* slot = get_material();
+				if (slot != nullptr)
+					series::pack(node->set("material"), (uint64_t)slot->slot);
 
-				HeavySeries::Pack(Node->Set("texcoord"), TexCoord);
-				Series::Pack(Node->Set("category"), (uint32_t)GetCategory());
-				Series::Pack(Node->Set("kinematic"), Kinematic);
-				Series::Pack(Node->Set("manage"), Manage);
-				Series::Pack(Node->Set("extended"), Instance != nullptr);
-				Series::Pack(Node->Set("static"), Static);
+				heavy_series::pack(node->set("texcoord"), texcoord);
+				series::pack(node->set("category"), (uint32_t)get_category());
+				series::pack(node->set("kinematic"), kinematic);
+				series::pack(node->set("manage"), manage);
+				series::pack(node->set("extended"), instance != nullptr);
+				series::pack(node->set("static"), constant);
 
-				if (!Instance)
+				if (!instance)
 					return;
 
-				Physics::SoftBody::Desc& I = Instance->GetInitialState();
-				Core::Schema* Conf = Node->Set("config");
-				Series::Pack(Conf->Set("aero-model"), (uint64_t)I.Config.AeroModel);
-				Series::Pack(Conf->Set("vcf"), I.Config.VCF);
-				Series::Pack(Conf->Set("dp"), I.Config.DP);
-				Series::Pack(Conf->Set("dg"), I.Config.DG);
-				Series::Pack(Conf->Set("lf"), I.Config.LF);
-				Series::Pack(Conf->Set("pr"), I.Config.PR);
-				Series::Pack(Conf->Set("vc"), I.Config.VC);
-				Series::Pack(Conf->Set("df"), I.Config.DF);
-				Series::Pack(Conf->Set("mt"), I.Config.MT);
-				Series::Pack(Conf->Set("chr"), I.Config.CHR);
-				Series::Pack(Conf->Set("khr"), I.Config.KHR);
-				Series::Pack(Conf->Set("shr"), I.Config.SHR);
-				Series::Pack(Conf->Set("ahr"), I.Config.AHR);
-				Series::Pack(Conf->Set("srhr-cl"), I.Config.SRHR_CL);
-				Series::Pack(Conf->Set("skhr-cl"), I.Config.SKHR_CL);
-				Series::Pack(Conf->Set("sshr-cl"), I.Config.SSHR_CL);
-				Series::Pack(Conf->Set("sr-splt-cl"), I.Config.SR_SPLT_CL);
-				Series::Pack(Conf->Set("sk-splt-cl"), I.Config.SK_SPLT_CL);
-				Series::Pack(Conf->Set("ss-splt-cl"), I.Config.SS_SPLT_CL);
-				Series::Pack(Conf->Set("max-volume"), I.Config.MaxVolume);
-				Series::Pack(Conf->Set("time-scale"), I.Config.TimeScale);
-				Series::Pack(Conf->Set("drag"), I.Config.Drag);
-				Series::Pack(Conf->Set("max-stress"), I.Config.MaxStress);
-				Series::Pack(Conf->Set("constraints"), I.Config.Constraints);
-				Series::Pack(Conf->Set("clusters"), I.Config.Clusters);
-				Series::Pack(Conf->Set("v-it"), I.Config.VIterations);
-				Series::Pack(Conf->Set("p-it"), I.Config.PIterations);
-				Series::Pack(Conf->Set("d-it"), I.Config.DIterations);
-				Series::Pack(Conf->Set("c-it"), I.Config.CIterations);
-				Series::Pack(Conf->Set("collisions"), I.Config.Collisions);
+				physics::soft_body::desc& i = instance->get_initial_state();
+				core::schema* conf = node->set("config");
+				series::pack(conf->set("aero-model"), (uint64_t)i.config.aero_model);
+				series::pack(conf->set("vcf"), i.config.vcf);
+				series::pack(conf->set("dp"), i.config.dp);
+				series::pack(conf->set("dg"), i.config.dg);
+				series::pack(conf->set("lf"), i.config.lf);
+				series::pack(conf->set("pr"), i.config.pr);
+				series::pack(conf->set("vc"), i.config.vc);
+				series::pack(conf->set("df"), i.config.df);
+				series::pack(conf->set("mt"), i.config.mt);
+				series::pack(conf->set("chr"), i.config.chr);
+				series::pack(conf->set("khr"), i.config.khr);
+				series::pack(conf->set("shr"), i.config.shr);
+				series::pack(conf->set("ahr"), i.config.ahr);
+				series::pack(conf->set("srhr-cl"), i.config.srhr_cl);
+				series::pack(conf->set("skhr-cl"), i.config.skhr_cl);
+				series::pack(conf->set("sshr-cl"), i.config.sshr_cl);
+				series::pack(conf->set("sr-splt-cl"), i.config.sr_splt_cl);
+				series::pack(conf->set("sk-splt-cl"), i.config.sk_splt_cl);
+				series::pack(conf->set("ss-splt-cl"), i.config.ss_splt_cl);
+				series::pack(conf->set("max-volume"), i.config.max_volume);
+				series::pack(conf->set("time-scale"), i.config.time_scale);
+				series::pack(conf->set("drag"), i.config.drag);
+				series::pack(conf->set("max-stress"), i.config.max_stress);
+				series::pack(conf->set("constraints"), i.config.constraints);
+				series::pack(conf->set("clusters"), i.config.clusters);
+				series::pack(conf->set("v-it"), i.config.viterations);
+				series::pack(conf->set("p-it"), i.config.piterations);
+				series::pack(conf->set("d-it"), i.config.diterations);
+				series::pack(conf->set("c-it"), i.config.citerations);
+				series::pack(conf->set("collisions"), i.config.collisions);
 
-				auto& Desc = Instance->GetInitialState();
-				if (Desc.Shape.Convex.Enabled && Hull != nullptr)
+				auto& desc = instance->get_initial_state();
+				if (desc.shape.convex.enabled && hull != nullptr)
 				{
-					if (Instance->GetCollisionShapeType() == Physics::Shape::Convex_Hull)
+					if (instance->get_collision_shape_type() == physics::shape::convex_hull)
 					{
-						Core::String Path = Parent->GetScene()->FindResourceId<Physics::HullShape>(Hull);
-						if (!Path.empty())
-							Series::Pack(Node->Set("shape")->Set("path"), Path);
+						core::string path = parent->get_scene()->find_resource_id<physics::hull_shape>(hull);
+						if (!path.empty())
+							series::pack(node->set("shape")->set("path"), path);
 					}
 				}
-				else if (Desc.Shape.Ellipsoid.Enabled)
+				else if (desc.shape.ellipsoid.enabled)
 				{
-					Core::Schema* Shape = Node->Set("ellipsoid");
-					HeavySeries::Pack(Shape->Set("center"), Desc.Shape.Ellipsoid.Center);
-					HeavySeries::Pack(Shape->Set("radius"), Desc.Shape.Ellipsoid.Radius);
-					Series::Pack(Shape->Set("count"), Desc.Shape.Ellipsoid.Count);
+					core::schema* shape = node->set("ellipsoid");
+					heavy_series::pack(shape->set("center"), desc.shape.ellipsoid.center);
+					heavy_series::pack(shape->set("radius"), desc.shape.ellipsoid.radius);
+					series::pack(shape->set("count"), desc.shape.ellipsoid.count);
 				}
-				else if (Desc.Shape.Patch.Enabled)
+				else if (desc.shape.patch.enabled)
 				{
-					Core::Schema* Shape = Node->Set("patch");
-					HeavySeries::Pack(Shape->Set("corner-00"), Desc.Shape.Patch.Corner00);
-					Series::Pack(Shape->Set("corner-00-fixed"), Desc.Shape.Patch.Corner00Fixed);
-					HeavySeries::Pack(Shape->Set("corner-01"), Desc.Shape.Patch.Corner01);
-					Series::Pack(Shape->Set("corner-01-fixed"), Desc.Shape.Patch.Corner01Fixed);
-					HeavySeries::Pack(Shape->Set("corner-10"), Desc.Shape.Patch.Corner10);
-					Series::Pack(Shape->Set("corner-10-fixed"), Desc.Shape.Patch.Corner10Fixed);
-					HeavySeries::Pack(Shape->Set("corner-11"), Desc.Shape.Patch.Corner11);
-					Series::Pack(Shape->Set("corner-11-fixed"), Desc.Shape.Patch.Corner11Fixed);
-					Series::Pack(Shape->Set("count-x"), Desc.Shape.Patch.CountX);
-					Series::Pack(Shape->Set("count-y"), Desc.Shape.Patch.CountY);
-					Series::Pack(Shape->Set("diagonals"), Desc.Shape.Patch.GenerateDiagonals);
+					core::schema* shape = node->set("patch");
+					heavy_series::pack(shape->set("corner-00"), desc.shape.patch.corner00);
+					series::pack(shape->set("corner-00-fixed"), desc.shape.patch.corner00_fixed);
+					heavy_series::pack(shape->set("corner-01"), desc.shape.patch.corner01);
+					series::pack(shape->set("corner-01-fixed"), desc.shape.patch.corner01_fixed);
+					heavy_series::pack(shape->set("corner-10"), desc.shape.patch.corner10);
+					series::pack(shape->set("corner-10-fixed"), desc.shape.patch.corner10_fixed);
+					heavy_series::pack(shape->set("corner-11"), desc.shape.patch.corner11);
+					series::pack(shape->set("corner-11-fixed"), desc.shape.patch.corner11_fixed);
+					series::pack(shape->set("count-x"), desc.shape.patch.count_x);
+					series::pack(shape->set("count-y"), desc.shape.patch.count_y);
+					series::pack(shape->set("diagonals"), desc.shape.patch.generate_diagonals);
 				}
-				else if (Desc.Shape.Rope.Enabled)
+				else if (desc.shape.rope.enabled)
 				{
-					Core::Schema* Shape = Node->Set("rope");
-					HeavySeries::Pack(Shape->Set("start"), Desc.Shape.Rope.Start);
-					Series::Pack(Shape->Set("start-fixed"), Desc.Shape.Rope.StartFixed);
-					HeavySeries::Pack(Shape->Set("end"), Desc.Shape.Rope.End);
-					Series::Pack(Shape->Set("end-fixed"), Desc.Shape.Rope.EndFixed);
-					Series::Pack(Shape->Set("count"), Desc.Shape.Rope.Count);
+					core::schema* shape = node->set("rope");
+					heavy_series::pack(shape->set("start"), desc.shape.rope.start);
+					series::pack(shape->set("start-fixed"), desc.shape.rope.start_fixed);
+					heavy_series::pack(shape->set("end"), desc.shape.rope.end);
+					series::pack(shape->set("end-fixed"), desc.shape.rope.end_fixed);
+					series::pack(shape->set("count"), desc.shape.rope.count);
 				}
 
-				Series::Pack(Node->Set("ccd-motion-threshold"), Instance->GetCcdMotionThreshold());
-				Series::Pack(Node->Set("activation-state"), (uint64_t)Instance->GetActivationState());
-				Series::Pack(Node->Set("friction"), Instance->GetFriction());
-				Series::Pack(Node->Set("restitution"), Instance->GetRestitution());
-				Series::Pack(Node->Set("hit-fraction"), Instance->GetHitFraction());
-				Series::Pack(Node->Set("ccd-swept-sphere-radius"), Instance->GetCcdSweptSphereRadius());
-				Series::Pack(Node->Set("contact-processing-threshold"), Instance->GetContactProcessingThreshold());
-				Series::Pack(Node->Set("deactivation-time"), Instance->GetDeactivationTime());
-				Series::Pack(Node->Set("rolling-friction"), Instance->GetRollingFriction());
-				Series::Pack(Node->Set("spinning-friction"), Instance->GetSpinningFriction());
-				Series::Pack(Node->Set("contact-stiffness"), Instance->GetContactStiffness());
-				Series::Pack(Node->Set("contact-damping"), Instance->GetContactDamping());
-				HeavySeries::Pack(Node->Set("angular-velocity"), Instance->GetAngularVelocity());
-				HeavySeries::Pack(Node->Set("anisotropic-friction"), Instance->GetAnisotropicFriction());
-				HeavySeries::Pack(Node->Set("linear-velocity"), Instance->GetLinearVelocity());
-				Series::Pack(Node->Set("collision-flags"), (uint64_t)Instance->GetCollisionFlags());
-				HeavySeries::Pack(Node->Set("wind-velocity"), Instance->GetWindVelocity());
-				Series::Pack(Node->Set("total-mass"), Instance->GetTotalMass());
-				Series::Pack(Node->Set("core-length-scale"), Instance->GetRestLengthScale());
+				series::pack(node->set("ccd-motion-threshold"), instance->get_ccd_motion_threshold());
+				series::pack(node->set("activation-state"), (uint64_t)instance->get_activation_state());
+				series::pack(node->set("friction"), instance->get_friction());
+				series::pack(node->set("restitution"), instance->get_restitution());
+				series::pack(node->set("hit-fraction"), instance->get_hit_fraction());
+				series::pack(node->set("ccd-swept-sphere-radius"), instance->get_ccd_swept_sphere_radius());
+				series::pack(node->set("contact-processing-threshold"), instance->get_contact_processing_threshold());
+				series::pack(node->set("deactivation-time"), instance->get_deactivation_time());
+				series::pack(node->set("rolling-friction"), instance->get_rolling_friction());
+				series::pack(node->set("spinning-friction"), instance->get_spinning_friction());
+				series::pack(node->set("contact-stiffness"), instance->get_contact_stiffness());
+				series::pack(node->set("contact-damping"), instance->get_contact_damping());
+				heavy_series::pack(node->set("angular-velocity"), instance->get_angular_velocity());
+				heavy_series::pack(node->set("anisotropic-friction"), instance->get_anisotropic_friction());
+				heavy_series::pack(node->set("linear-velocity"), instance->get_linear_velocity());
+				series::pack(node->set("collision-flags"), (uint64_t)instance->get_collision_flags());
+				heavy_series::pack(node->set("wind-velocity"), instance->get_wind_velocity());
+				series::pack(node->set("total-mass"), instance->get_total_mass());
+				series::pack(node->set("core-length-scale"), instance->get_rest_length_scale());
 			}
-			void SoftBody::Synchronize(Core::Timer* Time)
+			void soft_body::synchronize(core::timer* time)
 			{
-				if (!Instance)
+				if (!instance)
 					return;
 
-				if (Manage)
+				if (manage)
 				{
-					auto* Transform = Parent->GetTransform();
-					Instance->Synchronize(Transform, Kinematic);
-					if (Instance->IsActive())
-						Transform->MakeDirty();
+					auto* transform = parent->get_transform();
+					instance->synchronize(transform, kinematic);
+					if (instance->is_active())
+						transform->make_dirty();
 				}
 
-				Instance->GetVertices(&Vertices);
-				if (Indices.empty())
-					Instance->GetIndices(&Indices);
+				instance->get_vertices(&vertices);
+				if (indices.empty())
+					instance->get_indices(&indices);
 			}
-			void SoftBody::Deactivate()
+			void soft_body::deactivate()
 			{
-				if (Instance != nullptr)
-					Instance->SetAsGhost();
+				if (instance != nullptr)
+					instance->set_as_ghost();
 			}
-			void SoftBody::Load(Physics::HullShape* Shape, float Anticipation)
+			void soft_body::load(physics::hull_shape* shape, float anticipation)
 			{
-				SceneGraph* Scene = Parent->GetScene();
-				VI_ASSERT(Scene != nullptr, "scene should be set");
-				VI_ASSERT(Shape != nullptr, "collision shape should be set");
-				Core::Memory::Release(Hull);
-				Hull = Shape;
+				scene_graph* scene = parent->get_scene();
+				VI_ASSERT(scene != nullptr, "scene should be set");
+				VI_ASSERT(shape != nullptr, "collision shape should be set");
+				core::memory::release(hull);
+				hull = shape;
 
-				Physics::SoftBody::Desc I;
-				I.Anticipation = Anticipation;
-				I.Shape.Convex.Hull = Hull;
-				I.Shape.Convex.Enabled = true;
+				physics::soft_body::desc i;
+				i.anticipation = anticipation;
+				i.shape.convex.hull = hull;
+				i.shape.convex.enabled = true;
 
-				Core::Memory::Release(Instance);
-				Instance = Scene->GetSimulator()->CreateSoftBody(I, Parent->GetTransform());
-				VI_PANIC(!Instance, "invalid simulator configuration to create soft bodies");
+				core::memory::release(instance);
+				instance = scene->get_simulator()->create_soft_body(i, parent->get_transform());
+				VI_PANIC(!instance, "invalid simulator configuration to create soft bodies");
 
-				Vertices.clear();
-				Indices.clear();
+				vertices.clear();
+				indices.clear();
 
-				Instance->UserPointer = this;
-				Instance->SetActivity(true);
-				GetEntity()->GetTransform()->MakeDirty();
+				instance->user_pointer = this;
+				instance->set_activity(true);
+				get_entity()->get_transform()->make_dirty();
 			}
-			void SoftBody::Load(const std::string_view& Path, float Anticipation, std::function<void()>&& Callback)
+			void soft_body::load(const std::string_view& path, float anticipation, std::function<void()>&& callback)
 			{
-				Parent->GetScene()->LoadResource<Physics::HullShape>(this, Path, [this, Anticipation, Callback = std::move(Callback)](ExpectsContent<Physics::HullShape*> NewHull)
+				parent->get_scene()->load_resource<physics::hull_shape>(this, path, [this, anticipation, callback = std::move(callback)](expects_content<physics::hull_shape*> new_hull)
 				{
-					if (NewHull && *NewHull != nullptr)
-						Load(*NewHull, Anticipation);
+					if (new_hull && *new_hull != nullptr)
+						load(*new_hull, anticipation);
 					else
-						Clear();
+						clear();
 
-					if (Callback)
-						Callback();
+					if (callback)
+						callback();
 				});
 			}
-			void SoftBody::LoadEllipsoid(const Physics::SoftBody::Desc::CV::SEllipsoid& Shape, float Anticipation)
+			void soft_body::load_ellipsoid(const physics::soft_body::desc::cv::sellipsoid& shape, float anticipation)
 			{
-				SceneGraph* Scene = Parent->GetScene();
-				VI_ASSERT(Scene != nullptr, "scene should be set");
+				scene_graph* scene = parent->get_scene();
+				VI_ASSERT(scene != nullptr, "scene should be set");
 
-				Physics::SoftBody::Desc I;
-				I.Anticipation = Anticipation;
-				I.Shape.Ellipsoid = Shape;
-				I.Shape.Ellipsoid.Enabled = true;
+				physics::soft_body::desc i;
+				i.anticipation = anticipation;
+				i.shape.ellipsoid = shape;
+				i.shape.ellipsoid.enabled = true;
 
-				Core::Memory::Release(Instance);
-				Instance = Scene->GetSimulator()->CreateSoftBody(I, Parent->GetTransform());
-				VI_PANIC(!Instance, "invalid simulator configuration to create soft bodies");
+				core::memory::release(instance);
+				instance = scene->get_simulator()->create_soft_body(i, parent->get_transform());
+				VI_PANIC(!instance, "invalid simulator configuration to create soft bodies");
 
-				Vertices.clear();
-				Indices.clear();
+				vertices.clear();
+				indices.clear();
 
-				Instance->UserPointer = this;
-				Instance->SetActivity(true);
+				instance->user_pointer = this;
+				instance->set_activity(true);
 			}
-			void SoftBody::LoadPatch(const Physics::SoftBody::Desc::CV::SPatch& Shape, float Anticipation)
+			void soft_body::load_patch(const physics::soft_body::desc::cv::spatch& shape, float anticipation)
 			{
-				SceneGraph* Scene = Parent->GetScene();
-				VI_ASSERT(Scene != nullptr, "scene should be set");
+				scene_graph* scene = parent->get_scene();
+				VI_ASSERT(scene != nullptr, "scene should be set");
 
-				Physics::SoftBody::Desc I;
-				I.Anticipation = Anticipation;
-				I.Shape.Patch = Shape;
-				I.Shape.Patch.Enabled = true;
+				physics::soft_body::desc i;
+				i.anticipation = anticipation;
+				i.shape.patch = shape;
+				i.shape.patch.enabled = true;
 
-				Core::Memory::Release(Instance);
-				Instance = Scene->GetSimulator()->CreateSoftBody(I, Parent->GetTransform());
-				VI_PANIC(!Instance, "invalid simulator configuration to create soft bodies");
+				core::memory::release(instance);
+				instance = scene->get_simulator()->create_soft_body(i, parent->get_transform());
+				VI_PANIC(!instance, "invalid simulator configuration to create soft bodies");
 
-				Vertices.clear();
-				Indices.clear();
+				vertices.clear();
+				indices.clear();
 
-				Instance->UserPointer = this;
-				Instance->SetActivity(true);
+				instance->user_pointer = this;
+				instance->set_activity(true);
 			}
-			void SoftBody::LoadRope(const Physics::SoftBody::Desc::CV::SRope& Shape, float Anticipation)
+			void soft_body::load_rope(const physics::soft_body::desc::cv::srope& shape, float anticipation)
 			{
-				SceneGraph* Scene = Parent->GetScene();
-				VI_ASSERT(Scene != nullptr, "scene should be set");
+				scene_graph* scene = parent->get_scene();
+				VI_ASSERT(scene != nullptr, "scene should be set");
 
-				Physics::SoftBody::Desc I;
-				I.Anticipation = Anticipation;
-				I.Shape.Rope = Shape;
-				I.Shape.Rope.Enabled = true;
+				physics::soft_body::desc i;
+				i.anticipation = anticipation;
+				i.shape.rope = shape;
+				i.shape.rope.enabled = true;
 
-				Core::Memory::Release(Instance);
-				Instance = Scene->GetSimulator()->CreateSoftBody(I, Parent->GetTransform());
-				VI_PANIC(!Instance, "invalid simulator configuration to create soft bodies");
+				core::memory::release(instance);
+				instance = scene->get_simulator()->create_soft_body(i, parent->get_transform());
+				VI_PANIC(!instance, "invalid simulator configuration to create soft bodies");
 
-				Vertices.clear();
-				Indices.clear();
+				vertices.clear();
+				indices.clear();
 
-				Instance->UserPointer = this;
-				Instance->SetActivity(true);
+				instance->user_pointer = this;
+				instance->set_activity(true);
 			}
-			void SoftBody::Fill(Graphics::GraphicsDevice* Device, Graphics::ElementBuffer* IndexBuffer, Graphics::ElementBuffer* VertexBuffer)
+			void soft_body::fill(graphics::graphics_device* device, graphics::element_buffer* index_buffer, graphics::element_buffer* vertex_buffer)
 			{
-				Graphics::MappedSubresource Map;
-				if (VertexBuffer != nullptr && !Vertices.empty())
+				graphics::mapped_subresource map;
+				if (vertex_buffer != nullptr && !vertices.empty())
 				{
-					Device->Map(VertexBuffer, Graphics::ResourceMap::Write_Discard, &Map);
-					memcpy(Map.Pointer, (void*)Vertices.data(), Vertices.size() * sizeof(Trigonometry::Vertex));
-					Device->Unmap(VertexBuffer, &Map);
+					device->map(vertex_buffer, graphics::resource_map::write_discard, &map);
+					memcpy(map.pointer, (void*)vertices.data(), vertices.size() * sizeof(trigonometry::vertex));
+					device->unmap(vertex_buffer, &map);
 				}
 
-				if (IndexBuffer != nullptr && !Indices.empty())
+				if (index_buffer != nullptr && !indices.empty())
 				{
-					Device->Map(IndexBuffer, Graphics::ResourceMap::Write_Discard, &Map);
-					memcpy(Map.Pointer, (void*)Indices.data(), Indices.size() * sizeof(int));
-					Device->Unmap(IndexBuffer, &Map);
+					device->map(index_buffer, graphics::resource_map::write_discard, &map);
+					memcpy(map.pointer, (void*)indices.data(), indices.size() * sizeof(int));
+					device->unmap(index_buffer, &map);
 				}
 			}
-			void SoftBody::Regenerate()
+			void soft_body::regenerate()
 			{
-				SceneGraph* Scene = Parent->GetScene();
-				VI_ASSERT(Scene != nullptr, "scene should be set");
+				scene_graph* scene = parent->get_scene();
+				VI_ASSERT(scene != nullptr, "scene should be set");
 
-				if (!Instance)
+				if (!instance)
 					return;
 
-				Physics::SoftBody::Desc I = Instance->GetInitialState();
-				Core::Memory::Release(Instance);
+				physics::soft_body::desc i = instance->get_initial_state();
+				core::memory::release(instance);
 
-				Instance = Scene->GetSimulator()->CreateSoftBody(I, Parent->GetTransform());
-				VI_PANIC(!Instance, "invalid simulator configuration to create soft bodies");
+				instance = scene->get_simulator()->create_soft_body(i, parent->get_transform());
+				VI_PANIC(!instance, "invalid simulator configuration to create soft bodies");
 			}
-			void SoftBody::Clear()
+			void soft_body::clear()
 			{
-				Core::Memory::Release(Instance);
-				Core::Memory::Release(Hull);
+				core::memory::release(instance);
+				core::memory::release(hull);
 			}
-			void SoftBody::SetTransform(const Trigonometry::Vector3& Position, const Trigonometry::Vector3& Scale, const Trigonometry::Vector3& Rotation)
+			void soft_body::set_transform(const trigonometry::vector3& position, const trigonometry::vector3& scale, const trigonometry::vector3& rotation)
 			{
-				if (!Instance)
+				if (!instance)
 					return;
 
-				Trigonometry::Transform::Spacing Space;
-				Space.Position = Position;
-				Space.Rotation = Rotation;
-				Space.Scale = Scale;
+				trigonometry::transform::spacing space;
+				space.position = position;
+				space.rotation = rotation;
+				space.scale = scale;
 
-				auto* Transform = Parent->GetTransform();
-				Transform->SetSpacing(Trigonometry::Positioning::Global, Space);
-				Instance->Synchronize(Transform, true);
-				Instance->SetActivity(true);
+				auto* transform = parent->get_transform();
+				transform->set_spacing(trigonometry::positioning::global, space);
+				instance->synchronize(transform, true);
+				instance->set_activity(true);
 			}
-			void SoftBody::SetTransform(bool Kinematics)
+			void soft_body::set_transform(bool kinematics)
 			{
-				if (!Instance)
+				if (!instance)
 					return;
 
-				auto* Transform = Parent->GetTransform();
-				Instance->Synchronize(Transform, Kinematics);
-				Instance->SetActivity(true);
+				auto* transform = parent->get_transform();
+				instance->synchronize(transform, kinematics);
+				instance->set_activity(true);
 			}
-			float SoftBody::GetVisibility(const Viewer& View, float Distance) const
+			float soft_body::get_visibility(const viewer& view, float distance) const
 			{
-				return Instance ? Component::GetVisibility(View, Distance) : 0.0f;
+				return instance ? component::get_visibility(view, distance) : 0.0f;
 			}
-			size_t SoftBody::GetUnitBounds(Trigonometry::Vector3& Min, Trigonometry::Vector3& Max) const
+			size_t soft_body::get_unit_bounds(trigonometry::vector3& min, trigonometry::vector3& max) const
 			{
-				if (!Instance)
+				if (!instance)
 					return BOX_NONE;
 
-				Trigonometry::Vector3 Center = Instance->GetCenterPosition();
-				Instance->GetBoundingBox(&Min, &Max);
+				trigonometry::vector3 center = instance->get_center_position();
+				instance->get_bounding_box(&min, &max);
 
-				Trigonometry::Vector3 Scale = (Max - Min) * 0.5f;
-				Min = Center - Scale;
-				Max = Center + Scale;
+				trigonometry::vector3 scale = (max - min) * 0.5f;
+				min = center - scale;
+				max = center + scale;
 
 				return BOX_BODY;
 			}
-			Component* SoftBody::Copy(Entity* New) const
+			component* soft_body::copy(entity* init) const
 			{
-				SoftBody* Target = new SoftBody(New);
-				Target->SetCategory(GetCategory());
-				Target->Kinematic = Kinematic;
+				soft_body* target = new soft_body(init);
+				target->set_category(get_category());
+				target->kinematic = kinematic;
 
-				if (Instance != nullptr)
+				if (instance != nullptr)
 				{
-					Target->Instance = Instance->Copy();
-					Target->Instance->UserPointer = Target;
+					target->instance = instance->copy();
+					target->instance->user_pointer = target;
 				}
 
-				return Target;
+				return target;
 			}
-			Physics::SoftBody* SoftBody::GetBody()
+			physics::soft_body* soft_body::get_body()
 			{
-				return Instance;
+				return instance;
 			}
-			Core::Vector<Trigonometry::Vertex>& SoftBody::GetVertices()
+			core::vector<trigonometry::vertex>& soft_body::get_vertices()
 			{
-				return Vertices;
+				return vertices;
 			}
-			Core::Vector<int>& SoftBody::GetIndices()
+			core::vector<int>& soft_body::get_indices()
 			{
-				return Indices;
+				return indices;
 			}
 
-			SliderConstraint::SliderConstraint(Entity* Ref) : Component(Ref, ActorSet::None), Instance(nullptr), Connection(nullptr)
+			slider_constraint::slider_constraint(entity* ref) : component(ref, actor_set::none), instance(nullptr), connection(nullptr)
 			{
 			}
-			SliderConstraint::~SliderConstraint()
+			slider_constraint::~slider_constraint()
 			{
-				Core::Memory::Release(Instance);
+				core::memory::release(instance);
 			}
-			void SliderConstraint::Deserialize(Core::Schema* Node)
+			void slider_constraint::deserialize(core::schema* node)
 			{
-				VI_ASSERT(Node != nullptr, "schema should be set");
+				VI_ASSERT(node != nullptr, "schema should be set");
 
-				bool Extended, Ghost, Linear;
-				Series::Unpack(Node->Find("extended"), &Extended);
-				Series::Unpack(Node->Find("collision-state"), &Ghost);
-				Series::Unpack(Node->Find("linear-state"), &Linear);
+				bool extended, ghost, linear;
+				series::unpack(node->find("extended"), &extended);
+				series::unpack(node->find("collision-state"), &ghost);
+				series::unpack(node->find("linear-state"), &linear);
 
-				if (!Extended)
+				if (!extended)
 					return;
 
-				size_t ConnectionId = 0;
-				if (Series::UnpackA(Node->Find("connection"), &ConnectionId))
+				size_t connection_id = 0;
+				if (series::unpack_a(node->find("connection"), &connection_id))
 				{
-					IdxSnapshot* Snapshot = Parent->GetScene()->Snapshot;
-					if (Snapshot != nullptr)
+					idx_snapshot* snapshot = parent->get_scene()->snapshot;
+					if (snapshot != nullptr)
 					{
-						auto It = Snapshot->From.find(ConnectionId);
-						if (It != Snapshot->From.end())
-							Connection = It->second;
+						auto it = snapshot->from.find(connection_id);
+						if (it != snapshot->from.end())
+							connection = it->second;
 					}
 				}
 
-				Load(Connection, Ghost, Linear);
-				if (!Instance)
+				load(connection, ghost, linear);
+				if (!instance)
 					return;
 
-				float AngularMotorVelocity;
-				if (Series::Unpack(Node->Find("angular-motor-velocity"), &AngularMotorVelocity))
-					Instance->SetAngularMotorVelocity(AngularMotorVelocity);
+				float angular_motor_velocity;
+				if (series::unpack(node->find("angular-motor-velocity"), &angular_motor_velocity))
+					instance->set_angular_motor_velocity(angular_motor_velocity);
 
-				float LinearMotorVelocity;
-				if (Series::Unpack(Node->Find("linear-motor-velocity"), &LinearMotorVelocity))
-					Instance->SetLinearMotorVelocity(LinearMotorVelocity);
+				float linear_motor_velocity;
+				if (series::unpack(node->find("linear-motor-velocity"), &linear_motor_velocity))
+					instance->set_linear_motor_velocity(linear_motor_velocity);
 
-				float UpperLinearLimit;
-				if (Series::Unpack(Node->Find("upper-linear-limit"), &UpperLinearLimit))
-					Instance->SetUpperLinearLimit(UpperLinearLimit);
+				float upper_linear_limit;
+				if (series::unpack(node->find("upper-linear-limit"), &upper_linear_limit))
+					instance->set_upper_linear_limit(upper_linear_limit);
 
-				float LowerLinearLimit;
-				if (Series::Unpack(Node->Find("lower-linear-limit"), &LowerLinearLimit))
-					Instance->SetLowerLinearLimit(LowerLinearLimit);
+				float lower_linear_limit;
+				if (series::unpack(node->find("lower-linear-limit"), &lower_linear_limit))
+					instance->set_lower_linear_limit(lower_linear_limit);
 
-				float AngularDampingDirection;
-				if (Series::Unpack(Node->Find("angular-damping-direction"), &AngularDampingDirection))
-					Instance->SetAngularDampingDirection(AngularDampingDirection);
+				float angular_damping_direction;
+				if (series::unpack(node->find("angular-damping-direction"), &angular_damping_direction))
+					instance->set_angular_damping_direction(angular_damping_direction);
 
-				float LinearDampingDirection;
-				if (Series::Unpack(Node->Find("linear-damping-direction"), &LinearDampingDirection))
-					Instance->SetLinearDampingDirection(LinearDampingDirection);
+				float linear_damping_direction;
+				if (series::unpack(node->find("linear-damping-direction"), &linear_damping_direction))
+					instance->set_linear_damping_direction(linear_damping_direction);
 
-				float AngularDampingLimit;
-				if (Series::Unpack(Node->Find("angular-damping-limit"), &AngularDampingLimit))
-					Instance->SetAngularDampingLimit(AngularDampingLimit);
+				float angular_damping_limit;
+				if (series::unpack(node->find("angular-damping-limit"), &angular_damping_limit))
+					instance->set_angular_damping_limit(angular_damping_limit);
 
-				float LinearDampingLimit;
-				if (Series::Unpack(Node->Find("linear-damping-limit"), &LinearDampingLimit))
-					Instance->SetLinearDampingLimit(LinearDampingLimit);
+				float linear_damping_limit;
+				if (series::unpack(node->find("linear-damping-limit"), &linear_damping_limit))
+					instance->set_linear_damping_limit(linear_damping_limit);
 
-				float AngularDampingOrtho;
-				if (Series::Unpack(Node->Find("angular-damping-ortho"), &AngularDampingOrtho))
-					Instance->SetAngularDampingOrtho(AngularDampingOrtho);
+				float angular_damping_ortho;
+				if (series::unpack(node->find("angular-damping-ortho"), &angular_damping_ortho))
+					instance->set_angular_damping_ortho(angular_damping_ortho);
 
-				float LinearDampingOrtho;
-				if (Series::Unpack(Node->Find("linear-damping-ortho"), &LinearDampingOrtho))
-					Instance->SetLinearDampingOrtho(LinearDampingOrtho);
+				float linear_damping_ortho;
+				if (series::unpack(node->find("linear-damping-ortho"), &linear_damping_ortho))
+					instance->set_linear_damping_ortho(linear_damping_ortho);
 
-				float UpperAngularLimit;
-				if (Series::Unpack(Node->Find("upper-angular-limit"), &UpperAngularLimit))
-					Instance->SetUpperAngularLimit(UpperAngularLimit);
+				float upper_angular_limit;
+				if (series::unpack(node->find("upper-angular-limit"), &upper_angular_limit))
+					instance->set_upper_angular_limit(upper_angular_limit);
 
-				float LowerAngularLimit;
-				if (Series::Unpack(Node->Find("lower-angular-limit"), &LowerAngularLimit))
-					Instance->SetLowerAngularLimit(LowerAngularLimit);
+				float lower_angular_limit;
+				if (series::unpack(node->find("lower-angular-limit"), &lower_angular_limit))
+					instance->set_lower_angular_limit(lower_angular_limit);
 
-				float MaxAngularMotorForce;
-				if (Series::Unpack(Node->Find("max-angular-motor-force"), &MaxAngularMotorForce))
-					Instance->SetMaxAngularMotorForce(MaxAngularMotorForce);
+				float max_angular_motor_force;
+				if (series::unpack(node->find("max-angular-motor-force"), &max_angular_motor_force))
+					instance->set_max_angular_motor_force(max_angular_motor_force);
 
-				float MaxLinearMotorForce;
-				if (Series::Unpack(Node->Find("max-linear-motor-force"), &MaxLinearMotorForce))
-					Instance->SetMaxLinearMotorForce(MaxLinearMotorForce);
+				float max_linear_motor_force;
+				if (series::unpack(node->find("max-linear-motor-force"), &max_linear_motor_force))
+					instance->set_max_linear_motor_force(max_linear_motor_force);
 
-				float AngularRestitutionDirection;
-				if (Series::Unpack(Node->Find("angular-restitution-direction"), &AngularRestitutionDirection))
-					Instance->SetAngularRestitutionDirection(AngularRestitutionDirection);
+				float angular_restitution_direction;
+				if (series::unpack(node->find("angular-restitution-direction"), &angular_restitution_direction))
+					instance->set_angular_restitution_direction(angular_restitution_direction);
 
-				float LinearRestitutionDirection;
-				if (Series::Unpack(Node->Find("linear-restitution-direction"), &LinearRestitutionDirection))
-					Instance->SetLinearRestitutionDirection(LinearRestitutionDirection);
+				float linear_restitution_direction;
+				if (series::unpack(node->find("linear-restitution-direction"), &linear_restitution_direction))
+					instance->set_linear_restitution_direction(linear_restitution_direction);
 
-				float AngularRestitutionLimit;
-				if (Series::Unpack(Node->Find("angular-restitution-limit"), &AngularRestitutionLimit))
-					Instance->SetAngularRestitutionLimit(AngularRestitutionLimit);
+				float angular_restitution_limit;
+				if (series::unpack(node->find("angular-restitution-limit"), &angular_restitution_limit))
+					instance->set_angular_restitution_limit(angular_restitution_limit);
 
-				float LinearRestitutionLimit;
-				if (Series::Unpack(Node->Find("linear-restitution-limit"), &LinearRestitutionLimit))
-					Instance->SetLinearRestitutionLimit(LinearRestitutionLimit);
+				float linear_restitution_limit;
+				if (series::unpack(node->find("linear-restitution-limit"), &linear_restitution_limit))
+					instance->set_linear_restitution_limit(linear_restitution_limit);
 
-				float AngularRestitutionOrtho;
-				if (Series::Unpack(Node->Find("angular-restitution-ortho"), &AngularRestitutionOrtho))
-					Instance->SetAngularRestitutionOrtho(AngularRestitutionOrtho);
+				float angular_restitution_ortho;
+				if (series::unpack(node->find("angular-restitution-ortho"), &angular_restitution_ortho))
+					instance->set_angular_restitution_ortho(angular_restitution_ortho);
 
-				float LinearRestitutionOrtho;
-				if (Series::Unpack(Node->Find("linear-restitution-ortho"), &LinearRestitutionOrtho))
-					Instance->SetLinearRestitutionOrtho(LinearRestitutionOrtho);
+				float linear_restitution_ortho;
+				if (series::unpack(node->find("linear-restitution-ortho"), &linear_restitution_ortho))
+					instance->set_linear_restitution_ortho(linear_restitution_ortho);
 
-				float AngularSoftnessDirection;
-				if (Series::Unpack(Node->Find("angular-softness-direction"), &AngularSoftnessDirection))
-					Instance->SetAngularSoftnessDirection(AngularSoftnessDirection);
+				float angular_softness_direction;
+				if (series::unpack(node->find("angular-softness-direction"), &angular_softness_direction))
+					instance->set_angular_softness_direction(angular_softness_direction);
 
-				float LinearSoftnessDirection;
-				if (Series::Unpack(Node->Find("linear-softness-direction"), &LinearSoftnessDirection))
-					Instance->SetLinearSoftnessDirection(LinearSoftnessDirection);
+				float linear_softness_direction;
+				if (series::unpack(node->find("linear-softness-direction"), &linear_softness_direction))
+					instance->set_linear_softness_direction(linear_softness_direction);
 
-				float AngularSoftnessLimit;
-				if (Series::Unpack(Node->Find("angular-softness-limit"), &AngularSoftnessLimit))
-					Instance->SetAngularSoftnessLimit(AngularSoftnessLimit);
+				float angular_softness_limit;
+				if (series::unpack(node->find("angular-softness-limit"), &angular_softness_limit))
+					instance->set_angular_softness_limit(angular_softness_limit);
 
-				float LinearSoftnessLimit;
-				if (Series::Unpack(Node->Find("linear-softness-limit"), &LinearSoftnessLimit))
-					Instance->SetLinearSoftnessLimit(LinearSoftnessLimit);
+				float linear_softness_limit;
+				if (series::unpack(node->find("linear-softness-limit"), &linear_softness_limit))
+					instance->set_linear_softness_limit(linear_softness_limit);
 
-				float AngularSoftnessOrtho;
-				if (Series::Unpack(Node->Find("angular-softness-ortho"), &AngularSoftnessOrtho))
-					Instance->SetAngularSoftnessOrtho(AngularSoftnessOrtho);
+				float angular_softness_ortho;
+				if (series::unpack(node->find("angular-softness-ortho"), &angular_softness_ortho))
+					instance->set_angular_softness_ortho(angular_softness_ortho);
 
-				float LinearSoftnessOrtho;
-				if (Series::Unpack(Node->Find("linear-softness-ortho"), &LinearSoftnessOrtho))
-					Instance->SetLinearSoftnessOrtho(LinearSoftnessOrtho);
+				float linear_softness_ortho;
+				if (series::unpack(node->find("linear-softness-ortho"), &linear_softness_ortho))
+					instance->set_linear_softness_ortho(linear_softness_ortho);
 
-				bool PoweredAngularMotor;
-				if (Series::Unpack(Node->Find("powered-angular-motor"), &PoweredAngularMotor))
-					Instance->SetPoweredAngularMotor(PoweredAngularMotor);
+				bool powered_angular_motor;
+				if (series::unpack(node->find("powered-angular-motor"), &powered_angular_motor))
+					instance->set_powered_angular_motor(powered_angular_motor);
 
-				bool PoweredLinearMotor;
-				if (Series::Unpack(Node->Find("powered-linear-motor"), &PoweredLinearMotor))
-					Instance->SetPoweredLinearMotor(PoweredLinearMotor);
+				bool powered_linear_motor;
+				if (series::unpack(node->find("powered-linear-motor"), &powered_linear_motor))
+					instance->set_powered_linear_motor(powered_linear_motor);
 
-				bool Enabled;
-				if (Series::Unpack(Node->Find("enabled"), &Enabled))
-					Instance->SetEnabled(Enabled);
+				bool enabled;
+				if (series::unpack(node->find("enabled"), &enabled))
+					instance->set_enabled(enabled);
 			}
-			void SliderConstraint::Serialize(Core::Schema* Node)
+			void slider_constraint::serialize(core::schema* node)
 			{
-				VI_ASSERT(Node != nullptr, "schema should be set");
+				VI_ASSERT(node != nullptr, "schema should be set");
 
-				Series::Pack(Node->Set("extended"), Instance != nullptr);
-				if (!Instance)
+				series::pack(node->set("extended"), instance != nullptr);
+				if (!instance)
 					return;
 
-				int64_t ConnectionId = -1;
-				if (Connection != nullptr)
+				int64_t connection_id = -1;
+				if (connection != nullptr)
 				{
-					IdxSnapshot* Snapshot = Parent->GetScene()->Snapshot;
-					if (Snapshot != nullptr)
+					idx_snapshot* snapshot = parent->get_scene()->snapshot;
+					if (snapshot != nullptr)
 					{
-						auto It = Snapshot->To.find(Connection);
-						if (It != Snapshot->To.end())
-							ConnectionId = (int64_t)It->second;
+						auto it = snapshot->to.find(connection);
+						if (it != snapshot->to.end())
+							connection_id = (int64_t)it->second;
 					}
 				}
 
-				Series::Pack(Node->Set("collision-state"), Instance->GetState().Collisions);
-				Series::Pack(Node->Set("linear-state"), Instance->GetState().Linear);
-				Series::Pack(Node->Set("connection"), ConnectionId);
-				Series::Pack(Node->Set("angular-motor-velocity"), Instance->GetAngularMotorVelocity());
-				Series::Pack(Node->Set("linear-motor-velocity"), Instance->GetLinearMotorVelocity());
-				Series::Pack(Node->Set("upper-linear-limit"), Instance->GetUpperLinearLimit());
-				Series::Pack(Node->Set("lower-linear-limit"), Instance->GetLowerLinearLimit());
-				Series::Pack(Node->Set("breaking-impulse-threshold"), Instance->GetBreakingImpulseThreshold());
-				Series::Pack(Node->Set("angular-damping-direction"), Instance->GetAngularDampingDirection());
-				Series::Pack(Node->Set("linear-amping-direction"), Instance->GetLinearDampingDirection());
-				Series::Pack(Node->Set("angular-damping-limit"), Instance->GetAngularDampingLimit());
-				Series::Pack(Node->Set("linear-damping-limit"), Instance->GetLinearDampingLimit());
-				Series::Pack(Node->Set("angular-damping-ortho"), Instance->GetAngularDampingOrtho());
-				Series::Pack(Node->Set("linear-damping-ortho"), Instance->GetLinearDampingOrtho());
-				Series::Pack(Node->Set("upper-angular-limit"), Instance->GetUpperAngularLimit());
-				Series::Pack(Node->Set("lower-angular-limit"), Instance->GetLowerAngularLimit());
-				Series::Pack(Node->Set("max-angular-motor-force"), Instance->GetMaxAngularMotorForce());
-				Series::Pack(Node->Set("max-linear-motor-force"), Instance->GetMaxLinearMotorForce());
-				Series::Pack(Node->Set("angular-restitution-direction"), Instance->GetAngularRestitutionDirection());
-				Series::Pack(Node->Set("linear-restitution-direction"), Instance->GetLinearRestitutionDirection());
-				Series::Pack(Node->Set("angular-restitution-limit"), Instance->GetAngularRestitutionLimit());
-				Series::Pack(Node->Set("linear-restitution-limit"), Instance->GetLinearRestitutionLimit());
-				Series::Pack(Node->Set("angular-restitution-ortho"), Instance->GetAngularRestitutionOrtho());
-				Series::Pack(Node->Set("linear-restitution-ortho"), Instance->GetLinearRestitutionOrtho());
-				Series::Pack(Node->Set("angular-softness-direction"), Instance->GetAngularSoftnessDirection());
-				Series::Pack(Node->Set("linear-softness-direction"), Instance->GetLinearSoftnessDirection());
-				Series::Pack(Node->Set("angular-softness-limit"), Instance->GetAngularSoftnessLimit());
-				Series::Pack(Node->Set("linear-softness-limit"), Instance->GetLinearSoftnessLimit());
-				Series::Pack(Node->Set("angular-softness-ortho"), Instance->GetAngularSoftnessOrtho());
-				Series::Pack(Node->Set("linear-softness-ortho"), Instance->GetLinearSoftnessOrtho());
-				Series::Pack(Node->Set("powered-angular-motor"), Instance->GetPoweredAngularMotor());
-				Series::Pack(Node->Set("powered-linear-motor"), Instance->GetPoweredLinearMotor());
-				Series::Pack(Node->Set("enabled"), Instance->IsEnabled());
+				series::pack(node->set("collision-state"), instance->get_state().collisions);
+				series::pack(node->set("linear-state"), instance->get_state().linear);
+				series::pack(node->set("connection"), connection_id);
+				series::pack(node->set("angular-motor-velocity"), instance->get_angular_motor_velocity());
+				series::pack(node->set("linear-motor-velocity"), instance->get_linear_motor_velocity());
+				series::pack(node->set("upper-linear-limit"), instance->get_upper_linear_limit());
+				series::pack(node->set("lower-linear-limit"), instance->get_lower_linear_limit());
+				series::pack(node->set("breaking-impulse-threshold"), instance->get_breaking_impulse_threshold());
+				series::pack(node->set("angular-damping-direction"), instance->get_angular_damping_direction());
+				series::pack(node->set("linear-amping-direction"), instance->get_linear_damping_direction());
+				series::pack(node->set("angular-damping-limit"), instance->get_angular_damping_limit());
+				series::pack(node->set("linear-damping-limit"), instance->get_linear_damping_limit());
+				series::pack(node->set("angular-damping-ortho"), instance->get_angular_damping_ortho());
+				series::pack(node->set("linear-damping-ortho"), instance->get_linear_damping_ortho());
+				series::pack(node->set("upper-angular-limit"), instance->get_upper_angular_limit());
+				series::pack(node->set("lower-angular-limit"), instance->get_lower_angular_limit());
+				series::pack(node->set("max-angular-motor-force"), instance->get_max_angular_motor_force());
+				series::pack(node->set("max-linear-motor-force"), instance->get_max_linear_motor_force());
+				series::pack(node->set("angular-restitution-direction"), instance->get_angular_restitution_direction());
+				series::pack(node->set("linear-restitution-direction"), instance->get_linear_restitution_direction());
+				series::pack(node->set("angular-restitution-limit"), instance->get_angular_restitution_limit());
+				series::pack(node->set("linear-restitution-limit"), instance->get_linear_restitution_limit());
+				series::pack(node->set("angular-restitution-ortho"), instance->get_angular_restitution_ortho());
+				series::pack(node->set("linear-restitution-ortho"), instance->get_linear_restitution_ortho());
+				series::pack(node->set("angular-softness-direction"), instance->get_angular_softness_direction());
+				series::pack(node->set("linear-softness-direction"), instance->get_linear_softness_direction());
+				series::pack(node->set("angular-softness-limit"), instance->get_angular_softness_limit());
+				series::pack(node->set("linear-softness-limit"), instance->get_linear_softness_limit());
+				series::pack(node->set("angular-softness-ortho"), instance->get_angular_softness_ortho());
+				series::pack(node->set("linear-softness-ortho"), instance->get_linear_softness_ortho());
+				series::pack(node->set("powered-angular-motor"), instance->get_powered_angular_motor());
+				series::pack(node->set("powered-linear-motor"), instance->get_powered_linear_motor());
+				series::pack(node->set("enabled"), instance->is_enabled());
 			}
-			void SliderConstraint::Load(Entity* Other, bool IsGhosted, bool IsLinear)
+			void slider_constraint::load(entity* other, bool is_ghosted, bool is_linear)
 			{
-				SceneGraph* Scene = Parent->GetScene();
-				VI_ASSERT(Scene != nullptr, "scene should be set");
-				VI_ASSERT(Parent != Other, "parent should not be equal to other");
+				scene_graph* scene = parent->get_scene();
+				VI_ASSERT(scene != nullptr, "scene should be set");
+				VI_ASSERT(parent != other, "parent should not be equal to other");
 
-				Connection = Other;
-				if (!Connection)
+				connection = other;
+				if (!connection)
 					return;
 
-				RigidBody* FirstBody = Parent->GetComponent<RigidBody>();
-				RigidBody* SecondBody = Connection->GetComponent<RigidBody>();
-				if (!FirstBody || !SecondBody)
+				rigid_body* first_body = parent->get_component<rigid_body>();
+				rigid_body* second_body = connection->get_component<rigid_body>();
+				if (!first_body || !second_body)
 					return;
 
-				Physics::SConstraint::Desc I;
-				I.TargetA = FirstBody->GetBody();
-				I.TargetB = SecondBody->GetBody();
-				I.Collisions = !IsGhosted;
-				I.Linear = IsLinear;
+				physics::sconstraint::desc i;
+				i.target_a = first_body->get_body();
+				i.target_b = second_body->get_body();
+				i.collisions = !is_ghosted;
+				i.linear = is_linear;
 
-				if (I.TargetA && I.TargetB)
+				if (i.target_a && i.target_b)
 				{
-					Core::Memory::Release(Instance);
-					Instance = Scene->GetSimulator()->CreateSliderConstraint(I);
+					core::memory::release(instance);
+					instance = scene->get_simulator()->create_slider_constraint(i);
 				}
 			}
-			void SliderConstraint::Clear()
+			void slider_constraint::clear()
 			{
-				Core::Memory::Release(Instance);
-				Connection = nullptr;
+				core::memory::release(instance);
+				connection = nullptr;
 			}
-			Component* SliderConstraint::Copy(Entity* New) const
+			component* slider_constraint::copy(entity* init) const
 			{
-				SliderConstraint* Target = new SliderConstraint(New);
-				Target->Connection = Connection;
+				slider_constraint* target = new slider_constraint(init);
+				target->connection = connection;
 
-				if (!Instance)
-					return Target;
+				if (!instance)
+					return target;
 
-				RigidBody* FirstBody = New->GetComponent<RigidBody>();
-				if (!FirstBody)
-					FirstBody = Parent->GetComponent<RigidBody>();
+				rigid_body* first_body = init->get_component<rigid_body>();
+				if (!first_body)
+					first_body = parent->get_component<rigid_body>();
 
-				if (!FirstBody)
-					return Target;
+				if (!first_body)
+					return target;
 
-				Physics::SConstraint::Desc I(Instance->GetState());
-				Instance->GetState().TargetA = FirstBody->GetBody();
-				Target->Instance = (Physics::SConstraint*)Instance->Copy();
-				Instance->GetState() = I;
+				physics::sconstraint::desc i(instance->get_state());
+				instance->get_state().target_a = first_body->get_body();
+				target->instance = (physics::sconstraint*)instance->copy();
+				instance->get_state() = i;
 
-				return Target;
+				return target;
 			}
-			Physics::SConstraint* SliderConstraint::GetConstraint() const
+			physics::sconstraint* slider_constraint::get_constraint() const
 			{
-				return Instance;
+				return instance;
 			}
-			Entity* SliderConstraint::GetConnection() const
+			entity* slider_constraint::get_connection() const
 			{
-				return Connection;
+				return connection;
 			}
 
-			Acceleration::Acceleration(Entity* Ref) : Component(Ref, ActorSet::Update)
+			acceleration::acceleration(entity* ref) : component(ref, actor_set::update)
 			{
 			}
-			void Acceleration::Deserialize(Core::Schema* Node)
+			void acceleration::deserialize(core::schema* node)
 			{
-				VI_ASSERT(Node != nullptr, "schema should be set");
+				VI_ASSERT(node != nullptr, "schema should be set");
 
-				HeavySeries::Unpack(Node->Find("amplitude-velocity"), &AmplitudeVelocity);
-				HeavySeries::Unpack(Node->Find("amplitude-torque"), &AmplitudeTorque);
-				HeavySeries::Unpack(Node->Find("constant-velocity"), &ConstantVelocity);
-				HeavySeries::Unpack(Node->Find("constant-torque"), &ConstantTorque);
-				HeavySeries::Unpack(Node->Find("constant-center"), &ConstantCenter);
-				Series::Unpack(Node->Find("kinematic"), &Kinematic);
+				heavy_series::unpack(node->find("amplitude-velocity"), &amplitude_velocity);
+				heavy_series::unpack(node->find("amplitude-torque"), &amplitude_torque);
+				heavy_series::unpack(node->find("constant-velocity"), &constant_velocity);
+				heavy_series::unpack(node->find("constant-torque"), &constant_torque);
+				heavy_series::unpack(node->find("constant-center"), &constant_center);
+				series::unpack(node->find("kinematic"), &kinematic);
 			}
-			void Acceleration::Serialize(Core::Schema* Node)
+			void acceleration::serialize(core::schema* node)
 			{
-				VI_ASSERT(Node != nullptr, "schema should be set");
+				VI_ASSERT(node != nullptr, "schema should be set");
 
-				HeavySeries::Pack(Node->Set("amplitude-velocity"), AmplitudeVelocity);
-				HeavySeries::Pack(Node->Set("amplitude-torque"), AmplitudeTorque);
-				HeavySeries::Pack(Node->Set("constant-velocity"), ConstantVelocity);
-				HeavySeries::Pack(Node->Set("constant-torque"), ConstantTorque);
-				HeavySeries::Pack(Node->Set("constant-center"), ConstantCenter);
-				Series::Pack(Node->Set("kinematic"), Kinematic);
+				heavy_series::pack(node->set("amplitude-velocity"), amplitude_velocity);
+				heavy_series::pack(node->set("amplitude-torque"), amplitude_torque);
+				heavy_series::pack(node->set("constant-velocity"), constant_velocity);
+				heavy_series::pack(node->set("constant-torque"), constant_torque);
+				heavy_series::pack(node->set("constant-center"), constant_center);
+				series::pack(node->set("kinematic"), kinematic);
 			}
-			void Acceleration::Activate(Component* New)
+			void acceleration::activate(component* init)
 			{
-				if (RigidBody != nullptr)
+				if (rigid_body != nullptr)
 					return;
 
-				Components::RigidBody* Component = Parent->GetComponent<Components::RigidBody>();
-				if (Component != nullptr)
-					RigidBody = Component->GetBody();
+				components::rigid_body* component = parent->get_component<components::rigid_body>();
+				if (component != nullptr)
+					rigid_body = component->get_body();
 			}
-			void Acceleration::Update(Core::Timer* Time)
+			void acceleration::update(core::timer* time)
 			{
-				if (!RigidBody)
+				if (!rigid_body)
 					return;
 
-				float Step = Time->GetStep();
-				if (Kinematic)
+				float step = time->get_step();
+				if (kinematic)
 				{
-					RigidBody->SetLinearVelocity(ConstantVelocity);
-					RigidBody->SetAngularVelocity(ConstantTorque);
+					rigid_body->set_linear_velocity(constant_velocity);
+					rigid_body->set_angular_velocity(constant_torque);
 				}
 				else
-					RigidBody->Push(ConstantVelocity * Step, ConstantTorque * Step, ConstantCenter);
+					rigid_body->push(constant_velocity * step, constant_torque * step, constant_center);
 
-				Trigonometry::Vector3 Force = RigidBody->GetLinearVelocity();
-				Trigonometry::Vector3 Torque = RigidBody->GetAngularVelocity();
-				Trigonometry::Vector3 ACT = ConstantTorque.Abs();
-				Trigonometry::Vector3 ACV = ConstantVelocity.Abs();
+				trigonometry::vector3 force = rigid_body->get_linear_velocity();
+				trigonometry::vector3 torque = rigid_body->get_angular_velocity();
+				trigonometry::vector3 ACT = constant_torque.abs();
+				trigonometry::vector3 ACV = constant_velocity.abs();
 
-				if (AmplitudeVelocity.X > 0 && Force.X > AmplitudeVelocity.X)
-					ConstantVelocity.X = -ACV.X;
-				else if (AmplitudeVelocity.X > 0 && Force.X < -AmplitudeVelocity.X)
-					ConstantVelocity.X = ACV.X;
+				if (amplitude_velocity.x > 0 && force.x > amplitude_velocity.x)
+					constant_velocity.x = -ACV.x;
+				else if (amplitude_velocity.x > 0 && force.x < -amplitude_velocity.x)
+					constant_velocity.x = ACV.x;
 
-				if (AmplitudeVelocity.Y > 0 && Force.Y > AmplitudeVelocity.Y)
-					ConstantVelocity.Y = -ACV.Y;
-				else if (AmplitudeVelocity.Y > 0 && Force.Y < -AmplitudeVelocity.Y)
-					ConstantVelocity.Y = ACV.Y;
+				if (amplitude_velocity.y > 0 && force.y > amplitude_velocity.y)
+					constant_velocity.y = -ACV.y;
+				else if (amplitude_velocity.y > 0 && force.y < -amplitude_velocity.y)
+					constant_velocity.y = ACV.y;
 
-				if (AmplitudeVelocity.Z > 0 && Force.Z > AmplitudeVelocity.Z)
-					ConstantVelocity.Z = -ACV.Z;
-				else if (AmplitudeVelocity.Z > 0 && Force.Z < -AmplitudeVelocity.Z)
-					ConstantVelocity.Z = ACV.Z;
+				if (amplitude_velocity.z > 0 && force.z > amplitude_velocity.z)
+					constant_velocity.z = -ACV.z;
+				else if (amplitude_velocity.z > 0 && force.z < -amplitude_velocity.z)
+					constant_velocity.z = ACV.z;
 
-				if (AmplitudeTorque.X > 0 && Torque.X > AmplitudeTorque.X)
-					ConstantTorque.X = -ACT.X;
-				else if (AmplitudeTorque.X > 0 && Torque.X < -AmplitudeTorque.X)
-					ConstantTorque.X = ACT.X;
+				if (amplitude_torque.x > 0 && torque.x > amplitude_torque.x)
+					constant_torque.x = -ACT.x;
+				else if (amplitude_torque.x > 0 && torque.x < -amplitude_torque.x)
+					constant_torque.x = ACT.x;
 
-				if (AmplitudeTorque.Y > 0 && Torque.Y > AmplitudeTorque.Y)
-					ConstantTorque.Y = -ACT.Y;
-				else if (AmplitudeTorque.Y > 0 && Torque.Y < -AmplitudeTorque.Y)
-					ConstantTorque.Y = ACT.Y;
+				if (amplitude_torque.y > 0 && torque.y > amplitude_torque.y)
+					constant_torque.y = -ACT.y;
+				else if (amplitude_torque.y > 0 && torque.y < -amplitude_torque.y)
+					constant_torque.y = ACT.y;
 
-				if (AmplitudeTorque.Z > 0 && Torque.Z > AmplitudeTorque.Z)
-					ConstantTorque.Z = -ACT.Z;
-				else if (AmplitudeTorque.Z > 0 && Torque.Z < -AmplitudeTorque.Z)
-					ConstantTorque.Z = ACT.Z;
+				if (amplitude_torque.z > 0 && torque.z > amplitude_torque.z)
+					constant_torque.z = -ACT.z;
+				else if (amplitude_torque.z > 0 && torque.z < -amplitude_torque.z)
+					constant_torque.z = ACT.z;
 			}
-			Component* Acceleration::Copy(Entity* New) const
+			component* acceleration::copy(entity* init) const
 			{
-				Acceleration* Target = new Acceleration(New);
-				Target->Kinematic = Kinematic;
-				Target->AmplitudeTorque = AmplitudeTorque;
-				Target->AmplitudeVelocity = AmplitudeVelocity;
-				Target->ConstantCenter = ConstantCenter;
-				Target->ConstantTorque = ConstantTorque;
-				Target->ConstantVelocity = ConstantVelocity;
-				Target->RigidBody = RigidBody;
+				acceleration* target = new acceleration(init);
+				target->kinematic = kinematic;
+				target->amplitude_torque = amplitude_torque;
+				target->amplitude_velocity = amplitude_velocity;
+				target->constant_center = constant_center;
+				target->constant_torque = constant_torque;
+				target->constant_velocity = constant_velocity;
+				target->rigid_body = rigid_body;
 
-				return Target;
+				return target;
 			}
-			Physics::RigidBody* Acceleration::GetBody() const
+			physics::rigid_body* acceleration::get_body() const
 			{
-				return RigidBody;
+				return rigid_body;
 			}
 
-			Model::Model(Entity* Ref) : Drawable(Ref, ActorSet::None, Model::GetTypeId())
+			model::model(entity* ref) : drawable(ref, actor_set::none, model::get_type_id())
 			{
 			}
-			Model::~Model()
+			model::~model()
 			{
-				Core::Memory::Release(Instance);
+				core::memory::release(instance);
 			}
-			void Model::Deserialize(Core::Schema* Node)
+			void model::deserialize(core::schema* node)
 			{
-				VI_ASSERT(Node != nullptr, "schema should be set");
+				VI_ASSERT(node != nullptr, "schema should be set");
 
-				uint32_t NewCategory = (uint32_t)GeoCategory::Opaque;
-				HeavySeries::Unpack(Node->Find("texcoord"), &TexCoord);
-				Series::Unpack(Node->Find("static"), &Static);
-				Series::Unpack(Node->Find("category"), &NewCategory);
-				SetCategory((GeoCategory)NewCategory);
+				uint32_t new_category = (uint32_t)geo_category::opaque;
+				heavy_series::unpack(node->find("texcoord"), &texcoord);
+				series::unpack(node->find("static"), &constant);
+				series::unpack(node->find("category"), &new_category);
+				set_category((geo_category)new_category);
 
-				Core::String Path;
-				if (!Series::Unpack(Node->Find("model"), &Path) || Path.empty())
+				core::string path;
+				if (!series::unpack(node->find("model"), &path) || path.empty())
 					return;
 				else
-					Node->AddRef();
+					node->add_ref();
 
-				SceneGraph* Scene = Parent->GetScene();
-				Material* Invalid = Scene->GetInvalidMaterial();
-				Invalid->AddRef();
+				scene_graph* scene = parent->get_scene();
+				material* invalid = scene->get_invalid_material();
+				invalid->add_ref();
 
-				SetMaterial(Invalid);
-				Scene->LoadResource<Layer::Model>(this, Path, [this, Node, Scene, Invalid](ExpectsContent<Layer::Model*> NewInstance)
+				set_material(invalid);
+				scene->load_resource<layer::model>(this, path, [this, node, scene, invalid](expects_content<layer::model*> new_instance)
 				{
-					Core::Memory::Release(Instance);
-					Instance = NewInstance.Or(nullptr);
-					Invalid->Release();
-					ClearMaterials();
+					core::memory::release(instance);
+					instance = new_instance.or_else(nullptr);
+					invalid->release();
+					clear_materials();
 
-					if (Instance != nullptr)
+					if (instance != nullptr)
 					{
-						for (auto&& Material : Node->FetchCollection("materials.material"))
+						for (auto&& material : node->fetch_collection("materials.material"))
 						{
-							Core::String Name; size_t Slot = 0;
-							if (Series::Unpack(Material->Find("name"), &Name) && Series::UnpackA(Material->Find("slot"), &Slot))
+							core::string name; size_t slot = 0;
+							if (series::unpack(material->find("name"), &name) && series::unpack_a(material->find("slot"), &slot))
 							{
-								Graphics::MeshBuffer* Surface = Instance->FindMesh(Name);
-								if (Surface != nullptr)
-									Materials[Surface] = Scene->GetMaterial(Slot);
+								graphics::mesh_buffer* surface = instance->find_mesh(name);
+								if (surface != nullptr)
+									materials[surface] = scene->get_material(slot);
 							}
 						}
 					}
-					Node->Release();
+					node->release();
 				});
 			}
-			void Model::Serialize(Core::Schema* Node)
+			void model::serialize(core::schema* node)
 			{
-				VI_ASSERT(Node != nullptr, "schema should be set");
+				VI_ASSERT(node != nullptr, "schema should be set");
 
-				Series::Pack(Node->Set("model"), Parent->GetScene()->FindResourceId<Layer::Model>(Instance));
-				HeavySeries::Pack(Node->Set("texcoord"), TexCoord);
-				Series::Pack(Node->Set("category"), (uint32_t)GetCategory());
-				Series::Pack(Node->Set("static"), Static);
+				series::pack(node->set("model"), parent->get_scene()->find_resource_id<layer::model>(instance));
+				heavy_series::pack(node->set("texcoord"), texcoord);
+				series::pack(node->set("category"), (uint32_t)get_category());
+				series::pack(node->set("static"), constant);
 
-				Core::Schema* Slots = Node->Set("materials", Core::Var::Array());
-				for (auto&& Slot : Materials)
+				core::schema* slots = node->set("materials", core::var::array());
+				for (auto&& slot : materials)
 				{
-					auto* Buffer = (Graphics::MeshBuffer*)Slot.first;
-					if (Buffer != nullptr)
+					auto* buffer = (graphics::mesh_buffer*)slot.first;
+					if (buffer != nullptr)
 					{
-						Core::Schema* Material = Slots->Set("material");
-						Series::Pack(Material->Set("name"), Buffer->Name);
-						if (Slot.second != nullptr)
-							Series::Pack(Material->Set("slot"), (uint64_t)Slot.second->Slot);
+						core::schema* material = slots->set("material");
+						series::pack(material->set("name"), buffer->name);
+						if (slot.second != nullptr)
+							series::pack(material->set("slot"), (uint64_t)slot.second->slot);
 					}
 				}
 			}
-			void Model::SetDrawable(Layer::Model* Drawable)
+			void model::set_drawable(layer::model* drawable)
 			{
-				Core::Memory::Release(Instance);
-				Instance = Drawable;
-				ClearMaterials();
+				core::memory::release(instance);
+				instance = drawable;
+				clear_materials();
 
-				if (!Instance)
+				if (!instance)
 					return;
 
-				Instance->AddRef();
-				for (auto* Item : Instance->Meshes)
-					Materials[(void*)Item] = nullptr;
+				instance->add_ref();
+				for (auto* item : instance->meshes)
+					materials[(void*)item] = nullptr;
 			}
-			void Model::SetMaterialFor(const std::string_view& Name, Material* Value)
+			void model::set_material_for(const std::string_view& name, material* value)
 			{
-				if (!Instance)
+				if (!instance)
 					return;
 
-				auto* Mesh = Instance->FindMesh(Name);
-				if (Mesh != nullptr)
-					Materials[(void*)Mesh] = Value;
+				auto* mesh = instance->find_mesh(name);
+				if (mesh != nullptr)
+					materials[(void*)mesh] = value;
 			}
-			float Model::GetVisibility(const Viewer& View, float Distance) const
+			float model::get_visibility(const viewer& view, float distance) const
 			{
-				return Instance ? Component::GetVisibility(View, Distance) : 0.0f;
+				return instance ? component::get_visibility(view, distance) : 0.0f;
 			}
-			size_t Model::GetUnitBounds(Trigonometry::Vector3& Min, Trigonometry::Vector3& Max) const
+			size_t model::get_unit_bounds(trigonometry::vector3& min, trigonometry::vector3& max) const
 			{
-				if (!Instance)
+				if (!instance)
 					return BOX_NONE;
 
-				Min = Instance->Min;
-				Max = Instance->Max;
+				min = instance->min;
+				max = instance->max;
 				return BOX_GEOMETRY;
 			}
-			Component* Model::Copy(Entity* New) const
+			component* model::copy(entity* init) const
 			{
-				Model* Target = new Model(New);
-				Target->SetCategory(GetCategory());
-				Target->Instance = Instance;
-				Target->Materials = Materials;
-				Target->TexCoord = TexCoord;
+				model* target = new model(init);
+				target->set_category(get_category());
+				target->instance = instance;
+				target->materials = materials;
+				target->texcoord = texcoord;
 
-				if (Target->Instance != nullptr)
-					Target->Instance->AddRef();
+				if (target->instance != nullptr)
+					target->instance->add_ref();
 
-				return Target;
+				return target;
 			}
-			Layer::Model* Model::GetDrawable()
+			layer::model* model::get_drawable()
 			{
-				return Instance;
+				return instance;
 			}
-			Material* Model::GetMaterialFor(const std::string_view& Name)
+			material* model::get_material_for(const std::string_view& name)
 			{
-				if (!Instance)
+				if (!instance)
 					return nullptr;
 
-				auto* Mesh = Instance->FindMesh(Name);
-				if (!Mesh)
+				auto* mesh = instance->find_mesh(name);
+				if (!mesh)
 					return nullptr;
 
-				return Materials[(void*)Mesh];
+				return materials[(void*)mesh];
 			}
 
-			Skin::Skin(Entity* Ref) : Drawable(Ref, ActorSet::Synchronize, Skin::GetTypeId())
+			skin::skin(entity* ref) : drawable(ref, actor_set::synchronize, skin::get_type_id())
 			{
 			}
-			Skin::~Skin()
+			skin::~skin()
 			{
-				Core::Memory::Release(Instance);
+				core::memory::release(instance);
 			}
-			void Skin::Deserialize(Core::Schema* Node)
+			void skin::deserialize(core::schema* node)
 			{
-				VI_ASSERT(Node != nullptr, "schema should be set");
-				uint32_t NewCategory = (uint32_t)GeoCategory::Opaque;
-				HeavySeries::Unpack(Node->Find("texcoord"), &TexCoord);
-				Series::Unpack(Node->Find("static"), &Static);
-				Series::Unpack(Node->Find("category"), &NewCategory);
-				SetCategory((GeoCategory)NewCategory);
+				VI_ASSERT(node != nullptr, "schema should be set");
+				uint32_t new_category = (uint32_t)geo_category::opaque;
+				heavy_series::unpack(node->find("texcoord"), &texcoord);
+				series::unpack(node->find("static"), &constant);
+				series::unpack(node->find("category"), &new_category);
+				set_category((geo_category)new_category);
 
-				Core::String Path;
-				if (!Series::Unpack(Node->Find("skin-model"), &Path) || Path.empty())
+				core::string path;
+				if (!series::unpack(node->find("skin-model"), &path) || path.empty())
 					return;
 				else
-					Node->AddRef();
+					node->add_ref();
 
-				SceneGraph* Scene = Parent->GetScene();
-				Material* Invalid = Scene->GetInvalidMaterial();
-				Invalid->AddRef();
+				scene_graph* scene = parent->get_scene();
+				material* invalid = scene->get_invalid_material();
+				invalid->add_ref();
 
-				SetMaterial(Invalid);
-				Scene->LoadResource<Layer::SkinModel>(this, Path, [this, Node, Scene, Invalid](ExpectsContent<Layer::SkinModel*> NewInstance)
+				set_material(invalid);
+				scene->load_resource<layer::skin_model>(this, path, [this, node, scene, invalid](expects_content<layer::skin_model*> new_instance)
 				{
-					Core::Memory::Release(Instance);
-					Instance = NewInstance.Or(nullptr);
-					Invalid->Release();
-					ClearMaterials();
+					core::memory::release(instance);
+					instance = new_instance.or_else(nullptr);
+					invalid->release();
+					clear_materials();
 
-					if (Instance != nullptr)
+					if (instance != nullptr)
 					{
-						Skeleton.Fill(Instance);
-						for (auto&& Material : Node->FetchCollection("materials.material"))
+						skeleton.fill(instance);
+						for (auto&& material : node->fetch_collection("materials.material"))
 						{
-							Core::String Name; size_t Slot = 0;
-							if (Series::Unpack(Material->Find("name"), &Name) && Series::UnpackA(Material->Find("slot"), &Slot))
+							core::string name; size_t slot = 0;
+							if (series::unpack(material->find("name"), &name) && series::unpack_a(material->find("slot"), &slot))
 							{
-								Graphics::SkinMeshBuffer* Surface = Instance->FindMesh(Name);
-								if (Surface != nullptr)
-									Materials[Surface] = Scene->GetMaterial(Slot);
+								graphics::skin_mesh_buffer* surface = instance->find_mesh(name);
+								if (surface != nullptr)
+									materials[surface] = scene->get_material(slot);
 							}
 						}
 					}
-					Node->Release();
+					node->release();
 				});
 			}
-			void Skin::Serialize(Core::Schema* Node)
+			void skin::serialize(core::schema* node)
 			{
-				VI_ASSERT(Node != nullptr, "schema should be set");
+				VI_ASSERT(node != nullptr, "schema should be set");
 
-				Series::Pack(Node->Set("skin-model"), Parent->GetScene()->FindResourceId<Layer::SkinModel>(Instance));
-				HeavySeries::Pack(Node->Set("texcoord"), TexCoord);
-				Series::Pack(Node->Set("category"), (uint32_t)GetCategory());
-				Series::Pack(Node->Set("static"), Static);
+				series::pack(node->set("skin-model"), parent->get_scene()->find_resource_id<layer::skin_model>(instance));
+				heavy_series::pack(node->set("texcoord"), texcoord);
+				series::pack(node->set("category"), (uint32_t)get_category());
+				series::pack(node->set("static"), constant);
 
-				Core::Schema* Slots = Node->Set("materials", Core::Var::Array());
-				for (auto&& Slot : Materials)
+				core::schema* slots = node->set("materials", core::var::array());
+				for (auto&& slot : materials)
 				{
-					if (Slot.first != nullptr)
+					if (slot.first != nullptr)
 					{
-						Core::Schema* Material = Slots->Set("material");
-						Series::Pack(Material->Set("name"), ((Graphics::MeshBuffer*)Slot.first)->Name);
+						core::schema* material = slots->set("material");
+						series::pack(material->set("name"), ((graphics::mesh_buffer*)slot.first)->name);
 
-						if (Slot.second != nullptr)
-							Series::Pack(Material->Set("slot"), (uint64_t)Slot.second->Slot);
+						if (slot.second != nullptr)
+							series::pack(material->set("slot"), (uint64_t)slot.second->slot);
 					}
 				}
 			}
-			void Skin::Synchronize(Core::Timer* Time)
+			void skin::synchronize(core::timer* time)
 			{
-				if (Instance != nullptr)
-					Instance->Synchronize(&Skeleton);
+				if (instance != nullptr)
+					instance->synchronize(&skeleton);
 			}
-			void Skin::SetDrawable(Layer::SkinModel* Drawable)
+			void skin::set_drawable(layer::skin_model* drawable)
 			{
-				Core::Memory::Release(Instance);
-				Instance = Drawable;
-				ClearMaterials();
+				core::memory::release(instance);
+				instance = drawable;
+				clear_materials();
 
-				if (!Instance)
+				if (!instance)
 					return;
 
-				Instance->AddRef();
-				Skeleton.Fill(Instance);
-				for (auto* Item : Instance->Meshes)
-					Materials[(void*)Item] = nullptr;
+				instance->add_ref();
+				skeleton.fill(instance);
+				for (auto* item : instance->meshes)
+					materials[(void*)item] = nullptr;
 			}
-			void Skin::SetMaterialFor(const std::string_view& Name, Material* Value)
+			void skin::set_material_for(const std::string_view& name, material* value)
 			{
-				if (!Instance)
+				if (!instance)
 					return;
 
-				auto* Mesh = Instance->FindMesh(Name);
-				if (Mesh != nullptr)
-					Materials[(void*)Mesh] = Value;
+				auto* mesh = instance->find_mesh(name);
+				if (mesh != nullptr)
+					materials[(void*)mesh] = value;
 			}
-			float Skin::GetVisibility(const Viewer& View, float Distance) const
+			float skin::get_visibility(const viewer& view, float distance) const
 			{
-				return Instance ? Component::GetVisibility(View, Distance) : 0.0f;
+				return instance ? component::get_visibility(view, distance) : 0.0f;
 			}
-			size_t Skin::GetUnitBounds(Trigonometry::Vector3& Min, Trigonometry::Vector3& Max) const
+			size_t skin::get_unit_bounds(trigonometry::vector3& min, trigonometry::vector3& max) const
 			{
-				if (!Instance)
+				if (!instance)
 					return BOX_NONE;
 
-				Min = Instance->Min;
-				Max = Instance->Max;
+				min = instance->min;
+				max = instance->max;
 				return BOX_GEOMETRY;
 			}
-			Component* Skin::Copy(Entity* New) const
+			component* skin::copy(entity* init) const
 			{
-				Skin* Target = new Skin(New);
-				Target->SetCategory(GetCategory());
-				Target->Instance = Instance;
-				Target->Materials = Materials;
-				Target->Skeleton = Skeleton;
+				skin* target = new skin(init);
+				target->set_category(get_category());
+				target->instance = instance;
+				target->materials = materials;
+				target->skeleton = skeleton;
 
-				if (Target->Instance != nullptr)
-					Target->Instance->AddRef();
+				if (target->instance != nullptr)
+					target->instance->add_ref();
 
-				return Target;
+				return target;
 			}
-			Layer::SkinModel* Skin::GetDrawable()
+			layer::skin_model* skin::get_drawable()
 			{
-				return Instance;
+				return instance;
 			}
-			Material* Skin::GetMaterialFor(const std::string_view& Name)
+			material* skin::get_material_for(const std::string_view& name)
 			{
-				if (!Instance)
+				if (!instance)
 					return nullptr;
 
-				auto* Mesh = Instance->FindMesh(Name);
-				if (!Mesh)
+				auto* mesh = instance->find_mesh(name);
+				if (!mesh)
 					return nullptr;
 
-				return Materials[(void*)Mesh];
+				return materials[(void*)mesh];
 			}
 
-			Emitter::Emitter(Entity* Ref) : Drawable(Ref, ActorSet::None, Emitter::GetTypeId())
+			emitter::emitter(entity* ref) : drawable(ref, actor_set::none, emitter::get_type_id())
 			{
 			}
-			Emitter::~Emitter()
+			emitter::~emitter()
 			{
-				Core::Memory::Release(Instance);
+				core::memory::release(instance);
 			}
-			void Emitter::Deserialize(Core::Schema* Node)
+			void emitter::deserialize(core::schema* node)
 			{
-				VI_ASSERT(Node != nullptr, "schema should be set");
+				VI_ASSERT(node != nullptr, "schema should be set");
 
-				SceneGraph* Scene = Parent->GetScene(); size_t Slot = 0;
-				if (Series::UnpackA(Node->Find("material"), &Slot))
-					SetMaterial(nullptr, Scene->GetMaterial(Slot));
+				scene_graph* scene = parent->get_scene(); size_t slot = 0;
+				if (series::unpack_a(node->find("material"), &slot))
+					set_material(nullptr, scene->get_material(slot));
 
-				uint32_t NewCategory = (uint32_t)GeoCategory::Opaque;
-				Series::Unpack(Node->Find("category"), &NewCategory);
-				Series::Unpack(Node->Find("quad-based"), &QuadBased);
-				Series::Unpack(Node->Find("connected"), &Connected);
-				Series::Unpack(Node->Find("static"), &Static);
-				HeavySeries::Unpack(Node->Find("min"), &Min);
-				HeavySeries::Unpack(Node->Find("max"), &Max);
-				SetCategory((GeoCategory)NewCategory);
+				uint32_t new_category = (uint32_t)geo_category::opaque;
+				series::unpack(node->find("category"), &new_category);
+				series::unpack(node->find("quad-based"), &quad_based);
+				series::unpack(node->find("connected"), &connected);
+				series::unpack(node->find("static"), &constant);
+				heavy_series::unpack(node->find("min"), &min);
+				heavy_series::unpack(node->find("max"), &max);
+				set_category((geo_category)new_category);
 
-				size_t Limit;
-				if (Series::UnpackA(Node->Find("limit"), &Limit) && Instance != nullptr)
+				size_t limit;
+				if (series::unpack_a(node->find("limit"), &limit) && instance != nullptr)
 				{
-					auto& Dest = Instance->GetArray();
-					HeavySeries::Unpack(Node->Find("elements"), &Dest);
-					Scene->GetDevice()->UpdateBufferSize(Instance, Limit);
+					auto& dest = instance->get_array();
+					heavy_series::unpack(node->find("elements"), &dest);
+					scene->get_device()->update_buffer_size(instance, limit);
 				}
 			}
-			void Emitter::Serialize(Core::Schema* Node)
+			void emitter::serialize(core::schema* node)
 			{
-				VI_ASSERT(Node != nullptr, "schema should be set");
+				VI_ASSERT(node != nullptr, "schema should be set");
 
-				Material* Slot = GetMaterial();
-				if (Slot != nullptr)
-					Series::Pack(Node->Set("material"), (uint64_t)Slot->Slot);
+				material* slot = get_material();
+				if (slot != nullptr)
+					series::pack(node->set("material"), (uint64_t)slot->slot);
 
-				Series::Pack(Node->Set("category"), (uint32_t)GetCategory());
-				Series::Pack(Node->Set("quad-based"), QuadBased);
-				Series::Pack(Node->Set("connected"), Connected);
-				Series::Pack(Node->Set("static"), Static);
-				HeavySeries::Pack(Node->Set("min"), Min);
-				HeavySeries::Pack(Node->Set("max"), Max);
+				series::pack(node->set("category"), (uint32_t)get_category());
+				series::pack(node->set("quad-based"), quad_based);
+				series::pack(node->set("connected"), connected);
+				series::pack(node->set("static"), constant);
+				heavy_series::pack(node->set("min"), min);
+				heavy_series::pack(node->set("max"), max);
 
-				if (Instance != nullptr)
+				if (instance != nullptr)
 				{
-					Series::Pack(Node->Set("limit"), (uint64_t)Instance->GetElementLimit());
-					HeavySeries::Pack(Node->Set("elements"), Instance->GetArray());
+					series::pack(node->set("limit"), (uint64_t)instance->get_element_limit());
+					heavy_series::pack(node->set("elements"), instance->get_array());
 				}
 			}
-			void Emitter::Activate(Component* New)
+			void emitter::activate(component* init)
 			{
-				if (Instance != nullptr)
+				if (instance != nullptr)
 					return;
 
-				SceneGraph* Scene = Parent->GetScene();
-				Graphics::InstanceBuffer::Desc I = Graphics::InstanceBuffer::Desc();
-				I.ElementLimit = 1 << 10;
+				scene_graph* scene = parent->get_scene();
+				graphics::instance_buffer::desc i = graphics::instance_buffer::desc();
+				i.element_limit = 1 << 10;
 
-				auto Buffer = Scene->GetDevice()->CreateInstanceBuffer(I);
-				if (Buffer)
-					Instance = *Buffer;
+				auto buffer = scene->get_device()->create_instance_buffer(i);
+				if (buffer)
+					instance = *buffer;
 			}
-			size_t Emitter::GetUnitBounds(Trigonometry::Vector3& _Min, Trigonometry::Vector3& _Max) const
+			size_t emitter::get_unit_bounds(trigonometry::vector3& _Min, trigonometry::vector3& _Max) const
 			{
-				if (!Instance)
+				if (!instance)
 					return BOX_NONE;
 
-				_Min = Min;
-				_Max = Max;
+				_Min = min;
+				_Max = max;
 				return BOX_DYNAMIC;
 			}
-			Component* Emitter::Copy(Entity* New) const
+			component* emitter::copy(entity* init) const
 			{
-				Emitter* Target = new Emitter(New);
-				Target->SetCategory(GetCategory());
-				Target->Connected = Connected;
-				Target->Materials = Materials;
-				Target->Min = Min;
-				Target->Max = Max;
+				emitter* target = new emitter(init);
+				target->set_category(get_category());
+				target->connected = connected;
+				target->materials = materials;
+				target->min = min;
+				target->max = max;
 
-				auto& Dest = Target->Instance->GetArray();
-				Dest = Instance->GetArray();
+				auto& dest = target->instance->get_array();
+				dest = instance->get_array();
 
-				return Target;
+				return target;
 			}
-			Graphics::InstanceBuffer* Emitter::GetBuffer()
+			graphics::instance_buffer* emitter::get_buffer()
 			{
-				return Instance;
-			}
-
-			Decal::Decal(Entity* Ref) : Drawable(Ref, ActorSet::None, Decal::GetTypeId())
-			{
-			}
-			void Decal::Deserialize(Core::Schema* Node)
-			{
-				VI_ASSERT(Node != nullptr, "schema should be set");
-
-				size_t Slot = 0;
-				if (Series::UnpackA(Node->Find("material"), &Slot))
-					SetMaterial(nullptr, Parent->GetScene()->GetMaterial(Slot));
-
-				uint32_t NewCategory = (uint32_t)GeoCategory::Opaque;
-				HeavySeries::Unpack(Node->Find("texcoord"), &TexCoord);
-				Series::Unpack(Node->Find("static"), &Static);
-				Series::Unpack(Node->Find("category"), &NewCategory);
-				SetCategory((GeoCategory)NewCategory);
-			}
-			void Decal::Serialize(Core::Schema* Node)
-			{
-				VI_ASSERT(Node != nullptr, "schema should be set");
-
-				Material* Slot = GetMaterial();
-				if (Slot != nullptr)
-					Series::Pack(Node->Set("material"), (uint64_t)Slot->Slot);
-
-				HeavySeries::Pack(Node->Set("texcoord"), TexCoord);
-				Series::Pack(Node->Set("static"), Static);
-				Series::Pack(Node->Set("category"), (uint32_t)GetCategory());
-			}
-			float Decal::GetVisibility(const Viewer& View, float Distance) const
-			{
-				return GetVisibilityRadius(Parent, View, Distance);
-			}
-			Component* Decal::Copy(Entity* New) const
-			{
-				Decal* Target = new Decal(New);
-				Target->TexCoord = TexCoord;
-				Target->Materials = Materials;
-
-				return Target;
+				return instance;
 			}
 
-			SkinAnimator::SkinAnimator(Entity* Ref) : Component(Ref, ActorSet::Animate)
+			decal::decal(entity* ref) : drawable(ref, actor_set::none, decal::get_type_id())
 			{
 			}
-			SkinAnimator::~SkinAnimator() noexcept
+			void decal::deserialize(core::schema* node)
 			{
-				Core::Memory::Release(Animation);
-			}
-			void SkinAnimator::Deserialize(Core::Schema* Node)
-			{
-				VI_ASSERT(Node != nullptr, "schema should be set");
-				HeavySeries::Unpack(Node->Find("state"), &State);
+				VI_ASSERT(node != nullptr, "schema should be set");
 
-				Core::String Path;
-				if (!Series::Unpack(Node->Find("path"), &Path))
+				size_t slot = 0;
+				if (series::unpack_a(node->find("material"), &slot))
+					set_material(nullptr, parent->get_scene()->get_material(slot));
+
+				uint32_t new_category = (uint32_t)geo_category::opaque;
+				heavy_series::unpack(node->find("texcoord"), &texcoord);
+				series::unpack(node->find("static"), &constant);
+				series::unpack(node->find("category"), &new_category);
+				set_category((geo_category)new_category);
+			}
+			void decal::serialize(core::schema* node)
+			{
+				VI_ASSERT(node != nullptr, "schema should be set");
+
+				material* slot = get_material();
+				if (slot != nullptr)
+					series::pack(node->set("material"), (uint64_t)slot->slot);
+
+				heavy_series::pack(node->set("texcoord"), texcoord);
+				series::pack(node->set("static"), constant);
+				series::pack(node->set("category"), (uint32_t)get_category());
+			}
+			float decal::get_visibility(const viewer& view, float distance) const
+			{
+				return get_visibility_radius(parent, view, distance);
+			}
+			component* decal::copy(entity* init) const
+			{
+				decal* target = new decal(init);
+				target->texcoord = texcoord;
+				target->materials = materials;
+
+				return target;
+			}
+
+			skin_animator::skin_animator(entity* ref) : component(ref, actor_set::animate)
+			{
+			}
+			skin_animator::~skin_animator() noexcept
+			{
+				core::memory::release(animation);
+			}
+			void skin_animator::deserialize(core::schema* node)
+			{
+				VI_ASSERT(node != nullptr, "schema should be set");
+				heavy_series::unpack(node->find("state"), &state);
+
+				core::string path;
+				if (!series::unpack(node->find("path"), &path))
 					return;
 
-				Parent->GetScene()->LoadResource<Layer::SkinAnimation>(this, Path, [this](ExpectsContent<Layer::SkinAnimation*> Result)
+				parent->get_scene()->load_resource<layer::skin_animation>(this, path, [this](expects_content<layer::skin_animation*> result)
 				{
-					Animation = Result.Or(nullptr);
+					animation = result.or_else(nullptr);
 				});
 			}
-			void SkinAnimator::Serialize(Core::Schema* Node)
+			void skin_animator::serialize(core::schema* node)
 			{
-				VI_ASSERT(Node != nullptr, "schema should be set");
-				HeavySeries::Pack(Node->Set("state"), State);
-				Series::Pack(Node->Set("path"), Parent->GetScene()->FindResourceId<SkinAnimation>(Animation));
+				VI_ASSERT(node != nullptr, "schema should be set");
+				heavy_series::pack(node->set("state"), state);
+				series::pack(node->set("path"), parent->get_scene()->find_resource_id<skin_animation>(animation));
 			}
-			void SkinAnimator::Activate(Component* New)
+			void skin_animator::activate(component* init)
 			{
-				Components::Skin* Base = Parent->GetComponent<Components::Skin>();
-				if (Base != nullptr && Base->GetDrawable() != nullptr)
+				components::skin* base = parent->get_component<components::skin>();
+				if (base != nullptr && base->get_drawable() != nullptr)
 				{
-					Instance = Base;
-					SetActive(true);
+					instance = base;
+					set_active(true);
 				}
 				else
 				{
-					Instance = nullptr;
-					SetActive(false);
+					instance = nullptr;
+					set_active(false);
 				}
 			}
-			void SkinAnimator::Animate(Core::Timer* Time)
+			void skin_animator::animate(core::timer* time)
 			{
-				if (!Animation || State.Paused)
+				if (!animation || state.paused)
 					return;
 
-				auto& Clips = Animation->GetClips();
-				if (!State.Blended)
+				auto& clips = animation->get_clips();
+				if (!state.blended)
 				{
-					if (State.Clip < 0 || State.Clip >= (int64_t)Clips.size() || State.Frame < 0 || State.Frame >= (int64_t)Clips[(size_t)State.Clip].Keys.size())
+					if (state.clip < 0 || state.clip >= (int64_t)clips.size() || state.frame < 0 || state.frame >= (int64_t)clips[(size_t)state.clip].keys.size())
 						return;
 
-					auto& Clip = Clips[(size_t)State.Clip];
-					auto& NextKey = Clip.Keys[(size_t)State.Frame + 1 >= Clip.Keys.size() ? 0 : (size_t)State.Frame + 1];
-					auto& PrevKey = Clip.Keys[(size_t)State.Frame];
-					State.Duration = Clip.Duration;
-					State.Rate = Clip.Rate;
-					State.Time = State.GetTimeline(Time);
+					auto& clip = clips[(size_t)state.clip];
+					auto& next_key = clip.keys[(size_t)state.frame + 1 >= clip.keys.size() ? 0 : (size_t)state.frame + 1];
+					auto& prev_key = clip.keys[(size_t)state.frame];
+					state.duration = clip.duration;
+					state.rate = clip.rate;
+					state.time = state.get_timeline(time);
 
-					float T = State.GetProgress();
-					for (auto&& Pose : Instance->Skeleton.Offsets)
+					float t = state.get_progress();
+					for (auto&& pose : instance->skeleton.offsets)
 					{
-						auto& Prev = PrevKey.Pose[Pose.first];
-						auto& Next = NextKey.Pose[Pose.first];
-						Pose.second.Frame.Position = Prev.Position.Lerp(Next.Position, T);
-						Pose.second.Frame.Scale = Prev.Scale.Lerp(Next.Scale, T);
-						Pose.second.Frame.Rotation = Prev.Rotation.sLerp(Next.Rotation, T);
-						Pose.second.Offset = Pose.second.Frame;
+						auto& prev = prev_key.pose[pose.first];
+						auto& next = next_key.pose[pose.first];
+						pose.second.frame.position = prev.position.lerp(next.position, t);
+						pose.second.frame.scale = prev.scale.lerp(next.scale, t);
+						pose.second.frame.rotation = prev.rotation.slerp(next.rotation, t);
+						pose.second.offset = pose.second.frame;
 					}
 
-					if (State.GetProgressTotal() >= 1.0f)
+					if (state.get_progress_total() >= 1.0f)
 					{
-						if (State.Frame + 1 >= (int64_t)Clip.Keys.size())
+						if (state.frame + 1 >= (int64_t)clip.keys.size())
 						{
-							if (!State.Looped)
-								BlendAnimation(-1, -1);
-							State.Frame = -1;
+							if (!state.looped)
+								blend_animation(-1, -1);
+							state.frame = -1;
 						}
 
-						State.Time = 0.0f;
-						if (State.Looped || State.Frame != -1)
-							State.Frame++;
+						state.time = 0.0f;
+						if (state.looped || state.frame != -1)
+							state.frame++;
 					}
 				}
-				else if (State.GetProgressTotal() < 1.0f)
+				else if (state.get_progress_total() < 1.0f)
 				{
-					auto* Keys = (IsExists(State.Clip, State.Frame) ? GetFrame(State.Clip, State.Frame) : nullptr);
-					State.Time = State.GetTimeline(Time);
-					float T = State.GetProgress();
+					auto* keys = (is_exists(state.clip, state.frame) ? get_frame(state.clip, state.frame) : nullptr);
+					state.time = state.get_timeline(time);
+					float t = state.get_progress();
 
-					for (auto&& Pose : Instance->Skeleton.Offsets)
+					for (auto&& pose : instance->skeleton.offsets)
 					{
-						if (Keys != nullptr)
+						if (keys != nullptr)
 						{
-							auto& Next = Keys->Pose[Pose.first];
-							Pose.second.Offset.Position = Pose.second.Frame.Position.Lerp(Next.Position, T);
-							Pose.second.Offset.Scale = Pose.second.Frame.Scale.Lerp(Next.Scale, T);
-							Pose.second.Offset.Rotation = Pose.second.Frame.Rotation.sLerp(Next.Rotation, T);
+							auto& next = keys->pose[pose.first];
+							pose.second.offset.position = pose.second.frame.position.lerp(next.position, t);
+							pose.second.offset.scale = pose.second.frame.scale.lerp(next.scale, t);
+							pose.second.offset.rotation = pose.second.frame.rotation.slerp(next.rotation, t);
 						}
 						else
 						{
-							Pose.second.Offset.Position = Pose.second.Frame.Position.Lerp(Pose.second.Default.Position, T);
-							Pose.second.Offset.Scale = Pose.second.Frame.Scale.Lerp(Pose.second.Default.Scale, T);
-							Pose.second.Offset.Rotation = Pose.second.Frame.Rotation.sLerp(Pose.second.Default.Rotation, T);
+							pose.second.offset.position = pose.second.frame.position.lerp(pose.second.defaults.position, t);
+							pose.second.offset.scale = pose.second.frame.scale.lerp(pose.second.defaults.scale, t);
+							pose.second.offset.rotation = pose.second.frame.rotation.slerp(pose.second.defaults.rotation, t);
 						}
 					}
 				}
 				else
 				{
-					State.Blended = false;
-					State.Time = 0.0f;
+					state.blended = false;
+					state.time = 0.0f;
 				}
 			}
-			void SkinAnimator::SetAnimation(SkinAnimation* New)
+			void skin_animator::set_animation(skin_animation* init)
 			{
-				Core::Memory::Release(Animation);
-				Animation = New;
-				if (Animation != nullptr)
-					Animation->AddRef();
+				core::memory::release(animation);
+				animation = init;
+				if (animation != nullptr)
+					animation->add_ref();
 			}
-			void SkinAnimator::BlendAnimation(int64_t Clip, int64_t Frame)
+			void skin_animator::blend_animation(int64_t clip, int64_t frame)
 			{
-				State.Blended = true;
-				State.Time = 0.0f;
-				State.Frame = Frame;
-				State.Clip = Clip;
+				state.blended = true;
+				state.time = 0.0f;
+				state.frame = frame;
+				state.clip = clip;
 
-				if (Animation != nullptr)
+				if (animation != nullptr)
 				{
-					auto& Clips = Animation->GetClips();
-					if (State.Clip >= 0 && (size_t)State.Clip < Clips.size())
+					auto& clips = animation->get_clips();
+					if (state.clip >= 0 && (size_t)state.clip < clips.size())
 					{
-						auto& Next = Clips[(size_t)State.Clip];
-						if (State.Frame < 0 || (size_t)State.Frame >= Next.Keys.size())
-							State.Frame = -1;
+						auto& next = clips[(size_t)state.clip];
+						if (state.frame < 0 || (size_t)state.frame >= next.keys.size())
+							state.frame = -1;
 
-						if (State.Duration <= 0.0f)
+						if (state.duration <= 0.0f)
 						{
-							State.Duration = Next.Duration;
-							State.Rate = Next.Rate;
+							state.duration = next.duration;
+							state.rate = next.rate;
 						}
 					}
 					else
-						State.Clip = -1;
+						state.clip = -1;
 				}
 				else
-					State.Clip = -1;
+					state.clip = -1;
 			}
-			void SkinAnimator::SaveBindingState()
+			void skin_animator::save_binding_state()
 			{
-				for (auto&& Pose : Instance->Skeleton.Offsets)
+				for (auto&& pose : instance->skeleton.offsets)
 				{
-					Pose.second.Frame = Pose.second.Default;
-					Pose.second.Offset = Pose.second.Frame;
+					pose.second.frame = pose.second.defaults;
+					pose.second.offset = pose.second.frame;
 				}
 			}
-			void SkinAnimator::Stop()
+			void skin_animator::stop()
 			{
-				State.Paused = false;
-				BlendAnimation(-1, -1);
+				state.paused = false;
+				blend_animation(-1, -1);
 			}
-			void SkinAnimator::Pause()
+			void skin_animator::pause()
 			{
-				State.Paused = true;
+				state.paused = true;
 			}
-			void SkinAnimator::Play(int64_t Clip, int64_t Frame)
+			void skin_animator::play(int64_t clip, int64_t frame)
 			{
-				if (State.Paused)
+				if (state.paused)
 				{
-					State.Paused = false;
+					state.paused = false;
 					return;
 				}
 
-				State.Time = 0.0f;
-				State.Frame = (Frame == -1 ? 0 : Frame);
-				State.Clip = (Clip == -1 ? 0 : Clip);
+				state.time = 0.0f;
+				state.frame = (frame == -1 ? 0 : frame);
+				state.clip = (clip == -1 ? 0 : clip);
 
-				if (!IsExists(State.Clip, State.Frame))
+				if (!is_exists(state.clip, state.frame))
 					return;
 
-				if (Animation != nullptr)
+				if (animation != nullptr)
 				{
-					auto& Clips = Animation->GetClips();
-					if (State.Clip >= 0 && (size_t)State.Clip < Clips.size())
+					auto& clips = animation->get_clips();
+					if (state.clip >= 0 && (size_t)state.clip < clips.size())
 					{
-						auto& Next = Clips[(size_t)State.Clip];
-						if (State.Frame < 0 || (size_t)State.Frame >= Next.Keys.size())
-							State.Frame = -1;
+						auto& next = clips[(size_t)state.clip];
+						if (state.frame < 0 || (size_t)state.frame >= next.keys.size())
+							state.frame = -1;
 					}
 					else
-						State.Clip = -1;
+						state.clip = -1;
 				}
 				else
-					State.Clip = -1;
+					state.clip = -1;
 
-				SaveBindingState();
-				if (State.GetProgress() < 1.0f)
-					BlendAnimation(State.Clip, State.Frame);
+				save_binding_state();
+				if (state.get_progress() < 1.0f)
+					blend_animation(state.clip, state.frame);
 			}
-			bool SkinAnimator::IsExists(int64_t Clip)
+			bool skin_animator::is_exists(int64_t clip)
 			{
-				if (!Animation)
+				if (!animation)
 					return false;
 
-				auto& Clips = Animation->GetClips();
-				return Clip >= 0 && (size_t)Clip < Clips.size();
+				auto& clips = animation->get_clips();
+				return clip >= 0 && (size_t)clip < clips.size();
 			}
-			bool SkinAnimator::IsExists(int64_t Clip, int64_t Frame)
+			bool skin_animator::is_exists(int64_t clip, int64_t frame)
 			{
-				if (!IsExists(Clip))
+				if (!is_exists(clip))
 					return false;
 
-				auto& Clips = Animation->GetClips();
-				return Frame >= 0 && (size_t)Frame < Clips[(size_t)Clip].Keys.size();
+				auto& clips = animation->get_clips();
+				return frame >= 0 && (size_t)frame < clips[(size_t)clip].keys.size();
 			}
-			const Trigonometry::SkinAnimatorKey* SkinAnimator::GetFrame(int64_t Clip, int64_t Frame)
+			const trigonometry::skin_animator_key* skin_animator::get_frame(int64_t clip, int64_t frame)
 			{
-				VI_ASSERT(Animation != nullptr, "animation should be set");
-				auto& Clips = Animation->GetClips();
+				VI_ASSERT(animation != nullptr, "animation should be set");
+				auto& clips = animation->get_clips();
 
-				VI_ASSERT(Clip >= 0 && (size_t)Clip < Clips.size(), "clip index outside of range");
-				VI_ASSERT(Frame >= 0 && (size_t)Frame < Clips[(size_t)Clip].Keys.size(), "frame index outside of range");
-				return &Clips[(size_t)Clip].Keys[(size_t)Frame];
+				VI_ASSERT(clip >= 0 && (size_t)clip < clips.size(), "clip index outside of range");
+				VI_ASSERT(frame >= 0 && (size_t)frame < clips[(size_t)clip].keys.size(), "frame index outside of range");
+				return &clips[(size_t)clip].keys[(size_t)frame];
 			}
-			const Core::Vector<Trigonometry::SkinAnimatorKey>* SkinAnimator::GetClip(int64_t Clip)
+			const core::vector<trigonometry::skin_animator_key>* skin_animator::get_clip(int64_t clip)
 			{
-				VI_ASSERT(Animation != nullptr, "animation should be set");
-				auto& Clips = Animation->GetClips();
+				VI_ASSERT(animation != nullptr, "animation should be set");
+				auto& clips = animation->get_clips();
 
-				VI_ASSERT(Clip >= 0 && (size_t)Clip < Clips.size(), "clip index outside of range");
-				return &Clips[(size_t)Clip].Keys;
+				VI_ASSERT(clip >= 0 && (size_t)clip < clips.size(), "clip index outside of range");
+				return &clips[(size_t)clip].keys;
 			}
-			Core::String SkinAnimator::GetPath() const
+			core::string skin_animator::get_path() const
 			{
-				return Parent->GetScene()->FindResourceId<SkinAnimation>(Animation);
+				return parent->get_scene()->find_resource_id<skin_animation>(animation);
 			}
-			Component* SkinAnimator::Copy(Entity* New) const
+			component* skin_animator::copy(entity* init) const
 			{
-				SkinAnimator* Target = new SkinAnimator(New);
-				Target->Animation = Animation;
-				Target->State = State;
+				skin_animator* target = new skin_animator(init);
+				target->animation = animation;
+				target->state = state;
 
-				if (Animation != nullptr)
-					Animation->AddRef();
+				if (animation != nullptr)
+					animation->add_ref();
 
-				return Target;
+				return target;
 			}
-			int64_t SkinAnimator::GetClipByName(const std::string_view& Name) const
+			int64_t skin_animator::get_clip_by_name(const std::string_view& name) const
 			{
-				if (!Animation)
+				if (!animation)
 					return -1;
 
-				size_t Index = 0;
-				for (auto& Item : Animation->GetClips())
+				size_t index = 0;
+				for (auto& item : animation->get_clips())
 				{
-					if (Item.Name == Name)
-						return (int64_t)Index;
-					Index++;
+					if (item.name == name)
+						return (int64_t)index;
+					index++;
 				}
 
 				return -1;
 			}
-			size_t SkinAnimator::GetClipsCount() const
+			size_t skin_animator::get_clips_count() const
 			{
-				if (!Animation)
+				if (!animation)
 					return 0;
 
-				return Animation->GetClips().size();
+				return animation->get_clips().size();
 			}
-			SkinAnimation* SkinAnimator::GetAnimation() const
+			skin_animation* skin_animator::get_animation() const
 			{
-				return Animation;
+				return animation;
 			}
-			Skin* SkinAnimator::GetSkin() const
+			skin* skin_animator::get_skin() const
 			{
-				return Instance;
+				return instance;
 			}
 
-			KeyAnimator::KeyAnimator(Entity* Ref) : Component(Ref, ActorSet::Animate)
+			key_animator::key_animator(entity* ref) : component(ref, actor_set::animate)
 			{
 			}
-			KeyAnimator::~KeyAnimator()
+			key_animator::~key_animator()
 			{
 			}
-			void KeyAnimator::Deserialize(Core::Schema* Node)
+			void key_animator::deserialize(core::schema* node)
 			{
-				VI_ASSERT(Node != nullptr, "schema should be set");
-				HeavySeries::Unpack(Node->Find("state"), &State);
-				HeavySeries::Unpack(Node->Find("offset"), &Offset);
-				HeavySeries::Unpack(Node->Find("default"), &Default);
+				VI_ASSERT(node != nullptr, "schema should be set");
+				heavy_series::unpack(node->find("state"), &state);
+				heavy_series::unpack(node->find("offset"), &offset);
+				heavy_series::unpack(node->find("default"), &defaults);
 
-				Core::String Path;
-				if (!Series::Unpack(Node->Find("path"), &Path) || Path.empty())
-					HeavySeries::Unpack(Node->Find("animation"), &Clips);
+				core::string path;
+				if (!series::unpack(node->find("path"), &path) || path.empty())
+					heavy_series::unpack(node->find("animation"), &clips);
 				else
-					LoadAnimation(Path, nullptr);
+					load_animation(path, nullptr);
 			}
-			void KeyAnimator::Serialize(Core::Schema* Node)
+			void key_animator::serialize(core::schema* node)
 			{
-				VI_ASSERT(Node != nullptr, "schema should be set");
-				HeavySeries::Pack(Node->Set("state"), State);
-				HeavySeries::Pack(Node->Set("offset"), Offset);
-				HeavySeries::Pack(Node->Set("default"), Default);
+				VI_ASSERT(node != nullptr, "schema should be set");
+				heavy_series::pack(node->set("state"), state);
+				heavy_series::pack(node->set("offset"), offset);
+				heavy_series::pack(node->set("default"), defaults);
 
-				if (Reference.empty())
-					HeavySeries::Pack(Node->Set("animation"), Clips);
+				if (reference.empty())
+					heavy_series::pack(node->set("animation"), clips);
 				else
-					Series::Pack(Node->Set("path"), Reference);
+					series::pack(node->set("path"), reference);
 			}
-			void KeyAnimator::Animate(Core::Timer* Time)
+			void key_animator::animate(core::timer* time)
 			{
-				auto* Transform = Parent->GetTransform();
-				if (State.Paused)
+				auto* transform = parent->get_transform();
+				if (state.paused)
 					return;
 
-				if (!State.Blended)
+				if (!state.blended)
 				{
-					if (State.Clip < 0 || (size_t)State.Clip >= Clips.size() || State.Frame < 0 || (size_t)State.Frame >= Clips[(size_t)State.Clip].Keys.size())
+					if (state.clip < 0 || (size_t)state.clip >= clips.size() || state.frame < 0 || (size_t)state.frame >= clips[(size_t)state.clip].keys.size())
 						return;
 
-					auto& Clip = Clips[(size_t)State.Clip];
-					auto& NextKey = Clip.Keys[(size_t)State.Frame + 1 >= Clip.Keys.size() ? 0 : (size_t)State.Frame + 1];
-					auto& PrevKey = Clip.Keys[(size_t)State.Frame];
-					State.Duration = Clip.Duration;
-					State.Rate = Clip.Rate * NextKey.Time;
-					State.Time = State.GetTimeline(Time);
+					auto& clip = clips[(size_t)state.clip];
+					auto& next_key = clip.keys[(size_t)state.frame + 1 >= clip.keys.size() ? 0 : (size_t)state.frame + 1];
+					auto& prev_key = clip.keys[(size_t)state.frame];
+					state.duration = clip.duration;
+					state.rate = clip.rate * next_key.time;
+					state.time = state.get_timeline(time);
 
-					float T = State.GetProgress();
-					Offset.Position = PrevKey.Position.Lerp(NextKey.Position, T);
-					Offset.Rotation = PrevKey.Rotation.Lerp(NextKey.Rotation, T);
-					Offset.Scale = PrevKey.Scale.Lerp(NextKey.Scale, T);
+					float t = state.get_progress();
+					offset.position = prev_key.position.lerp(next_key.position, t);
+					offset.rotation = prev_key.rotation.lerp(next_key.rotation, t);
+					offset.scale = prev_key.scale.lerp(next_key.scale, t);
 
-					Transform->SetPosition(Offset.Position);
-					Transform->SetRotation(Offset.Rotation.GetEuler());
-					Transform->SetScale(Offset.Scale);
+					transform->set_position(offset.position);
+					transform->set_rotation(offset.rotation.get_euler());
+					transform->set_scale(offset.scale);
 
-					if (State.GetProgressTotal() >= 1.0f)
+					if (state.get_progress_total() >= 1.0f)
 					{
-						if (State.Frame + 1 >= (int64_t)Clip.Keys.size())
+						if (state.frame + 1 >= (int64_t)clip.keys.size())
 						{
-							if (!State.Looped)
-								BlendAnimation(-1, -1);
-							State.Frame = -1;
+							if (!state.looped)
+								blend_animation(-1, -1);
+							state.frame = -1;
 						}
 
-						State.Time = 0.0f;
-						if (State.Looped || State.Frame != -1)
-							State.Frame++;
+						state.time = 0.0f;
+						if (state.looped || state.frame != -1)
+							state.frame++;
 					}
 				}
-				else if (State.GetProgressTotal() < 1.0f)
+				else if (state.get_progress_total() < 1.0f)
 				{
-					auto* Next = (IsExists(State.Clip, State.Frame) ? GetFrame(State.Clip, State.Frame) : nullptr);
-					if (!Next)
-						Next = &Default;
+					auto* next = (is_exists(state.clip, state.frame) ? get_frame(state.clip, state.frame) : nullptr);
+					if (!next)
+						next = &defaults;
 
-					State.Time = State.GetTimeline(Time);
-					float T = State.GetProgress();
-					Transform->SetPosition(Offset.Position.Lerp(Next->Position, T));
-					Transform->SetRotation(Offset.Rotation.Lerp(Next->Rotation, T).GetEuler());
-					Transform->SetScale(Offset.Scale.Lerp(Next->Scale, T));
+					state.time = state.get_timeline(time);
+					float t = state.get_progress();
+					transform->set_position(offset.position.lerp(next->position, t));
+					transform->set_rotation(offset.rotation.lerp(next->rotation, t).get_euler());
+					transform->set_scale(offset.scale.lerp(next->scale, t));
 				}
 				else
 				{
-					State.Blended = false;
-					State.Time = 0.0f;
+					state.blended = false;
+					state.time = 0.0f;
 				}
 			}
-			void KeyAnimator::LoadAnimation(const std::string_view& Path, std::function<void(bool)>&& Callback)
+			void key_animator::load_animation(const std::string_view& path, std::function<void(bool)>&& callback)
 			{
-				auto* Scene = Parent->GetScene();
-				auto Copy = Core::String(Path);
-				Scene->LoadResource<Core::Schema>(this, Path, [this, Scene, Copy, Callback = std::move(Callback)](ExpectsContent<Core::Schema*> Result)
+				auto* scene = parent->get_scene();
+				auto copy = core::string(path);
+				scene->load_resource<core::schema>(this, path, [this, scene, copy, callback = std::move(callback)](expects_content<core::schema*> result)
 				{
-					ClearAnimation();
-					if (Result && *Result != nullptr)
+					clear_animation();
+					if (result && *result != nullptr)
 					{
-						if (HeavySeries::Unpack(*Result, &Clips))
-							Reference = Scene->AsResourcePath(Copy);
+						if (heavy_series::unpack(*result, &clips))
+							reference = scene->as_resource_path(copy);
 						else
-							Reference.clear();
-						Core::Memory::Release(*Result);
+							reference.clear();
+						core::memory::release(*result);
 					}
 					else
-						Reference.clear();
+						reference.clear();
 
-					if (Callback)
-						Callback(!Reference.empty());
+					if (callback)
+						callback(!reference.empty());
 				});
 			}
-			void KeyAnimator::ClearAnimation()
+			void key_animator::clear_animation()
 			{
-				Reference.clear();
-				Clips.clear();
+				reference.clear();
+				clips.clear();
 			}
-			void KeyAnimator::BlendAnimation(int64_t Clip, int64_t Frame)
+			void key_animator::blend_animation(int64_t clip, int64_t frame)
 			{
-				State.Blended = true;
-				State.Time = 0.0f;
-				State.Frame = Frame;
-				State.Clip = Clip;
+				state.blended = true;
+				state.time = 0.0f;
+				state.frame = frame;
+				state.clip = clip;
 
-				if (State.Clip >= 0 && (size_t)State.Clip < Clips.size())
+				if (state.clip >= 0 && (size_t)state.clip < clips.size())
 				{
-					auto& Next = Clips[(size_t)State.Clip];
-					if (State.Frame < 0 || (size_t)State.Frame >= Next.Keys.size())
-						State.Frame = -1;
+					auto& next = clips[(size_t)state.clip];
+					if (state.frame < 0 || (size_t)state.frame >= next.keys.size())
+						state.frame = -1;
 				}
 				else
-					State.Clip = -1;
+					state.clip = -1;
 			}
-			void KeyAnimator::SaveBindingState()
+			void key_animator::save_binding_state()
 			{
-				auto& Space = Parent->GetTransform()->GetSpacing();
-				Default.Position = Space.Position;
-				Default.Rotation = Space.Rotation;
-				Default.Scale = Space.Scale;
-				Offset = Default;
+				auto& space = parent->get_transform()->get_spacing();
+				defaults.position = space.position;
+				defaults.rotation = space.rotation;
+				defaults.scale = space.scale;
+				offset = defaults;
 			}
-			void KeyAnimator::Stop()
+			void key_animator::stop()
 			{
-				State.Paused = false;
-				BlendAnimation(-1, -1);
+				state.paused = false;
+				blend_animation(-1, -1);
 			}
-			void KeyAnimator::Pause()
+			void key_animator::pause()
 			{
-				State.Paused = true;
+				state.paused = true;
 			}
-			void KeyAnimator::Play(int64_t Clip, int64_t Frame)
+			void key_animator::play(int64_t clip, int64_t frame)
 			{
-				if (State.Paused)
+				if (state.paused)
 				{
-					State.Paused = false;
+					state.paused = false;
 					return;
 				}
 
-				State.Time = 0.0f;
-				State.Frame = (Frame == -1 ? 0 : Frame);
-				State.Clip = (Clip == -1 ? 0 : Clip);
+				state.time = 0.0f;
+				state.frame = (frame == -1 ? 0 : frame);
+				state.clip = (clip == -1 ? 0 : clip);
 
-				if (!IsExists(State.Clip, State.Frame))
+				if (!is_exists(state.clip, state.frame))
 					return;
 
-				if (State.Clip >= 0 && (size_t)State.Clip < Clips.size())
+				if (state.clip >= 0 && (size_t)state.clip < clips.size())
 				{
-					auto& Next = Clips[(size_t)State.Clip];
-					if (State.Frame < 0 || (size_t)State.Frame >= Next.Keys.size())
-						State.Frame = -1;
+					auto& next = clips[(size_t)state.clip];
+					if (state.frame < 0 || (size_t)state.frame >= next.keys.size())
+						state.frame = -1;
 
-					if (State.Duration <= 0.0f)
+					if (state.duration <= 0.0f)
 					{
-						State.Duration = Next.Duration;
-						State.Rate = Next.Rate;
+						state.duration = next.duration;
+						state.rate = next.rate;
 					}
 				}
 				else
-					State.Clip = -1;
+					state.clip = -1;
 
-				SaveBindingState();
-				if (State.GetProgress() < 1.0f)
-					BlendAnimation(State.Clip, State.Frame);
+				save_binding_state();
+				if (state.get_progress() < 1.0f)
+					blend_animation(state.clip, state.frame);
 			}
-			bool KeyAnimator::IsExists(int64_t Clip)
+			bool key_animator::is_exists(int64_t clip)
 			{
-				return Clip >= 0 && (size_t)Clip < Clips.size();
+				return clip >= 0 && (size_t)clip < clips.size();
 			}
-			bool KeyAnimator::IsExists(int64_t Clip, int64_t Frame)
+			bool key_animator::is_exists(int64_t clip, int64_t frame)
 			{
-				if (!IsExists(Clip))
+				if (!is_exists(clip))
 					return false;
 
-				return Frame >= 0 && (size_t)Frame < Clips[(size_t)Clip].Keys.size();
+				return frame >= 0 && (size_t)frame < clips[(size_t)clip].keys.size();
 			}
-			Trigonometry::AnimatorKey* KeyAnimator::GetFrame(int64_t Clip, int64_t Frame)
+			trigonometry::animator_key* key_animator::get_frame(int64_t clip, int64_t frame)
 			{
-				VI_ASSERT(Clip >= 0 && (size_t)Clip < Clips.size(), "clip index outside of range");
-				VI_ASSERT(Frame >= 0 && (size_t)Frame < Clips[(size_t)Clip].Keys.size(), "frame index outside of range");
-				return &Clips[(size_t)Clip].Keys[(size_t)Frame];
+				VI_ASSERT(clip >= 0 && (size_t)clip < clips.size(), "clip index outside of range");
+				VI_ASSERT(frame >= 0 && (size_t)frame < clips[(size_t)clip].keys.size(), "frame index outside of range");
+				return &clips[(size_t)clip].keys[(size_t)frame];
 			}
-			Core::Vector<Trigonometry::AnimatorKey>* KeyAnimator::GetClip(int64_t Clip)
+			core::vector<trigonometry::animator_key>* key_animator::get_clip(int64_t clip)
 			{
-				VI_ASSERT(Clip >= 0 && (size_t)Clip < Clips.size(), "clip index outside of range");
-				return &Clips[(size_t)Clip].Keys;
+				VI_ASSERT(clip >= 0 && (size_t)clip < clips.size(), "clip index outside of range");
+				return &clips[(size_t)clip].keys;
 			}
-			Core::String KeyAnimator::GetPath()
+			core::string key_animator::get_path()
 			{
-				return Reference;
+				return reference;
 			}
-			Component* KeyAnimator::Copy(Entity* New) const
+			component* key_animator::copy(entity* init) const
 			{
-				KeyAnimator* Target = new KeyAnimator(New);
-				Target->Clips = Clips;
-				Target->State = State;
-				Target->Default = Default;
-				Target->Offset = Offset;
+				key_animator* target = new key_animator(init);
+				target->clips = clips;
+				target->state = state;
+				target->defaults = defaults;
+				target->offset = offset;
 
-				return Target;
+				return target;
 			}
 
-			EmitterAnimator::EmitterAnimator(Entity* Ref) : Component(Ref, ActorSet::Animate)
+			emitter_animator::emitter_animator(entity* ref) : component(ref, actor_set::animate)
 			{
-				Spawner.Scale.Max = 1;
-				Spawner.Scale.Min = 1;
-				Spawner.Rotation.Max = 0;
-				Spawner.Rotation.Min = 0;
-				Spawner.Angular.Max = 0;
-				Spawner.Angular.Min = 0;
-				Spawner.Diffusion.Min = 1;
-				Spawner.Diffusion.Max = 1;
-				Spawner.Velocity.Min = 0;
-				Spawner.Velocity.Max = 0;
-				Spawner.Position.Min = -1;
-				Spawner.Position.Max = 1;
-				Spawner.Noise.Min = -1;
-				Spawner.Noise.Max = 1;
-				Spawner.Iterations = 1;
+				spawner.scale.max = 1;
+				spawner.scale.min = 1;
+				spawner.rotation.max = 0;
+				spawner.rotation.min = 0;
+				spawner.angular.max = 0;
+				spawner.angular.min = 0;
+				spawner.diffusion.min = 1;
+				spawner.diffusion.max = 1;
+				spawner.velocity.min = 0;
+				spawner.velocity.max = 0;
+				spawner.position.min = -1;
+				spawner.position.max = 1;
+				spawner.noise.min = -1;
+				spawner.noise.max = 1;
+				spawner.iterations = 1;
 			}
-			void EmitterAnimator::Deserialize(Core::Schema* Node)
+			void emitter_animator::deserialize(core::schema* node)
 			{
-				VI_ASSERT(Node != nullptr, "schema should be set");
+				VI_ASSERT(node != nullptr, "schema should be set");
 
-				HeavySeries::Unpack(Node->Find("diffuse"), &Diffuse);
-				HeavySeries::Unpack(Node->Find("position"), &Position);
-				HeavySeries::Unpack(Node->Find("velocity"), &Velocity);
-				HeavySeries::Unpack(Node->Find("spawner"), &Spawner);
-				Series::Unpack(Node->Find("noise"), &Noise);
-				Series::Unpack(Node->Find("rotation-speed"), &RotationSpeed);
-				Series::Unpack(Node->Find("scale-speed"), &ScaleSpeed);
-				Series::Unpack(Node->Find("simulate"), &Simulate);
+				heavy_series::unpack(node->find("diffuse"), &diffuse);
+				heavy_series::unpack(node->find("position"), &position);
+				heavy_series::unpack(node->find("velocity"), &velocity);
+				heavy_series::unpack(node->find("spawner"), &spawner);
+				series::unpack(node->find("noise"), &noise);
+				series::unpack(node->find("rotation-speed"), &rotation_speed);
+				series::unpack(node->find("scale-speed"), &scale_speed);
+				series::unpack(node->find("simulate"), &simulate);
 			}
-			void EmitterAnimator::Serialize(Core::Schema* Node)
+			void emitter_animator::serialize(core::schema* node)
 			{
-				VI_ASSERT(Node != nullptr, "schema should be set");
+				VI_ASSERT(node != nullptr, "schema should be set");
 
-				HeavySeries::Pack(Node->Set("diffuse"), Diffuse);
-				HeavySeries::Pack(Node->Set("position"), Position);
-				HeavySeries::Pack(Node->Set("velocity"), Velocity);
-				HeavySeries::Pack(Node->Set("spawner"), Spawner);
-				Series::Pack(Node->Set("noise"), Noise);
-				Series::Pack(Node->Set("rotation-speed"), RotationSpeed);
-				Series::Pack(Node->Set("scale-speed"), ScaleSpeed);
-				Series::Pack(Node->Set("simulate"), Simulate);
+				heavy_series::pack(node->set("diffuse"), diffuse);
+				heavy_series::pack(node->set("position"), position);
+				heavy_series::pack(node->set("velocity"), velocity);
+				heavy_series::pack(node->set("spawner"), spawner);
+				series::pack(node->set("noise"), noise);
+				series::pack(node->set("rotation-speed"), rotation_speed);
+				series::pack(node->set("scale-speed"), scale_speed);
+				series::pack(node->set("simulate"), simulate);
 			}
-			void EmitterAnimator::Activate(Component* New)
+			void emitter_animator::activate(component* init)
 			{
-				Base = Parent->GetComponent<Emitter>();
-				SetActive(Base != nullptr);
+				base = parent->get_component<emitter>();
+				set_active(base != nullptr);
 			}
-			void EmitterAnimator::Animate(Core::Timer* Time)
+			void emitter_animator::animate(core::timer* time)
 			{
-				if (!Simulate || !Base || !Base->GetBuffer())
+				if (!simulate || !base || !base->get_buffer())
 					return;
 
-				auto* Transform = Parent->GetTransform();
-				auto& Array = Base->GetBuffer()->GetArray();
-				Trigonometry::Vector3 Offset = Transform->GetPosition();
+				auto* transform = parent->get_transform();
+				auto& array = base->get_buffer()->get_array();
+				trigonometry::vector3 offset = transform->get_position();
 
-				for (int i = 0; i < Spawner.Iterations; i++)
+				for (int i = 0; i < spawner.iterations; i++)
 				{
-					if (Array.size() + 1 >= Array.capacity())
+					if (array.size() + 1 >= array.capacity())
 						break;
 
-					Trigonometry::Vector3 FPosition = (Base->Connected ? Spawner.Position.Generate() : Spawner.Position.Generate() + Offset);
-					Trigonometry::Vector3 FVelocity = Spawner.Velocity.Generate();
-					Trigonometry::Vector4 FDiffusion = Spawner.Diffusion.Generate();
+					trigonometry::vector3 fposition = (base->connected ? spawner.position.generate() : spawner.position.generate() + offset);
+					trigonometry::vector3 fvelocity = spawner.velocity.generate();
+					trigonometry::vector4 fdiffusion = spawner.diffusion.generate();
 
-					Trigonometry::ElementVertex Element;
-					Element.PositionX = FPosition.X;
-					Element.PositionY = FPosition.Y;
-					Element.PositionZ = FPosition.Z;
-					Element.VelocityX = FVelocity.X;
-					Element.VelocityY = FVelocity.Y;
-					Element.VelocityZ = FVelocity.Z;
-					Element.ColorX = FDiffusion.X;
-					Element.ColorY = FDiffusion.Y;
-					Element.ColorZ = FDiffusion.Z;
-					Element.ColorW = FDiffusion.W;
-					Element.Angular = Spawner.Angular.Generate();
-					Element.Rotation = Spawner.Rotation.Generate();
-					Element.Scale = Spawner.Scale.Generate();
-					Array.emplace_back(std::move(Element));
+					trigonometry::element_vertex element;
+					element.position_x = fposition.x;
+					element.position_y = fposition.y;
+					element.position_z = fposition.z;
+					element.velocity_x = fvelocity.x;
+					element.velocity_y = fvelocity.y;
+					element.velocity_z = fvelocity.z;
+					element.color_x = fdiffusion.x;
+					element.color_y = fdiffusion.y;
+					element.color_z = fdiffusion.z;
+					element.color_w = fdiffusion.w;
+					element.angular = spawner.angular.generate();
+					element.rotation = spawner.rotation.generate();
+					element.scale = spawner.scale.generate();
+					array.emplace_back(std::move(element));
 				}
 
-				float Step = Time->GetStep();
-				if (Noise != 0.0f)
-					AccurateSynchronization(Step);
+				float step = time->get_step();
+				if (noise != 0.0f)
+					accurate_synchronization(step);
 				else
-					FastSynchronization(Step);
-				Transform->MakeDirty();
+					fast_synchronization(step);
+				transform->make_dirty();
 			}
-			void EmitterAnimator::AccurateSynchronization(float Step)
+			void emitter_animator::accurate_synchronization(float step)
 			{
-				auto& Array = Base->GetBuffer()->GetArray();
-				float MinX = 0.0f, MaxX = 0.0f;
-				float MinY = 0.0f, MaxY = 0.0f;
-				float MinZ = 0.0f, MaxZ = 0.0f;
-				auto Begin = Array.begin();
-				auto End = Array.end();
+				auto& array = base->get_buffer()->get_array();
+				float min_x = 0.0f, max_x = 0.0f;
+				float min_y = 0.0f, max_y = 0.0f;
+				float min_z = 0.0f, max_z = 0.0f;
+				auto begin = array.begin();
+				auto end = array.end();
 
-				for (auto It = Begin; It != End;)
+				for (auto it = begin; it != end;)
 				{
-					Trigonometry::Vector3 NextVelocity(It->VelocityX, It->VelocityY, It->VelocityZ);
-					Trigonometry::Vector3 NextNoise = Spawner.Noise.Generate() / Noise;
-					Trigonometry::Vector3 NextPosition(It->PositionX, It->PositionY, It->PositionZ);
-					Trigonometry::Vector4 NextDiffuse(It->ColorX, It->ColorY, It->ColorZ, It->ColorW);
-					NextVelocity -= (NextVelocity * Velocity) * Step;
-					NextPosition += (NextVelocity + Position + NextNoise) * Step;
-					NextDiffuse += Diffuse * Step;
-					memcpy(&It->VelocityX, &NextVelocity, sizeof(float) * 3);
-					memcpy(&It->PositionX, &NextPosition, sizeof(float) * 3);
-					memcpy(&It->ColorX, &NextDiffuse, sizeof(float) * 4);
-					It->Rotation += (It->Angular + RotationSpeed) * Step;
-					It->Scale += ScaleSpeed * Step;
+					trigonometry::vector3 next_velocity(it->velocity_x, it->velocity_y, it->velocity_z);
+					trigonometry::vector3 next_noise = spawner.noise.generate() / noise;
+					trigonometry::vector3 next_position(it->position_x, it->position_y, it->position_z);
+					trigonometry::vector4 next_diffuse(it->color_x, it->color_y, it->color_z, it->color_w);
+					next_velocity -= (next_velocity * velocity) * step;
+					next_position += (next_velocity + position + next_noise) * step;
+					next_diffuse += diffuse * step;
+					memcpy(&it->velocity_x, &next_velocity, sizeof(float) * 3);
+					memcpy(&it->position_x, &next_position, sizeof(float) * 3);
+					memcpy(&it->color_x, &next_diffuse, sizeof(float) * 4);
+					it->rotation += (it->angular + rotation_speed) * step;
+					it->scale += scale_speed * step;
 
-					if (It->ColorW > 0.001f && It->Scale > 0.001f)
+					if (it->color_w > 0.001f && it->scale > 0.001f)
 					{
-						if (It->PositionX < MinX)
-							MinX = It->PositionX;
-						else if (It->PositionX > MaxX)
-							MaxX = It->PositionX;
+						if (it->position_x < min_x)
+							min_x = it->position_x;
+						else if (it->position_x > max_x)
+							max_x = it->position_x;
 
-						if (It->PositionY < MinY)
-							MinY = It->PositionY;
-						else if (It->PositionY > MaxY)
-							MaxY = It->PositionY;
+						if (it->position_y < min_y)
+							min_y = it->position_y;
+						else if (it->position_y > max_y)
+							max_y = it->position_y;
 
-						if (It->PositionZ < MinZ)
-							MinZ = It->PositionZ;
-						else if (It->PositionZ > MaxZ)
-							MaxZ = It->PositionZ;
-						++It;
+						if (it->position_z < min_z)
+							min_z = it->position_z;
+						else if (it->position_z > max_z)
+							max_z = it->position_z;
+						++it;
 					}
 					else
 					{
-						It = Array.erase(It);
-						Begin = Array.begin();
-						End = Array.end();
+						it = array.erase(it);
+						begin = array.begin();
+						end = array.end();
 					}
 				}
 
-				Base->Min = Trigonometry::Vector3(MinX, MinY, MinZ);
-				Base->Max = Trigonometry::Vector3(MaxX, MaxY, MaxZ);
+				base->min = trigonometry::vector3(min_x, min_y, min_z);
+				base->max = trigonometry::vector3(max_x, max_y, max_z);
 			}
-			void EmitterAnimator::FastSynchronization(float Step)
+			void emitter_animator::fast_synchronization(float step)
 			{
-				auto& Array = Base->GetBuffer()->GetArray();
-				float MinX = 0.0f, MaxX = 0.0f;
-				float MinY = 0.0f, MaxY = 0.0f;
-				float MinZ = 0.0f, MaxZ = 0.0f;
-				auto Begin = Array.begin();
-				auto End = Array.end();
+				auto& array = base->get_buffer()->get_array();
+				float min_x = 0.0f, max_x = 0.0f;
+				float min_y = 0.0f, max_y = 0.0f;
+				float min_z = 0.0f, max_z = 0.0f;
+				auto begin = array.begin();
+				auto end = array.end();
 
-				for (auto It = Begin; It != End;)
+				for (auto it = begin; it != end;)
 				{
-					Trigonometry::Vector3 NextVelocity(It->VelocityX, It->VelocityY, It->VelocityZ);
-					Trigonometry::Vector3 NextPosition(It->PositionX, It->PositionY, It->PositionZ);
-					Trigonometry::Vector4 NextDiffuse(It->ColorX, It->ColorY, It->ColorZ, It->ColorW);
-					NextVelocity -= (NextVelocity * Velocity) * Step;
-					NextPosition += (NextVelocity + Position) * Step;
-					NextDiffuse += Diffuse * Step;
-					memcpy(&It->VelocityX, &NextVelocity, sizeof(float) * 3);
-					memcpy(&It->PositionX, &NextPosition, sizeof(float) * 3);
-					memcpy(&It->ColorX, &NextDiffuse, sizeof(float) * 4);
-					It->Rotation += (It->Angular + RotationSpeed) * Step;
-					It->Scale += ScaleSpeed * Step;
+					trigonometry::vector3 next_velocity(it->velocity_x, it->velocity_y, it->velocity_z);
+					trigonometry::vector3 next_position(it->position_x, it->position_y, it->position_z);
+					trigonometry::vector4 next_diffuse(it->color_x, it->color_y, it->color_z, it->color_w);
+					next_velocity -= (next_velocity * velocity) * step;
+					next_position += (next_velocity + position) * step;
+					next_diffuse += diffuse * step;
+					memcpy(&it->velocity_x, &next_velocity, sizeof(float) * 3);
+					memcpy(&it->position_x, &next_position, sizeof(float) * 3);
+					memcpy(&it->color_x, &next_diffuse, sizeof(float) * 4);
+					it->rotation += (it->angular + rotation_speed) * step;
+					it->scale += scale_speed * step;
 
-					if (It->ColorW > 0.001f && It->Scale > 0.001f)
+					if (it->color_w > 0.001f && it->scale > 0.001f)
 					{
-						if (It->PositionX < MinX)
-							MinX = It->PositionX;
-						else if (It->PositionX > MaxX)
-							MaxX = It->PositionX;
+						if (it->position_x < min_x)
+							min_x = it->position_x;
+						else if (it->position_x > max_x)
+							max_x = it->position_x;
 
-						if (It->PositionY < MinY)
-							MinY = It->PositionY;
-						else if (It->PositionY > MaxY)
-							MaxY = It->PositionY;
+						if (it->position_y < min_y)
+							min_y = it->position_y;
+						else if (it->position_y > max_y)
+							max_y = it->position_y;
 
-						if (It->PositionZ < MinZ)
-							MinZ = It->PositionZ;
-						else if (It->PositionZ > MaxZ)
-							MaxZ = It->PositionZ;
-						++It;
+						if (it->position_z < min_z)
+							min_z = it->position_z;
+						else if (it->position_z > max_z)
+							max_z = it->position_z;
+						++it;
 					}
 					else
 					{
-						It = Array.erase(It);
-						Begin = Array.begin();
-						End = Array.end();
+						it = array.erase(it);
+						begin = array.begin();
+						end = array.end();
 					}
 				}
 
-				Base->Min = Trigonometry::Vector3(MinX, MinY, MinZ);
-				Base->Max = Trigonometry::Vector3(MaxX, MaxY, MaxZ);
+				base->min = trigonometry::vector3(min_x, min_y, min_z);
+				base->max = trigonometry::vector3(max_x, max_y, max_z);
 			}
-			Component* EmitterAnimator::Copy(Entity* New) const
+			component* emitter_animator::copy(entity* init) const
 			{
-				EmitterAnimator* Target = new EmitterAnimator(New);
-				Target->Diffuse = Diffuse;
-				Target->Position = Position;
-				Target->Velocity = Velocity;
-				Target->ScaleSpeed = ScaleSpeed;
-				Target->RotationSpeed = RotationSpeed;
-				Target->Spawner = Spawner;
-				Target->Noise = Noise;
-				Target->Simulate = Simulate;
+				emitter_animator* target = new emitter_animator(init);
+				target->diffuse = diffuse;
+				target->position = position;
+				target->velocity = velocity;
+				target->scale_speed = scale_speed;
+				target->rotation_speed = rotation_speed;
+				target->spawner = spawner;
+				target->noise = noise;
+				target->simulate = simulate;
 
-				return Target;
+				return target;
 			}
-			Emitter* EmitterAnimator::GetEmitter() const
+			emitter* emitter_animator::get_emitter() const
 			{
-				return Base;
+				return base;
 			}
 
-			FreeLook::FreeLook(Entity* Ref) : Component(Ref, ActorSet::Update), Rotate(Graphics::KeyCode::CursorRight), Sensivity(0.005f)
+			free_look::free_look(entity* ref) : component(ref, actor_set::update), rotate(graphics::key_code::cursor_right), sensivity(0.005f)
 			{
 			}
-			void FreeLook::Update(Core::Timer* Time)
+			void free_look::update(core::timer* time)
 			{
-				auto* Activity = Parent->GetScene()->GetActivity();
-				if (!Activity)
+				auto* activity = parent->get_scene()->get_activity();
+				if (!activity)
 					return;
 
-				Trigonometry::Vector2 Cursor = Activity->GetGlobalCursorPosition();
-				if (!Activity->IsKeyDown(Rotate))
+				trigonometry::vector2 cursor = activity->get_global_cursor_position();
+				if (!activity->is_key_down(rotate))
 				{
-					Position = Cursor;
+					position = cursor;
 					return;
 				}
 
-				if (!Activity->IsKeyDownHit(Rotate))
+				if (!activity->is_key_down_hit(rotate))
 				{
-					auto* Transform = Parent->GetTransform();
-					Trigonometry::Vector2 Next = (Cursor - Position) * Sensivity;
-					Transform->Rotate(Trigonometry::Vector3(Next.Y, Next.X) * Direction);
+					auto* transform = parent->get_transform();
+					trigonometry::vector2 next = (cursor - position) * sensivity;
+					transform->rotate(trigonometry::vector3(next.y, next.x) * direction);
 
-					const Trigonometry::Vector3& Rotation = Transform->GetRotation();
-					Transform->SetRotation(Rotation.SetX(Compute::Mathf::Clamp(Rotation.X, -1.57079632679f, 1.57079632679f)));
-				}
-				else
-					Position = Cursor;
-
-				if ((int)Cursor.X != (int)Position.X || (int)Cursor.Y != (int)Position.Y)
-					Activity->SetGlobalCursorPosition(Position);
-			}
-			Component* FreeLook::Copy(Entity* New) const
-			{
-				FreeLook* Target = new FreeLook(New);
-				Target->Position = Position;
-				Target->Rotate = Rotate;
-				Target->Sensivity = Sensivity;
-
-				return Target;
-			}
-
-			Fly::Fly(Entity* Ref) : Component(Ref, ActorSet::Update)
-			{
-			}
-			void Fly::Update(Core::Timer* Time)
-			{
-				auto* Activity = Parent->GetScene()->GetActivity();
-				if (!Activity)
-					return;
-
-				auto* Transform = Parent->GetTransform();
-				Trigonometry::Vector3 NewVelocity;
-
-				if (Activity->IsKeyDown(Forward))
-					NewVelocity += Transform->Forward().ViewSpace();
-				else if (Activity->IsKeyDown(Backward))
-					NewVelocity -= Transform->Forward().ViewSpace();
-
-				if (Activity->IsKeyDown(Right))
-					NewVelocity += Transform->Right().ViewSpace();
-				else if (Activity->IsKeyDown(Left))
-					NewVelocity -= Transform->Right().ViewSpace();
-
-				if (Activity->IsKeyDown(Up))
-					NewVelocity += Transform->Up().ViewSpace();
-				else if (Activity->IsKeyDown(Down))
-					NewVelocity -= Transform->Up().ViewSpace();
-
-				float Step = Time->GetStep();
-				if (NewVelocity.Length() > 0.001f)
-					Velocity += GetSpeed(Activity) * NewVelocity * Step;
-
-				if (Velocity.Length() > 0.001f)
-				{
-					Transform->Move(Velocity * Step);
-					Velocity = Velocity.Lerp(Trigonometry::Vector3::Zero(), Moving.Fading * Step);
+					const trigonometry::vector3& rotation = transform->get_rotation();
+					transform->set_rotation(rotation.set_x(compute::mathf::clamp(rotation.x, -1.57079632679f, 1.57079632679f)));
 				}
 				else
-					Velocity = Trigonometry::Vector3::Zero();
+					position = cursor;
+
+				if ((int)cursor.x != (int)position.x || (int)cursor.y != (int)position.y)
+					activity->set_global_cursor_position(position);
 			}
-			Component* Fly::Copy(Entity* New) const
+			component* free_look::copy(entity* init) const
 			{
-				Fly* Target = new Fly(New);
-				Target->Moving = Moving;
-				Target->Velocity = Velocity;
-				Target->Forward = Forward;
-				Target->Backward = Backward;
-				Target->Right = Right;
-				Target->Left = Left;
-				Target->Up = Up;
-				Target->Down = Down;
-				Target->Fast = Fast;
-				Target->Slow = Slow;
+				free_look* target = new free_look(init);
+				target->position = position;
+				target->rotate = rotate;
+				target->sensivity = sensivity;
 
-				return Target;
-			}
-			Trigonometry::Vector3 Fly::GetSpeed(Graphics::Activity* Activity)
-			{
-				if (Activity->IsKeyDown(Fast))
-					return Moving.Axis * Moving.Faster;
-
-				if (Activity->IsKeyDown(Slow))
-					return Moving.Axis * Moving.Slower;
-
-				return Moving.Axis * Moving.Normal;
+				return target;
 			}
 
-			AudioSource::AudioSource(Entity* Ref) : Component(Ref, ActorSet::Synchronize)
+			fly::fly(entity* ref) : component(ref, actor_set::update)
 			{
-				Source = new Audio::AudioSource();
 			}
-			AudioSource::~AudioSource()
+			void fly::update(core::timer* time)
 			{
-				Core::Memory::Release(Source);
-			}
-			void AudioSource::Deserialize(Core::Schema* Node)
-			{
-				VI_ASSERT(Node != nullptr, "schema should be set");
-
-				HeavySeries::Unpack(Node->Find("velocity"), &Sync.Velocity);
-				HeavySeries::Unpack(Node->Find("direction"), &Sync.Direction);
-				Series::Unpack(Node->Find("rolloff"), &Sync.Rolloff);
-				Series::Unpack(Node->Find("cone-inner-angle"), &Sync.ConeInnerAngle);
-				Series::Unpack(Node->Find("cone-outer-angle"), &Sync.ConeOuterAngle);
-				Series::Unpack(Node->Find("cone-outer-gain"), &Sync.ConeOuterGain);
-				Series::Unpack(Node->Find("distance"), &Sync.Distance);
-				Series::Unpack(Node->Find("gain"), &Sync.Gain);
-				Series::Unpack(Node->Find("pitch"), &Sync.Pitch);
-				Series::Unpack(Node->Find("ref-distance"), &Sync.RefDistance);
-				Series::Unpack(Node->Find("position"), &Sync.Position);
-				Series::Unpack(Node->Find("relative"), &Sync.IsRelative);
-				Series::Unpack(Node->Find("looped"), &Sync.IsLooped);
-				Series::Unpack(Node->Find("distance"), &Sync.Distance);
-				Series::Unpack(Node->Find("air-absorption"), &Sync.AirAbsorption);
-				Series::Unpack(Node->Find("room-roll-off"), &Sync.RoomRollOff);
-
-				Core::String Path;
-				if (!Series::Unpack(Node->Find("audio-clip"), &Path) || Path.empty())
+				auto* activity = parent->get_scene()->get_activity();
+				if (!activity)
 					return;
 
-				Node->AddRef();
-				Parent->GetScene()->LoadResource<Audio::AudioClip>(this, Path, [this, Node](ExpectsContent<Audio::AudioClip*>&& NewClip)
+				auto* transform = parent->get_transform();
+				trigonometry::vector3 new_velocity;
+
+				if (activity->is_key_down(forward))
+					new_velocity += transform->forward().view_space();
+				else if (activity->is_key_down(backward))
+					new_velocity -= transform->forward().view_space();
+
+				if (activity->is_key_down(right))
+					new_velocity += transform->right().view_space();
+				else if (activity->is_key_down(left))
+					new_velocity -= transform->right().view_space();
+
+				if (activity->is_key_down(up))
+					new_velocity += transform->up().view_space();
+				else if (activity->is_key_down(down))
+					new_velocity -= transform->up().view_space();
+
+				float step = time->get_step();
+				if (new_velocity.length() > 0.001f)
+					velocity += get_speed(activity) * new_velocity * step;
+
+				if (velocity.length() > 0.001f)
 				{
-					Source->SetClip(NewClip.Or(nullptr));
-					for (auto& Effect : Node->FetchCollection("effects.effect"))
+					transform->move(velocity * step);
+					velocity = velocity.lerp(trigonometry::vector3::zero(), moving.fading * step);
+				}
+				else
+					velocity = trigonometry::vector3::zero();
+			}
+			component* fly::copy(entity* init) const
+			{
+				fly* target = new fly(init);
+				target->moving = moving;
+				target->velocity = velocity;
+				target->forward = forward;
+				target->backward = backward;
+				target->right = right;
+				target->left = left;
+				target->up = up;
+				target->down = down;
+				target->fast = fast;
+				target->slow = slow;
+
+				return target;
+			}
+			trigonometry::vector3 fly::get_speed(graphics::activity* activity)
+			{
+				if (activity->is_key_down(fast))
+					return moving.axis * moving.faster;
+
+				if (activity->is_key_down(slow))
+					return moving.axis * moving.slower;
+
+				return moving.axis * moving.normal;
+			}
+
+			audio_source::audio_source(entity* ref) : component(ref, actor_set::synchronize)
+			{
+				source = new audio::audio_source();
+			}
+			audio_source::~audio_source()
+			{
+				core::memory::release(source);
+			}
+			void audio_source::deserialize(core::schema* node)
+			{
+				VI_ASSERT(node != nullptr, "schema should be set");
+
+				heavy_series::unpack(node->find("velocity"), &sync.velocity);
+				heavy_series::unpack(node->find("direction"), &sync.direction);
+				series::unpack(node->find("rolloff"), &sync.rolloff);
+				series::unpack(node->find("cone-inner-angle"), &sync.cone_inner_angle);
+				series::unpack(node->find("cone-outer-angle"), &sync.cone_outer_angle);
+				series::unpack(node->find("cone-outer-gain"), &sync.cone_outer_gain);
+				series::unpack(node->find("distance"), &sync.distance);
+				series::unpack(node->find("gain"), &sync.gain);
+				series::unpack(node->find("pitch"), &sync.pitch);
+				series::unpack(node->find("ref-distance"), &sync.ref_distance);
+				series::unpack(node->find("position"), &sync.position);
+				series::unpack(node->find("relative"), &sync.is_relative);
+				series::unpack(node->find("looped"), &sync.is_looped);
+				series::unpack(node->find("distance"), &sync.distance);
+				series::unpack(node->find("air-absorption"), &sync.air_absorption);
+				series::unpack(node->find("room-roll-off"), &sync.room_roll_off);
+
+				core::string path;
+				if (!series::unpack(node->find("audio-clip"), &path) || path.empty())
+					return;
+
+				node->add_ref();
+				parent->get_scene()->load_resource<audio::audio_clip>(this, path, [this, node](expects_content<audio::audio_clip*>&& new_clip)
+				{
+					source->set_clip(new_clip.or_else(nullptr));
+					for (auto& effect : node->fetch_collection("effects.effect"))
 					{
-						uint64_t Id;
-						if (!Series::Unpack(Effect->Find("id"), &Id))
+						uint64_t id;
+						if (!series::unpack(effect->find("id"), &id))
 							continue;
 
-						Audio::AudioEffect* Target = Core::Composer::Create<Audio::AudioEffect>(Id);
-						if (!Target)
+						audio::audio_effect* target = core::composer::create<audio::audio_effect>(id);
+						if (!target)
 							continue;
 
-						Core::Schema* Meta = Effect->Find("metadata");
-						if (!Meta)
-							Meta = Effect->Set("metadata");
+						core::schema* meta = effect->find("metadata");
+						if (!meta)
+							meta = effect->set("metadata");
 
-						Target->Deserialize(Meta);
-						Source->AddEffect(Target);
+						target->deserialize(meta);
+						source->add_effect(target);
 					}
 
-					bool Autoplay;
-					if (Series::Unpack(Node->Find("autoplay"), &Autoplay) && Autoplay && Source->GetClip())
-						Source->Play();
+					bool autoplay;
+					if (series::unpack(node->find("autoplay"), &autoplay) && autoplay && source->get_clip())
+						source->play();
 
-					ApplyPlayingPosition();
-					Synchronize(nullptr);
-					Node->Release();
+					apply_playing_position();
+					synchronize(nullptr);
+					node->release();
 				});
 			}
-			void AudioSource::Serialize(Core::Schema* Node)
+			void audio_source::serialize(core::schema* node)
 			{
-				VI_ASSERT(Node != nullptr, "schema should be set");
+				VI_ASSERT(node != nullptr, "schema should be set");
 
-				Core::Schema* Effects = Node->Set("effects", Core::Var::Array());
-				for (auto* Effect : Source->GetEffects())
+				core::schema* effects = node->set("effects", core::var::array());
+				for (auto* effect : source->get_effects())
 				{
-					Core::Schema* Element = Effects->Set("effect");
-					Series::Pack(Element->Set("id"), Effect->GetId());
-					Effect->Serialize(Element->Set("metadata"));
+					core::schema* element = effects->set("effect");
+					series::pack(element->set("id"), effect->get_id());
+					effect->serialize(element->set("metadata"));
 				}
 
-				Series::Pack(Node->Set("audio-clip"), Parent->GetScene()->FindResourceId<Audio::AudioClip>(Source->GetClip()));
-				HeavySeries::Pack(Node->Set("velocity"), Sync.Velocity);
-				HeavySeries::Pack(Node->Set("direction"), Sync.Direction);
-				Series::Pack(Node->Set("rolloff"), Sync.Rolloff);
-				Series::Pack(Node->Set("cone-inner-angle"), Sync.ConeInnerAngle);
-				Series::Pack(Node->Set("cone-outer-angle"), Sync.ConeOuterAngle);
-				Series::Pack(Node->Set("cone-outer-gain"), Sync.ConeOuterGain);
-				Series::Pack(Node->Set("distance"), Sync.Distance);
-				Series::Pack(Node->Set("gain"), Sync.Gain);
-				Series::Pack(Node->Set("pitch"), Sync.Pitch);
-				Series::Pack(Node->Set("ref-distance"), Sync.RefDistance);
-				Series::Pack(Node->Set("position"), Sync.Position);
-				Series::Pack(Node->Set("relative"), Sync.IsRelative);
-				Series::Pack(Node->Set("looped"), Sync.IsLooped);
-				Series::Pack(Node->Set("distance"), Sync.Distance);
-				Series::Pack(Node->Set("autoplay"), Source->IsPlaying());
-				Series::Pack(Node->Set("air-absorption"), Sync.AirAbsorption);
-				Series::Pack(Node->Set("room-roll-off"), Sync.RoomRollOff);
+				series::pack(node->set("audio-clip"), parent->get_scene()->find_resource_id<audio::audio_clip>(source->get_clip()));
+				heavy_series::pack(node->set("velocity"), sync.velocity);
+				heavy_series::pack(node->set("direction"), sync.direction);
+				series::pack(node->set("rolloff"), sync.rolloff);
+				series::pack(node->set("cone-inner-angle"), sync.cone_inner_angle);
+				series::pack(node->set("cone-outer-angle"), sync.cone_outer_angle);
+				series::pack(node->set("cone-outer-gain"), sync.cone_outer_gain);
+				series::pack(node->set("distance"), sync.distance);
+				series::pack(node->set("gain"), sync.gain);
+				series::pack(node->set("pitch"), sync.pitch);
+				series::pack(node->set("ref-distance"), sync.ref_distance);
+				series::pack(node->set("position"), sync.position);
+				series::pack(node->set("relative"), sync.is_relative);
+				series::pack(node->set("looped"), sync.is_looped);
+				series::pack(node->set("distance"), sync.distance);
+				series::pack(node->set("autoplay"), source->is_playing());
+				series::pack(node->set("air-absorption"), sync.air_absorption);
+				series::pack(node->set("room-roll-off"), sync.room_roll_off);
 			}
-			void AudioSource::Synchronize(Core::Timer* Time)
+			void audio_source::synchronize(core::timer* time)
 			{
-				auto* Transform = Parent->GetTransform();
-				if (Transform->IsDirty())
+				auto* transform = parent->get_transform();
+				if (transform->is_dirty())
 				{
-					const Trigonometry::Vector3& Position = Transform->GetPosition();
-					Sync.Velocity = (Position - LastPosition) * Time->GetStep();
-					LastPosition = Position;
+					const trigonometry::vector3& position = transform->get_position();
+					sync.velocity = (position - last_position) * time->get_step();
+					last_position = position;
 				}
 				else
-					Sync.Velocity = 0.0f;
+					sync.velocity = 0.0f;
 
-				if (Source->GetClip() != nullptr)
-					Source->Synchronize(&Sync, Transform->GetPosition());
+				if (source->get_clip() != nullptr)
+					source->synchronize(&sync, transform->get_position());
 			}
-			void AudioSource::ApplyPlayingPosition()
+			void audio_source::apply_playing_position()
 			{
-				Audio::AudioContext::SetSourceData1F(Source->GetInstance(), Audio::SoundEx::Seconds_Offset, Sync.Position);
+				audio::audio_context::set_source_data1f(source->get_instance(), audio::sound_ex::seconds_offset, sync.position);
 			}
-			Component* AudioSource::Copy(Entity* New) const
+			component* audio_source::copy(entity* init) const
 			{
-				AudioSource* Target = new AudioSource(New);
-				Target->LastPosition = LastPosition;
-				Target->Source->SetClip(Source->GetClip());
-				Target->Sync = Sync;
+				audio_source* target = new audio_source(init);
+				target->last_position = last_position;
+				target->source->set_clip(source->get_clip());
+				target->sync = sync;
 
-				for (auto* Effect : Source->GetEffects())
-					Target->Source->AddEffect(Effect->Copy());
+				for (auto* effect : source->get_effects())
+					target->source->add_effect(effect->copy());
 
-				return Target;
+				return target;
 			}
-			Audio::AudioSource* AudioSource::GetSource() const
+			audio::audio_source* audio_source::get_source() const
 			{
-				return Source;
+				return source;
 			}
-			Audio::AudioSync& AudioSource::GetSync()
+			audio::audio_sync& audio_source::get_sync()
 			{
-				return Sync;
+				return sync;
 			}
 
-			AudioListener::AudioListener(Entity* Ref) : Component(Ref, ActorSet::Synchronize)
+			audio_listener::audio_listener(entity* ref) : component(ref, actor_set::synchronize)
 			{
 			}
-			AudioListener::~AudioListener()
+			audio_listener::~audio_listener()
 			{
-				Deactivate();
+				deactivate();
 			}
-			void AudioListener::Deserialize(Core::Schema* Node)
+			void audio_listener::deserialize(core::schema* node)
 			{
-				VI_ASSERT(Node != nullptr, "schema should be set");
-				Series::Unpack(Node->Find("gain"), &Gain);
+				VI_ASSERT(node != nullptr, "schema should be set");
+				series::unpack(node->find("gain"), &gain);
 			}
-			void AudioListener::Serialize(Core::Schema* Node)
+			void audio_listener::serialize(core::schema* node)
 			{
-				VI_ASSERT(Node != nullptr, "schema should be set");
-				Series::Pack(Node->Set("gain"), Gain);
+				VI_ASSERT(node != nullptr, "schema should be set");
+				series::pack(node->set("gain"), gain);
 			}
-			void AudioListener::Synchronize(Core::Timer* Time)
+			void audio_listener::synchronize(core::timer* time)
 			{
-				auto* Transform = Parent->GetTransform();
-				if (Transform->IsDirty())
+				auto* transform = parent->get_transform();
+				if (transform->is_dirty())
 				{
-					const Trigonometry::Vector3& Position = Transform->GetPosition();
-					Trigonometry::Vector3 Velocity = (Position - LastPosition) * Time->GetStep();
-					Trigonometry::Vector3 Rotation = Transform->GetRotation().dDirection();
-					float LookAt[6] = { Rotation.X, Rotation.Y, Rotation.Z, 0.0f, 1.0f, 0.0f };
-					LastPosition = Position;
+					const trigonometry::vector3& position = transform->get_position();
+					trigonometry::vector3 velocity = (position - last_position) * time->get_step();
+					trigonometry::vector3 rotation = transform->get_rotation().ddirection();
+					float look_at[6] = { rotation.x, rotation.y, rotation.z, 0.0f, 1.0f, 0.0f };
+					last_position = position;
 
-					Audio::AudioContext::SetListenerData3F(Audio::SoundEx::Velocity, Velocity.X, Velocity.Y, Velocity.Z);
-					Audio::AudioContext::SetListenerData3F(Audio::SoundEx::Position, -Position.X, -Position.Y, Position.Z);
-					Audio::AudioContext::SetListenerDataVF(Audio::SoundEx::Orientation, LookAt);
+					audio::audio_context::set_listener_data3f(audio::sound_ex::velocity, velocity.x, velocity.y, velocity.z);
+					audio::audio_context::set_listener_data3f(audio::sound_ex::position, -position.x, -position.y, position.z);
+					audio::audio_context::set_listener_datavf(audio::sound_ex::orientation, look_at);
 				}
 
-				Audio::AudioContext::SetListenerData1F(Audio::SoundEx::Gain, Gain);
+				audio::audio_context::set_listener_data1f(audio::sound_ex::gain, gain);
 			}
-			void AudioListener::Deactivate()
+			void audio_listener::deactivate()
 			{
-				float LookAt[6] = { 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f };
-				Audio::AudioContext::SetListenerData3F(Audio::SoundEx::Velocity, 0.0f, 0.0f, 0.0f);
-				Audio::AudioContext::SetListenerData3F(Audio::SoundEx::Position, 0.0f, 0.0f, 0.0f);
-				Audio::AudioContext::SetListenerDataVF(Audio::SoundEx::Orientation, LookAt);
-				Audio::AudioContext::SetListenerData1F(Audio::SoundEx::Gain, 0.0f);
+				float look_at[6] = { 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f };
+				audio::audio_context::set_listener_data3f(audio::sound_ex::velocity, 0.0f, 0.0f, 0.0f);
+				audio::audio_context::set_listener_data3f(audio::sound_ex::position, 0.0f, 0.0f, 0.0f);
+				audio::audio_context::set_listener_datavf(audio::sound_ex::orientation, look_at);
+				audio::audio_context::set_listener_data1f(audio::sound_ex::gain, 0.0f);
 			}
-			Component* AudioListener::Copy(Entity* New) const
+			component* audio_listener::copy(entity* init) const
 			{
-				AudioListener* Target = new AudioListener(New);
-				Target->LastPosition = LastPosition;
-				Target->Gain = Gain;
+				audio_listener* target = new audio_listener(init);
+				target->last_position = last_position;
+				target->gain = gain;
 
-				return Target;
+				return target;
 			}
 
-			PointLight::PointLight(Entity* Ref) : Component(Ref, ActorSet::Cullable)
+			point_light::point_light(entity* ref) : component(ref, actor_set::cullable)
 			{
 			}
-			void PointLight::Deserialize(Core::Schema* Node)
+			void point_light::deserialize(core::schema* node)
 			{
-				VI_ASSERT(Node != nullptr, "schema should be set");
-				HeavySeries::Unpack(Node->Find("projection"), &Projection);
-				HeavySeries::Unpack(Node->Find("view"), &View);
-				HeavySeries::Unpack(Node->Find("size"), &Size);
-				HeavySeries::Unpack(Node->Find("diffuse"), &Diffuse);
-				Series::Unpack(Node->Find("emission"), &Emission);
-				Series::Unpack(Node->Find("disperse"), &Disperse);
-				Series::Unpack(Node->Find("shadow-softness"), &Shadow.Softness);
-				Series::Unpack(Node->Find("shadow-distance"), &Shadow.Distance);
-				Series::Unpack(Node->Find("shadow-bias"), &Shadow.Bias);
-				Series::Unpack(Node->Find("shadow-iterations"), &Shadow.Iterations);
-				Series::Unpack(Node->Find("shadow-enabled"), &Shadow.Enabled);
+				VI_ASSERT(node != nullptr, "schema should be set");
+				heavy_series::unpack(node->find("projection"), &projection);
+				heavy_series::unpack(node->find("view"), &view);
+				heavy_series::unpack(node->find("size"), &size);
+				heavy_series::unpack(node->find("diffuse"), &diffuse);
+				series::unpack(node->find("emission"), &emission);
+				series::unpack(node->find("disperse"), &disperse);
+				series::unpack(node->find("shadow-softness"), &shadow.softness);
+				series::unpack(node->find("shadow-distance"), &shadow.distance);
+				series::unpack(node->find("shadow-bias"), &shadow.bias);
+				series::unpack(node->find("shadow-iterations"), &shadow.iterations);
+				series::unpack(node->find("shadow-enabled"), &shadow.enabled);
 			}
-			void PointLight::Serialize(Core::Schema* Node)
+			void point_light::serialize(core::schema* node)
 			{
-				VI_ASSERT(Node != nullptr, "schema should be set");
-				HeavySeries::Pack(Node->Set("projection"), Projection);
-				HeavySeries::Pack(Node->Set("view"), View);
-				HeavySeries::Pack(Node->Set("size"), Size);
-				HeavySeries::Pack(Node->Set("diffuse"), Diffuse);
-				Series::Pack(Node->Set("emission"), Emission);
-				Series::Pack(Node->Set("disperse"), Disperse);
-				Series::Pack(Node->Set("shadow-softness"), Shadow.Softness);
-				Series::Pack(Node->Set("shadow-distance"), Shadow.Distance);
-				Series::Pack(Node->Set("shadow-bias"), Shadow.Bias);
-				Series::Pack(Node->Set("shadow-iterations"), Shadow.Iterations);
-				Series::Pack(Node->Set("shadow-enabled"), Shadow.Enabled);
+				VI_ASSERT(node != nullptr, "schema should be set");
+				heavy_series::pack(node->set("projection"), projection);
+				heavy_series::pack(node->set("view"), view);
+				heavy_series::pack(node->set("size"), size);
+				heavy_series::pack(node->set("diffuse"), diffuse);
+				series::pack(node->set("emission"), emission);
+				series::pack(node->set("disperse"), disperse);
+				series::pack(node->set("shadow-softness"), shadow.softness);
+				series::pack(node->set("shadow-distance"), shadow.distance);
+				series::pack(node->set("shadow-bias"), shadow.bias);
+				series::pack(node->set("shadow-iterations"), shadow.iterations);
+				series::pack(node->set("shadow-enabled"), shadow.enabled);
 			}
-			void PointLight::Message(const std::string_view& Name, Core::VariantArgs& Args)
+			void point_light::message(const std::string_view& name, core::variant_args& args)
 			{
-				if (Name == "depth-flush")
-					DepthMap = nullptr;
+				if (name == "depth-flush")
+					depth_map = nullptr;
 			}
-			size_t PointLight::GetUnitBounds(Trigonometry::Vector3& Min, Trigonometry::Vector3& Max) const
+			size_t point_light::get_unit_bounds(trigonometry::vector3& min, trigonometry::vector3& max) const
 			{
-				Min = Size.Radius * -1.25f;
-				Max = Size.Radius * 1.25f;
+				min = size.radius * -1.25f;
+				max = size.radius * 1.25f;
 				return BOX_LIGHT;
 			}
-			float PointLight::GetVisibility(const Viewer& View, float Distance) const
+			float point_light::get_visibility(const viewer& view, float distance) const
 			{
-				return GetVisibilityRadius(Parent, View, Distance);
+				return get_visibility_radius(parent, view, distance);
 			}
-			Component* PointLight::Copy(Entity* New) const
+			component* point_light::copy(entity* init) const
 			{
-				PointLight* Target = new PointLight(New);
-				Target->Diffuse = Diffuse;
-				Target->Emission = Emission;
-				Target->Projection = Projection;
-				Target->View = View;
-				Target->Size = Size;
-				memcpy(&Target->Shadow, &Shadow, sizeof(Shadow));
+				point_light* target = new point_light(init);
+				target->diffuse = diffuse;
+				target->emission = emission;
+				target->projection = projection;
+				target->view = view;
+				target->size = size;
+				memcpy(&target->shadow, &shadow, sizeof(shadow));
 
-				return Target;
+				return target;
 			}
-			void PointLight::GenerateOrigin()
+			void point_light::generate_origin()
 			{
-				auto* Transform = Parent->GetTransform();
-				View = Trigonometry::Matrix4x4::CreateTranslation(Transform->GetPosition());
-				Projection = Trigonometry::Matrix4x4::CreatePerspective(90.0f, 1.0f, 0.1f, Shadow.Distance);
+				auto* transform = parent->get_transform();
+				view = trigonometry::matrix4x4::create_translation(transform->get_position());
+				projection = trigonometry::matrix4x4::create_perspective(90.0f, 1.0f, 0.1f, shadow.distance);
 			}
-			void PointLight::SetSize(const Attenuation& Value)
+			void point_light::set_size(const attenuation& value)
 			{
-				Size = Value;
-				GetEntity()->GetTransform()->MakeDirty();
+				size = value;
+				get_entity()->get_transform()->make_dirty();
 			}
-			const Attenuation& PointLight::GetSize()
+			const attenuation& point_light::get_size()
 			{
-				return Size;
+				return size;
 			}
 
-			SpotLight::SpotLight(Entity* Ref) : Component(Ref, ActorSet::Cullable | ActorSet::Synchronize)
+			spot_light::spot_light(entity* ref) : component(ref, actor_set::cullable | actor_set::synchronize)
 			{
 			}
-			void SpotLight::Deserialize(Core::Schema* Node)
+			void spot_light::deserialize(core::schema* node)
 			{
-				VI_ASSERT(Node != nullptr, "schema should be set");
-				HeavySeries::Unpack(Node->Find("projection"), &Projection);
-				HeavySeries::Unpack(Node->Find("view"), &View);
-				HeavySeries::Unpack(Node->Find("size"), &Size);
-				HeavySeries::Unpack(Node->Find("diffuse"), &Diffuse);
-				Series::Unpack(Node->Find("emission"), &Emission);
-				Series::Unpack(Node->Find("disperse"), &Disperse);
-				Series::Unpack(Node->Find("cutoff"), &Cutoff);
-				Series::Unpack(Node->Find("shadow-bias"), &Shadow.Bias);
-				Series::Unpack(Node->Find("shadow-distance"), &Shadow.Distance);
-				Series::Unpack(Node->Find("shadow-softness"), &Shadow.Softness);
-				Series::Unpack(Node->Find("shadow-iterations"), &Shadow.Iterations);
-				Series::Unpack(Node->Find("shadow-enabled"), &Shadow.Enabled);
+				VI_ASSERT(node != nullptr, "schema should be set");
+				heavy_series::unpack(node->find("projection"), &projection);
+				heavy_series::unpack(node->find("view"), &view);
+				heavy_series::unpack(node->find("size"), &size);
+				heavy_series::unpack(node->find("diffuse"), &diffuse);
+				series::unpack(node->find("emission"), &emission);
+				series::unpack(node->find("disperse"), &disperse);
+				series::unpack(node->find("cutoff"), &cutoff);
+				series::unpack(node->find("shadow-bias"), &shadow.bias);
+				series::unpack(node->find("shadow-distance"), &shadow.distance);
+				series::unpack(node->find("shadow-softness"), &shadow.softness);
+				series::unpack(node->find("shadow-iterations"), &shadow.iterations);
+				series::unpack(node->find("shadow-enabled"), &shadow.enabled);
 			}
-			void SpotLight::Serialize(Core::Schema* Node)
+			void spot_light::serialize(core::schema* node)
 			{
-				VI_ASSERT(Node != nullptr, "schema should be set");
-				HeavySeries::Pack(Node->Set("projection"), Projection);
-				HeavySeries::Pack(Node->Set("view"), View);
-				HeavySeries::Pack(Node->Set("size"), Size);
-				HeavySeries::Pack(Node->Set("diffuse"), Diffuse);
-				Series::Pack(Node->Set("emission"), Emission);
-				Series::Pack(Node->Set("disperse"), Disperse);
-				Series::Pack(Node->Set("cutoff"), Cutoff);
-				Series::Pack(Node->Set("shadow-bias"), Shadow.Bias);
-				Series::Pack(Node->Set("shadow-distance"), Shadow.Distance);
-				Series::Pack(Node->Set("shadow-softness"), Shadow.Softness);
-				Series::Pack(Node->Set("shadow-iterations"), Shadow.Iterations);
-				Series::Pack(Node->Set("shadow-enabled"), Shadow.Enabled);
+				VI_ASSERT(node != nullptr, "schema should be set");
+				heavy_series::pack(node->set("projection"), projection);
+				heavy_series::pack(node->set("view"), view);
+				heavy_series::pack(node->set("size"), size);
+				heavy_series::pack(node->set("diffuse"), diffuse);
+				series::pack(node->set("emission"), emission);
+				series::pack(node->set("disperse"), disperse);
+				series::pack(node->set("cutoff"), cutoff);
+				series::pack(node->set("shadow-bias"), shadow.bias);
+				series::pack(node->set("shadow-distance"), shadow.distance);
+				series::pack(node->set("shadow-softness"), shadow.softness);
+				series::pack(node->set("shadow-iterations"), shadow.iterations);
+				series::pack(node->set("shadow-enabled"), shadow.enabled);
 			}
-			void SpotLight::Message(const std::string_view& Name, Core::VariantArgs& Args)
+			void spot_light::message(const std::string_view& name, core::variant_args& args)
 			{
-				if (Name == "depth-flush")
-					DepthMap = nullptr;
+				if (name == "depth-flush")
+					depth_map = nullptr;
 			}
-			void SpotLight::Synchronize(Core::Timer* Time)
+			void spot_light::synchronize(core::timer* time)
 			{
-				Cutoff = Compute::Mathf::Clamp(Cutoff, 0.0f, 180.0f);
+				cutoff = compute::mathf::clamp(cutoff, 0.0f, 180.0f);
 			}
-			size_t SpotLight::GetUnitBounds(Trigonometry::Vector3& Min, Trigonometry::Vector3& Max) const
+			size_t spot_light::get_unit_bounds(trigonometry::vector3& min, trigonometry::vector3& max) const
 			{
-				Min = Size.Radius * -1.25f;
-				Max = Size.Radius * 1.25f;
+				min = size.radius * -1.25f;
+				max = size.radius * 1.25f;
 				return BOX_LIGHT;
 			}
-			float SpotLight::GetVisibility(const Viewer& View, float Distance) const
+			float spot_light::get_visibility(const viewer& view, float distance) const
 			{
-				return GetVisibilityRadius(Parent, View, Distance);
+				return get_visibility_radius(parent, view, distance);
 			}
-			Component* SpotLight::Copy(Entity* New) const
+			component* spot_light::copy(entity* init) const
 			{
-				SpotLight* Target = new SpotLight(New);
-				Target->Diffuse = Diffuse;
-				Target->Projection = Projection;
-				Target->View = View;
-				Target->Size = Size;
-				Target->Cutoff = Cutoff;
-				Target->Emission = Emission;
-				memcpy(&Target->Shadow, &Shadow, sizeof(Shadow));
+				spot_light* target = new spot_light(init);
+				target->diffuse = diffuse;
+				target->projection = projection;
+				target->view = view;
+				target->size = size;
+				target->cutoff = cutoff;
+				target->emission = emission;
+				memcpy(&target->shadow, &shadow, sizeof(shadow));
 
-				return Target;
+				return target;
 			}
-			void SpotLight::GenerateOrigin()
+			void spot_light::generate_origin()
 			{
-				auto* Transform = Parent->GetTransform();
-				auto& Space = Transform->GetSpacing(Trigonometry::Positioning::Global);
-				View = Trigonometry::Matrix4x4::CreateView(Space.Position, Space.Rotation.InvY());
-				Projection = Trigonometry::Matrix4x4::CreatePerspective(Cutoff, 1, 0.1f, Shadow.Distance);
+				auto* transform = parent->get_transform();
+				auto& space = transform->get_spacing(trigonometry::positioning::global);
+				view = trigonometry::matrix4x4::create_view(space.position, space.rotation.inv_y());
+				projection = trigonometry::matrix4x4::create_perspective(cutoff, 1, 0.1f, shadow.distance);
 			}
-			void SpotLight::SetSize(const Attenuation& Value)
+			void spot_light::set_size(const attenuation& value)
 			{
-				Size = Value;
-				GetEntity()->GetTransform()->MakeDirty();
+				size = value;
+				get_entity()->get_transform()->make_dirty();
 			}
-			const Attenuation& SpotLight::GetSize()
+			const attenuation& spot_light::get_size()
 			{
-				return Size;
+				return size;
 			}
 
-			LineLight::LineLight(Entity* Ref) : Component(Ref, ActorSet::Cullable)
+			line_light::line_light(entity* ref) : component(ref, actor_set::cullable)
 			{
 			}
-			void LineLight::Deserialize(Core::Schema* Node)
+			void line_light::deserialize(core::schema* node)
 			{
-				VI_ASSERT(Node != nullptr, "schema should be set");
-				HeavySeries::Unpack(Node->Find("diffuse"), &Diffuse);
-				Series::Unpack(Node->Find("emission"), &Emission);
-				Series::Unpack(Node->Find("disperse"), &Disperse);
+				VI_ASSERT(node != nullptr, "schema should be set");
+				heavy_series::unpack(node->find("diffuse"), &diffuse);
+				series::unpack(node->find("emission"), &emission);
+				series::unpack(node->find("disperse"), &disperse);
 
 				for (uint32_t i = 0; i < 6; i++)
 				{
-					HeavySeries::Unpack(Node->Find("projection-" + Core::ToString(i)), &Projection[i]);
-					HeavySeries::Unpack(Node->Find("view-" + Core::ToString(i)), &View[i]);
+					heavy_series::unpack(node->find("projection-" + core::to_string(i)), &projection[i]);
+					heavy_series::unpack(node->find("view-" + core::to_string(i)), &view[i]);
 				}
 
 				for (uint32_t i = 0; i < 6; i++)
-					Series::Unpack(Node->Find("shadow-distance-" + Core::ToString(i)), &Shadow.Distance[i]);
+					series::unpack(node->find("shadow-distance-" + core::to_string(i)), &shadow.distance[i]);
 
-				Series::Unpack(Node->Find("shadow-cascades"), &Shadow.Cascades);
-				Series::Unpack(Node->Find("shadow-far"), &Shadow.Far);
-				Series::Unpack(Node->Find("shadow-near"), &Shadow.Near);
-				Series::Unpack(Node->Find("shadow-bias"), &Shadow.Bias);
-				Series::Unpack(Node->Find("shadow-softness"), &Shadow.Softness);
-				Series::Unpack(Node->Find("shadow-iterations"), &Shadow.Iterations);
-				Series::Unpack(Node->Find("shadow-enabled"), &Shadow.Enabled);
-				HeavySeries::Unpack(Node->Find("rlh-emission"), &Sky.RlhEmission);
-				HeavySeries::Unpack(Node->Find("mie-emission"), &Sky.MieEmission);
-				Series::Unpack(Node->Find("rlh-height"), &Sky.RlhHeight);
-				HeavySeries::Unpack(Node->Find("mie-height"), &Sky.MieEmission);
-				Series::Unpack(Node->Find("mie-direction"), &Sky.MieDirection);
-				Series::Unpack(Node->Find("inner-radius"), &Sky.InnerRadius);
-				Series::Unpack(Node->Find("outer-radius"), &Sky.OuterRadius);
-				Series::Unpack(Node->Find("sky-intensity"), &Sky.Intensity);
+				series::unpack(node->find("shadow-cascades"), &shadow.cascades);
+				series::unpack(node->find("shadow-far"), &shadow.far);
+				series::unpack(node->find("shadow-near"), &shadow.near);
+				series::unpack(node->find("shadow-bias"), &shadow.bias);
+				series::unpack(node->find("shadow-softness"), &shadow.softness);
+				series::unpack(node->find("shadow-iterations"), &shadow.iterations);
+				series::unpack(node->find("shadow-enabled"), &shadow.enabled);
+				heavy_series::unpack(node->find("rlh-emission"), &sky.rlh_emission);
+				heavy_series::unpack(node->find("mie-emission"), &sky.mie_emission);
+				series::unpack(node->find("rlh-height"), &sky.rlh_height);
+				heavy_series::unpack(node->find("mie-height"), &sky.mie_emission);
+				series::unpack(node->find("mie-direction"), &sky.mie_direction);
+				series::unpack(node->find("inner-radius"), &sky.inner_radius);
+				series::unpack(node->find("outer-radius"), &sky.outer_radius);
+				series::unpack(node->find("sky-intensity"), &sky.intensity);
 			}
-			void LineLight::Serialize(Core::Schema* Node)
+			void line_light::serialize(core::schema* node)
 			{
-				VI_ASSERT(Node != nullptr, "schema should be set");
-				HeavySeries::Pack(Node->Set("diffuse"), Diffuse);
-				Series::Pack(Node->Set("emission"), Emission);
-				Series::Pack(Node->Set("disperse"), Disperse);
+				VI_ASSERT(node != nullptr, "schema should be set");
+				heavy_series::pack(node->set("diffuse"), diffuse);
+				series::pack(node->set("emission"), emission);
+				series::pack(node->set("disperse"), disperse);
 
 				for (uint32_t i = 0; i < 6; i++)
 				{
-					HeavySeries::Pack(Node->Set("projection-" + Core::ToString(i)), Projection[i]);
-					HeavySeries::Pack(Node->Set("view-" + Core::ToString(i)), View[i]);
+					heavy_series::pack(node->set("projection-" + core::to_string(i)), projection[i]);
+					heavy_series::pack(node->set("view-" + core::to_string(i)), view[i]);
 				}
 
 				for (uint32_t i = 0; i < 6; i++)
-					Series::Pack(Node->Set("shadow-distance-" + Core::ToString(i)), Shadow.Distance[i]);
+					series::pack(node->set("shadow-distance-" + core::to_string(i)), shadow.distance[i]);
 
-				Series::Pack(Node->Set("shadow-cascades"), Shadow.Cascades);
-				Series::Pack(Node->Set("shadow-far"), Shadow.Far);
-				Series::Pack(Node->Set("shadow-near"), Shadow.Near);
-				Series::Pack(Node->Set("shadow-bias"), Shadow.Bias);
-				Series::Pack(Node->Set("shadow-softness"), Shadow.Softness);
-				Series::Pack(Node->Set("shadow-iterations"), Shadow.Iterations);
-				Series::Pack(Node->Set("shadow-enabled"), Shadow.Enabled);
-				HeavySeries::Pack(Node->Set("rlh-emission"), Sky.RlhEmission);
-				HeavySeries::Pack(Node->Set("mie-emission"), Sky.MieEmission);
-				Series::Pack(Node->Set("rlh-height"), Sky.RlhHeight);
-				HeavySeries::Pack(Node->Set("mie-height"), Sky.MieEmission);
-				Series::Pack(Node->Set("mie-direction"), Sky.MieDirection);
-				Series::Pack(Node->Set("inner-radius"), Sky.InnerRadius);
-				Series::Pack(Node->Set("outer-radius"), Sky.OuterRadius);
-				Series::Pack(Node->Set("sky-intensity"), Sky.Intensity);
+				series::pack(node->set("shadow-cascades"), shadow.cascades);
+				series::pack(node->set("shadow-far"), shadow.far);
+				series::pack(node->set("shadow-near"), shadow.near);
+				series::pack(node->set("shadow-bias"), shadow.bias);
+				series::pack(node->set("shadow-softness"), shadow.softness);
+				series::pack(node->set("shadow-iterations"), shadow.iterations);
+				series::pack(node->set("shadow-enabled"), shadow.enabled);
+				heavy_series::pack(node->set("rlh-emission"), sky.rlh_emission);
+				heavy_series::pack(node->set("mie-emission"), sky.mie_emission);
+				series::pack(node->set("rlh-height"), sky.rlh_height);
+				heavy_series::pack(node->set("mie-height"), sky.mie_emission);
+				series::pack(node->set("mie-direction"), sky.mie_direction);
+				series::pack(node->set("inner-radius"), sky.inner_radius);
+				series::pack(node->set("outer-radius"), sky.outer_radius);
+				series::pack(node->set("sky-intensity"), sky.intensity);
 			}
-			void LineLight::Message(const std::string_view& Name, Core::VariantArgs& Args)
+			void line_light::message(const std::string_view& name, core::variant_args& args)
 			{
-				if (Name == "depth-flush")
-					DepthMap = nullptr;
+				if (name == "depth-flush")
+					depth_map = nullptr;
 			}
-			Component* LineLight::Copy(Entity* New) const
+			component* line_light::copy(entity* init) const
 			{
-				LineLight* Target = new LineLight(New);
-				Target->Diffuse = Diffuse;
-				Target->Emission = Emission;
-				memcpy(Target->Projection, Projection, sizeof(Trigonometry::Matrix4x4) * 6);
-				memcpy(Target->View, View, sizeof(Trigonometry::Matrix4x4) * 6);
-				memcpy(&Target->Shadow, &Shadow, sizeof(Shadow));
-				memcpy(&Target->Sky, &Sky, sizeof(Sky));
+				line_light* target = new line_light(init);
+				target->diffuse = diffuse;
+				target->emission = emission;
+				memcpy(target->projection, projection, sizeof(trigonometry::matrix4x4) * 6);
+				memcpy(target->view, view, sizeof(trigonometry::matrix4x4) * 6);
+				memcpy(&target->shadow, &shadow, sizeof(shadow));
+				memcpy(&target->sky, &sky, sizeof(sky));
 
-				return Target;
+				return target;
 			}
-			void LineLight::GenerateOrigin()
+			void line_light::generate_origin()
 			{
-				auto* Viewer = (Components::Camera*)Parent->GetScene()->GetCamera();
-				Trigonometry::Vector3 Direction = Parent->GetTransform()->GetPosition().sNormalize();
-				Trigonometry::Vector3 Position = Viewer->GetEntity()->GetTransform()->GetPosition();
-				Trigonometry::Matrix4x4 LightView = Trigonometry::Matrix4x4::CreateLookAt(Position, Position - Direction, Trigonometry::Vector3::Up());
-				Trigonometry::Matrix4x4 ViewToLight = Viewer->GetView().Inv() * LightView;
-				float FieldOfView = Compute::Mathf::Deg2Rad() * Viewer->FieldOfView;
-				float Aspect = Viewer->GetAspect();
-
-				if (Shadow.Cascades > 6)
-					return;
-
-				for (uint32_t i = 0; i < Shadow.Cascades; i++)
+				auto* viewer = (components::camera*)parent->get_scene()->get_camera();
+				trigonometry::vector3 direction = parent->get_transform()->get_position().snormalize();
+				trigonometry::vector3 position = viewer->get_entity()->get_transform()->get_position();
+				trigonometry::matrix4x4 light_view = trigonometry::matrix4x4::create_look_at(position, position - direction, trigonometry::vector3::up());
+				trigonometry::matrix4x4 view_to_light = viewer->get_view().inv() * light_view;
+				uint32_t cascades = std::min<uint32_t>(shadow.cascades, 6);
+				float size_box = 10.0f;
+				float plane_box = 5.0f;
+				for (uint32_t i = 0; i < cascades; i++)
 				{
-					float Near = (i < 1 ? 0.1f : Shadow.Distance[i - 1]), Far = Shadow.Distance[i];
-					Trigonometry::Frustum8C Frustum(FieldOfView, Aspect, Near, Far);
-					Frustum.Transform(ViewToLight);
+					float near = (i < 1 ? 0.1f : shadow.distance[i - 1]), far = shadow.distance[i];
+					trigonometry::frustum8c frustum(compute::mathf::deg2rad() * 90.0f, 1.0f, near, far);
+					frustum.transform(view_to_light);
 
-					Trigonometry::Vector2 X, Y, Z;
-					Frustum.GetBoundingBox(&X, &Y, &Z);
+					trigonometry::vector2 x, y, z;
+					frustum.get_bounding_box(1.25f, &x, &y, &z);
+					x = trigonometry::vector2(std::min(x.x, -size_box), std::max(x.y, size_box));
+					y = trigonometry::vector2(std::min(y.x, -size_box), std::max(y.y, size_box));
+					z = trigonometry::vector2(std::min(z.x, -plane_box), std::max(z.y, plane_box));
 
-					if (Z.X > -1.0f)
-						Z.X = -1.0f;
-					if (Z.Y < 1.0f)
-						Z.Y = 1.0f;
-
-					Projection[i] = Trigonometry::Matrix4x4::CreateOrthographicOffCenter(X.X, X.Y, Y.X, Y.Y, Z.X * Shadow.Near, Z.Y * Shadow.Far);
-					View[i] = LightView;
+					projection[i] = trigonometry::matrix4x4::create_orthographic_off_center(x.x, x.y, y.x, y.y, z.x * shadow.near, z.y * shadow.far);
+					view[i] = light_view;
 				}
 			}
 
-			SurfaceLight::SurfaceLight(Entity* Ref) : Component(Ref, ActorSet::Cullable), Projection(Trigonometry::Matrix4x4::CreatePerspective(90.0f, 1, 0.01f, 100.0f))
+			surface_light::surface_light(entity* ref) : component(ref, actor_set::cullable), projection(trigonometry::matrix4x4::create_perspective(90.0f, 1, 0.01f, 100.0f))
 			{
 			}
-			SurfaceLight::~SurfaceLight()
+			surface_light::~surface_light()
 			{
-				Core::Memory::Release(DiffuseMapX[0]);
-				Core::Memory::Release(DiffuseMapX[1]);
-				Core::Memory::Release(DiffuseMapY[0]);
-				Core::Memory::Release(DiffuseMapY[1]);
-				Core::Memory::Release(DiffuseMapZ[0]);
-				Core::Memory::Release(DiffuseMapZ[1]);
-				Core::Memory::Release(DiffuseMap);
-				Core::Memory::Release(Probe);
+				core::memory::release(diffuse_map_x[0]);
+				core::memory::release(diffuse_map_x[1]);
+				core::memory::release(diffuse_map_y[0]);
+				core::memory::release(diffuse_map_y[1]);
+				core::memory::release(diffuse_map_z[0]);
+				core::memory::release(diffuse_map_z[1]);
+				core::memory::release(diffuse_map);
+				core::memory::release(probe);
 			}
-			void SurfaceLight::Deserialize(Core::Schema* Node)
+			void surface_light::deserialize(core::schema* node)
 			{
-				VI_ASSERT(Node != nullptr, "schema should be set");
+				VI_ASSERT(node != nullptr, "schema should be set");
 
-				auto* Scene = Parent->GetScene(); Core::String Path;
-				if (!Series::Unpack(Node->Find("diffuse-map"), &Path) || Path.empty())
+				auto* scene = parent->get_scene(); core::string path;
+				if (!series::unpack(node->find("diffuse-map"), &path) || path.empty())
 				{
-					if (Series::Unpack(Node->Find("diffuse-map-px"), &Path))
+					if (series::unpack(node->find("diffuse-map-px"), &path))
 					{
-						Scene->LoadResource<Graphics::Texture2D>(this, Path, [this](ExpectsContent<Graphics::Texture2D*>&& NewTexture)
+						scene->load_resource<graphics::texture_2d>(this, path, [this](expects_content<graphics::texture_2d*>&& new_texture)
 						{
-							Core::Memory::Release(DiffuseMapX[0]);
-							if (NewTexture && *NewTexture != nullptr)
+							core::memory::release(diffuse_map_x[0]);
+							if (new_texture && *new_texture != nullptr)
 							{
-								DiffuseMapX[0] = *NewTexture;
-								DiffuseMapX[0]->AddRef();
+								diffuse_map_x[0] = *new_texture;
+								diffuse_map_x[0]->add_ref();
 							}
 						});
 					}
 
-					if (Series::Unpack(Node->Find("diffuse-map-nx"), &Path))
+					if (series::unpack(node->find("diffuse-map-nx"), &path))
 					{
-						Scene->LoadResource<Graphics::Texture2D>(this, Path, [this](ExpectsContent<Graphics::Texture2D*>&& NewTexture)
+						scene->load_resource<graphics::texture_2d>(this, path, [this](expects_content<graphics::texture_2d*>&& new_texture)
 						{
-							Core::Memory::Release(DiffuseMapX[1]);
-							if (NewTexture && *NewTexture != nullptr)
+							core::memory::release(diffuse_map_x[1]);
+							if (new_texture && *new_texture != nullptr)
 							{
-								DiffuseMapX[1] = *NewTexture;
-								DiffuseMapX[1]->AddRef();
+								diffuse_map_x[1] = *new_texture;
+								diffuse_map_x[1]->add_ref();
 							}
 						});
 					}
 
-					if (Series::Unpack(Node->Find("diffuse-map-py"), &Path))
+					if (series::unpack(node->find("diffuse-map-py"), &path))
 					{
-						Scene->LoadResource<Graphics::Texture2D>(this, Path, [this](ExpectsContent<Graphics::Texture2D*>&& NewTexture)
+						scene->load_resource<graphics::texture_2d>(this, path, [this](expects_content<graphics::texture_2d*>&& new_texture)
 						{
-							Core::Memory::Release(DiffuseMapY[0]);
-							if (NewTexture && *NewTexture != nullptr)
+							core::memory::release(diffuse_map_y[0]);
+							if (new_texture && *new_texture != nullptr)
 							{
-								DiffuseMapY[0] = *NewTexture;
-								DiffuseMapY[0]->AddRef();
+								diffuse_map_y[0] = *new_texture;
+								diffuse_map_y[0]->add_ref();
 							}
 						});
 					}
 
-					if (Series::Unpack(Node->Find("diffuse-map-ny"), &Path))
+					if (series::unpack(node->find("diffuse-map-ny"), &path))
 					{
-						Scene->LoadResource<Graphics::Texture2D>(this, Path, [this](ExpectsContent<Graphics::Texture2D*>&& NewTexture)
+						scene->load_resource<graphics::texture_2d>(this, path, [this](expects_content<graphics::texture_2d*>&& new_texture)
 						{
-							Core::Memory::Release(DiffuseMapY[1]);
-							if (NewTexture && *NewTexture != nullptr)
+							core::memory::release(diffuse_map_y[1]);
+							if (new_texture && *new_texture != nullptr)
 							{
-								DiffuseMapY[1] = *NewTexture;
-								DiffuseMapY[1]->AddRef();
+								diffuse_map_y[1] = *new_texture;
+								diffuse_map_y[1]->add_ref();
 							}
 						});
 					}
 
-					if (Series::Unpack(Node->Find("diffuse-map-pz"), &Path))
+					if (series::unpack(node->find("diffuse-map-pz"), &path))
 					{
-						Scene->LoadResource<Graphics::Texture2D>(this, Path, [this](ExpectsContent<Graphics::Texture2D*>&& NewTexture)
+						scene->load_resource<graphics::texture_2d>(this, path, [this](expects_content<graphics::texture_2d*>&& new_texture)
 						{
-							Core::Memory::Release(DiffuseMapZ[0]);
-							if (NewTexture && *NewTexture != nullptr)
+							core::memory::release(diffuse_map_z[0]);
+							if (new_texture && *new_texture != nullptr)
 							{
-								DiffuseMapZ[0] = *NewTexture;
-								DiffuseMapZ[0]->AddRef();
+								diffuse_map_z[0] = *new_texture;
+								diffuse_map_z[0]->add_ref();
 							}
 						});
 					}
 
-					if (Series::Unpack(Node->Find("diffuse-map-nz"), &Path))
+					if (series::unpack(node->find("diffuse-map-nz"), &path))
 					{
-						Scene->LoadResource<Graphics::Texture2D>(this, Path, [this](ExpectsContent<Graphics::Texture2D*>&& NewTexture)
+						scene->load_resource<graphics::texture_2d>(this, path, [this](expects_content<graphics::texture_2d*>&& new_texture)
 						{
-							Core::Memory::Release(DiffuseMapZ[1]);
-							if (NewTexture && *NewTexture != nullptr)
+							core::memory::release(diffuse_map_z[1]);
+							if (new_texture && *new_texture != nullptr)
 							{
-								DiffuseMapZ[1] = *NewTexture;
-								DiffuseMapZ[1]->AddRef();
+								diffuse_map_z[1] = *new_texture;
+								diffuse_map_z[1]->add_ref();
 							}
 						});
 					}
 				}
 				else
 				{
-					Scene->LoadResource<Graphics::Texture2D>(this, Path, [this](ExpectsContent<Graphics::Texture2D*>&& NewTexture)
+					scene->load_resource<graphics::texture_2d>(this, path, [this](expects_content<graphics::texture_2d*>&& new_texture)
 					{
-						Core::Memory::Release(DiffuseMap);
-						if (NewTexture && *NewTexture != nullptr)
+						core::memory::release(diffuse_map);
+						if (new_texture && *new_texture != nullptr)
 						{
-							DiffuseMap = *NewTexture;
-							DiffuseMap->AddRef();
+							diffuse_map = *new_texture;
+							diffuse_map->add_ref();
 						}
 					});
 				}
 
-				Core::Vector<Trigonometry::Matrix4x4> Views;
-				HeavySeries::Unpack(Node->Find("projection"), &Projection);
-				HeavySeries::Unpack(Node->Find("view"), &Views);
-				HeavySeries::Unpack(Node->Find("tick"), &Tick);
-				HeavySeries::Unpack(Node->Find("diffuse"), &Diffuse);
-				HeavySeries::Unpack(Node->Find("size"), &Size);
-				Series::Unpack(Node->Find("emission"), &Emission);
-				Series::Unpack(Node->Find("infinity"), &Infinity);
-				Series::Unpack(Node->Find("parallax"), &Parallax);
-				Series::Unpack(Node->Find("static-mask"), &StaticMask);
+				core::vector<trigonometry::matrix4x4> views;
+				heavy_series::unpack(node->find("projection"), &projection);
+				heavy_series::unpack(node->find("view"), &views);
+				heavy_series::unpack(node->find("tick"), &tick);
+				heavy_series::unpack(node->find("diffuse"), &diffuse);
+				heavy_series::unpack(node->find("size"), &size);
+				series::unpack(node->find("emission"), &emission);
+				series::unpack(node->find("infinity"), &infinity);
+				series::unpack(node->find("parallax"), &parallax);
+				series::unpack(node->find("static-mask"), &static_mask);
 
-				size_t Count = Compute::Math<size_t>::Min(Views.size(), 6);
-				for (size_t i = 0; i < Count; i++)
-					View[i] = Views[i];
+				size_t count = compute::math<size_t>::min(views.size(), 6);
+				for (size_t i = 0; i < count; i++)
+					view[i] = views[i];
 
-				if (!DiffuseMap)
-					SetDiffuseMap(DiffuseMapX, DiffuseMapY, DiffuseMapZ);
+				if (!diffuse_map)
+					set_diffuse_map(diffuse_map_x, diffuse_map_y, diffuse_map_z);
 				else
-					SetDiffuseMap(DiffuseMap);
+					set_diffuse_map(diffuse_map);
 			}
-			void SurfaceLight::Serialize(Core::Schema* Node)
+			void surface_light::serialize(core::schema* node)
 			{
-				VI_ASSERT(Node != nullptr, "schema should be set");
+				VI_ASSERT(node != nullptr, "schema should be set");
 
-				auto* Scene = Parent->GetScene();
-				if (!DiffuseMap)
+				auto* scene = parent->get_scene();
+				if (!diffuse_map)
 				{
-					Series::Pack(Node->Set("diffuse-map-px"), Scene->FindResourceId<Graphics::Texture2D>(DiffuseMapX[0]));
-					Series::Pack(Node->Set("diffuse-map-nx"), Scene->FindResourceId<Graphics::Texture2D>(DiffuseMapX[1]));
-					Series::Pack(Node->Set("diffuse-map-py"), Scene->FindResourceId<Graphics::Texture2D>(DiffuseMapY[0]));
-					Series::Pack(Node->Set("diffuse-map-ny"), Scene->FindResourceId<Graphics::Texture2D>(DiffuseMapY[1]));
-					Series::Pack(Node->Set("diffuse-map-pz"), Scene->FindResourceId<Graphics::Texture2D>(DiffuseMapZ[0]));
-					Series::Pack(Node->Set("diffuse-map-nz"), Scene->FindResourceId<Graphics::Texture2D>(DiffuseMapZ[1]));
+					series::pack(node->set("diffuse-map-px"), scene->find_resource_id<graphics::texture_2d>(diffuse_map_x[0]));
+					series::pack(node->set("diffuse-map-nx"), scene->find_resource_id<graphics::texture_2d>(diffuse_map_x[1]));
+					series::pack(node->set("diffuse-map-py"), scene->find_resource_id<graphics::texture_2d>(diffuse_map_y[0]));
+					series::pack(node->set("diffuse-map-ny"), scene->find_resource_id<graphics::texture_2d>(diffuse_map_y[1]));
+					series::pack(node->set("diffuse-map-pz"), scene->find_resource_id<graphics::texture_2d>(diffuse_map_z[0]));
+					series::pack(node->set("diffuse-map-nz"), scene->find_resource_id<graphics::texture_2d>(diffuse_map_z[1]));
 				}
 				else
-					Series::Pack(Node->Set("diffuse-map"), Scene->FindResourceId<Graphics::Texture2D>(DiffuseMap));
+					series::pack(node->set("diffuse-map"), scene->find_resource_id<graphics::texture_2d>(diffuse_map));
 
-				Core::Vector<Trigonometry::Matrix4x4> Views;
+				core::vector<trigonometry::matrix4x4> views;
 				for (int64_t i = 0; i < 6; i++)
-					Views.push_back(View[i]);
+					views.push_back(view[i]);
 
-				HeavySeries::Pack(Node->Set("projection"), Projection);
-				HeavySeries::Pack(Node->Set("view"), Views);
-				HeavySeries::Pack(Node->Set("tick"), Tick);
-				HeavySeries::Pack(Node->Set("size"), Size);
-				HeavySeries::Pack(Node->Set("diffuse"), Diffuse);
-				Series::Pack(Node->Set("emission"), Emission);
-				Series::Pack(Node->Set("infinity"), Infinity);
-				Series::Pack(Node->Set("parallax"), Parallax);
-				Series::Pack(Node->Set("static-mask"), StaticMask);
+				heavy_series::pack(node->set("projection"), projection);
+				heavy_series::pack(node->set("view"), views);
+				heavy_series::pack(node->set("tick"), tick);
+				heavy_series::pack(node->set("size"), size);
+				heavy_series::pack(node->set("diffuse"), diffuse);
+				series::pack(node->set("emission"), emission);
+				series::pack(node->set("infinity"), infinity);
+				series::pack(node->set("parallax"), parallax);
+				series::pack(node->set("static-mask"), static_mask);
 			}
-			size_t SurfaceLight::GetUnitBounds(Trigonometry::Vector3& Min, Trigonometry::Vector3& Max) const
+			size_t surface_light::get_unit_bounds(trigonometry::vector3& min, trigonometry::vector3& max) const
 			{
-				Min = Size.Radius * -1.25f;
-				Max = Size.Radius * 1.25f;
+				min = size.radius * -1.25f;
+				max = size.radius * 1.25f;
 				return BOX_LIGHT;
 			}
-			float SurfaceLight::GetVisibility(const Viewer& View, float Distance) const
+			float surface_light::get_visibility(const viewer& view, float distance) const
 			{
-				if (Infinity > 0.0f)
+				if (infinity > 0.0f)
 					return 1.0f;
 
-				return GetVisibilityRadius(Parent, View, Distance);
+				return get_visibility_radius(parent, view, distance);
 			}
-			Component* SurfaceLight::Copy(Entity* New) const
+			component* surface_light::copy(entity* init) const
 			{
-				SurfaceLight* Target = new SurfaceLight(New);
-				Target->Projection = Projection;
-				Target->Diffuse = Diffuse;
-				Target->Emission = Emission;
-				Target->Size = Size;
-				Target->Tick = Tick;
-				memcpy(Target->View, View, 6 * sizeof(Trigonometry::Matrix4x4));
+				surface_light* target = new surface_light(init);
+				target->projection = projection;
+				target->diffuse = diffuse;
+				target->emission = emission;
+				target->size = size;
+				target->tick = tick;
+				memcpy(target->view, view, 6 * sizeof(trigonometry::matrix4x4));
 
-				if (!DiffuseMap)
-					Target->SetDiffuseMap(DiffuseMapX, DiffuseMapY, DiffuseMapZ);
+				if (!diffuse_map)
+					target->set_diffuse_map(diffuse_map_x, diffuse_map_y, diffuse_map_z);
 				else
-					Target->SetDiffuseMap(DiffuseMap);
+					target->set_diffuse_map(diffuse_map);
 
-				return Target;
+				return target;
 			}
-			void SurfaceLight::SetProbeCache(Graphics::TextureCube* NewCache)
+			void surface_light::set_probe_cache(graphics::texture_cube* new_cache)
 			{
-				Probe = NewCache;
+				probe = new_cache;
 			}
-			void SurfaceLight::SetSize(const Attenuation& Value)
+			void surface_light::set_size(const attenuation& value)
 			{
-				Size = Value;
-				GetEntity()->GetTransform()->MakeDirty();
+				size = value;
+				get_entity()->get_transform()->make_dirty();
 			}
-			bool SurfaceLight::SetDiffuseMap(Graphics::Texture2D* Map)
+			bool surface_light::set_diffuse_map(graphics::texture_2d* map)
 			{
-				VI_ASSERT(Parent->GetScene()->GetDevice() != nullptr, "graphics device should be set");
-				Core::Memory::Release(DiffuseMapX[0]);
-				Core::Memory::Release(DiffuseMapX[1]);
-				Core::Memory::Release(DiffuseMapY[0]);
-				Core::Memory::Release(DiffuseMapY[1]);
-				Core::Memory::Release(DiffuseMapZ[0]);
-				Core::Memory::Release(DiffuseMapZ[1]);
-				Core::Memory::Release(DiffuseMap);
+				VI_ASSERT(parent->get_scene()->get_device() != nullptr, "graphics device should be set");
+				core::memory::release(diffuse_map_x[0]);
+				core::memory::release(diffuse_map_x[1]);
+				core::memory::release(diffuse_map_y[0]);
+				core::memory::release(diffuse_map_y[1]);
+				core::memory::release(diffuse_map_z[0]);
+				core::memory::release(diffuse_map_z[1]);
+				core::memory::release(diffuse_map);
 
-				DiffuseMap = Map;
-				if (!DiffuseMap)
+				diffuse_map = map;
+				if (!diffuse_map)
 					return false;
 
-				DiffuseMap->AddRef();
-				Core::Memory::Release(Probe);
-				Probe = Parent->GetScene()->GetDevice()->CreateTextureCube(DiffuseMap).Or(nullptr);
-				return Probe != nullptr;
+				diffuse_map->add_ref();
+				core::memory::release(probe);
+				probe = parent->get_scene()->get_device()->create_texture_cube(diffuse_map).or_else(nullptr);
+				return probe != nullptr;
 			}
-			bool SurfaceLight::SetDiffuseMap(Graphics::Texture2D* const MapX[2], Graphics::Texture2D* const MapY[2], Graphics::Texture2D* const MapZ[2])
+			bool surface_light::set_diffuse_map(graphics::texture_2d* const map_x[2], graphics::texture_2d* const map_y[2], graphics::texture_2d* const map_z[2])
 			{
-				VI_ASSERT(Parent->GetScene()->GetDevice() != nullptr, "graphics device should be set");
-				Core::Memory::Release(DiffuseMapX[0]);
-				Core::Memory::Release(DiffuseMapX[1]);
-				Core::Memory::Release(DiffuseMapY[0]);
-				Core::Memory::Release(DiffuseMapY[1]);
-				Core::Memory::Release(DiffuseMapZ[0]);
-				Core::Memory::Release(DiffuseMapZ[1]);
-				Core::Memory::Release(DiffuseMap);
-				if (!MapX[0] || !MapX[1] || !MapY[0] || !MapY[1] || !MapZ[0] || !MapZ[1])
+				VI_ASSERT(parent->get_scene()->get_device() != nullptr, "graphics device should be set");
+				core::memory::release(diffuse_map_x[0]);
+				core::memory::release(diffuse_map_x[1]);
+				core::memory::release(diffuse_map_y[0]);
+				core::memory::release(diffuse_map_y[1]);
+				core::memory::release(diffuse_map_z[0]);
+				core::memory::release(diffuse_map_z[1]);
+				core::memory::release(diffuse_map);
+				if (!map_x[0] || !map_x[1] || !map_y[0] || !map_y[1] || !map_z[0] || !map_z[1])
 					return false;
 
-				Graphics::Texture2D* Resources[6];
-				Resources[0] = DiffuseMapX[0] = MapX[0]; MapX[0]->AddRef();
-				Resources[1] = DiffuseMapX[1] = MapX[1]; MapX[1]->AddRef();
-				Resources[2] = DiffuseMapY[0] = MapY[0]; MapY[0]->AddRef();
-				Resources[3] = DiffuseMapY[1] = MapY[1]; MapY[1]->AddRef();
-				Resources[4] = DiffuseMapZ[0] = MapZ[0]; MapZ[0]->AddRef();
-				Resources[5] = DiffuseMapZ[1] = MapZ[1]; MapZ[1]->AddRef();
+				graphics::texture_2d* resources[6];
+				resources[0] = diffuse_map_x[0] = map_x[0]; map_x[0]->add_ref();
+				resources[1] = diffuse_map_x[1] = map_x[1]; map_x[1]->add_ref();
+				resources[2] = diffuse_map_y[0] = map_y[0]; map_y[0]->add_ref();
+				resources[3] = diffuse_map_y[1] = map_y[1]; map_y[1]->add_ref();
+				resources[4] = diffuse_map_z[0] = map_z[0]; map_z[0]->add_ref();
+				resources[5] = diffuse_map_z[1] = map_z[1]; map_z[1]->add_ref();
 
-				Core::Memory::Release(Probe);
-				Probe = Parent->GetScene()->GetDevice()->CreateTextureCube(Resources).Or(nullptr);
-				return Probe != nullptr;
+				core::memory::release(probe);
+				probe = parent->get_scene()->get_device()->create_texture_cube(resources).or_else(nullptr);
+				return probe != nullptr;
 			}
-			bool SurfaceLight::IsImageBased() const
+			bool surface_light::is_image_based() const
 			{
-				return DiffuseMapX[0] != nullptr || DiffuseMap != nullptr;
+				return diffuse_map_x[0] != nullptr || diffuse_map != nullptr;
 			}
-			const Attenuation& SurfaceLight::GetSize()
+			const attenuation& surface_light::get_size()
 			{
-				return Size;
+				return size;
 			}
-			Graphics::TextureCube* SurfaceLight::GetProbeCache() const
+			graphics::texture_cube* surface_light::get_probe_cache() const
 			{
-				return Probe;
+				return probe;
 			}
-			Graphics::Texture2D* SurfaceLight::GetDiffuseMapXP()
+			graphics::texture_2d* surface_light::get_diffuse_map_xp()
 			{
-				return DiffuseMapX[0];
+				return diffuse_map_x[0];
 			}
-			Graphics::Texture2D* SurfaceLight::GetDiffuseMapXN()
+			graphics::texture_2d* surface_light::get_diffuse_map_xn()
 			{
-				return DiffuseMapX[1];
+				return diffuse_map_x[1];
 			}
-			Graphics::Texture2D* SurfaceLight::GetDiffuseMapYP()
+			graphics::texture_2d* surface_light::get_diffuse_map_yp()
 			{
-				return DiffuseMapY[0];
+				return diffuse_map_y[0];
 			}
-			Graphics::Texture2D* SurfaceLight::GetDiffuseMapYN()
+			graphics::texture_2d* surface_light::get_diffuse_map_yn()
 			{
-				return DiffuseMapY[1];
+				return diffuse_map_y[1];
 			}
-			Graphics::Texture2D* SurfaceLight::GetDiffuseMapZP()
+			graphics::texture_2d* surface_light::get_diffuse_map_zp()
 			{
-				return DiffuseMapZ[0];
+				return diffuse_map_z[0];
 			}
-			Graphics::Texture2D* SurfaceLight::GetDiffuseMapZN()
+			graphics::texture_2d* surface_light::get_diffuse_map_zn()
 			{
-				return DiffuseMapZ[1];
+				return diffuse_map_z[1];
 			}
-			Graphics::Texture2D* SurfaceLight::GetDiffuseMap()
+			graphics::texture_2d* surface_light::get_diffuse_map()
 			{
-				return DiffuseMap;
+				return diffuse_map;
 			}
 
-			Illuminator::Illuminator(Entity* Ref) : Component(Ref, ActorSet::Cullable), VoxelMap(nullptr), Regenerate(true)
+			illuminator::illuminator(entity* ref) : component(ref, actor_set::cullable), voxel_map(nullptr), regenerate(true)
 			{
-				Inside.Delay = 30.0;
-				Outside.Delay = 10000.0;
-				RayStep = 0.5f;
-				MaxSteps = 256.0f;
-				Distance = 12.0f;
-				Radiance = 1.0f;
-				Occlusion = 0.33f;
-				Specular = 2.0f;
-				Length = 1.0f;
-				Margin = 3.828424f;
-				Offset = -0.01f;
-				Angle = 0.5;
-				Bleeding = 0.33f;
+				inside.delay = 30.0;
+				outside.delay = 10000.0;
+				ray_step = 0.5f;
+				max_steps = 256.0f;
+				distance = 12.0f;
+				radiance = 1.0f;
+				occlusion = 0.33f;
+				specular = 2.0f;
+				length = 1.0f;
+				margin = 3.828424f;
+				offset = -0.01f;
+				angle = 0.5;
+				bleeding = 0.33f;
 			}
-			void Illuminator::Deserialize(Core::Schema* Node)
+			void illuminator::deserialize(core::schema* node)
 			{
-				VI_ASSERT(Node != nullptr, "schema should be set");
+				VI_ASSERT(node != nullptr, "schema should be set");
 
-				Series::Unpack(Node->Find("inside-delay"), &Inside.Delay);
-				Series::Unpack(Node->Find("outside-delay"), &Outside.Delay);
-				Series::Unpack(Node->Find("ray-step"), &RayStep);
-				Series::Unpack(Node->Find("max-steps"), &MaxSteps);
-				Series::Unpack(Node->Find("distance"), &Distance);
-				Series::Unpack(Node->Find("radiance"), &Radiance);
-				Series::Unpack(Node->Find("length"), &Length);
-				Series::Unpack(Node->Find("margin"), &Margin);
-				Series::Unpack(Node->Find("offset"), &Offset);
-				Series::Unpack(Node->Find("angle"), &Angle);
-				Series::Unpack(Node->Find("occlusion"), &Occlusion);
-				Series::Unpack(Node->Find("specular"), &Specular);
-				Series::Unpack(Node->Find("bleeding"), &Bleeding);
+				series::unpack(node->find("inside-delay"), &inside.delay);
+				series::unpack(node->find("outside-delay"), &outside.delay);
+				series::unpack(node->find("ray-step"), &ray_step);
+				series::unpack(node->find("max-steps"), &max_steps);
+				series::unpack(node->find("distance"), &distance);
+				series::unpack(node->find("radiance"), &radiance);
+				series::unpack(node->find("length"), &length);
+				series::unpack(node->find("margin"), &margin);
+				series::unpack(node->find("offset"), &offset);
+				series::unpack(node->find("angle"), &angle);
+				series::unpack(node->find("occlusion"), &occlusion);
+				series::unpack(node->find("specular"), &specular);
+				series::unpack(node->find("bleeding"), &bleeding);
 			}
-			void Illuminator::Serialize(Core::Schema* Node)
+			void illuminator::serialize(core::schema* node)
 			{
-				VI_ASSERT(Node != nullptr, "schema should be set");
+				VI_ASSERT(node != nullptr, "schema should be set");
 
-				Series::Pack(Node->Set("inside-delay"), Inside.Delay);
-				Series::Pack(Node->Set("outside-delay"), Outside.Delay);
-				Series::Pack(Node->Set("ray-step"), RayStep);
-				Series::Pack(Node->Set("max-steps"), MaxSteps);
-				Series::Pack(Node->Set("distance"), Distance);
-				Series::Pack(Node->Set("radiance"), Radiance);
-				Series::Pack(Node->Set("length"), Length);
-				Series::Pack(Node->Set("margin"), Margin);
-				Series::Pack(Node->Set("offset"), Offset);
-				Series::Pack(Node->Set("angle"), Angle);
-				Series::Pack(Node->Set("occlusion"), Occlusion);
-				Series::Pack(Node->Set("specular"), Specular);
-				Series::Pack(Node->Set("bleeding"), Bleeding);
+				series::pack(node->set("inside-delay"), inside.delay);
+				series::pack(node->set("outside-delay"), outside.delay);
+				series::pack(node->set("ray-step"), ray_step);
+				series::pack(node->set("max-steps"), max_steps);
+				series::pack(node->set("distance"), distance);
+				series::pack(node->set("radiance"), radiance);
+				series::pack(node->set("length"), length);
+				series::pack(node->set("margin"), margin);
+				series::pack(node->set("offset"), offset);
+				series::pack(node->set("angle"), angle);
+				series::pack(node->set("occlusion"), occlusion);
+				series::pack(node->set("specular"), specular);
+				series::pack(node->set("bleeding"), bleeding);
 			}
-			void Illuminator::Message(const std::string_view& Name, Core::VariantArgs& Args)
+			void illuminator::message(const std::string_view& name, core::variant_args& args)
 			{
-				if (Name == "depth-flush")
+				if (name == "depth-flush")
 				{
-					VoxelMap = nullptr;
-					Regenerate = true;
+					voxel_map = nullptr;
+					regenerate = true;
 				}
 			}
-			Component* Illuminator::Copy(Entity* New) const
+			component* illuminator::copy(entity* init) const
 			{
-				Illuminator* Target = new Illuminator(New);
-				Target->Inside = Inside;
-				Target->Outside = Outside;
-				Target->RayStep = RayStep;
-				Target->MaxSteps = MaxSteps;
-				Target->Radiance = Radiance;
-				Target->Length = Length;
-				Target->Occlusion = Occlusion;
-				Target->Specular = Specular;
+				illuminator* target = new illuminator(init);
+				target->inside = inside;
+				target->outside = outside;
+				target->ray_step = ray_step;
+				target->max_steps = max_steps;
+				target->radiance = radiance;
+				target->length = length;
+				target->occlusion = occlusion;
+				target->specular = specular;
 
-				return Target;
+				return target;
 			}
 
-			Camera::Camera(Entity* Ref) : Component(Ref, ActorSet::Synchronize), Mode(ProjectionMode::Perspective), Renderer(new RenderSystem(Ref->GetScene(), this)), Viewport({ 0, 0, 512, 512, 0, 1 })
+			camera::camera(entity* ref) : component(ref, actor_set::synchronize), mode(projection_mode::perspective), renderer(new render_system(ref->get_scene(), this)), viewport({ 0, 0, 512, 512, 0, 1 })
 			{
 			}
-			Camera::~Camera()
+			camera::~camera()
 			{
-				Core::Memory::Release(Renderer);
+				core::memory::release(renderer);
 			}
-			void Camera::Activate(Component* New)
+			void camera::activate(component* init)
 			{
-				VI_ASSERT(Parent->GetScene()->GetDevice() != nullptr, "graphics device should be set");
-				VI_ASSERT(Parent->GetScene()->GetDevice()->GetRenderTarget() != nullptr, "render target should be set");
+				VI_ASSERT(parent->get_scene()->get_device() != nullptr, "graphics device should be set");
+				VI_ASSERT(parent->get_scene()->get_device()->get_render_target() != nullptr, "render target should be set");
 
-				SceneGraph* Scene = Parent->GetScene();
-				Viewport = Scene->GetDevice()->GetRenderTarget()->GetViewport();
-				if (New == this)
-					Renderer->Remount();
+				scene_graph* scene = parent->get_scene();
+				viewport = scene->get_device()->get_render_target()->get_viewport();
+				if (init == this)
+					renderer->remount();
 			}
-			void Camera::Deserialize(Core::Schema* Node)
+			void camera::deserialize(core::schema* node)
 			{
-				VI_ASSERT(Node != nullptr, "schema should be set");
-				VI_ASSERT(Parent->GetScene()->GetDevice() != nullptr, "graphics device should be set");
+				VI_ASSERT(node != nullptr, "schema should be set");
+				VI_ASSERT(parent->get_scene()->get_device() != nullptr, "graphics device should be set");
 
 				int _Mode = 0;
-				if (Series::Unpack(Node->Find("mode"), &_Mode))
-					Mode = (ProjectionMode)_Mode;
+				if (series::unpack(node->find("mode"), &_Mode))
+					mode = (projection_mode)_Mode;
 
-				HeavySeries::Unpack(Node->Find("projection"), &Projection);
-				Series::Unpack(Node->Find("field-of-view"), &FieldOfView);
-				Series::Unpack(Node->Find("far-plane"), &FarPlane);
-				Series::Unpack(Node->Find("near-plane"), &NearPlane);
-				Series::Unpack(Node->Find("width"), &Width);
-				Series::Unpack(Node->Find("height"), &Height);
-				Series::UnpackA(Node->Find("occluder-skips"), &Renderer->OccluderSkips);
-				Series::UnpackA(Node->Find("occludee-skips"), &Renderer->OccludeeSkips);
-				Series::UnpackA(Node->Find("occlusion-skips"), &Renderer->OcclusionSkips);
-				Series::Unpack(Node->Find("occlusion-cull"), &Renderer->OcclusionCulling);
-				Series::Unpack(Node->Find("occludee-scaling"), &Renderer->OccludeeScaling);
-				Series::UnpackA(Node->Find("max-queries"), &Renderer->MaxQueries);
+				heavy_series::unpack(node->find("projection"), &projection);
+				series::unpack(node->find("field-of-view"), &field_of_view);
+				series::unpack(node->find("far-plane"), &far_plane);
+				series::unpack(node->find("near-plane"), &near_plane);
+				series::unpack(node->find("width"), &width);
+				series::unpack(node->find("height"), &height);
+				series::unpack_a(node->find("occluder-skips"), &renderer->occluder_skips);
+				series::unpack_a(node->find("occludee-skips"), &renderer->occludee_skips);
+				series::unpack_a(node->find("occlusion-skips"), &renderer->occlusion_skips);
+				series::unpack(node->find("occlusion-cull"), &renderer->occlusion_culling);
+				series::unpack(node->find("occludee-scaling"), &renderer->occludee_scaling);
+				series::unpack_a(node->find("max-queries"), &renderer->max_queries);
 
-				Core::Vector<Core::Schema*> Renderers = Node->FetchCollection("renderers.renderer");
-				for (auto& Render : Renderers)
+				core::vector<core::schema*> renderers = node->fetch_collection("renderers.renderer");
+				for (auto& render : renderers)
 				{
-					uint64_t Id;
-					if (!Series::Unpack(Render->Find("id"), &Id))
+					uint64_t id;
+					if (!series::unpack(render->find("id"), &id))
 						continue;
 
-					Layer::Renderer* Target = Core::Composer::Create<Layer::Renderer>(Id, Renderer);
-					if (!Renderer->AddRenderer(Target))
+					layer::renderer* target = core::composer::create<layer::renderer>(id, renderer);
+					if (!renderer->add_renderer(target))
 						continue;
 
-					Core::Schema* Meta = Render->Find("metadata");
-					if (!Meta)
-						Meta = Render->Set("metadata");
+					core::schema* meta = render->find("metadata");
+					if (!meta)
+						meta = render->set("metadata");
 
-					Target->Deactivate();
-					Target->Deserialize(Meta);
-					Target->Activate();
-					Series::Unpack(Render->Find("active"), &Target->Active);
+					target->deactivate();
+					target->deserialize(meta);
+					target->activate();
+					series::unpack(render->find("active"), &target->active);
 				}
 			}
-			void Camera::Serialize(Core::Schema* Node)
+			void camera::serialize(core::schema* node)
 			{
-				VI_ASSERT(Node != nullptr, "schema should be set");
+				VI_ASSERT(node != nullptr, "schema should be set");
 
-				Series::Pack(Node->Set("mode"), (int)Mode);
-				HeavySeries::Pack(Node->Set("projection"), Projection);
-				Series::Pack(Node->Set("field-of-view"), FieldOfView);
-				Series::Pack(Node->Set("far-plane"), FarPlane);
-				Series::Pack(Node->Set("near-plane"), NearPlane);
-				Series::Pack(Node->Set("width"), Width);
-				Series::Pack(Node->Set("height"), Height);
-				Series::Pack(Node->Set("occluder-skips"), (uint64_t)Renderer->OccluderSkips);
-				Series::Pack(Node->Set("occludee-skips"), (uint64_t)Renderer->OccludeeSkips);
-				Series::Pack(Node->Set("occlusion-skips"), (uint64_t)Renderer->OcclusionSkips);
-				Series::Pack(Node->Set("occlusion-cull"), Renderer->OcclusionCulling);
-				Series::Pack(Node->Set("occludee-scaling"), Renderer->OccludeeScaling);
-				Series::Pack(Node->Set("max-queries"), (uint64_t)Renderer->MaxQueries);
+				series::pack(node->set("mode"), (int)mode);
+				heavy_series::pack(node->set("projection"), projection);
+				series::pack(node->set("field-of-view"), field_of_view);
+				series::pack(node->set("far-plane"), far_plane);
+				series::pack(node->set("near-plane"), near_plane);
+				series::pack(node->set("width"), width);
+				series::pack(node->set("height"), height);
+				series::pack(node->set("occluder-skips"), (uint64_t)renderer->occluder_skips);
+				series::pack(node->set("occludee-skips"), (uint64_t)renderer->occludee_skips);
+				series::pack(node->set("occlusion-skips"), (uint64_t)renderer->occlusion_skips);
+				series::pack(node->set("occlusion-cull"), renderer->occlusion_culling);
+				series::pack(node->set("occludee-scaling"), renderer->occludee_scaling);
+				series::pack(node->set("max-queries"), (uint64_t)renderer->max_queries);
 
-				Core::Schema* Renderers = Node->Set("renderers", Core::Var::Array());
-				for (auto* Next : Renderer->GetRenderers())
+				core::schema* renderers = node->set("renderers", core::var::array());
+				for (auto* next : renderer->get_renderers())
 				{
-					Core::Schema* Render = Renderers->Set("renderer");
-					Series::Pack(Render->Set("id"), Next->GetId());
-					Series::Pack(Render->Set("active"), Next->Active);
-					Next->Serialize(Render->Set("metadata"));
+					core::schema* render = renderers->set("renderer");
+					series::pack(render->set("id"), next->get_id());
+					series::pack(render->set("active"), next->active);
+					next->serialize(render->set("metadata"));
 				}
 			}
-			void Camera::Synchronize(Core::Timer* Time)
+			void camera::synchronize(core::timer* time)
 			{
-				float W = Width, H = Height;
-				if (W <= 0 || H <= 0)
+				float w = width, h = height;
+				if (w <= 0 || h <= 0)
 				{
-					W = Viewport.Width;
-					H = Viewport.Height;
+					w = viewport.width;
+					h = viewport.height;
 				}
 
-				if (Mode == ProjectionMode::Perspective)
-					Projection = Trigonometry::Matrix4x4::CreatePerspective(FieldOfView, W / H, NearPlane, FarPlane);
-				else if (Mode == ProjectionMode::Orthographic)
-					Projection = Trigonometry::Matrix4x4::CreateOrthographic(W, H, NearPlane, FarPlane);
+				if (mode == projection_mode::perspective)
+					projection = trigonometry::matrix4x4::create_perspective(field_of_view, w / h, near_plane, far_plane);
+				else if (mode == projection_mode::orthographic)
+					projection = trigonometry::matrix4x4::create_orthographic(w, h, near_plane, far_plane);
 			}
-			void Camera::GetViewer(Viewer* Output)
+			void camera::get_viewer(viewer* output)
 			{
-				VI_ASSERT(Output != nullptr, "viewer should be set");
+				VI_ASSERT(output != nullptr, "viewer should be set");
 
-				auto& Space = Parent->GetTransform()->GetSpacing(Trigonometry::Positioning::Global);
-				RenderCulling Culling = (Mode == ProjectionMode::Perspective ? RenderCulling::Linear : RenderCulling::Disable);
+				auto& space = parent->get_transform()->get_spacing(trigonometry::positioning::global);
+				render_culling culling = (mode == projection_mode::perspective ? render_culling::depth : render_culling::disable);
 
-				Output->Set(GetView(), Projection, Space.Position, Space.Rotation, FieldOfView, GetAspect(), NearPlane, FarPlane, Culling);
-				Output->Renderer = Renderer;
-				View = *Output;
+				output->set(get_view(), projection, space.position, space.rotation, field_of_view, get_aspect(), near_plane, far_plane, culling);
+				output->renderer = renderer;
+				view = *output;
 			}
-			void Camera::ResizeBuffers()
+			void camera::resize_buffers()
 			{
-				SceneGraph* Scene = Parent->GetScene();
-				Viewport = Scene->GetDevice()->GetRenderTarget()->GetViewport();
-				for (auto* Next : Renderer->GetRenderers())
-					Next->ResizeBuffers();
+				scene_graph* scene = parent->get_scene();
+				viewport = scene->get_device()->get_render_target()->get_viewport();
+				for (auto* next : renderer->get_renderers())
+					next->resize_buffers();
 			}
-			Viewer& Camera::GetViewer()
+			viewer& camera::get_viewer()
 			{
-				return View;
+				return view;
 			}
-			RenderSystem* Camera::GetRenderer()
+			render_system* camera::get_renderer()
 			{
-				return Renderer;
+				return renderer;
 			}
-			Trigonometry::Matrix4x4 Camera::GetProjection()
+			trigonometry::matrix4x4 camera::get_projection()
 			{
-				return Projection;
+				return projection;
 			}
-			Trigonometry::Vector3 Camera::GetViewPosition()
+			trigonometry::vector3 camera::get_view_position()
 			{
-				auto* Transform = Parent->GetTransform();
-				return Transform->GetPosition().InvX().InvY();
+				auto* transform = parent->get_transform();
+				return transform->get_position().inv_x().inv_y();
 			}
-			Trigonometry::Matrix4x4 Camera::GetViewProjection()
+			trigonometry::matrix4x4 camera::get_view_projection()
 			{
-				return GetView() * Projection;
+				return get_view() * projection;
 			}
-			Trigonometry::Matrix4x4 Camera::GetView()
+			trigonometry::matrix4x4 camera::get_view()
 			{
-				auto& Space = Parent->GetTransform()->GetSpacing(Trigonometry::Positioning::Global);
-				return Trigonometry::Matrix4x4::CreateView(Space.Position, Space.Rotation);
+				auto& space = parent->get_transform()->get_spacing(trigonometry::positioning::global);
+				return trigonometry::matrix4x4::create_view(space.position, space.rotation);
 			}
-			Trigonometry::Frustum8C Camera::GetFrustum8C()
+			trigonometry::frustum8c camera::get_frustum8c()
 			{
-				Trigonometry::Frustum8C Result(Compute::Mathf::Deg2Rad() * FieldOfView, GetAspect(), NearPlane, FarPlane * 0.25f);
-				Result.Transform(GetView().Inv());
-				return Result;
+				trigonometry::frustum8c result(compute::mathf::deg2rad() * field_of_view, get_aspect(), near_plane, far_plane * 0.25f);
+				result.transform(get_view().inv());
+				return result;
 			}
-			Trigonometry::Frustum6P Camera::GetFrustum6P()
+			trigonometry::frustum6p camera::get_frustum6p()
 			{
-				Trigonometry::Frustum6P Result(GetViewProjection());
-				return Result;
+				trigonometry::frustum6p result(get_view_projection());
+				return result;
 			}
-			Trigonometry::Ray Camera::GetScreenRay(const Trigonometry::Vector2& Position)
+			trigonometry::ray camera::get_screen_ray(const trigonometry::vector2& position)
 			{
-				float W = Width, H = Height;
-				if (W <= 0 || H <= 0)
+				float w = width, h = height;
+				if (w <= 0 || h <= 0)
 				{
-					Graphics::Viewport V = Renderer->GetDevice()->GetRenderTarget()->GetViewport();
-					W = V.Width; H = V.Height;
+					graphics::viewport v = renderer->get_device()->get_render_target()->get_viewport();
+					w = v.width; h = v.height;
 				}
 
-				return Trigonometry::Geometric::CreateCursorRay(Parent->GetTransform()->GetPosition(), Position, Trigonometry::Vector2(W, H), Projection.Inv(), GetView().Inv());
+				return trigonometry::geometric::create_cursor_ray(parent->get_transform()->get_position(), position, trigonometry::vector2(w, h), projection.inv(), get_view().inv());
 			}
-			Trigonometry::Ray Camera::GetCursorRay()
+			trigonometry::ray camera::get_cursor_ray()
 			{
-				auto* Activity = Parent->GetScene()->GetActivity();
-				if (!Activity)
-					return Trigonometry::Ray();
+				auto* activity = parent->get_scene()->get_activity();
+				if (!activity)
+					return trigonometry::ray();
 
-				return GetScreenRay(Activity->GetCursorPosition());
+				return get_screen_ray(activity->get_cursor_position());
 			}
-			float Camera::GetDistance(Entity* Other)
+			float camera::get_distance(entity* other)
 			{
-				VI_ASSERT(Other != nullptr, "other should be set");
-				return Other->GetTransform()->GetPosition().Distance(View.Position);
+				VI_ASSERT(other != nullptr, "other should be set");
+				return other->get_transform()->get_position().distance(view.position);
 			}
-			float Camera::GetWidth()
+			float camera::get_width()
 			{
-				float W = Width;
-				if (W <= 0)
-					W = Viewport.Width;
+				float w = width;
+				if (w <= 0)
+					w = viewport.width;
 
-				return W;
+				return w;
 			}
-			float Camera::GetHeight()
+			float camera::get_height()
 			{
-				float H = Height;
-				if (H <= 0)
-					H = Viewport.Height;
+				float h = height;
+				if (h <= 0)
+					h = viewport.height;
 
-				return H;
+				return h;
 			}
-			float Camera::GetAspect()
+			float camera::get_aspect()
 			{
-				float W = Width, H = Height;
-				if (W <= 0 || H <= 0)
+				float w = width, h = height;
+				if (w <= 0 || h <= 0)
 				{
-					W = Viewport.Width;
-					H = Viewport.Height;
+					w = viewport.width;
+					h = viewport.height;
 				}
 
-				return W / H;
+				return w / h;
 			}
-			bool Camera::RayTest(const Trigonometry::Ray& Ray, Entity* Other, Trigonometry::Vector3* Hit)
+			bool camera::ray_test(const trigonometry::ray& ray, entity* other, trigonometry::vector3* hit)
 			{
-				VI_ASSERT(Other != nullptr, "other should be set");
-				return Trigonometry::Geometric::CursorRayTest(Ray, Other->GetTransform()->GetBias(), Hit);
+				VI_ASSERT(other != nullptr, "other should be set");
+				return trigonometry::geometric::cursor_ray_test(ray, other->get_transform()->get_bias(), hit);
 			}
-			bool Camera::RayTest(const Trigonometry::Ray& Ray, const Trigonometry::Matrix4x4& World, Trigonometry::Vector3* Hit)
+			bool camera::ray_test(const trigonometry::ray& ray, const trigonometry::matrix4x4& world, trigonometry::vector3* hit)
 			{
-				return Trigonometry::Geometric::CursorRayTest(Ray, World, Hit);
+				return trigonometry::geometric::cursor_ray_test(ray, world, hit);
 			}
-			Component* Camera::Copy(Entity* New) const
+			component* camera::copy(entity* init) const
 			{
-				Camera* Target = new Camera(New);
-				Target->FarPlane = FarPlane;
-				Target->NearPlane = NearPlane;
-				Target->Width = Width;
-				Target->Height = Height;
-				Target->Mode = Mode;
-				Target->FieldOfView = FieldOfView;
-				Target->Projection = Projection;
+				camera* target = new camera(init);
+				target->far_plane = far_plane;
+				target->near_plane = near_plane;
+				target->width = width;
+				target->height = height;
+				target->mode = mode;
+				target->field_of_view = field_of_view;
+				target->projection = projection;
 
-				return Target;
+				return target;
 			}
 
-			Scriptable::Scriptable(Entity* Ref) : Component(Ref, ActorSet::Update | ActorSet::Message), Compiler(nullptr), Source(SourceType::Resource), Invoke(InvokeType::Typeless)
+			scriptable::scriptable(entity* ref) : component(ref, actor_set::update | actor_set::message), compiler(nullptr), source(source_type::resource), invoke(invoke_type::typeless)
 			{
 			}
-			Scriptable::~Scriptable()
+			scriptable::~scriptable()
 			{
-				Core::Memory::Release(Compiler);
+				core::memory::release(compiler);
 			}
-			void Scriptable::Deserialize(Core::Schema* Node)
+			void scriptable::deserialize(core::schema* node)
 			{
-				VI_ASSERT(Node != nullptr, "schema should be set");
+				VI_ASSERT(node != nullptr, "schema should be set");
 
-				Core::String Type;
-				if (Series::Unpack(Node->Find("source"), &Type))
+				core::string type;
+				if (series::unpack(node->find("source"), &type))
 				{
-					if (Type == "memory")
-						Source = SourceType::Memory;
-					else if (Type == "resource")
-						Source = SourceType::Resource;
+					if (type == "memory")
+						source = source_type::memory;
+					else if (type == "resource")
+						source = source_type::resource;
 				}
 
-				if (Series::Unpack(Node->Find("invoke"), &Type))
+				if (series::unpack(node->find("invoke"), &type))
 				{
-					if (Type == "typeless")
-						Invoke = InvokeType::Typeless;
-					else if (Type == "normal")
-						Invoke = InvokeType::Normal;
+					if (type == "typeless")
+						invoke = invoke_type::typeless;
+					else if (type == "normal")
+						invoke = invoke_type::normal;
 				}
 
-				if (!Series::Unpack(Node->Find("resource"), &Resource) || Resource.empty())
+				if (!series::unpack(node->find("resource"), &resource) || resource.empty())
 					return;
 
-				auto Success = LoadSource().Get();
-				if (Success)
-					DeserializeCall(Node).Wait();
+				auto success = load_source().get();
+				if (success)
+					deserialize_call(node).wait();
 			}
-			void Scriptable::Serialize(Core::Schema* Node)
+			void scriptable::serialize(core::schema* node)
 			{
-				VI_ASSERT(Node != nullptr, "schema should be set");
+				VI_ASSERT(node != nullptr, "schema should be set");
 
-				if (Source == SourceType::Memory)
-					Series::Pack(Node->Set("source"), "memory");
-				else if (Source == SourceType::Resource)
-					Series::Pack(Node->Set("source"), "resource");
+				if (source == source_type::memory)
+					series::pack(node->set("source"), "memory");
+				else if (source == source_type::resource)
+					series::pack(node->set("source"), "resource");
 
-				if (Invoke == InvokeType::Typeless)
-					Series::Pack(Node->Set("invoke"), "typeless");
-				else if (Invoke == InvokeType::Normal)
-					Series::Pack(Node->Set("invoke"), "normal");
+				if (invoke == invoke_type::typeless)
+					series::pack(node->set("invoke"), "typeless");
+				else if (invoke == invoke_type::normal)
+					series::pack(node->set("invoke"), "normal");
 
-				Series::Pack(Node->Set("resource"), Parent->GetScene()->AsResourcePath(Resource));
-				SerializeCall(Node).Wait();
+				series::pack(node->set("resource"), parent->get_scene()->as_resource_path(resource));
+				serialize_call(node).wait();
 			}
-			void Scriptable::Activate(Component* New)
+			void scriptable::activate(component* init)
 			{
-				if (!Parent->GetScene()->IsActive())
+				if (!parent->get_scene()->is_active())
 					return;
 
-				Call(Entry.Awake, [this, &New](Scripting::ImmediateContext* Context)
+				call(entry.awake, [this, &init](scripting::immediate_context* context)
 				{
-					if (Invoke == InvokeType::Typeless)
+					if (invoke == invoke_type::typeless)
 						return;
 
-					Component* Current = this;
-					Context->SetArgObject(0, Current);
-					Context->SetArgObject(1, New);
+					component* current = this;
+					context->set_arg_object(0, current);
+					context->set_arg_object(1, init);
 				});
 			}
-			void Scriptable::Deactivate()
+			void scriptable::deactivate()
 			{
-				Call(Entry.Asleep, [this](Scripting::ImmediateContext* Context)
+				call(entry.asleep, [this](scripting::immediate_context* context)
 				{
-					if (Invoke == InvokeType::Typeless)
+					if (invoke == invoke_type::typeless)
 						return;
 
-					Component* Current = this;
-					Context->SetArgObject(0, Current);
+					component* current = this;
+					context->set_arg_object(0, current);
 				});
 			}
-			void Scriptable::Update(Core::Timer* Time)
+			void scriptable::update(core::timer* time)
 			{
-				Call(Entry.Update, [this, &Time](Scripting::ImmediateContext* Context)
+				call(entry.update, [this, &time](scripting::immediate_context* context)
 				{
-					if (Invoke == InvokeType::Typeless)
+					if (invoke == invoke_type::typeless)
 						return;
 
-					Component* Current = this;
-					Context->SetArgObject(0, Current);
-					Context->SetArgObject(1, Time);
+					component* current = this;
+					context->set_arg_object(0, current);
+					context->set_arg_object(1, time);
 				});
 			}
-			void Scriptable::Message(const std::string_view& Name, Core::VariantArgs& Args)
+			void scriptable::message(const std::string_view& name, core::variant_args& args)
 			{
-				Call(Entry.Message, [this, Name, Args](Scripting::ImmediateContext* Context)
+				call(entry.message, [this, name, args](scripting::immediate_context* context)
 				{
-					if (Invoke == InvokeType::Typeless)
+					if (invoke == invoke_type::typeless)
 						return;
 
-					Scripting::Bindings::Dictionary* Map = Scripting::Bindings::Dictionary::Create(Compiler->GetVM());
-					if (Map != nullptr)
+					scripting::bindings::dictionary* map = scripting::bindings::dictionary::create(compiler->get_vm());
+					if (map != nullptr)
 					{
-						int TypeId = Compiler->GetVM()->GetTypeIdByDecl("variant");
-						for (auto& Item : Args)
+						int type_id = compiler->get_vm()->get_type_id_by_decl("variant");
+						for (auto& item : args)
 						{
-							Core::Variant Next = std::move(Item.second);
-							Map->Set(Item.first, &Next, TypeId);
+							core::variant next = std::move(item.second);
+							map->set(item.first, &next, type_id);
 						}
 					}
 
-					Component* Current = this;
-					Context->SetArgObject(0, Current);
-					Context->SetArgObject(1, (void*)&Name);
-					Context->SetArgObject(2, Map);
+					component* current = this;
+					context->set_arg_object(0, current);
+					context->set_arg_object(1, (void*)&name);
+					context->set_arg_object(2, map);
 				});
 			}
-			Component* Scriptable::Copy(Entity* New) const
+			component* scriptable::copy(entity* init) const
 			{
-				Scriptable* Target = new Scriptable(New);
-				Target->Invoke = Invoke;
-				Target->LoadSource(Source, Resource);
+				scriptable* target = new scriptable(init);
+				target->invoke = invoke;
+				target->load_source(source, resource);
 
-				if (!Compiler || !Target->Compiler)
-					return Target;
+				if (!compiler || !target->compiler)
+					return target;
 
-				Scripting::Module From = Compiler->GetModule();
-				Scripting::Module To = Target->Compiler->GetModule();
-				Scripting::VirtualMachine* VM = Compiler->GetVM();
+				scripting::library from = compiler->get_module();
+				scripting::library to = target->compiler->get_module();
+				scripting::virtual_machine* vm = compiler->get_vm();
 
-				if (!From.IsValid() || !To.IsValid())
-					return Target;
+				if (!from.is_valid() || !to.is_valid())
+					return target;
 
-				int Count = (int)From.GetPropertiesCount();
-				for (int i = 0; i < Count; i++)
+				int count = (int)from.get_properties_count();
+				for (int i = 0; i < count; i++)
 				{
-					Scripting::PropertyInfo fSource;
-					if (!From.GetProperty(i, &fSource))
+					scripting::property_info fSource;
+					if (!from.get_property(i, &fSource))
 						continue;
 
-					Scripting::PropertyInfo Dest;
-					if (!To.GetProperty(i, &Dest))
+					scripting::property_info dest;
+					if (!to.get_property(i, &dest))
 						continue;
 
-					if (fSource.TypeId != Dest.TypeId)
+					if (fSource.type_id != dest.type_id)
 						continue;
 
-					if (fSource.TypeId < (int)Scripting::TypeId::BOOL || fSource.TypeId >(int)Scripting::TypeId::DOUBLE)
+					if (fSource.type_id < (int)scripting::type_id::boolf || fSource.type_id >(int)scripting::type_id::doublef)
 					{
-						Scripting::TypeInfo Type = VM->GetTypeInfoById(fSource.TypeId);
-						if (fSource.Pointer != nullptr && Type.IsValid())
+						scripting::typeinfo type = vm->get_type_info_by_id(fSource.type_id);
+						if (fSource.pointer != nullptr && type.is_valid())
 						{
-							void* Object = VM->CreateObjectCopy(fSource.Pointer, Type);
-							if (Object != nullptr)
-								VM->AssignObject(Dest.Pointer, Object, Type);
+							void* object = vm->create_object_copy(fSource.pointer, type);
+							if (object != nullptr)
+								vm->assign_object(dest.pointer, object, type);
 						}
 					}
 					else
 					{
-						auto Size = VM->GetSizeOfPrimitiveType(fSource.TypeId);
-						if (Size)
-							memcpy(Dest.Pointer, fSource.Pointer, *Size);
+						auto size = vm->get_size_of_primitive_type(fSource.type_id);
+						if (size)
+							memcpy(dest.pointer, fSource.pointer, *size);
 					}
 				}
 
-				return Target;
+				return target;
 			}
-			Scripting::ExpectsPromiseVM<Scripting::Execution> Scriptable::DeserializeCall(Core::Schema* Node)
+			scripting::expects_promise_vm<scripting::execution> scriptable::deserialize_call(core::schema* node)
 			{
-				Core::Schema* Cache = Node->Find("cache");
-				if (Cache != nullptr)
+				core::schema* cache = node->find("cache");
+				if (cache != nullptr)
 				{
-					for (auto& Var : Cache->GetChilds())
+					for (auto& var : cache->get_childs())
 					{
-						int TypeId = -1;
-						if (!Series::Unpack(Var->Find("type"), &TypeId))
+						int type_id = -1;
+						if (!series::unpack(var->find("type"), &type_id))
 							continue;
 
-						switch ((Scripting::TypeId)TypeId)
+						switch ((scripting::type_id)type_id)
 						{
-							case Scripting::TypeId::BOOL:
+							case scripting::type_id::boolf:
 							{
-								bool Result = false;
-								if (Series::Unpack(Var->Find("data"), &Result))
-									SetTypePropertyByName(Var->Key.c_str(), Result);
+								bool result = false;
+								if (series::unpack(var->find("data"), &result))
+									set_type_property_by_name(var->key.c_str(), result);
 								break;
 							}
-							case Scripting::TypeId::INT8:
+							case scripting::type_id::int8:
 							{
-								int64_t Result = 0;
-								if (Series::Unpack(Var->Find("data"), &Result))
-									SetTypePropertyByName(Var->Key.c_str(), (char)Result);
+								int64_t result = 0;
+								if (series::unpack(var->find("data"), &result))
+									set_type_property_by_name(var->key.c_str(), (char)result);
 								break;
 							}
-							case Scripting::TypeId::INT16:
+							case scripting::type_id::int16:
 							{
-								int64_t Result = 0;
-								if (Series::Unpack(Var->Find("data"), &Result))
-									SetTypePropertyByName(Var->Key.c_str(), (short)Result);
+								int64_t result = 0;
+								if (series::unpack(var->find("data"), &result))
+									set_type_property_by_name(var->key.c_str(), (short)result);
 								break;
 							}
-							case Scripting::TypeId::INT32:
+							case scripting::type_id::int32:
 							{
-								int64_t Result = 0;
-								if (Series::Unpack(Var->Find("data"), &Result))
-									SetTypePropertyByName(Var->Key.c_str(), (int)Result);
+								int64_t result = 0;
+								if (series::unpack(var->find("data"), &result))
+									set_type_property_by_name(var->key.c_str(), (int)result);
 								break;
 							}
-							case Scripting::TypeId::INT64:
+							case scripting::type_id::int64:
 							{
-								int64_t Result = 0;
-								if (Series::Unpack(Var->Find("data"), &Result))
-									SetTypePropertyByName(Var->Key.c_str(), Result);
+								int64_t result = 0;
+								if (series::unpack(var->find("data"), &result))
+									set_type_property_by_name(var->key.c_str(), result);
 								break;
 							}
-							case Scripting::TypeId::UINT8:
+							case scripting::type_id::uint8:
 							{
-								int64_t Result = 0;
-								if (Series::Unpack(Var->Find("data"), &Result))
-									SetTypePropertyByName(Var->Key.c_str(), (uint8_t)Result);
+								int64_t result = 0;
+								if (series::unpack(var->find("data"), &result))
+									set_type_property_by_name(var->key.c_str(), (uint8_t)result);
 								break;
 							}
-							case Scripting::TypeId::UINT16:
+							case scripting::type_id::uint16:
 							{
-								int64_t Result = 0;
-								if (Series::Unpack(Var->Find("data"), &Result))
-									SetTypePropertyByName(Var->Key.c_str(), (uint16_t)Result);
+								int64_t result = 0;
+								if (series::unpack(var->find("data"), &result))
+									set_type_property_by_name(var->key.c_str(), (uint16_t)result);
 								break;
 							}
-							case Scripting::TypeId::UINT32:
+							case scripting::type_id::uint32:
 							{
-								int64_t Result = 0;
-								if (Series::Unpack(Var->Find("data"), &Result))
-									SetTypePropertyByName(Var->Key.c_str(), (uint32_t)Result);
+								int64_t result = 0;
+								if (series::unpack(var->find("data"), &result))
+									set_type_property_by_name(var->key.c_str(), (uint32_t)result);
 								break;
 							}
-							case Scripting::TypeId::UINT64:
+							case scripting::type_id::uint64:
 							{
-								int64_t Result = 0;
-								if (Series::Unpack(Var->Find("data"), &Result))
-									SetTypePropertyByName(Var->Key.c_str(), (uint64_t)Result);
+								int64_t result = 0;
+								if (series::unpack(var->find("data"), &result))
+									set_type_property_by_name(var->key.c_str(), (uint64_t)result);
 								break;
 							}
-							case Scripting::TypeId::FLOAT:
+							case scripting::type_id::floatf:
 							{
-								float Result = 0.0f;
-								if (Series::Unpack(Var->Find("data"), &Result))
-									SetTypePropertyByName(Var->Key.c_str(), Result);
+								float result = 0.0f;
+								if (series::unpack(var->find("data"), &result))
+									set_type_property_by_name(var->key.c_str(), result);
 								break;
 							}
-							case Scripting::TypeId::DOUBLE:
+							case scripting::type_id::doublef:
 							{
-								double Result = 0.0;
-								if (Series::Unpack(Var->Find("data"), &Result))
-									SetTypePropertyByName(Var->Key.c_str(), Result);
+								double result = 0.0;
+								if (series::unpack(var->find("data"), &result))
+									set_type_property_by_name(var->key.c_str(), result);
 								break;
 							}
 							default:
 							{
-								Core::String Result;
-								if (Series::Unpack(Var->Find("data"), &Result))
-									SetTypePropertyByName(Var->Key.c_str(), Result);
+								core::string result;
+								if (series::unpack(var->find("data"), &result))
+									set_type_property_by_name(var->key.c_str(), result);
 								break;
 							}
 						}
 					}
 				}
 
-				return Call(Entry.Deserialize, [this, Node](Scripting::ImmediateContext* Context)
+				return call(entry.deserialize, [this, node](scripting::immediate_context* context)
 				{
-					if (Invoke == InvokeType::Typeless)
+					if (invoke == invoke_type::typeless)
 						return;
 
-					Component* Current = this;
-					Context->SetArgObject(0, Current);
-					Context->SetArgObject(1, Node);
+					component* current = this;
+					context->set_arg_object(0, current);
+					context->set_arg_object(1, node);
 				});
 			}
-			Scripting::ExpectsPromiseVM<Scripting::Execution> Scriptable::SerializeCall(Core::Schema* Node)
+			scripting::expects_promise_vm<scripting::execution> scriptable::serialize_call(core::schema* node)
 			{
-				auto HasProperties = GetPropertiesCount();
-				if (HasProperties)
+				auto has_properties = get_properties_count();
+				if (has_properties)
 				{
-					size_t Count = *HasProperties;
-					Core::Schema* Cache = Node->Set("cache");
-					for (size_t i = 0; i < Count; i++)
+					size_t count = *has_properties;
+					core::schema* cache = node->set("cache");
+					for (size_t i = 0; i < count; i++)
 					{
-						Scripting::PropertyInfo Result;
-						if (!GetPropertyByIndex(i, &Result) || Result.Name.empty() || !Result.Pointer)
+						scripting::property_info result;
+						if (!get_property_by_index(i, &result) || result.name.empty() || !result.pointer)
 							continue;
 
-						Core::Schema* Var = Core::Var::Set::Object();
-						Series::Pack(Var->Set("type"), Result.TypeId);
+						core::schema* var = core::var::set::object();
+						series::pack(var->set("type"), result.type_id);
 
-						switch ((Scripting::TypeId)Result.TypeId)
+						switch ((scripting::type_id)result.type_id)
 						{
-							case Scripting::TypeId::BOOL:
-								Series::Pack(Var->Set("data"), *(bool*)Result.Pointer);
+							case scripting::type_id::boolf:
+								series::pack(var->set("data"), *(bool*)result.pointer);
 								break;
-							case Scripting::TypeId::INT8:
-								Series::Pack(Var->Set("data"), (int64_t)*(char*)Result.Pointer);
+							case scripting::type_id::int8:
+								series::pack(var->set("data"), (int64_t) * (char*)result.pointer);
 								break;
-							case Scripting::TypeId::INT16:
-								Series::Pack(Var->Set("data"), (int64_t)*(short*)Result.Pointer);
+							case scripting::type_id::int16:
+								series::pack(var->set("data"), (int64_t) * (short*)result.pointer);
 								break;
-							case Scripting::TypeId::INT32:
-								Series::Pack(Var->Set("data"), (int64_t)*(int*)Result.Pointer);
+							case scripting::type_id::int32:
+								series::pack(var->set("data"), (int64_t) * (int*)result.pointer);
 								break;
-							case Scripting::TypeId::INT64:
-								Series::Pack(Var->Set("data"), *(int64_t*)Result.Pointer);
+							case scripting::type_id::int64:
+								series::pack(var->set("data"), *(int64_t*)result.pointer);
 								break;
-							case Scripting::TypeId::UINT8:
-								Series::Pack(Var->Set("data"), (int64_t)*(uint8_t*)Result.Pointer);
+							case scripting::type_id::uint8:
+								series::pack(var->set("data"), (int64_t) * (uint8_t*)result.pointer);
 								break;
-							case Scripting::TypeId::UINT16:
-								Series::Pack(Var->Set("data"), (int64_t)*(uint16_t*)Result.Pointer);
+							case scripting::type_id::uint16:
+								series::pack(var->set("data"), (int64_t) * (uint16_t*)result.pointer);
 								break;
-							case Scripting::TypeId::UINT32:
-								Series::Pack(Var->Set("data"), (int64_t)*(uint32_t*)Result.Pointer);
+							case scripting::type_id::uint32:
+								series::pack(var->set("data"), (int64_t) * (uint32_t*)result.pointer);
 								break;
-							case Scripting::TypeId::UINT64:
-								Series::Pack(Var->Set("data"), (int64_t)*(uint64_t*)Result.Pointer);
+							case scripting::type_id::uint64:
+								series::pack(var->set("data"), (int64_t) * (uint64_t*)result.pointer);
 								break;
-							case Scripting::TypeId::FLOAT:
-								Series::Pack(Var->Set("data"), (double)*(float*)Result.Pointer);
+							case scripting::type_id::floatf:
+								series::pack(var->set("data"), (double)*(float*)result.pointer);
 								break;
-							case Scripting::TypeId::DOUBLE:
-								Series::Pack(Var->Set("data"), *(double*)Result.Pointer);
+							case scripting::type_id::doublef:
+								series::pack(var->set("data"), *(double*)result.pointer);
 								break;
 							default:
 							{
-								Scripting::TypeInfo Type = GetCompiler()->GetVM()->GetTypeInfoById(Result.TypeId);
-								if (Type.IsValid() && Type.GetName() == "string")
-									Series::Pack(Var->Set("data"), *(Core::String*)Result.Pointer);
+								scripting::typeinfo type = get_compiler()->get_vm()->get_type_info_by_id(result.type_id);
+								if (type.is_valid() && type.get_name() == "string")
+									series::pack(var->set("data"), *(core::string*)result.pointer);
 								else
-									Core::Memory::Release(Var);
+									core::memory::release(var);
 								break;
 							}
 						}
 
-						if (Var != nullptr)
-							Cache->Set(Result.Name, Var);
+						if (var != nullptr)
+							cache->set(result.name, var);
 					}
 				}
 
-				return Call(Entry.Serialize, [this, &Node](Scripting::ImmediateContext* Context)
+				return call(entry.serialize, [this, &node](scripting::immediate_context* context)
 				{
-					if (Invoke == InvokeType::Typeless)
+					if (invoke == invoke_type::typeless)
 						return;
 
-					Component* Current = this;
-					Context->SetArgObject(0, Current);
-					Context->SetArgObject(1, Node);
+					component* current = this;
+					context->set_arg_object(0, current);
+					context->set_arg_object(1, node);
 				});
 			}
-			Scripting::ExpectsPromiseVM<Scripting::Execution> Scriptable::Call(const std::string_view& Name, size_t Args, Scripting::ArgsCallback&& OnArgs)
+			scripting::expects_promise_vm<scripting::execution> scriptable::call(const std::string_view& name, size_t args, scripting::args_callback&& on_args)
 			{
-				if (!Compiler)
-					return Scripting::ExpectsPromiseVM<Scripting::Execution>(Scripting::VirtualException(Scripting::VirtualError::INVALID_CONFIGURATION));
+				if (!compiler)
+					return scripting::expects_promise_vm<scripting::execution>(scripting::virtual_exception(scripting::virtual_error::invalid_configuration));
 
-				return Call(GetFunctionByName(Name, Args).GetFunction(), std::move(OnArgs));
+				return call(get_function_by_name(name, args).get_function(), std::move(on_args));
 			}
-			Scripting::ExpectsPromiseVM<Scripting::Execution> Scriptable::Call(asIScriptFunction* Function, Scripting::ArgsCallback&& OnArgs)
+			scripting::expects_promise_vm<scripting::execution> scriptable::call(asIScriptFunction* function, scripting::args_callback&& on_args)
 			{
-				if (!Compiler)
-					return Scripting::ExpectsPromiseVM<Scripting::Execution>(Scripting::VirtualException(Scripting::VirtualError::INVALID_CONFIGURATION));
+				if (!compiler)
+					return scripting::expects_promise_vm<scripting::execution>(scripting::virtual_exception(scripting::virtual_error::invalid_configuration));
 
-				Scripting::FunctionDelegate Delegate(Function);
-				if (!Delegate.IsValid())
-					return Scripting::ExpectsPromiseVM<Scripting::Execution>(Scripting::VirtualException(Scripting::VirtualError::NO_FUNCTION));
+				scripting::function_delegate delegatef(function);
+				if (!delegatef.is_valid())
+					return scripting::expects_promise_vm<scripting::execution>(scripting::virtual_exception(scripting::virtual_error::no_function));
 
-				Protect();
-				return Delegate(std::move(OnArgs)).Then<Scripting::ExpectsVM<Scripting::Execution>>([this](Scripting::ExpectsVM<Scripting::Execution>&& Result)
+				protect();
+				return delegatef(std::move(on_args)).then<scripting::expects_vm<scripting::execution>>([this](scripting::expects_vm<scripting::execution>&& result)
 				{
-					Unprotect();
-					return Result;
+					unprotect();
+					return result;
 				});
 			}
-			Scripting::ExpectsPromiseVM<Scripting::Execution> Scriptable::CallEntry(const std::string_view& Name)
+			scripting::expects_promise_vm<scripting::execution> scriptable::call_entry(const std::string_view& name)
 			{
-				return Call(GetFunctionByName(Name, Invoke == InvokeType::Typeless ? 0 : 1).GetFunction(), [this](Scripting::ImmediateContext* Context)
+				return call(get_function_by_name(name, invoke == invoke_type::typeless ? 0 : 1).get_function(), [this](scripting::immediate_context* context)
 				{
-					if (Invoke == InvokeType::Typeless)
+					if (invoke == invoke_type::typeless)
 						return;
 
-					Component* Current = this;
-					Context->SetArgObject(0, Current);
+					component* current = this;
+					context->set_arg_object(0, current);
 				});
 			}
-			Scripting::ExpectsPromiseVM<void> Scriptable::LoadSource()
+			scripting::expects_promise_vm<void> scriptable::load_source()
 			{
-				return LoadSource(Source, Resource);
+				return load_source(source, resource);
 			}
-			Scripting::ExpectsPromiseVM<void> Scriptable::LoadSource(SourceType Type, const std::string_view& Data)
+			scripting::expects_promise_vm<void> scriptable::load_source(source_type type, const std::string_view& data)
 			{
-				SceneGraph* Scene = Parent->GetScene();
-				if (!Compiler)
+				scene_graph* scene = parent->get_scene();
+				if (!compiler)
 				{
-					auto* VM = Scene->GetConf().Shared.VM;
-					if (!VM)
-						return Scripting::ExpectsPromiseVM<void>(Scripting::VirtualException(Scripting::VirtualError::INVALID_CONFIGURATION));
+					auto* vm = scene->get_conf().shared.vm;
+					if (!vm)
+						return scripting::expects_promise_vm<void>(scripting::virtual_exception(scripting::virtual_error::invalid_configuration));
 
-					Compiler = VM->CreateCompiler();
-					Compiler->SetPragmaCallback([this](Compute::Preprocessor*, const std::string_view& Name, const Core::Vector<Core::String>& Args) -> Compute::ExpectsPreprocessor<void>
+					compiler = vm->create_compiler();
+					compiler->set_pragma_callback([this](compute::preprocessor*, const std::string_view& name, const core::vector<core::string>& args) -> compute::expects_preprocessor<void>
 					{
-						if (Name == "name" && Args.size() == 1)
-							Module = Args[0];
+						if (name == "name" && args.size() == 1)
+							library = args[0];
 
-						return Core::Expectation::Met;
+						return core::expectation::met;
 					});
 				}
 
-				Source = Type;
-				Resource = Data;
+				source = type;
+				resource = data;
 
-				if (Resource.empty())
+				if (resource.empty())
 				{
-					Entry.Serialize = nullptr;
-					Entry.Deserialize = nullptr;
-					Entry.Awake = nullptr;
-					Entry.Asleep = nullptr;
-					Entry.Animate = nullptr;
-					Entry.Synchronize = nullptr;
-					Entry.Update = nullptr;
-					Entry.Message = nullptr;
-					Compiler->Clear();
-					return Scripting::ExpectsPromiseVM<void>(Scripting::VirtualException(Scripting::VirtualError::NO_MODULE));
+					entry.serialize = nullptr;
+					entry.deserialize = nullptr;
+					entry.awake = nullptr;
+					entry.asleep = nullptr;
+					entry.animate = nullptr;
+					entry.synchronize = nullptr;
+					entry.update = nullptr;
+					entry.message = nullptr;
+					compiler->clear();
+					return scripting::expects_promise_vm<void>(scripting::virtual_exception(scripting::virtual_error::no_module));
 				}
 
-				auto Status = Compiler->Prepare("base", Source == SourceType::Resource ? Resource : "anonymous", true, true);
-				if (!Status)
-					return Scripting::ExpectsPromiseVM<void>(Status);
+				auto status = compiler->prepare("base", source == source_type::resource ? resource : "anonymous", true, true);
+				if (!status)
+					return scripting::expects_promise_vm<void>(status);
 
-				Status = (Source == SourceType::Resource ? Compiler->LoadFile(Resource) : Compiler->LoadCode("anonymous", Resource));
-				if (!Status)
-					return Scripting::ExpectsPromiseVM<void>(Status);
+				status = (source == source_type::resource ? compiler->load_file(resource) : compiler->load_code("anonymous", resource));
+				if (!status)
+					return scripting::expects_promise_vm<void>(status);
 
-				return Compiler->Compile().Then<Scripting::ExpectsVM<void>>([this](Scripting::ExpectsVM<void>&& Result)
+				return compiler->compile().then<scripting::expects_vm<void>>([this](scripting::expects_vm<void>&& result)
 				{
-					Entry.Animate = GetFunctionByName("animate", Invoke == InvokeType::Typeless ? 0 : 3).GetFunction();
-					Entry.Serialize = GetFunctionByName("serialize", Invoke == InvokeType::Typeless ? 0 : 3).GetFunction();
-					Entry.Deserialize = GetFunctionByName("deserialize", Invoke == InvokeType::Typeless ? 0 : 3).GetFunction();
-					Entry.Awake = GetFunctionByName("awake", Invoke == InvokeType::Typeless ? 0 : 2).GetFunction();
-					Entry.Asleep = GetFunctionByName("asleep", Invoke == InvokeType::Typeless ? 0 : 1).GetFunction();
-					Entry.Synchronize = GetFunctionByName("synchronize", Invoke == InvokeType::Typeless ? 0 : 2).GetFunction();
-					Entry.Update = GetFunctionByName("update", Invoke == InvokeType::Typeless ? 0 : 2).GetFunction();
-					Entry.Message = GetFunctionByName("message", Invoke == InvokeType::Typeless ? 0 : 3).GetFunction();
-					return Result;
+					entry.animate = get_function_by_name("animate", invoke == invoke_type::typeless ? 0 : 3).get_function();
+					entry.serialize = get_function_by_name("serialize", invoke == invoke_type::typeless ? 0 : 3).get_function();
+					entry.deserialize = get_function_by_name("deserialize", invoke == invoke_type::typeless ? 0 : 3).get_function();
+					entry.awake = get_function_by_name("awake", invoke == invoke_type::typeless ? 0 : 2).get_function();
+					entry.asleep = get_function_by_name("asleep", invoke == invoke_type::typeless ? 0 : 1).get_function();
+					entry.synchronize = get_function_by_name("synchronize", invoke == invoke_type::typeless ? 0 : 2).get_function();
+					entry.update = get_function_by_name("update", invoke == invoke_type::typeless ? 0 : 2).get_function();
+					entry.message = get_function_by_name("message", invoke == invoke_type::typeless ? 0 : 3).get_function();
+					return result;
 				});
 			}
-			Scripting::ExpectsVM<size_t> Scriptable::GetPropertiesCount()
+			scripting::expects_vm<size_t> scriptable::get_properties_count()
 			{
-				if (!Compiler)
-					return Scripting::VirtualException(Scripting::VirtualError::INVALID_CONFIGURATION);
+				if (!compiler)
+					return scripting::virtual_exception(scripting::virtual_error::invalid_configuration);
 
-				Scripting::Module Base = Compiler->GetModule();
-				if (!Base.IsValid())
-					return Scripting::VirtualException(Scripting::VirtualError::NO_MODULE);
+				scripting::library base = compiler->get_module();
+				if (!base.is_valid())
+					return scripting::virtual_exception(scripting::virtual_error::no_module);
 
-				return Base.GetPropertiesCount();
+				return base.get_properties_count();
 			}
-			Scripting::ExpectsVM<size_t> Scriptable::GetFunctionsCount()
+			scripting::expects_vm<size_t> scriptable::get_functions_count()
 			{
-				if (!Compiler)
-					return Scripting::VirtualException(Scripting::VirtualError::INVALID_CONFIGURATION);
+				if (!compiler)
+					return scripting::virtual_exception(scripting::virtual_error::invalid_configuration);
 
-				Scripting::Module Base = Compiler->GetModule();
-				if (!Base.IsValid())
-					return Scripting::VirtualException(Scripting::VirtualError::NO_MODULE);
+				scripting::library base = compiler->get_module();
+				if (!base.is_valid())
+					return scripting::virtual_exception(scripting::virtual_error::no_module);
 
-				return Base.GetFunctionCount();
+				return base.get_function_count();
 			}
-			void Scriptable::SetInvocation(InvokeType Type)
+			void scriptable::set_invocation(invoke_type type)
 			{
-				Invoke = Type;
+				invoke = type;
 			}
-			void Scriptable::UnloadSource()
+			void scriptable::unload_source()
 			{
-				LoadSource(Source, "");
+				load_source(source, "");
 			}
-			void Scriptable::Protect()
+			void scriptable::protect()
 			{
-				AddRef();
-				GetEntity()->AddRef();
+				add_ref();
+				get_entity()->add_ref();
 			}
-			void Scriptable::Unprotect()
+			void scriptable::unprotect()
 			{
-				GetEntity()->Release();
-				Release();
+				get_entity()->release();
+				release();
 			}
-			Scripting::Compiler* Scriptable::GetCompiler()
+			scripting::compiler* scriptable::get_compiler()
 			{
-				return Compiler;
+				return compiler;
 			}
-			Scripting::Function Scriptable::GetFunctionByName(const std::string_view& Name, size_t Args)
+			scripting::function scriptable::get_function_by_name(const std::string_view& name, size_t args)
 			{
-				VI_ASSERT(!Name.empty(), "name should not be empty");
-				if (!Compiler)
+				VI_ASSERT(!name.empty(), "name should not be empty");
+				if (!compiler)
 					return nullptr;
 
-				auto Result = Compiler->GetModule().GetFunctionByName(Name);
-				if (Result.IsValid() && Result.GetArgsCount() != Args)
+				auto result = compiler->get_module().get_function_by_name(name);
+				if (result.is_valid() && result.get_args_count() != args)
 					return nullptr;
 
-				return Result;
+				return result;
 			}
-			Scripting::Function Scriptable::GetFunctionByIndex(size_t Index, size_t Args)
+			scripting::function scriptable::get_function_by_index(size_t index, size_t args)
 			{
-				VI_ASSERT(Index >= 0, "index should be greater or equal to zero");
-				if (!Compiler)
+				VI_ASSERT(index >= 0, "index should be greater or equal to zero");
+				if (!compiler)
 					return nullptr;
 
-				auto Result = Compiler->GetModule().GetFunctionByIndex(Index);
-				if (Result.IsValid() && Result.GetArgsCount() != Args)
+				auto result = compiler->get_module().get_function_by_index(index);
+				if (result.is_valid() && result.get_args_count() != args)
 					return nullptr;
 
-				return Result;
+				return result;
 			}
-			bool Scriptable::GetPropertyByName(const std::string_view& Name, Scripting::PropertyInfo* Result)
+			bool scriptable::get_property_by_name(const std::string_view& name, scripting::property_info* result)
 			{
-				if (!Compiler)
+				if (!compiler)
 					return false;
 
-				Scripting::Module Base = Compiler->GetModule();
-				if (!Base.IsValid())
+				scripting::library base = compiler->get_module();
+				if (!base.is_valid())
 					return false;
 
-				auto Index = Base.GetPropertyIndexByName(Name);
-				if (!Index || !Base.GetProperty(*Index, Result))
+				auto index = base.get_property_index_by_name(name);
+				if (!index || !base.get_property(*index, result))
 					return false;
 
 				return true;
 			}
-			bool Scriptable::GetPropertyByIndex(size_t Index, Scripting::PropertyInfo* Result)
+			bool scriptable::get_property_by_index(size_t index, scripting::property_info* result)
 			{
-				VI_ASSERT(Index >= 0, "index should be greater or equal to zero");
-				if (!Compiler)
+				VI_ASSERT(index >= 0, "index should be greater or equal to zero");
+				if (!compiler)
 					return false;
 
-				Scripting::Module Base = Compiler->GetModule();
-				if (!Base.IsValid() || !Base.GetProperty(Index, Result))
+				scripting::library base = compiler->get_module();
+				if (!base.is_valid() || !base.get_property(index, result))
 					return false;
 
 				return true;
 			}
-			Scriptable::SourceType Scriptable::GetSourceType()
+			scriptable::source_type scriptable::get_source_type()
 			{
-				return Source;
+				return source;
 			}
-			Scriptable::InvokeType Scriptable::GetInvokeType()
+			scriptable::invoke_type scriptable::get_invoke_type()
 			{
-				return Invoke;
+				return invoke;
 			}
-			const Core::String& Scriptable::GetSource()
+			const core::string& scriptable::get_source()
 			{
-				return Resource;
+				return resource;
 			}
-			const Core::String& Scriptable::GetModuleName()
+			const core::string& scriptable::get_module_name()
 			{
-				return Module;
+				return library;
 			}
 		}
 	}

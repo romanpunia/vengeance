@@ -3,203 +3,203 @@
 #include <vitex/layer/processors.h>
 #include "../layer.h"
 
-namespace Vitex
+namespace vitex
 {
-	namespace Layer
+	namespace layer
 	{
-		namespace Processors
+		namespace processors
 		{
-			enum class MeshOpt : uint64_t
+			enum class mesh_opt : uint64_t
 			{
-				CalcTangentSpace = 0x1,
-				JoinIdenticalVertices = 0x2,
-				MakeLeftHanded = 0x4,
-				Triangulate = 0x8,
-				RemoveComponent = 0x10,
-				GenNormals = 0x20,
-				GenSmoothNormals = 0x40,
-				SplitLargeMeshes = 0x80,
-				PreTransformVertices = 0x100,
-				LimitBoneWeights = 0x200,
-				ValidateDataStructure = 0x400,
-				ImproveCacheLocality = 0x800,
-				RemoveRedundantMaterials = 0x1000,
-				FixInfacingNormals = 0x2000,
-				SortByPType = 0x8000,
-				RemoveDegenerates = 0x10000,
-				RemoveInvalidData = 0x20000,
-				RemoveInstances = 0x100000,
-				GenUVCoords = 0x40000,
-				TransformUVCoords = 0x80000,
-				OptimizeMeshes = 0x200000,
-				OptimizeGraph = 0x400000,
-				FlipUVs = 0x800000,
-				FlipWindingOrder = 0x1000000,
-				SplitByBoneCount = 0x2000000,
-				Debone = 0x4000000,
-				GlobalScale = 0x8000000,
-				EmbedTextures = 0x10000000,
-				ForceGenNormals = 0x20000000,
-				DropNormals = 0x40000000,
-				GenBoundingBoxes = 0x80000000l
+				calc_tangent_space = 0x1,
+				join_identical_vertices = 0x2,
+				make_left_handed = 0x4,
+				triangulate = 0x8,
+				remove_component = 0x10,
+				gen_normals = 0x20,
+				gen_smooth_normals = 0x40,
+				split_large_meshes = 0x80,
+				pre_transform_vertices = 0x100,
+				limit_bone_weights = 0x200,
+				validate_data_structure = 0x400,
+				improve_cache_locality = 0x800,
+				remove_redundant_materials = 0x1000,
+				fix_infacing_normals = 0x2000,
+				sort_by_ptype = 0x8000,
+				remove_degenerates = 0x10000,
+				remove_invalid_data = 0x20000,
+				remove_instances = 0x100000,
+				gen_uv_coords = 0x40000,
+				transform_uv_coords = 0x80000,
+				optimize_meshes = 0x200000,
+				optimize_graph = 0x400000,
+				flip_uvs = 0x800000,
+				flip_winding_order = 0x1000000,
+				split_by_bone_count = 0x2000000,
+				debone = 0x4000000,
+				global_scale = 0x8000000,
+				embed_textures = 0x10000000,
+				force_gen_normals = 0x20000000,
+				drop_normals = 0x40000000,
+				gen_bounding_boxes = 0x80000000l
 			};
 
-			constexpr inline MeshOpt operator |(MeshOpt A, MeshOpt B)
+			constexpr inline mesh_opt operator |(mesh_opt a, mesh_opt b)
 			{
-				return static_cast<MeshOpt>(static_cast<uint64_t>(A) | static_cast<uint64_t>(B));
+				return static_cast<mesh_opt>(static_cast<uint64_t>(a) | static_cast<uint64_t>(b));
 			}
 
-			enum class MeshPreset : uint64_t
+			enum class mesh_preset : uint64_t
 			{
-				Default = (uint64_t)(MeshOpt::FlipWindingOrder | MeshOpt::Triangulate | MeshOpt::CalcTangentSpace | MeshOpt::ValidateDataStructure)
+				defaults = (uint64_t)(mesh_opt::flip_winding_order | mesh_opt::triangulate | mesh_opt::calc_tangent_space | mesh_opt::validate_data_structure)
 			};
 
-			struct MeshBone
+			struct mesh_bone
 			{
-				size_t Index;
-				Trigonometry::AnimatorKey Default;
+				size_t index;
+				trigonometry::animator_key defaults;
 			};
 
-			struct MeshJoint
+			struct mesh_joint
 			{
-				Trigonometry::Matrix4x4 Local;
-				size_t Index;
-				bool Linking;
+				trigonometry::matrix4x4 local;
+				size_t index;
+				bool linking;
 			};
 
-			struct MeshBlob
+			struct mesh_blob
 			{
-				Core::UnorderedMap<size_t, size_t> JointIndices;
-				Core::Vector<Trigonometry::SkinVertex> Vertices;
-				Core::Vector<int32_t> Indices;
-				Core::String Name;
-				Trigonometry::Matrix4x4 Transform;
-				size_t LocalIndex = 0;
+				core::unordered_map<size_t, size_t> joint_indices;
+				core::vector<trigonometry::skin_vertex> vertices;
+				core::vector<int32_t> indices;
+				core::string name;
+				trigonometry::matrix4x4 transform;
+				size_t local_index = 0;
 			};
 
-			struct ModelInfo
+			struct model_info
 			{
-				Core::UnorderedMap<Core::String, MeshJoint> JointOffsets;
-				Core::Vector<MeshBlob> Meshes;
-				Trigonometry::Matrix4x4 Transform;
-				Trigonometry::Joint Skeleton;
-				Trigonometry::Vector3 Min, Max;
-				float Low = 0.0f, High = 0.0f;
-				size_t GlobalIndex = 0;
+				core::unordered_map<core::string, mesh_joint> joint_offsets;
+				core::vector<mesh_blob> meshes;
+				trigonometry::matrix4x4 transform;
+				trigonometry::joint skeleton;
+				trigonometry::vector3 min, max;
+				float low = 0.0f, high = 0.0f;
+				size_t global_index = 0;
 			};
 
-			struct ModelChannel
+			struct model_channel
 			{
-				Core::UnorderedMap<float, Trigonometry::Vector3> Positions;
-				Core::UnorderedMap<float, Trigonometry::Vector3> Scales;
-				Core::UnorderedMap<float, Trigonometry::Quaternion> Rotations;
+				core::unordered_map<float, trigonometry::vector3> positions;
+				core::unordered_map<float, trigonometry::vector3> scales;
+				core::unordered_map<float, trigonometry::quaternion> rotations;
 			};
 
-			class VI_OUT MaterialProcessor final : public Processor
+			class material_processor final : public processor
 			{
 			public:
-				MaterialProcessor(ContentManager * Manager);
-				ExpectsContent<Core::Unique<void>> Duplicate(AssetCache* Asset, const Core::VariantArgs& Args) override;
-				ExpectsContent<Core::Unique<void>> Deserialize(Core::Stream* Stream, size_t Offset, const Core::VariantArgs& Args) override;
-				ExpectsContent<void> Serialize(Core::Stream* Stream, void* Object, const Core::VariantArgs& Args) override;
-				void Free(AssetCache* Asset) override;
+				material_processor(content_manager* manager);
+				expects_content<core::unique<void>> duplicate(asset_cache* asset, const core::variant_args& args) override;
+				expects_content<core::unique<void>> deserialize(core::stream* stream, size_t offset, const core::variant_args& args) override;
+				expects_content<void> serialize(core::stream* stream, void* object, const core::variant_args& args) override;
+				void free(asset_cache* asset) override;
 			};
 
-			class VI_OUT SceneGraphProcessor final : public Processor
+			class scene_graph_processor final : public processor
 			{
 			public:
-				std::function<void(SceneGraph*)> SetupCallback;
+				std::function<void(scene_graph*)> setup_callback;
 
 			public:
-				SceneGraphProcessor(ContentManager * Manager);
-				ExpectsContent<Core::Unique<void>> Deserialize(Core::Stream* Stream, size_t Offset, const Core::VariantArgs& Args) override;
-				ExpectsContent<void> Serialize(Core::Stream* Stream, void* Object, const Core::VariantArgs& Args) override;
+				scene_graph_processor(content_manager* manager);
+				expects_content<core::unique<void>> deserialize(core::stream* stream, size_t offset, const core::variant_args& args) override;
+				expects_content<void> serialize(core::stream* stream, void* object, const core::variant_args& args) override;
 			};
 
-			class VI_OUT AudioClipProcessor final : public Processor
+			class audio_clip_processor final : public processor
 			{
 			public:
-				AudioClipProcessor(ContentManager * Manager);
-				~AudioClipProcessor() override;
-				ExpectsContent<Core::Unique<void>> Duplicate(AssetCache* Asset, const Core::VariantArgs& Args) override;
-				ExpectsContent<Core::Unique<void>> Deserialize(Core::Stream* Stream, size_t Offset, const Core::VariantArgs& Args) override;
-				ExpectsContent<Core::Unique<void>> DeserializeWAVE(Core::Stream* Stream, size_t Offset, const Core::VariantArgs& Args);
-				ExpectsContent<Core::Unique<void>> DeserializeOGG(Core::Stream* Stream, size_t Offset, const Core::VariantArgs& Args);
-				void Free(AssetCache* Asset) override;
+				audio_clip_processor(content_manager* manager);
+				~audio_clip_processor() override;
+				expects_content<core::unique<void>> duplicate(asset_cache* asset, const core::variant_args& args) override;
+				expects_content<core::unique<void>> deserialize(core::stream* stream, size_t offset, const core::variant_args& args) override;
+				expects_content<core::unique<void>> deserialize_wave(core::stream* stream, size_t offset, const core::variant_args& args);
+				expects_content<core::unique<void>> deserialize_ogg(core::stream* stream, size_t offset, const core::variant_args& args);
+				void free(asset_cache* asset) override;
 			};
 
-			class VI_OUT Texture2DProcessor final : public Processor
+			class texture_2d_processor final : public processor
 			{
 			public:
-				Texture2DProcessor(ContentManager * Manager);
-				~Texture2DProcessor() override;
-				ExpectsContent<Core::Unique<void>> Duplicate(AssetCache* Asset, const Core::VariantArgs& Args) override;
-				ExpectsContent<Core::Unique<void>> Deserialize(Core::Stream* Stream, size_t Offset, const Core::VariantArgs& Args) override;
-				void Free(AssetCache* Asset) override;
+				texture_2d_processor(content_manager* manager);
+				~texture_2d_processor() override;
+				expects_content<core::unique<void>> duplicate(asset_cache* asset, const core::variant_args& args) override;
+				expects_content<core::unique<void>> deserialize(core::stream* stream, size_t offset, const core::variant_args& args) override;
+				void free(asset_cache* asset) override;
 			};
 
-			class VI_OUT ShaderProcessor final : public Processor
+			class shader_processor final : public processor
 			{
 			public:
-				ShaderProcessor(ContentManager * Manager);
-				~ShaderProcessor() override;
-				ExpectsContent<Core::Unique<void>> Duplicate(AssetCache* Asset, const Core::VariantArgs& Args) override;
-				ExpectsContent<Core::Unique<void>> Deserialize(Core::Stream* Stream, size_t Offset, const Core::VariantArgs& Args) override;
-				void Free(AssetCache* Asset) override;
+				shader_processor(content_manager* manager);
+				~shader_processor() override;
+				expects_content<core::unique<void>> duplicate(asset_cache* asset, const core::variant_args& args) override;
+				expects_content<core::unique<void>> deserialize(core::stream* stream, size_t offset, const core::variant_args& args) override;
+				void free(asset_cache* asset) override;
 			};
 
-			class VI_OUT ModelProcessor final : public Processor
+			class model_processor final : public processor
 			{
 			public:
-				Graphics::MeshBuffer::Desc Options;
+				graphics::mesh_buffer::desc options;
 
 			public:
-				ModelProcessor(ContentManager* Manager);
-				~ModelProcessor() override;
-				ExpectsContent<Core::Unique<void>> Duplicate(AssetCache* Asset, const Core::VariantArgs& Args) override;
-				ExpectsContent<Core::Unique<void>> Deserialize(Core::Stream* Stream, size_t Offset, const Core::VariantArgs& Args) override;
-				void Free(AssetCache* Asset) override;
+				model_processor(content_manager* manager);
+				~model_processor() override;
+				expects_content<core::unique<void>> duplicate(asset_cache* asset, const core::variant_args& args) override;
+				expects_content<core::unique<void>> deserialize(core::stream* stream, size_t offset, const core::variant_args& args) override;
+				void free(asset_cache* asset) override;
 
 			public:
-				static ExpectsContent<Core::Unique<Core::Schema>> Import(Core::Stream* Stream, uint64_t Opts = (uint64_t)MeshPreset::Default);
-				static ExpectsContent<ModelInfo> ImportForImmediateUse(Core::Stream* Stream, uint64_t Opts = (uint64_t)MeshPreset::Default);
+				static expects_content<core::unique<core::schema>> import(core::stream * stream, uint64_t opts = (uint64_t)mesh_preset::defaults);
+				static expects_content<model_info> import_for_immediate_use(core::stream* stream, uint64_t opts = (uint64_t)mesh_preset::defaults);
 			};
 
-			class VI_OUT SkinModelProcessor final : public Processor
+			class skin_model_processor final : public processor
 			{
 			public:
-				Graphics::SkinMeshBuffer::Desc Options;
+				graphics::skin_mesh_buffer::desc options;
 
 			public:
-				SkinModelProcessor(ContentManager* Manager);
-				~SkinModelProcessor() override;
-				ExpectsContent<Core::Unique<void>> Duplicate(AssetCache* Asset, const Core::VariantArgs& Args) override;
-				ExpectsContent<Core::Unique<void>> Deserialize(Core::Stream* Stream, size_t Offset, const Core::VariantArgs& Args) override;
-				void Free(AssetCache* Asset) override;
+				skin_model_processor(content_manager* manager);
+				~skin_model_processor() override;
+				expects_content<core::unique<void>> duplicate(asset_cache* asset, const core::variant_args& args) override;
+				expects_content<core::unique<void>> deserialize(core::stream* stream, size_t offset, const core::variant_args& args) override;
+				void free(asset_cache* asset) override;
 			};
 
-			class VI_OUT SkinAnimationProcessor final : public Processor
+			class skin_animation_processor final : public processor
 			{
 			public:
-				SkinAnimationProcessor(ContentManager* Manager);
-				~SkinAnimationProcessor() override;
-				ExpectsContent<Core::Unique<void>> Duplicate(AssetCache* Asset, const Core::VariantArgs& Args) override;
-				ExpectsContent<Core::Unique<void>> Deserialize(Core::Stream* Stream, size_t Offset, const Core::VariantArgs& Args) override;
-				void Free(AssetCache* Asset) override;
+				skin_animation_processor(content_manager* manager);
+				~skin_animation_processor() override;
+				expects_content<core::unique<void>> duplicate(asset_cache* asset, const core::variant_args& args) override;
+				expects_content<core::unique<void>> deserialize(core::stream* stream, size_t offset, const core::variant_args& args) override;
+				void free(asset_cache* asset) override;
 
 			public:
-				static ExpectsContent<Core::Schema*> Import(Core::Stream* Stream, uint64_t Opts = (uint64_t)MeshPreset::Default);
-				static ExpectsContent<Core::Vector<Trigonometry::SkinAnimatorClip>> ImportForImmediateUse(Core::Stream* Stream, uint64_t Opts = (uint64_t)MeshPreset::Default);
+				static expects_content<core::schema*> import(core::stream * stream, uint64_t opts = (uint64_t)mesh_preset::defaults);
+				static expects_content<core::vector<trigonometry::skin_animator_clip>> import_for_immediate_use(core::stream* stream, uint64_t opts = (uint64_t)mesh_preset::defaults);
 			};
 
-			class VI_OUT HullShapeProcessor final : public Processor
+			class hull_shape_processor final : public processor
 			{
 			public:
-				HullShapeProcessor(ContentManager * Manager);
-				~HullShapeProcessor() override;
-				ExpectsContent<Core::Unique<void>> Duplicate(AssetCache* Asset, const Core::VariantArgs& Args) override;
-				ExpectsContent<Core::Unique<void>> Deserialize(Core::Stream* Stream, size_t Offset, const Core::VariantArgs& Args) override;
-				void Free(AssetCache* Asset) override;
+				hull_shape_processor(content_manager* manager);
+				~hull_shape_processor() override;
+				expects_content<core::unique<void>> duplicate(asset_cache* asset, const core::variant_args& args) override;
+				expects_content<core::unique<void>> deserialize(core::stream* stream, size_t offset, const core::variant_args& args) override;
+				void free(asset_cache* asset) override;
 			};
 		}
 	}

@@ -1,7 +1,7 @@
 #include "internal/layouts_shape.hlsl"
 #include "internal/channels_effect.hlsl"
 
-cbuffer RenderConstant : register(b3)
+cbuffer RenderBuffer : register(b3)
 {
 	float2 Padding;
 	float Grayscale;
@@ -28,7 +28,7 @@ cbuffer RenderConstant : register(b3)
 	float ASpeed;
 }
 
-Texture2D LUT : register(t5);
+Texture2D ImageBuffer : register(t5);
 
 float3 GetGrayscale(float3 Color)
 {
@@ -98,7 +98,7 @@ float3 GetExposure(float3 Color)
 }
 float3 GetAdaptation(float3 Color)
 {
-	float Luminance = LUT.Load(int3(0, 0, 0)).r;
+	float Luminance = ImageBuffer.Load(int3(0, 0, 0)).r;
 	float Avg = saturate((Color.x + Color.y + Color.z) / 3.0);
 	float Exp = AGray / clamp(Luminance, ABlack, AWhite);
 
@@ -109,14 +109,14 @@ VOutput vs_main(VInput V)
 {
 	VOutput Result = (VOutput)0;
 	Result.Position = float4(V.Position, 1.0);
-	Result.TexCoord.xy = V.TexCoord;
+	Result.Texcoord.xy = V.Texcoord;
 
 	return Result;
 }
 
 float4 ps_main(VOutput V) : SV_TARGET0
 {
-	float3 Result = GetDiffuse(V.TexCoord.xy, 0).xyz;
+	float3 Result = GetDiffuse(V.Texcoord.xy, 0).xyz;
 	Result = lerp(Result, GetAdaptation(Result), Adaptation);
 	Result = lerp(Result, GetGrayscale(Result), Grayscale);
 	Result = lerp(Result, GetACES(Result), ACES);

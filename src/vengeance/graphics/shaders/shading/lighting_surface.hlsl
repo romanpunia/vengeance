@@ -4,7 +4,7 @@
 #include "internal/utils_material.hlsl"
 #include "internal/utils_position.hlsl"
 
-cbuffer RenderConstant : register(b3)
+cbuffer EnvironmentBuffer : register(b3)
 {
 	matrix LightTransform;
 	float3 Position;
@@ -23,14 +23,14 @@ VOutput vs_main(VInput V)
 {
 	VOutput Result = (VOutput)0;
 	Result.Position = mul(float4(V.Position, 1.0), LightTransform);
-	Result.TexCoord = Result.Position;
+	Result.Texcoord = Result.Position;
 
 	return Result;
 }
 
 float4 ps_main(VOutput V) : SV_TARGET0
 {
-	Fragment Frag = GetFragment(GetTexCoord(V.TexCoord));
+	Fragment Frag = GetFragment(GetTexcoord(V.Texcoord));
 	[branch] if (Frag.Depth >= 1.0)
 		return float4(0, 0, 0, 0);
 

@@ -2,425 +2,425 @@
 #define VI_AUDIO_H
 #include "trigonometry.h"
 
-namespace Vitex
+namespace vitex
 {
-	namespace Audio
+	namespace audio
 	{
-		class AudioSource;
+		class audio_source;
 
-		class AudioEffect;
+		class audio_effect;
 
-		enum class SoundDistanceModel
+		enum class sound_distance_model
 		{
-			Invalid = 0,
-			Invert = 0xD001,
-			Invert_Clamp = 0xD002,
-			Linear = 0xD003,
-			Linear_Clamp = 0xD004,
-			Exponent = 0xD005,
-			Exponent_Clamp = 0xD006,
+			invalid = 0,
+			invert = 0xD001,
+			invert_clamp = 0xD002,
+			linear = 0xD003,
+			linear_clamp = 0xD004,
+			exponent = 0xD005,
+			exponent_clamp = 0xD006,
 		};
 
-		enum class SoundEx
+		enum class sound_ex
 		{
-			Source_Relative = 0x202,
-			Cone_Inner_Angle = 0x1001,
-			Cone_Outer_Angle = 0x1002,
-			Pitch = 0x1003,
-			Position = 0x1004,
-			Direction = 0x1005,
-			Velocity = 0x1006,
-			Looping = 0x1007,
-			Buffer = 0x1009,
-			Gain = 0x100A,
-			Min_Gain = 0x100D,
-			Max_Gain = 0x100E,
-			Orientation = 0x100F,
-			Channel_Mask = 0x3000,
-			Source_State = 0x1010,
-			Initial = 0x1011,
-			Playing = 0x1012,
-			Paused = 0x1013,
-			Stopped = 0x1014,
-			Buffers_Queued = 0x1015,
-			Buffers_Processed = 0x1016,
-			Seconds_Offset = 0x1024,
-			Sample_Offset = 0x1025,
-			Byte_Offset = 0x1026,
-			Source_Type = 0x1027,
-			Static = 0x1028,
-			Streaming = 0x1029,
-			Undetermined = 0x1030,
-			Format_Mono8 = 0x1100,
-			Format_Mono16 = 0x1101,
-			Format_Stereo8 = 0x1102,
-			Format_Stereo16 = 0x1103,
-			Reference_Distance = 0x1020,
-			Rolloff_Factor = 0x1021,
-			Cone_Outer_Gain = 0x1022,
-			Max_Distance = 0x1023,
-			Frequency = 0x2001,
-			Bits = 0x2002,
-			Channels = 0x2003,
-			Size = 0x2004,
-			Unused = 0x2010,
-			Pending = 0x2011,
-			Processed = 0x2012,
-			Invalid_Name = 0xA001,
-			Illegal_Enum = 0xA002,
-			Invalid_Enum = 0xA002,
-			Invalid_Value = 0xA003,
-			Illegal_Command = 0xA004,
-			Invalid_Operation = 0xA004,
-			Out_Of_Memory = 0xA005,
-			Vendor = 0xB001,
-			Version = 0xB002,
-			Renderer = 0xB003,
-			Extentions = 0xB004,
-			Doppler_Factor = 0xC000,
-			Doppler_Velocity = 0xC001,
-			Speed_Of_Sound = 0xC003
+			source_relative = 0x202,
+			cone_inner_angle = 0x1001,
+			cone_outer_angle = 0x1002,
+			pitch = 0x1003,
+			position = 0x1004,
+			direction = 0x1005,
+			velocity = 0x1006,
+			looping = 0x1007,
+			buffer = 0x1009,
+			gain = 0x100A,
+			min_gain = 0x100D,
+			max_gain = 0x100E,
+			orientation = 0x100F,
+			channel_mask = 0x3000,
+			source_state = 0x1010,
+			initial = 0x1011,
+			playing = 0x1012,
+			paused = 0x1013,
+			stopped = 0x1014,
+			buffers_queued = 0x1015,
+			buffers_processed = 0x1016,
+			seconds_offset = 0x1024,
+			sample_offset = 0x1025,
+			byte_offset = 0x1026,
+			source_type = 0x1027,
+			constant = 0x1028,
+			streaming = 0x1029,
+			undetermined = 0x1030,
+			format_mono8 = 0x1100,
+			format_mono16 = 0x1101,
+			format_stereo8 = 0x1102,
+			format_stereo16 = 0x1103,
+			reference_distance = 0x1020,
+			rolloff_factor = 0x1021,
+			cone_outer_gain = 0x1022,
+			max_distance = 0x1023,
+			frequency = 0x2001,
+			bits = 0x2002,
+			channels = 0x2003,
+			size = 0x2004,
+			unused = 0x2010,
+			pending = 0x2011,
+			processed = 0x2012,
+			invalid_name = 0xA001,
+			illegal_enum = 0xA002,
+			invalid_enum = 0xA002,
+			invalid_value = 0xA003,
+			illegal_command = 0xA004,
+			invalid_operation = 0xA004,
+			out_of_memory = 0xA005,
+			vendor = 0xB001,
+			version = 0xB002,
+			renderer = 0xB003,
+			extentions = 0xB004,
+			doppler_factor = 0xC000,
+			doppler_velocity = 0xC001,
+			speed_of_sound = 0xC003
 		};
 
-		enum class FilterEx
+		enum class filter_ex
 		{
-			Lowpass_Gain = 0x0001,
-			Lowpass_Gain_HF = 0x0002,
-			Highpass_Gain = 0x0001,
-			Highpass_Gain_LF = 0x0002,
-			Bandpass_Gain = 0x0001,
-			Bandpass_Gain_LF = 0x0002,
-			Bandpass_Gain_HF = 0x0003,
-			Filter_Type = 0x8001,
-			Filter_Null = 0x0000,
-			Filter_Lowpass = 0x0001,
-			Filter_Highpass = 0x0002,
-			Filter_Bandpass = 0x0003
+			lowpass_gain = 0x0001,
+			lowpass_gain_hf = 0x0002,
+			highpass_gain = 0x0001,
+			highpass_gain_lf = 0x0002,
+			bandpass_gain = 0x0001,
+			bandpass_gain_lf = 0x0002,
+			bandpass_gain_hf = 0x0003,
+			filter_type = 0x8001,
+			filter_null = 0x0000,
+			filter_lowpass = 0x0001,
+			filter_highpass = 0x0002,
+			filter_bandpass = 0x0003
 		};
 
-		enum class EffectEx
+		enum class effect_ex
 		{
-			Reverb_Density = 0x0001,
-			Reverb_Diffusion = 0x0002,
-			Reverb_Gain = 0x0003,
-			Reverb_Gain_HF = 0x0004,
-			Reverb_Decay_Time = 0x0005,
-			Reverb_Decay_HF_Ratio = 0x0006,
-			Reverb_Reflections_Gain = 0x0007,
-			Reverb_Reflections_Delay = 0x0008,
-			Reverb_Late_Reverb_Gain = 0x0009,
-			Reverb_Late_Reverb_Delay = 0x000A,
-			Reverb_Air_Absorption_Gain_HF = 0x000B,
-			Reverb_Room_Rolloff_Factor = 0x000C,
-			Reverb_Decay_HF_Limit = 0x000D,
-			EAXReverb_Density = 0x0001,
-			EAXReverb_Diffusion = 0x0002,
-			EAXReverb_Gain = 0x0003,
-			EAXReverb_Gain_HF = 0x0004,
-			EAXReverb_Gain_LF = 0x0005,
-			EAXReverb_Decay_Time = 0x0006,
-			EAXReverb_Decay_HF_Ratio = 0x0007,
-			EAXReverb_Decay_LF_Ratio = 0x0008,
-			EAXReverb_Reflections_Gain = 0x0009,
-			EAXReverb_Reflections_Delay = 0x000A,
-			EAXReverb_Reflections_Pan = 0x000B,
-			EAXReverb_Late_Reverb_Gain = 0x000C,
-			EAXReverb_Late_Reverb_Delay = 0x000D,
-			EAXReverb_Late_Reverb_Pan = 0x000E,
-			EAXReverb_Echo_Time = 0x000F,
-			EAXReverb_Echo_Depth = 0x0010,
-			EAXReverb_Modulation_Time = 0x0011,
-			EAXReverb_Modulation_Depth = 0x0012,
-			EAXReverb_Air_Absorption_Gain_HF = 0x0013,
-			EAXReverb_HF_Reference = 0x0014,
-			EAXReverb_LF_Reference = 0x0015,
-			EAXReverb_Room_Rolloff_Factor = 0x0016,
-			EAXReverb_Decay_HF_Limit = 0x0017,
-			Chorus_Waveform = 0x0001,
-			Chorus_Phase = 0x0002,
-			Chorus_Rate = 0x0003,
-			Chorus_Depth = 0x0004,
-			Chorus_Feedback = 0x0005,
-			Chorus_Delay = 0x0006,
-			Distortion_Edge = 0x0001,
-			Distortion_Gain = 0x0002,
-			Distortion_Lowpass_Cutoff = 0x0003,
-			Distortion_EQ_Center = 0x0004,
-			Distortion_EQ_Bandwidth = 0x0005,
-			Echo_Delay = 0x0001,
-			Echo_LR_Delay = 0x0002,
-			Echo_Damping = 0x0003,
-			Echo_Feedback = 0x0004,
-			Echo_Spread = 0x0005,
-			Flanger_Waveform = 0x0001,
-			Flanger_Phase = 0x0002,
-			Flanger_Rate = 0x0003,
-			Flanger_Depth = 0x0004,
-			Flanger_Feedback = 0x0005,
-			Flanger_Delay = 0x0006,
-			Frequency_Shifter_Frequency = 0x0001,
-			Frequency_Shifter_Left_Direction = 0x0002,
-			Frequency_Shifter_Right_Direction = 0x0003,
-			Vocmorpher_Phoneme_A = 0x0001,
-			Vocmorpher_Phoneme_A_Coarse_Tuning = 0x0002,
-			Vocmorpher_Phoneme_B = 0x0003,
-			Vocmorpher_Phoneme_B_Coarse_Tuning = 0x0004,
-			Vocmorpher_Waveform = 0x0005,
-			Vocmorpher_Rate = 0x0006,
-			Pitch_Shifter_Coarse_Tune = 0x0001,
-			Pitch_Shifter_Fine_Tune = 0x0002,
-			Ring_Modulator_Frequency = 0x0001,
-			Ring_Modulator_Highpass_Cutoff = 0x0002,
-			Ring_Modulator_Waveform = 0x0003,
-			Autowah_Attack_Time = 0x0001,
-			Autowah_Release_Time = 0x0002,
-			Autowah_Resonance = 0x0003,
-			Autowah_Peak_Gain = 0x0004,
-			Compressor_ON_OFF = 0x0001,
-			Equalizer_LOW_Gain = 0x0001,
-			Equalizer_LOW_Cutoff = 0x0002,
-			Equalizer_MID1_Gain = 0x0003,
-			Equalizer_MID1_Center = 0x0004,
-			Equalizer_MID1_Width = 0x0005,
-			Equalizer_MID2_Gain = 0x0006,
-			Equalizer_MID2_Center = 0x0007,
-			Equalizer_MID2_Width = 0x0008,
-			Equalizer_HIGH_Gain = 0x0009,
-			Equalizer_HIGH_Cutoff = 0x000A,
-			Effect_First_Parameter = 0x0000,
-			Effect_Last_Parameter = 0x8000,
-			Effect_Type = 0x8001,
-			Effect_Null = 0x0000,
-			Effect_Reverb = 0x0001,
-			Effect_Chorus = 0x0002,
-			Effect_Distortion = 0x0003,
-			Effect_Echo = 0x0004,
-			Effect_Flanger = 0x0005,
-			Effect_Frequency_Shifter = 0x0006,
-			Effect_Vocmorpher = 0x0007,
-			Effect_Pitch_Shifter = 0x0008,
-			Effect_Ring_Modulator = 0x0009,
-			Effect_Autowah = 0x000A,
-			Effect_Compressor = 0x000B,
-			Effect_Equalizer = 0x000C,
-			Effect_EAXReverb = 0x8000,
-			Effect_Slot_Effect = 0x0001,
-			Effect_Slot_Gain = 0x0002,
-			Effect_Slot_Auxiliary_Send_Auto = 0x0003,
-			Effect_Slot_Null = 0x0000
+			reverb_density = 0x0001,
+			reverb_diffusion = 0x0002,
+			reverb_gain = 0x0003,
+			reverb_gain_hf = 0x0004,
+			reverb_decay_time = 0x0005,
+			reverb_decay_hf_ratio = 0x0006,
+			reverb_reflections_gain = 0x0007,
+			reverb_reflections_delay = 0x0008,
+			reverb_late_reverb_gain = 0x0009,
+			reverb_late_reverb_delay = 0x000A,
+			reverb_air_absorption_gain_hf = 0x000B,
+			reverb_room_rolloff_factor = 0x000C,
+			reverb_decay_hf_limit = 0x000D,
+			eax_reverb_density = 0x0001,
+			eax_reverb_diffusion = 0x0002,
+			eax_reverb_gain = 0x0003,
+			eax_reverb_gain_hf = 0x0004,
+			eax_reverb_gain_lf = 0x0005,
+			eax_reverb_decay_time = 0x0006,
+			eax_reverb_decay_hf_ratio = 0x0007,
+			eax_reverb_decay_lf_ratio = 0x0008,
+			eax_reverb_reflections_gain = 0x0009,
+			eax_reverb_reflections_delay = 0x000A,
+			eax_reverb_reflections_pan = 0x000B,
+			eax_reverb_late_reverb_gain = 0x000C,
+			eax_reverb_late_reverb_delay = 0x000D,
+			eax_reverb_late_reverb_pan = 0x000E,
+			eax_reverb_echo_time = 0x000F,
+			eax_reverb_echo_depth = 0x0010,
+			eax_reverb_modulation_time = 0x0011,
+			eax_reverb_modulation_depth = 0x0012,
+			eax_reverb_air_absorption_gain_hf = 0x0013,
+			eax_reverb_hf_reference = 0x0014,
+			eax_reverb_lf_reference = 0x0015,
+			eax_reverb_room_rolloff_factor = 0x0016,
+			eax_reverb_decay_hf_limit = 0x0017,
+			chorus_waveform = 0x0001,
+			chorus_phase = 0x0002,
+			chorus_rate = 0x0003,
+			chorus_depth = 0x0004,
+			chorus_feedback = 0x0005,
+			chorus_delay = 0x0006,
+			distortion_edge = 0x0001,
+			distortion_gain = 0x0002,
+			distortion_lowpass_cutoff = 0x0003,
+			distortion_eq_center = 0x0004,
+			distortion_eq_bandwidth = 0x0005,
+			echo_delay = 0x0001,
+			echo_lr_delay = 0x0002,
+			echo_damping = 0x0003,
+			echo_feedback = 0x0004,
+			echo_spread = 0x0005,
+			flanger_waveform = 0x0001,
+			flanger_phase = 0x0002,
+			flanger_rate = 0x0003,
+			flanger_depth = 0x0004,
+			flanger_feedback = 0x0005,
+			flanger_delay = 0x0006,
+			frequency_shifter_frequency = 0x0001,
+			frequency_shifter_left_direction = 0x0002,
+			frequency_shifter_right_direction = 0x0003,
+			vocmorpher_phoneme_a = 0x0001,
+			vocmorpher_phoneme_acoarse_tuning = 0x0002,
+			vocmorpher_phoneme_b = 0x0003,
+			vocmorpher_phoneme_bcoarse_tuning = 0x0004,
+			vocmorpher_waveform = 0x0005,
+			vocmorpher_rate = 0x0006,
+			pitch_shifter_coarse_tune = 0x0001,
+			pitch_shifter_fine_tune = 0x0002,
+			ring_modulator_frequency = 0x0001,
+			ring_modulator_highpass_cutoff = 0x0002,
+			ring_modulator_waveform = 0x0003,
+			autowah_attack_time = 0x0001,
+			autowah_release_time = 0x0002,
+			autowah_resonance = 0x0003,
+			autowah_peak_gain = 0x0004,
+			compressor_onoff = 0x0001,
+			equalizer_low_gain = 0x0001,
+			equalizer_low_cutoff = 0x0002,
+			equalizer_mid1_gain = 0x0003,
+			equalizer_mid1_center = 0x0004,
+			equalizer_mid1_width = 0x0005,
+			equalizer_mid2_gain = 0x0006,
+			equalizer_mid2_center = 0x0007,
+			equalizer_mid2_width = 0x0008,
+			equalizer_high_gain = 0x0009,
+			equalizer_high_cutoff = 0x000A,
+			effect_first_parameter = 0x0000,
+			effect_last_parameter = 0x8000,
+			effect_type = 0x8001,
+			effect_null = 0x0000,
+			effect_reverb = 0x0001,
+			effect_chorus = 0x0002,
+			effect_distortion = 0x0003,
+			effect_echo = 0x0004,
+			effect_flanger = 0x0005,
+			effect_frequency_shifter = 0x0006,
+			effect_vocmorpher = 0x0007,
+			effect_pitch_shifter = 0x0008,
+			effect_ring_modulator = 0x0009,
+			effect_autowah = 0x000A,
+			effect_compressor = 0x000B,
+			effect_equalizer = 0x000C,
+			effect_eax_reverb = 0x8000,
+			effect_slot_effect = 0x0001,
+			effect_slot_gain = 0x0002,
+			effect_slot_auxiliary_send_auto = 0x0003,
+			effect_slot_null = 0x0000
 		};
 
-		struct VI_OUT AudioSync
+		struct audio_sync
 		{
-			Trigonometry::Vector3 Direction;
-			Trigonometry::Vector3 Velocity;
-			float ConeInnerAngle = 360.0f;
-			float ConeOuterAngle = 360.0f;
-			float ConeOuterGain = 0.0f;
-			float Pitch = 1.0f;
-			float Gain = 1.0f;
-			float RefDistance = 0.0f;
-			float Distance = 10.0f;
-			float Rolloff = 1.0f;
-			float Position = 0.0f;
-			float AirAbsorption = 0.0f;
-			float RoomRollOff = 0.0f;
-			bool IsRelative = false;
-			bool IsLooped = false;
+			trigonometry::vector3 direction;
+			trigonometry::vector3 velocity;
+			float cone_inner_angle = 360.0f;
+			float cone_outer_angle = 360.0f;
+			float cone_outer_gain = 0.0f;
+			float pitch = 1.0f;
+			float gain = 1.0f;
+			float ref_distance = 0.0f;
+			float distance = 10.0f;
+			float rolloff = 1.0f;
+			float position = 0.0f;
+			float air_absorption = 0.0f;
+			float room_roll_off = 0.0f;
+			bool is_relative = false;
+			bool is_looped = false;
 		};
 
-		class AudioException final : public Core::BasicException
+		class audio_exception final : public core::basic_exception
 		{
 		private:
-			int AlErrorCode;
-			int AlcErrorCode;
+			int al_error_code;
+			int alc_error_code;
 
 		public:
-			VI_OUT AudioException(void* Device = nullptr);
-			VI_OUT const char* type() const noexcept override;
-			VI_OUT int al_error_code() const noexcept;
-			VI_OUT int alc_error_code() const noexcept;
-			VI_OUT bool has_error() const noexcept;
+			audio_exception(void* device = nullptr);
+			const char* type() const noexcept override;
+			int al_code() const noexcept;
+			int alc_code() const noexcept;
+			bool has_error() const noexcept;
 		};
 
-		template <typename V>
-		using ExpectsAudio = Core::Expects<V, AudioException>;
+		template <typename v>
+		using expects_audio = core::expects<v, audio_exception>;
 
-		class VI_OUT AudioContext final : public Core::Singletonish
+		class audio_context final : public core::singletonish
 		{
 		public:
-			static ExpectsAudio<void> Initialize();
-			static ExpectsAudio<void> GenerateBuffers(int Count, uint32_t* Buffers);
-			static ExpectsAudio<void> SetFilter1I(uint32_t Filter, FilterEx Value, int F1);
-			static ExpectsAudio<void> SetFilter1F(uint32_t Filter, FilterEx Value, float F1);
-			static ExpectsAudio<void> SetEffect1I(uint32_t Effect, EffectEx Value, int F1);
-			static ExpectsAudio<void> SetEffect1F(uint32_t Effect, EffectEx Value, float F1);
-			static ExpectsAudio<void> SetEffectVF(uint32_t Effect, EffectEx Value, float* FS);
-			static ExpectsAudio<void> SetBufferData(uint32_t Buffer, int Format, const void* Data, int Size, int Frequency);
-			static ExpectsAudio<void> SetSourceData3F(uint32_t Source, SoundEx Value, float F1, float F2, float F3);
-			static ExpectsAudio<void> GetSourceData3F(uint32_t Source, SoundEx Value, float* F1, float* F2, float* F3);
-			static ExpectsAudio<void> SetSourceDataVF(uint32_t Source, SoundEx Value, float* FS);
-			static ExpectsAudio<void> GetSourceDataVF(uint32_t Source, SoundEx Value, float* FS);
-			static ExpectsAudio<void> SetSourceData1F(uint32_t Source, SoundEx Value, float F1);
-			static ExpectsAudio<void> GetSourceData1F(uint32_t Source, SoundEx Value, float* F1);
-			static ExpectsAudio<void> SetSourceData3I(uint32_t Source, SoundEx Value, int F1, int F2, int F3);
-			static ExpectsAudio<void> GetSourceData3I(uint32_t Source, SoundEx Value, int* F1, int* F2, int* F3);
-			static ExpectsAudio<void> SetSourceDataVI(uint32_t Source, SoundEx Value, int* FS);
-			static ExpectsAudio<void> GetSourceDataVI(uint32_t Source, SoundEx Value, int* FS);
-			static ExpectsAudio<void> SetSourceData1I(uint32_t Source, SoundEx Value, int F1);
-			static ExpectsAudio<void> GetSourceData1I(uint32_t Source, SoundEx Value, int* F1);
-			static ExpectsAudio<void> SetListenerData3F(SoundEx Listener, float F1, float F2, float F3);
-			static ExpectsAudio<void> GetListenerData3F(SoundEx Listener, float* F1, float* F2, float* F3);
-			static ExpectsAudio<void> SetListenerDataVF(SoundEx Listener, float* FS);
-			static ExpectsAudio<void> GetListenerDataVF(SoundEx Listener, float* FS);
-			static ExpectsAudio<void> SetListenerData1F(SoundEx Listener, float F1);
-			static ExpectsAudio<void> GetListenerData1F(SoundEx Listener, float* F1);
-			static ExpectsAudio<void> SetListenerData3I(SoundEx Listener, int F1, int F2, int F3);
-			static ExpectsAudio<void> GetListenerData3I(SoundEx Listener, int* F1, int* F2, int* F3);
-			static ExpectsAudio<void> SetListenerDataVI(SoundEx Listener, int* FS);
-			static ExpectsAudio<void> GetListenerDataVI(SoundEx Listener, int* FS);
-			static ExpectsAudio<void> SetListenerData1I(SoundEx Listener, int F1);
-			static ExpectsAudio<void> GetListenerData1I(SoundEx Listener, int* F1);
-			static uint32_t GetEnumValue(const char* Name);
+			static expects_audio<void> initialize();
+			static expects_audio<void> generate_buffers(int count, uint32_t* buffers);
+			static expects_audio<void> set_filter1i(uint32_t filter, filter_ex value, int F1);
+			static expects_audio<void> set_filter1f(uint32_t filter, filter_ex value, float F1);
+			static expects_audio<void> set_effect1i(uint32_t effect, effect_ex value, int F1);
+			static expects_audio<void> set_effect1f(uint32_t effect, effect_ex value, float F1);
+			static expects_audio<void> set_effectvf(uint32_t effect, effect_ex value, float* FS);
+			static expects_audio<void> set_buffer_data(uint32_t buffer, int format, const void* data, int size, int frequency);
+			static expects_audio<void> set_source_data3f(uint32_t source, sound_ex value, float F1, float F2, float F3);
+			static expects_audio<void> get_source_data3f(uint32_t source, sound_ex value, float* F1, float* F2, float* F3);
+			static expects_audio<void> set_source_datavf(uint32_t source, sound_ex value, float* FS);
+			static expects_audio<void> get_source_datavf(uint32_t source, sound_ex value, float* FS);
+			static expects_audio<void> set_source_data1f(uint32_t source, sound_ex value, float F1);
+			static expects_audio<void> get_source_data1f(uint32_t source, sound_ex value, float* F1);
+			static expects_audio<void> set_source_data3i(uint32_t source, sound_ex value, int F1, int F2, int F3);
+			static expects_audio<void> get_source_data3i(uint32_t source, sound_ex value, int* F1, int* F2, int* F3);
+			static expects_audio<void> set_source_datavi(uint32_t source, sound_ex value, int* FS);
+			static expects_audio<void> get_source_datavi(uint32_t source, sound_ex value, int* FS);
+			static expects_audio<void> set_source_data1i(uint32_t source, sound_ex value, int F1);
+			static expects_audio<void> get_source_data1i(uint32_t source, sound_ex value, int* F1);
+			static expects_audio<void> set_listener_data3f(sound_ex listener, float F1, float F2, float F3);
+			static expects_audio<void> get_listener_data3f(sound_ex listener, float* F1, float* F2, float* F3);
+			static expects_audio<void> set_listener_datavf(sound_ex listener, float* FS);
+			static expects_audio<void> get_listener_datavf(sound_ex listener, float* FS);
+			static expects_audio<void> set_listener_data1f(sound_ex listener, float F1);
+			static expects_audio<void> get_listener_data1f(sound_ex listener, float* F1);
+			static expects_audio<void> set_listener_data3i(sound_ex listener, int F1, int F2, int F3);
+			static expects_audio<void> get_listener_data3i(sound_ex listener, int* F1, int* F2, int* F3);
+			static expects_audio<void> set_listener_datavi(sound_ex listener, int* FS);
+			static expects_audio<void> get_listener_datavi(sound_ex listener, int* FS);
+			static expects_audio<void> set_listener_data1i(sound_ex listener, int F1);
+			static expects_audio<void> get_listener_data1i(sound_ex listener, int* F1);
+			static uint32_t get_enum_value(const char* name);
 		};
 
-		class VI_OUT AudioFilter : public Core::Reference<AudioFilter>
+		class audio_filter : public core::reference<audio_filter>
 		{
-			friend AudioEffect;
-			friend AudioSource;
+			friend audio_effect;
+			friend audio_source;
 
 		protected:
-			AudioSource* Source = nullptr;
-			uint32_t Filter = 0;
+			audio_source* source = nullptr;
+			uint32_t filter = 0;
 
 		public:
-			AudioFilter() noexcept;
-			virtual ~AudioFilter() noexcept;
-			virtual ExpectsAudio<void> Synchronize() = 0;
-			virtual void Deserialize(Core::Schema* Node) = 0;
-			virtual void Serialize(Core::Schema* Node) const = 0;
-			virtual Core::Unique<AudioFilter> Copy() const = 0;
-			AudioSource* GetSource() const;
+			audio_filter() noexcept;
+			virtual ~audio_filter() noexcept;
+			virtual expects_audio<void> synchronize() = 0;
+			virtual void deserialize(core::schema* node) = 0;
+			virtual void serialize(core::schema* node) const = 0;
+			virtual core::unique<audio_filter> copy() const = 0;
+			audio_source* get_source() const;
 
 		protected:
-			ExpectsAudio<void> Initialize(const std::function<bool()>& Callback);
+			expects_audio<void> initialize(const std::function<bool()>& callback);
 
 		public:
 			VI_COMPONENT_ROOT("base_audio_filter");
 		};
 
-		class VI_OUT AudioEffect : public Core::Reference<AudioEffect>
+		class audio_effect : public core::reference<audio_effect>
 		{
-			friend AudioSource;
+			friend audio_source;
 
 		private:
-			int Zone = -1;
+			int zone = -1;
 
 		protected:
-			AudioSource* Source = nullptr;
-			AudioFilter* Filter = nullptr;
-			uint32_t Effect = 0;
-			uint32_t Slot = 0;
+			audio_source* source = nullptr;
+			audio_filter* filter = nullptr;
+			uint32_t effect = 0;
+			uint32_t slot = 0;
 
 		public:
-			AudioEffect() noexcept;
-			virtual ~AudioEffect() noexcept;
-			virtual ExpectsAudio<void> Synchronize() = 0;
-			virtual void Deserialize(Core::Schema* Node) = 0;
-			virtual void Serialize(Core::Schema* Node) const = 0;
-			virtual Core::Unique<AudioEffect> Copy() const = 0;
-			ExpectsAudio<void> SetFilter(AudioFilter** Filter);
-			AudioFilter* GetFilter() const;
-			AudioSource* GetSource() const;
+			audio_effect() noexcept;
+			virtual ~audio_effect() noexcept;
+			virtual expects_audio<void> synchronize() = 0;
+			virtual void deserialize(core::schema* node) = 0;
+			virtual void serialize(core::schema* node) const = 0;
+			virtual core::unique<audio_effect> copy() const = 0;
+			expects_audio<void> set_filter(audio_filter** filter);
+			audio_filter* get_filter() const;
+			audio_source* get_source() const;
 
 		protected:
-			ExpectsAudio<void> Initialize(const std::function<bool()>& Callback);
+			expects_audio<void> initialize(const std::function<bool()>& callback);
 
 		private:
-			ExpectsAudio<void> Bind(AudioSource* NewSource, int NewZone);
-			ExpectsAudio<void> Unbind();
+			expects_audio<void> bind(audio_source* new_source, int new_zone);
+			expects_audio<void> unbind();
 
 		public:
 			VI_COMPONENT_ROOT("base_audio_effect");
 		};
 
-		class VI_OUT AudioClip final : public Core::Reference<AudioClip>
+		class audio_clip final : public core::reference<audio_clip>
 		{
 		private:
-			uint32_t Buffer = 0;
-			int Format = 0;
+			uint32_t buffer = 0;
+			int format = 0;
 
 		public:
-			AudioClip(int BufferCount, int NewFormat) noexcept;
-			~AudioClip() noexcept;
-			float Length() const;
-			bool IsMono() const;
-			uint32_t GetBuffer() const;
-			int GetFormat() const;
+			audio_clip(int buffer_count, int new_format) noexcept;
+			~audio_clip() noexcept;
+			float length() const;
+			bool is_mono() const;
+			uint32_t get_buffer() const;
+			int get_format() const;
 		};
 
-		class VI_OUT AudioSource final : public Core::Reference<AudioSource>
+		class audio_source final : public core::reference<audio_source>
 		{
-			friend class AudioDevice;
+			friend class audio_device;
 
 		private:
-			Core::Vector<AudioEffect*> Effects;
-			AudioClip* Clip = nullptr;
-			uint32_t Instance = 0;
+			core::vector<audio_effect*> effects;
+			audio_clip* clip = nullptr;
+			uint32_t instance = 0;
 
 		public:
-			AudioSource() noexcept;
-			~AudioSource() noexcept;
-			int64_t AddEffect(AudioEffect* Effect);
-			ExpectsAudio<void> RemoveEffect(size_t EffectId);
-			ExpectsAudio<void> RemoveEffectById(uint64_t EffectId);
-			ExpectsAudio<void> RemoveEffects();
-			ExpectsAudio<void> SetClip(AudioClip* Clip);
-			ExpectsAudio<void> Synchronize(AudioSync* Sync, const Trigonometry::Vector3& Position);
-			ExpectsAudio<void> Reset();
-			ExpectsAudio<void> Pause();
-			ExpectsAudio<void> Play();
-			ExpectsAudio<void> Stop();
-			bool IsPlaying() const;
-			size_t GetEffectsCount() const;
-			AudioClip* GetClip() const;
-			AudioEffect* GetEffect(uint64_t Section) const;
-			uint32_t GetInstance() const;
-			const Core::Vector<AudioEffect*>& GetEffects() const;
+			audio_source() noexcept;
+			~audio_source() noexcept;
+			int64_t add_effect(audio_effect* effect);
+			expects_audio<void> remove_effect(size_t effect_id);
+			expects_audio<void> remove_effect_by_id(uint64_t effect_id);
+			expects_audio<void> remove_effects();
+			expects_audio<void> set_clip(audio_clip* clip);
+			expects_audio<void> synchronize(audio_sync* sync, const trigonometry::vector3& position);
+			expects_audio<void> reset();
+			expects_audio<void> pause();
+			expects_audio<void> play();
+			expects_audio<void> stop();
+			bool is_playing() const;
+			size_t get_effects_count() const;
+			audio_clip* get_clip() const;
+			audio_effect* get_effect(uint64_t section) const;
+			uint32_t get_instance() const;
+			const core::vector<audio_effect*>& get_effects() const;
 
 		public:
-			template <typename T>
-			T* GetEffect()
+			template <typename t>
+			t* get_effect()
 			{
-				return (T*)GetEffect(T::GetTypeId());
+				return (t*)get_effect(t::get_type_id());
 			}
 		};
 
-		class VI_OUT AudioDevice final : public Core::Reference<AudioDevice>
+		class audio_device final : public core::reference<audio_device>
 		{
 		public:
-			void* Context = nullptr;
-			void* Device = nullptr;
+			void* context = nullptr;
+			void* device = nullptr;
 
 		public:
-			AudioDevice() noexcept;
-			~AudioDevice() noexcept;
-			ExpectsAudio<void> Offset(AudioSource* Source, float& Seconds, bool Get);
-			ExpectsAudio<void> Velocity(AudioSource* Source, Trigonometry::Vector3& Velocity, bool Get);
-			ExpectsAudio<void> Position(AudioSource* Source, Trigonometry::Vector3& Position, bool Get);
-			ExpectsAudio<void> Direction(AudioSource* Source, Trigonometry::Vector3& Direction, bool Get);
-			ExpectsAudio<void> Relative(AudioSource* Source, int& Value, bool Get);
-			ExpectsAudio<void> Pitch(AudioSource* Source, float& Value, bool Get);
-			ExpectsAudio<void> Gain(AudioSource* Source, float& Value, bool Get);
-			ExpectsAudio<void> Loop(AudioSource* Source, int& IsLoop, bool Get);
-			ExpectsAudio<void> ConeInnerAngle(AudioSource* Source, float& Value, bool Get);
-			ExpectsAudio<void> ConeOuterAngle(AudioSource* Source, float& Value, bool Get);
-			ExpectsAudio<void> ConeOuterGain(AudioSource* Source, float& Value, bool Get);
-			ExpectsAudio<void> Distance(AudioSource* Source, float& Value, bool Get);
-			ExpectsAudio<void> RefDistance(AudioSource* Source, float& Value, bool Get);
-			ExpectsAudio<void> SetDistanceModel(SoundDistanceModel Model);
-			void DisplayAudioLog() const;
-			bool IsValid() const;
+			audio_device() noexcept;
+			~audio_device() noexcept;
+			expects_audio<void> offset(audio_source* source, float& seconds, bool get);
+			expects_audio<void> velocity(audio_source* source, trigonometry::vector3& velocity, bool get);
+			expects_audio<void> position(audio_source* source, trigonometry::vector3& position, bool get);
+			expects_audio<void> direction(audio_source* source, trigonometry::vector3& direction, bool get);
+			expects_audio<void> relative(audio_source* source, int& value, bool get);
+			expects_audio<void> pitch(audio_source* source, float& value, bool get);
+			expects_audio<void> gain(audio_source* source, float& value, bool get);
+			expects_audio<void> loop(audio_source* source, int& is_loop, bool get);
+			expects_audio<void> cone_inner_angle(audio_source* source, float& value, bool get);
+			expects_audio<void> cone_outer_angle(audio_source* source, float& value, bool get);
+			expects_audio<void> cone_outer_gain(audio_source* source, float& value, bool get);
+			expects_audio<void> distance(audio_source* source, float& value, bool get);
+			expects_audio<void> ref_distance(audio_source* source, float& value, bool get);
+			expects_audio<void> set_distance_model(sound_distance_model model);
+			void display_audio_log() const;
+			bool is_valid() const;
 		};
 	}
 }

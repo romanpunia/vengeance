@@ -8,7 +8,7 @@ VOutput Make(VOutput V, float2 Offset, float2 Coord)
 	float Sin = sin(V.Rotation), Cos = cos(V.Rotation);
 	V.Position.xy += float2(Offset.x * Cos - Offset.y * Sin, Offset.x * Sin + Offset.y * Cos);
 	V.Position = mul(V.Position, ob_World);
-	V.TexCoord = Coord;
+	V.Texcoord = Coord;
 
 	return V;
 }
@@ -41,7 +41,7 @@ float4 ps_main(VOutput V) : SV_TARGET0
 	float4 Color = float4(Materials[ob_MaterialId].Diffuse * V.Color.xyz, V.Color.w);
 	[branch] if (ob_Diffuse > 0)
 	{
-		Color *= GetDiffuse(V.TexCoord);
+		Color *= GetDiffuse(V.Texcoord);
 		if (Color.w < 0.001)
 			discard;
 	}

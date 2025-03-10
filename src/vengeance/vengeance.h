@@ -2,44 +2,44 @@
 #define VENGEANCE_H
 #include <vitex/vitex.h>
 
-namespace Vitex
+namespace vitex
 {
 	enum
 	{
-		LOAD_PLATFORM = 1 << 4,
-		LOAD_AUDIO = 1 << 5,
-		LOAD_GRAPHICS = 1 << 6
+		use_platform = 1 << 4,
+		use_audio = 1 << 5,
+		use_graphics = 1 << 6
 	};
 
-	class VI_OUT_TS HeavyRuntime final : public Runtime
+	class heavy_runtime final : public runtime
 	{
 	public:
-		HeavyRuntime(size_t Modules = LOAD_NETWORKING | LOAD_CRYPTOGRAPHY | LOAD_PROVIDERS | LOAD_LOCALE | LOAD_PLATFORM | LOAD_AUDIO | LOAD_GRAPHICS, Core::GlobalAllocator* Allocator = nullptr) noexcept;
-		virtual ~HeavyRuntime() noexcept override;
-		bool HasFtShaders() const noexcept;
-		bool HasSoOpenGL() const noexcept;
-		bool HasSoOpenAL() const noexcept;
-		bool HasSoSDL2() const noexcept;
-		bool HasSoGLEW() const noexcept;
-		bool HasSoSpirv() const noexcept;
-		bool HasSoAssimp() const noexcept;
-		bool HasSoFreeType() const noexcept;
-		bool HasMdRmlUI() const noexcept;
-		bool HasMdBullet3() const noexcept;
-		bool HasMdTinyFileDialogs() const noexcept;
-		bool HasMdStb() const noexcept;
-		bool HasMdVectorclass() const noexcept;
-		Core::String GetDetails() const noexcept override;
+		heavy_runtime(size_t modules = use_networking | use_cryptography | use_providers | use_locale | use_platform | use_audio | use_graphics, core::global_allocator* allocator = nullptr) noexcept;
+		virtual ~heavy_runtime() noexcept override;
+		bool has_ft_shaders() const noexcept;
+		bool has_so_opengl() const noexcept;
+		bool has_so_openal() const noexcept;
+		bool has_so_sdl2() const noexcept;
+		bool has_so_glew() const noexcept;
+		bool has_so_spirv() const noexcept;
+		bool has_so_assimp() const noexcept;
+		bool has_so_freetype() const noexcept;
+		bool has_md_rmlui() const noexcept;
+		bool has_md_bullet3() const noexcept;
+		bool has_md_tinyfiledialogs() const noexcept;
+		bool has_md_stb() const noexcept;
+		bool has_md_vectorclass() const noexcept;
+		core::string get_details() const noexcept override;
 
 	public:
-		static bool InitializePlatform() noexcept;
-		static bool InitializeGraphics() noexcept;
-		static bool InitializeAudio() noexcept;
-		static void CleanupInstances() noexcept;
-		static void CleanupPlatform() noexcept;
-		static void CleanupImporter() noexcept;
-		static void CleanupScripting() noexcept;
-		static HeavyRuntime* Get() noexcept;
+		static bool initialize_platform() noexcept;
+		static bool initialize_graphics() noexcept;
+		static bool initialize_audio() noexcept;
+		static void cleanup_instances() noexcept;
+		static void cleanup_platform() noexcept;
+		static void cleanup_importer() noexcept;
+		static void cleanup_scripting() noexcept;
+		static heavy_runtime* get() noexcept;
 	};
 }
 #endif

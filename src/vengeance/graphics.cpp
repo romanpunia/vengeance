@@ -24,1936 +24,1936 @@
 namespace
 {
 #ifdef VI_SPIRV
-	static TBuiltInResource DriverLimits = { };
+	static TBuiltInResource driver_limits = { };
 
-	static void PrepareDriverLimits()
+	static void prepare_driver_limits()
 	{
-		static bool IsReady = false;
-		if (IsReady)
+		static bool is_ready = false;
+		if (is_ready)
 			return;
 
-		DriverLimits.maxLights = 32;
-		DriverLimits.maxClipPlanes = 6;
-		DriverLimits.maxTextureUnits = 32;
-		DriverLimits.maxTextureCoords = 32;
-		DriverLimits.maxVertexAttribs = 64;
-		DriverLimits.maxVertexUniformComponents = 4096;
-		DriverLimits.maxVaryingFloats = 64;
-		DriverLimits.maxVertexTextureImageUnits = 32;
-		DriverLimits.maxCombinedTextureImageUnits = 80;
-		DriverLimits.maxTextureImageUnits = 32;
-		DriverLimits.maxFragmentUniformComponents = 4096;
-		DriverLimits.maxDrawBuffers = 32;
-		DriverLimits.maxVertexUniformVectors = 128;
-		DriverLimits.maxVaryingVectors = 8;
-		DriverLimits.maxFragmentUniformVectors = 16;
-		DriverLimits.maxVertexOutputVectors = 16;
-		DriverLimits.maxFragmentInputVectors = 15;
-		DriverLimits.minProgramTexelOffset = -8;
-		DriverLimits.maxProgramTexelOffset = 7;
-		DriverLimits.maxClipDistances = 8;
-		DriverLimits.maxComputeWorkGroupCountX = 65535;
-		DriverLimits.maxComputeWorkGroupCountY = 65535;
-		DriverLimits.maxComputeWorkGroupCountZ = 65535;
-		DriverLimits.maxComputeWorkGroupSizeX = 1024;
-		DriverLimits.maxComputeWorkGroupSizeY = 1024;
-		DriverLimits.maxComputeWorkGroupSizeZ = 64;
-		DriverLimits.maxComputeUniformComponents = 1024;
-		DriverLimits.maxComputeTextureImageUnits = 16;
-		DriverLimits.maxComputeImageUniforms = 8;
-		DriverLimits.maxComputeAtomicCounters = 8;
-		DriverLimits.maxComputeAtomicCounterBuffers = 1;
-		DriverLimits.maxVaryingComponents = 60;
-		DriverLimits.maxVertexOutputComponents = 64;
-		DriverLimits.maxGeometryInputComponents = 64;
-		DriverLimits.maxGeometryOutputComponents = 128;
-		DriverLimits.maxFragmentInputComponents = 128;
-		DriverLimits.maxImageUnits = 8;
-		DriverLimits.maxCombinedImageUnitsAndFragmentOutputs = 8;
-		DriverLimits.maxCombinedShaderOutputResources = 8;
-		DriverLimits.maxImageSamples = 0;
-		DriverLimits.maxVertexImageUniforms = 0;
-		DriverLimits.maxTessControlImageUniforms = 0;
-		DriverLimits.maxTessEvaluationImageUniforms = 0;
-		DriverLimits.maxGeometryImageUniforms = 0;
-		DriverLimits.maxFragmentImageUniforms = 8;
-		DriverLimits.maxCombinedImageUniforms = 8;
-		DriverLimits.maxGeometryTextureImageUnits = 16;
-		DriverLimits.maxGeometryOutputVertices = 256;
-		DriverLimits.maxGeometryTotalOutputComponents = 1024;
-		DriverLimits.maxGeometryUniformComponents = 1024;
-		DriverLimits.maxGeometryVaryingComponents = 64;
-		DriverLimits.maxTessControlInputComponents = 128;
-		DriverLimits.maxTessControlOutputComponents = 128;
-		DriverLimits.maxTessControlTextureImageUnits = 16;
-		DriverLimits.maxTessControlUniformComponents = 1024;
-		DriverLimits.maxTessControlTotalOutputComponents = 4096;
-		DriverLimits.maxTessEvaluationInputComponents = 128;
-		DriverLimits.maxTessEvaluationOutputComponents = 128;
-		DriverLimits.maxTessEvaluationTextureImageUnits = 16;
-		DriverLimits.maxTessEvaluationUniformComponents = 1024;
-		DriverLimits.maxTessPatchComponents = 120;
-		DriverLimits.maxPatchVertices = 32;
-		DriverLimits.maxTessGenLevel = 64;
-		DriverLimits.maxViewports = 16;
-		DriverLimits.maxVertexAtomicCounters = 0;
-		DriverLimits.maxTessControlAtomicCounters = 0;
-		DriverLimits.maxTessEvaluationAtomicCounters = 0;
-		DriverLimits.maxGeometryAtomicCounters = 0;
-		DriverLimits.maxFragmentAtomicCounters = 8;
-		DriverLimits.maxCombinedAtomicCounters = 8;
-		DriverLimits.maxAtomicCounterBindings = 1;
-		DriverLimits.maxVertexAtomicCounterBuffers = 0;
-		DriverLimits.maxTessControlAtomicCounterBuffers = 0;
-		DriverLimits.maxTessEvaluationAtomicCounterBuffers = 0;
-		DriverLimits.maxGeometryAtomicCounterBuffers = 0;
-		DriverLimits.maxFragmentAtomicCounterBuffers = 1;
-		DriverLimits.maxCombinedAtomicCounterBuffers = 1;
-		DriverLimits.maxAtomicCounterBufferSize = 16384;
-		DriverLimits.maxTransformFeedbackBuffers = 4;
-		DriverLimits.maxTransformFeedbackInterleavedComponents = 64;
-		DriverLimits.maxCullDistances = 8;
-		DriverLimits.maxCombinedClipAndCullDistances = 8;
-		DriverLimits.maxSamples = 4;
-		DriverLimits.maxMeshOutputVerticesNV = 256;
-		DriverLimits.maxMeshOutputPrimitivesNV = 512;
-		DriverLimits.maxMeshWorkGroupSizeX_NV = 32;
-		DriverLimits.maxMeshWorkGroupSizeY_NV = 1;
-		DriverLimits.maxMeshWorkGroupSizeZ_NV = 1;
-		DriverLimits.maxTaskWorkGroupSizeX_NV = 32;
-		DriverLimits.maxTaskWorkGroupSizeY_NV = 1;
-		DriverLimits.maxTaskWorkGroupSizeZ_NV = 1;
-		DriverLimits.maxMeshViewCountNV = 4;
-		DriverLimits.limits.nonInductiveForLoops = 1;
-		DriverLimits.limits.whileLoops = 1;
-		DriverLimits.limits.doWhileLoops = 1;
-		DriverLimits.limits.generalUniformIndexing = 1;
-		DriverLimits.limits.generalAttributeMatrixVectorIndexing = 1;
-		DriverLimits.limits.generalVaryingIndexing = 1;
-		DriverLimits.limits.generalSamplerIndexing = 1;
-		DriverLimits.limits.generalVariableIndexing = 1;
-		DriverLimits.limits.generalConstantMatrixVectorIndexing = 1;
-		IsReady = true;
+		driver_limits.maxLights = 32;
+		driver_limits.maxClipPlanes = 6;
+		driver_limits.maxTextureUnits = 32;
+		driver_limits.maxTextureCoords = 32;
+		driver_limits.maxVertexAttribs = 64;
+		driver_limits.maxVertexUniformComponents = 4096;
+		driver_limits.maxVaryingFloats = 64;
+		driver_limits.maxVertexTextureImageUnits = 32;
+		driver_limits.maxCombinedTextureImageUnits = 80;
+		driver_limits.maxTextureImageUnits = 32;
+		driver_limits.maxFragmentUniformComponents = 4096;
+		driver_limits.maxDrawBuffers = 32;
+		driver_limits.maxVertexUniformVectors = 128;
+		driver_limits.maxVaryingVectors = 8;
+		driver_limits.maxFragmentUniformVectors = 16;
+		driver_limits.maxVertexOutputVectors = 16;
+		driver_limits.maxFragmentInputVectors = 15;
+		driver_limits.minProgramTexelOffset = -8;
+		driver_limits.maxProgramTexelOffset = 7;
+		driver_limits.maxClipDistances = 8;
+		driver_limits.maxComputeWorkGroupCountX = 65535;
+		driver_limits.maxComputeWorkGroupCountY = 65535;
+		driver_limits.maxComputeWorkGroupCountZ = 65535;
+		driver_limits.maxComputeWorkGroupSizeX = 1024;
+		driver_limits.maxComputeWorkGroupSizeY = 1024;
+		driver_limits.maxComputeWorkGroupSizeZ = 64;
+		driver_limits.maxComputeUniformComponents = 1024;
+		driver_limits.maxComputeTextureImageUnits = 16;
+		driver_limits.maxComputeImageUniforms = 8;
+		driver_limits.maxComputeAtomicCounters = 8;
+		driver_limits.maxComputeAtomicCounterBuffers = 1;
+		driver_limits.maxVaryingComponents = 60;
+		driver_limits.maxVertexOutputComponents = 64;
+		driver_limits.maxGeometryInputComponents = 64;
+		driver_limits.maxGeometryOutputComponents = 128;
+		driver_limits.maxFragmentInputComponents = 128;
+		driver_limits.maxImageUnits = 8;
+		driver_limits.maxCombinedImageUnitsAndFragmentOutputs = 8;
+		driver_limits.maxCombinedShaderOutputResources = 8;
+		driver_limits.maxImageSamples = 0;
+		driver_limits.maxVertexImageUniforms = 0;
+		driver_limits.maxTessControlImageUniforms = 0;
+		driver_limits.maxTessEvaluationImageUniforms = 0;
+		driver_limits.maxGeometryImageUniforms = 0;
+		driver_limits.maxFragmentImageUniforms = 8;
+		driver_limits.maxCombinedImageUniforms = 8;
+		driver_limits.maxGeometryTextureImageUnits = 16;
+		driver_limits.maxGeometryOutputVertices = 256;
+		driver_limits.maxGeometryTotalOutputComponents = 1024;
+		driver_limits.maxGeometryUniformComponents = 1024;
+		driver_limits.maxGeometryVaryingComponents = 64;
+		driver_limits.maxTessControlInputComponents = 128;
+		driver_limits.maxTessControlOutputComponents = 128;
+		driver_limits.maxTessControlTextureImageUnits = 16;
+		driver_limits.maxTessControlUniformComponents = 1024;
+		driver_limits.maxTessControlTotalOutputComponents = 4096;
+		driver_limits.maxTessEvaluationInputComponents = 128;
+		driver_limits.maxTessEvaluationOutputComponents = 128;
+		driver_limits.maxTessEvaluationTextureImageUnits = 16;
+		driver_limits.maxTessEvaluationUniformComponents = 1024;
+		driver_limits.maxTessPatchComponents = 120;
+		driver_limits.maxPatchVertices = 32;
+		driver_limits.maxTessGenLevel = 64;
+		driver_limits.maxViewports = 16;
+		driver_limits.maxVertexAtomicCounters = 0;
+		driver_limits.maxTessControlAtomicCounters = 0;
+		driver_limits.maxTessEvaluationAtomicCounters = 0;
+		driver_limits.maxGeometryAtomicCounters = 0;
+		driver_limits.maxFragmentAtomicCounters = 8;
+		driver_limits.maxCombinedAtomicCounters = 8;
+		driver_limits.maxAtomicCounterBindings = 1;
+		driver_limits.maxVertexAtomicCounterBuffers = 0;
+		driver_limits.maxTessControlAtomicCounterBuffers = 0;
+		driver_limits.maxTessEvaluationAtomicCounterBuffers = 0;
+		driver_limits.maxGeometryAtomicCounterBuffers = 0;
+		driver_limits.maxFragmentAtomicCounterBuffers = 1;
+		driver_limits.maxCombinedAtomicCounterBuffers = 1;
+		driver_limits.maxAtomicCounterBufferSize = 16384;
+		driver_limits.maxTransformFeedbackBuffers = 4;
+		driver_limits.maxTransformFeedbackInterleavedComponents = 64;
+		driver_limits.maxCullDistances = 8;
+		driver_limits.maxCombinedClipAndCullDistances = 8;
+		driver_limits.maxSamples = 4;
+		driver_limits.maxMeshOutputVerticesNV = 256;
+		driver_limits.maxMeshOutputPrimitivesNV = 512;
+		driver_limits.maxMeshWorkGroupSizeX_NV = 32;
+		driver_limits.maxMeshWorkGroupSizeY_NV = 1;
+		driver_limits.maxMeshWorkGroupSizeZ_NV = 1;
+		driver_limits.maxTaskWorkGroupSizeX_NV = 32;
+		driver_limits.maxTaskWorkGroupSizeY_NV = 1;
+		driver_limits.maxTaskWorkGroupSizeZ_NV = 1;
+		driver_limits.maxMeshViewCountNV = 4;
+		driver_limits.limits.nonInductiveForLoops = 1;
+		driver_limits.limits.whileLoops = 1;
+		driver_limits.limits.doWhileLoops = 1;
+		driver_limits.limits.generalUniformIndexing = 1;
+		driver_limits.limits.generalAttributeMatrixVectorIndexing = 1;
+		driver_limits.limits.generalVaryingIndexing = 1;
+		driver_limits.limits.generalSamplerIndexing = 1;
+		driver_limits.limits.generalVariableIndexing = 1;
+		driver_limits.limits.generalConstantMatrixVectorIndexing = 1;
+		is_ready = true;
 	}
-	static void PrepareSamplers(spirv_cross::Compiler* Compiler)
+	static void prepare_combined_samplers(spirv_cross::Compiler* compiler)
 	{
-		for (auto& SamplerId : Compiler->get_combined_image_samplers())
+		compiler->build_dummy_sampler_for_combined_images();
+		compiler->build_combined_image_samplers();
+		for (auto& resource : compiler->get_combined_image_samplers())
 		{
-			uint32_t BindingId = Compiler->get_decoration(SamplerId.image_id, spv::DecorationBinding);
-			Compiler->set_decoration(SamplerId.combined_id, spv::DecorationBinding, BindingId);
+			uint32_t binding_id = compiler->get_decoration(resource.image_id, spv::DecorationBinding);
+			compiler->set_decoration(resource.combined_id, spv::DecorationBinding, binding_id);
+			compiler->set_name(resource.combined_id, compiler->get_name(resource.image_id));
 		}
 	}
 #endif
-	static Vitex::Graphics::RenderBackend GetSupportedBackend(Vitex::Graphics::RenderBackend Type)
+	static vitex::graphics::render_backend get_supported_backend(vitex::graphics::render_backend type)
 	{
-		if (Type != Vitex::Graphics::RenderBackend::Automatic)
-			return Type;
+		if (type != vitex::graphics::render_backend::automatic)
+			return type;
 #ifdef VI_MICROSOFT
-		return Vitex::Graphics::RenderBackend::D3D11;
+		return vitex::graphics::render_backend::d3d11;
 #endif
 #ifdef VI_GL
-		return Vitex::Graphics::RenderBackend::OGL;
+		return vitex::graphics::render_backend::ogl;
 #endif
-		return Vitex::Graphics::RenderBackend::None;
+		return vitex::graphics::render_backend::none;
 	}
 }
 
-namespace Vitex
+namespace vitex
 {
-	namespace Graphics
+	namespace graphics
 	{
-		Alert::Alert(Activity* From) noexcept : View(AlertType::None), Base(From), Waiting(false)
+		alert::alert(activity* from) noexcept : view(alert_type::none), base(from), waiting(false)
 		{
 		}
-		void Alert::Setup(AlertType Type, const std::string_view& Title, const std::string_view& Text)
+		void alert::setup(alert_type type, const std::string_view& title, const std::string_view& text)
 		{
-			VI_ASSERT(Type != AlertType::None, "alert type should not be none");
-			View = Type;
-			Name = Title;
-			Data = Text;
-			Buttons.clear();
+			VI_ASSERT(type != alert_type::none, "alert type should not be none");
+			view = type;
+			name = title;
+			data = text;
+			buttons.clear();
 		}
-		void Alert::Button(AlertConfirm Confirm, const std::string_view& Text, int Id)
+		void alert::button(alert_confirm confirm, const std::string_view& text, int id)
 		{
-			VI_ASSERT(View != AlertType::None, "alert type should not be none");
-			VI_ASSERT(Buttons.size() < 16, "there must be less than 16 buttons in alert");
+			VI_ASSERT(view != alert_type::none, "alert type should not be none");
+			VI_ASSERT(buttons.size() < 16, "there must be less than 16 buttons in alert");
 
-			for (auto& Item : Buttons)
+			for (auto& item : buttons)
 			{
-				if (Item.Id == Id)
+				if (item.id == id)
 					return;
 			}
 
-			Element Button;
-			Button.Name = Text;
-			Button.Id = Id;
-			Button.Flags = (int)Confirm;
+			element button;
+			button.name = text;
+			button.id = id;
+			button.flags = (int)confirm;
 
-			Buttons.push_back(Button);
+			buttons.push_back(button);
 		}
-		void Alert::Result(std::function<void(int)>&& Callback)
+		void alert::result(std::function<void(int)>&& callback)
 		{
-			VI_ASSERT(View != AlertType::None, "alert type should not be none");
-			Done = std::move(Callback);
-			Waiting = true;
+			VI_ASSERT(view != alert_type::none, "alert type should not be none");
+			done = std::move(callback);
+			waiting = true;
 		}
-		void Alert::Dispatch()
+		void alert::dispatch()
 		{
 #ifdef VI_SDL2
-			if (View == AlertType::None || !Waiting)
+			if (view == alert_type::none || !waiting)
 				return;
 
-			SDL_MessageBoxButtonData Views[16];
-			for (size_t i = 0; i < Buttons.size(); i++)
+			SDL_MessageBoxButtonData views[16];
+			for (size_t i = 0; i < buttons.size(); i++)
 			{
-				SDL_MessageBoxButtonData* To = Views + i;
-				auto From = Buttons.begin() + i;
-				To->text = From->Name.c_str();
-				To->buttonid = From->Id;
-				To->flags = From->Flags;
+				SDL_MessageBoxButtonData* to = views + i;
+				auto from = buttons.begin() + i;
+				to->text = from->name.c_str();
+				to->buttonid = from->id;
+				to->flags = from->flags;
 			}
 
-			SDL_MessageBoxData AlertData;
-			AlertData.title = Name.c_str();
-			AlertData.message = Data.c_str();
-			AlertData.flags = (SDL_MessageBoxFlags)View;
-			AlertData.numbuttons = (int)Buttons.size();
-			AlertData.buttons = Views;
-			AlertData.window = Base->GetHandle();
+			SDL_MessageBoxData alert_data;
+			alert_data.title = name.c_str();
+			alert_data.message = data.c_str();
+			alert_data.flags = (SDL_MessageBoxFlags)view;
+			alert_data.numbuttons = (int)buttons.size();
+			alert_data.buttons = views;
+			alert_data.window = base->get_handle();
 
-			int Id = 0;
-			View = AlertType::None;
-			Waiting = false;
-			int Rd = SDL_ShowMessageBox(&AlertData, &Id);
+			int id = 0;
+			view = alert_type::none;
+			waiting = false;
+			int rd = SDL_ShowMessageBox(&alert_data, &id);
 
-			if (Done)
-				Done(Rd >= 0 ? Id : -1);
+			if (done)
+				done(rd >= 0 ? id : -1);
 #endif
 		}
 
-		void EventConsumers::Push(Activity* Value)
+		void event_consumers::push(activity* value)
 		{
-			VI_ASSERT(Value != nullptr, "activity should be set");
-			Consumers[Value->GetId()] = Value;
+			VI_ASSERT(value != nullptr, "activity should be set");
+			consumers[value->get_id()] = value;
 		}
-		void EventConsumers::Pop(Activity* Value)
+		void event_consumers::pop(activity* value)
 		{
-			VI_ASSERT(Value != nullptr, "activity should be set");
-			auto It = Consumers.find(Value->GetId());
-			if (It != Consumers.end())
-				Consumers.erase(It);
+			VI_ASSERT(value != nullptr, "activity should be set");
+			auto it = consumers.find(value->get_id());
+			if (it != consumers.end())
+				consumers.erase(it);
 		}
-		Activity* EventConsumers::Find(uint32_t Id) const
+		activity* event_consumers::find(uint32_t id) const
 		{
-			auto It = Consumers.find(Id);
-			return It != Consumers.end() ? It->second : nullptr;
-		}
-
-		KeyMap::KeyMap() noexcept : Key(KeyCode::None), Mod(KeyMod::None), Normal(false)
-		{
-		}
-		KeyMap::KeyMap(const KeyCode& Value) noexcept : Key(Value), Mod(KeyMod::None), Normal(false)
-		{
-		}
-		KeyMap::KeyMap(const KeyMod& Value) noexcept : Key(KeyCode::None), Mod(Value), Normal(false)
-		{
-		}
-		KeyMap::KeyMap(const KeyCode& Value, const KeyMod& Control) noexcept : Key(Value), Mod(Control), Normal(false)
-		{
+			auto it = consumers.find(id);
+			return it != consumers.end() ? it->second : nullptr;
 		}
 
-		GraphicsException::GraphicsException(Core::String&& NewMessage) : ErrorCode(0)
+		key_map::key_map() noexcept : key(key_code::none), mod(key_mod::none), normal(false)
 		{
-			Message = std::move(NewMessage);
 		}
-		GraphicsException::GraphicsException(int NewErrorCode, Core::String&& NewMessage) : ErrorCode(NewErrorCode)
+		key_map::key_map(const key_code& value) noexcept : key(value), mod(key_mod::none), normal(false)
 		{
-			Message = std::move(NewMessage);
-			if (ErrorCode != 0)
-				Message += " (error = " + Core::ToString(ErrorCode) + ")";
 		}
-		const char* GraphicsException::type() const noexcept
+		key_map::key_map(const key_mod& value) noexcept : key(key_code::none), mod(value), normal(false)
+		{
+		}
+		key_map::key_map(const key_code& value, const key_mod& control) noexcept : key(value), mod(control), normal(false)
+		{
+		}
+
+		graphics_exception::graphics_exception(core::string&& new_message) : error_code(0)
+		{
+			error_message = std::move(new_message);
+		}
+		graphics_exception::graphics_exception(int new_error_code, core::string&& new_message) : error_code(new_error_code)
+		{
+			error_message = std::move(new_message);
+			if (error_code != 0)
+				error_message += " (error = " + core::to_string(error_code) + ")";
+		}
+		const char* graphics_exception::type() const noexcept
 		{
 			return "graphics_error";
 		}
-		int GraphicsException::error_code() const noexcept
+		int graphics_exception::code() const noexcept
 		{
-			return ErrorCode;
+			return error_code;
 		}
 
-		VideoException::VideoException()
+		video_exception::video_exception()
 		{
 #ifdef VI_SDL2
-			const char* ErrorText = SDL_GetError();
-			if (ErrorText != nullptr)
+			const char* error_text = SDL_GetError();
+			if (error_text != nullptr)
 			{
-				Message = ErrorText;
+				error_message = error_text;
 				SDL_ClearError();
 			}
 			else
-				Message = "internal video error occurred";
+				error_message = "internal video error occurred";
 #else
-			Message = "video systems are not supported";
+			error_message = "video systems are not supported";
 #endif
 		}
-		VideoException::VideoException(GraphicsException&& Other)
+		video_exception::video_exception(graphics_exception&& other)
 		{
-			Message = std::move(Other.message());
+			error_message = std::move(other.message());
 		}
-		const char* VideoException::type() const noexcept
+		const char* video_exception::type() const noexcept
 		{
 			return "video_error";
 		}
 
-		Surface::Surface() noexcept : Handle(nullptr)
+		surface::surface() noexcept : handle(nullptr)
 		{
 		}
-		Surface::Surface(SDL_Surface* From) noexcept : Handle(From)
+		surface::surface(SDL_Surface* from) noexcept : handle(from)
 		{
 		}
-		Surface::~Surface() noexcept
+		surface::~surface() noexcept
 		{
 #ifdef VI_SDL2
-			if (Handle != nullptr)
+			if (handle != nullptr)
 			{
-				SDL_FreeSurface(Handle);
-				Handle = nullptr;
+				SDL_FreeSurface(handle);
+				handle = nullptr;
 			}
 #endif
 		}
-		void Surface::SetHandle(SDL_Surface* From)
+		void surface::set_handle(SDL_Surface* from)
 		{
 #ifdef VI_SDL2
-			if (Handle != nullptr)
-				SDL_FreeSurface(Handle);
+			if (handle != nullptr)
+				SDL_FreeSurface(handle);
 #endif
-			Handle = From;
+			handle = from;
 		}
-		void Surface::Lock()
+		void surface::lock()
 		{
 #ifdef VI_SDL2
-			SDL_LockSurface(Handle);
-#endif
-		}
-		void Surface::Unlock()
-		{
-#ifdef VI_SDL2
-			SDL_UnlockSurface(Handle);
+			SDL_LockSurface(handle);
 #endif
 		}
-		int Surface::GetWidth() const
+		void surface::unlock()
 		{
 #ifdef VI_SDL2
-			VI_ASSERT(Handle != nullptr, "handle should be set");
-			return Handle->w;
+			SDL_UnlockSurface(handle);
+#endif
+		}
+		int surface::get_width() const
+		{
+#ifdef VI_SDL2
+			VI_ASSERT(handle != nullptr, "handle should be set");
+			return handle->w;
 #else
 			return -1;
 #endif
 		}
-		int Surface::GetHeight() const
+		int surface::get_height() const
 		{
 #ifdef VI_SDL2
-			VI_ASSERT(Handle != nullptr, "handle should be set");
-			return Handle->h;
+			VI_ASSERT(handle != nullptr, "handle should be set");
+			return handle->h;
 #else
 			return -1;
 #endif
 		}
-		int Surface::GetPitch() const
+		int surface::get_pitch() const
 		{
 #ifdef VI_SDL2
-			VI_ASSERT(Handle != nullptr, "handle should be set");
-			return Handle->pitch;
+			VI_ASSERT(handle != nullptr, "handle should be set");
+			return handle->pitch;
 #else
 			return -1;
 #endif
 		}
-		void* Surface::GetPixels() const
+		void* surface::get_pixels() const
 		{
 #ifdef VI_SDL2
-			VI_ASSERT(Handle != nullptr, "handle should be set");
-			return Handle->pixels;
+			VI_ASSERT(handle != nullptr, "handle should be set");
+			return handle->pixels;
 #else
 			return nullptr;
 #endif
 		}
-		void* Surface::GetResource() const
+		void* surface::get_resource() const
 		{
-			return (void*)Handle;
+			return (void*)handle;
 		}
 
-		DepthStencilState::DepthStencilState(const Desc& I) noexcept : State(I)
+		depth_stencil_state::depth_stencil_state(const desc& i) noexcept : state(i)
 		{
 		}
-		DepthStencilState::~DepthStencilState() noexcept
+		depth_stencil_state::~depth_stencil_state() noexcept
 		{
 		}
-		DepthStencilState::Desc DepthStencilState::GetState() const
+		depth_stencil_state::desc depth_stencil_state::get_state() const
 		{
-			return State;
-		}
-
-		RasterizerState::RasterizerState(const Desc& I) noexcept : State(I)
-		{
-		}
-		RasterizerState::~RasterizerState() noexcept
-		{
-		}
-		RasterizerState::Desc RasterizerState::GetState() const
-		{
-			return State;
+			return state;
 		}
 
-		BlendState::BlendState(const Desc& I) noexcept : State(I)
+		rasterizer_state::rasterizer_state(const desc& i) noexcept : state(i)
 		{
 		}
-		BlendState::~BlendState() noexcept
+		rasterizer_state::~rasterizer_state() noexcept
 		{
 		}
-		BlendState::Desc BlendState::GetState() const
+		rasterizer_state::desc rasterizer_state::get_state() const
 		{
-			return State;
-		}
-
-		SamplerState::SamplerState(const Desc& I) noexcept : State(I)
-		{
-		}
-		SamplerState::~SamplerState() noexcept
-		{
-		}
-		SamplerState::Desc SamplerState::GetState() const
-		{
-			return State;
+			return state;
 		}
 
-		InputLayout::InputLayout(const Desc& I) noexcept : Layout(I.Attributes)
+		blend_state::blend_state(const desc& i) noexcept : state(i)
 		{
 		}
-		InputLayout::~InputLayout() noexcept
+		blend_state::~blend_state() noexcept
 		{
 		}
-		const Core::Vector<InputLayout::Attribute>& InputLayout::GetAttributes() const
+		blend_state::desc blend_state::get_state() const
 		{
-			return Layout;
-		}
-
-		Shader::Shader(const Desc& I) noexcept
-		{
+			return state;
 		}
 
-		ElementBuffer::ElementBuffer(const Desc& I) noexcept
+		sampler_state::sampler_state(const desc& i) noexcept : state(i)
 		{
-			Elements = I.ElementCount;
-			Stride = I.ElementWidth;
 		}
-		size_t ElementBuffer::GetElements() const
+		sampler_state::~sampler_state() noexcept
 		{
-			return Elements;
 		}
-		size_t ElementBuffer::GetStride() const
+		sampler_state::desc sampler_state::get_state() const
 		{
-			return Stride;
+			return state;
 		}
 
-		MeshBuffer::MeshBuffer(const Desc& I) noexcept : VertexBuffer(nullptr), IndexBuffer(nullptr)
+		input_layout::input_layout(const desc& i) noexcept : layout(i.attributes)
 		{
 		}
-		MeshBuffer::~MeshBuffer() noexcept
+		input_layout::~input_layout() noexcept
 		{
-			Core::Memory::Release(VertexBuffer);
-			Core::Memory::Release(IndexBuffer);
 		}
-		ElementBuffer* MeshBuffer::GetVertexBuffer() const
+		const core::vector<input_layout::attribute>& input_layout::get_attributes() const
 		{
-			return VertexBuffer;
-		}
-		ElementBuffer* MeshBuffer::GetIndexBuffer() const
-		{
-			return IndexBuffer;
+			return layout;
 		}
 
-		SkinMeshBuffer::SkinMeshBuffer(const Desc& I) noexcept : VertexBuffer(nullptr), IndexBuffer(nullptr)
+		shader::shader(const desc& i) noexcept
 		{
-		}
-		SkinMeshBuffer::~SkinMeshBuffer() noexcept
-		{
-			Core::Memory::Release(VertexBuffer);
-			Core::Memory::Release(IndexBuffer);
-		}
-		ElementBuffer* SkinMeshBuffer::GetVertexBuffer() const
-		{
-			return VertexBuffer;
-		}
-		ElementBuffer* SkinMeshBuffer::GetIndexBuffer() const
-		{
-			return IndexBuffer;
 		}
 
-		InstanceBuffer::InstanceBuffer(const Desc& I) noexcept : Elements(nullptr), Device(I.Device), Sync(false)
+		element_buffer::element_buffer(const desc& i) noexcept
 		{
-			ElementLimit = I.ElementLimit;
-			ElementWidth = I.ElementWidth;
-
-			if (ElementLimit < 1)
-				ElementLimit = 1;
-
-			Array.reserve(ElementLimit);
+			elements = i.element_count;
+			stride = i.element_width;
 		}
-		InstanceBuffer::~InstanceBuffer() noexcept
+		size_t element_buffer::get_elements() const
 		{
-			Core::Memory::Release(Elements);
+			return elements;
 		}
-		Core::Vector<Trigonometry::ElementVertex>& InstanceBuffer::GetArray()
+		size_t element_buffer::get_stride() const
 		{
-			return Array;
-		}
-		ElementBuffer* InstanceBuffer::GetElements() const
-		{
-			return Elements;
-		}
-		GraphicsDevice* InstanceBuffer::GetDevice() const
-		{
-			return Device;
-		}
-		size_t InstanceBuffer::GetElementLimit() const
-		{
-			return ElementLimit;
+			return stride;
 		}
 
-		Texture2D::Texture2D() noexcept
+		mesh_buffer::mesh_buffer(const desc& i) noexcept : vertex_buffer(nullptr), index_buffer(nullptr)
 		{
-			Width = WINDOW_SIZE;
-			Height = WINDOW_SIZE;
-			MipLevels = 1;
-			FormatMode = Format::Unknown;
-			Usage = ResourceUsage::Default;
-			AccessFlags = CPUAccess::None;
-			Binding = ResourceBind::Shader_Input;
 		}
-		Texture2D::Texture2D(const Desc& I) noexcept
+		mesh_buffer::~mesh_buffer() noexcept
 		{
-			Width = I.Width;
-			Height = I.Height;
-			MipLevels = I.MipLevels;
-			FormatMode = I.FormatMode;
-			Usage = I.Usage;
-			AccessFlags = I.AccessFlags;
-			Binding = I.BindFlags;
+			core::memory::release(vertex_buffer);
+			core::memory::release(index_buffer);
 		}
-		CPUAccess Texture2D::GetAccessFlags() const
+		element_buffer* mesh_buffer::get_vertex_buffer() const
 		{
-			return AccessFlags;
+			return vertex_buffer;
 		}
-		Format Texture2D::GetFormatMode() const
+		element_buffer* mesh_buffer::get_index_buffer() const
 		{
-			return FormatMode;
-		}
-		ResourceUsage Texture2D::GetUsage() const
-		{
-			return Usage;
-		}
-		ResourceBind Texture2D::GetBinding() const
-		{
-			return Binding;
-		}
-		uint32_t Texture2D::GetWidth() const
-		{
-			return Width;
-		}
-		uint32_t Texture2D::GetHeight() const
-		{
-			return Height;
-		}
-		uint32_t Texture2D::GetMipLevels() const
-		{
-			return MipLevels;
+			return index_buffer;
 		}
 
-		Texture3D::Texture3D()
+		skin_mesh_buffer::skin_mesh_buffer(const desc& i) noexcept : vertex_buffer(nullptr), index_buffer(nullptr)
 		{
-			Width = WINDOW_SIZE;
-			Height = WINDOW_SIZE;
-			Depth = 1;
-			MipLevels = 1;
-			FormatMode = Format::Unknown;
-			Usage = ResourceUsage::Default;
-			AccessFlags = CPUAccess::None;
-			Binding = ResourceBind::Shader_Input;
 		}
-		CPUAccess Texture3D::GetAccessFlags() const
+		skin_mesh_buffer::~skin_mesh_buffer() noexcept
 		{
-			return AccessFlags;
+			core::memory::release(vertex_buffer);
+			core::memory::release(index_buffer);
 		}
-		Format Texture3D::GetFormatMode() const
+		element_buffer* skin_mesh_buffer::get_vertex_buffer() const
 		{
-			return FormatMode;
+			return vertex_buffer;
 		}
-		ResourceUsage Texture3D::GetUsage() const
+		element_buffer* skin_mesh_buffer::get_index_buffer() const
 		{
-			return Usage;
-		}
-		ResourceBind Texture3D::GetBinding() const
-		{
-			return Binding;
-		}
-		uint32_t Texture3D::GetWidth() const
-		{
-			return Width;
-		}
-		uint32_t Texture3D::GetHeight() const
-		{
-			return Height;
-		}
-		uint32_t Texture3D::GetDepth() const
-		{
-			return Depth;
-		}
-		uint32_t Texture3D::GetMipLevels() const
-		{
-			return MipLevels;
+			return index_buffer;
 		}
 
-		TextureCube::TextureCube() noexcept
+		instance_buffer::instance_buffer(const desc& i) noexcept : elements(nullptr), device(i.device), sync(false)
 		{
-			Width = WINDOW_SIZE;
-			Height = WINDOW_SIZE;
-			MipLevels = 1;
-			FormatMode = Format::Unknown;
-			Usage = ResourceUsage::Default;
-			AccessFlags = CPUAccess::None;
-			Binding = ResourceBind::Shader_Input;
+			element_limit = i.element_limit;
+			element_width = i.element_width;
+
+			if (element_limit < 1)
+				element_limit = 1;
+
+			array.reserve(element_limit);
 		}
-		TextureCube::TextureCube(const Desc& I) noexcept
+		instance_buffer::~instance_buffer() noexcept
 		{
-			Width = I.Width;
-			Height = I.Height;
-			MipLevels = I.MipLevels;
-			FormatMode = I.FormatMode;
-			Usage = I.Usage;
-			AccessFlags = I.AccessFlags;
-			Binding = I.BindFlags;
+			core::memory::release(elements);
 		}
-		CPUAccess TextureCube::GetAccessFlags() const
+		core::vector<trigonometry::element_vertex>& instance_buffer::get_array()
 		{
-			return AccessFlags;
+			return array;
 		}
-		Format TextureCube::GetFormatMode() const
+		element_buffer* instance_buffer::get_elements() const
 		{
-			return FormatMode;
+			return elements;
 		}
-		ResourceUsage TextureCube::GetUsage() const
+		graphics_device* instance_buffer::get_device() const
 		{
-			return Usage;
+			return device;
 		}
-		ResourceBind TextureCube::GetBinding() const
+		size_t instance_buffer::get_element_limit() const
 		{
-			return Binding;
-		}
-		uint32_t TextureCube::GetWidth() const
-		{
-			return Width;
-		}
-		uint32_t TextureCube::GetHeight() const
-		{
-			return Height;
-		}
-		uint32_t TextureCube::GetMipLevels() const
-		{
-			return MipLevels;
+			return element_limit;
 		}
 
-		DepthTarget2D::DepthTarget2D(const Desc& I) noexcept : Resource(nullptr), Viewarea({ 0, 0, WINDOW_SIZE, WINDOW_SIZE, 0, 1 })
+		texture_2d::texture_2d() noexcept
 		{
+			width = window_size;
+			height = window_size;
+			mip_levels = 1;
+			format_mode = format::unknown;
+			usage = resource_usage::defaults;
+			access_flags = cpu_access::none;
+			binding = resource_bind::shader_input;
 		}
-		DepthTarget2D::~DepthTarget2D() noexcept
+		texture_2d::texture_2d(const desc& i) noexcept
 		{
-			Core::Memory::Release(Resource);
+			width = i.width;
+			height = i.height;
+			mip_levels = i.mip_levels;
+			format_mode = i.format_mode;
+			usage = i.usage;
+			access_flags = i.access_flags;
+			binding = i.bind_flags;
 		}
-		Texture2D* DepthTarget2D::GetTarget()
+		cpu_access texture_2d::get_access_flags() const
 		{
-			return Resource;
+			return access_flags;
 		}
-		const Viewport& DepthTarget2D::GetViewport() const
+		format texture_2d::get_format_mode() const
 		{
-			return Viewarea;
+			return format_mode;
+		}
+		resource_usage texture_2d::get_usage() const
+		{
+			return usage;
+		}
+		resource_bind texture_2d::get_binding() const
+		{
+			return binding;
+		}
+		uint32_t texture_2d::get_width() const
+		{
+			return width;
+		}
+		uint32_t texture_2d::get_height() const
+		{
+			return height;
+		}
+		uint32_t texture_2d::get_mip_levels() const
+		{
+			return mip_levels;
 		}
 
-		DepthTargetCube::DepthTargetCube(const Desc& I) noexcept : Resource(nullptr), Viewarea({ 0, 0, WINDOW_SIZE, WINDOW_SIZE, 0, 1 })
+		texture_3d::texture_3d()
 		{
+			width = window_size;
+			height = window_size;
+			depth = 1;
+			mip_levels = 1;
+			format_mode = format::unknown;
+			usage = resource_usage::defaults;
+			access_flags = cpu_access::none;
+			binding = resource_bind::shader_input;
 		}
-		DepthTargetCube::~DepthTargetCube() noexcept
+		cpu_access texture_3d::get_access_flags() const
 		{
-			Core::Memory::Release(Resource);
+			return access_flags;
 		}
-		TextureCube* DepthTargetCube::GetTarget()
+		format texture_3d::get_format_mode() const
 		{
-			return Resource;
+			return format_mode;
 		}
-		const Viewport& DepthTargetCube::GetViewport() const
+		resource_usage texture_3d::get_usage() const
 		{
-			return Viewarea;
+			return usage;
+		}
+		resource_bind texture_3d::get_binding() const
+		{
+			return binding;
+		}
+		uint32_t texture_3d::get_width() const
+		{
+			return width;
+		}
+		uint32_t texture_3d::get_height() const
+		{
+			return height;
+		}
+		uint32_t texture_3d::get_depth() const
+		{
+			return depth;
+		}
+		uint32_t texture_3d::get_mip_levels() const
+		{
+			return mip_levels;
 		}
 
-		RenderTarget::RenderTarget() noexcept : DepthStencil(nullptr), Viewarea({ 0, 0, WINDOW_SIZE, WINDOW_SIZE, 0, 1 })
+		texture_cube::texture_cube() noexcept
 		{
+			width = window_size;
+			height = window_size;
+			mip_levels = 1;
+			format_mode = format::unknown;
+			usage = resource_usage::defaults;
+			access_flags = cpu_access::none;
+			binding = resource_bind::shader_input;
 		}
-		RenderTarget::~RenderTarget() noexcept
+		texture_cube::texture_cube(const desc& i) noexcept
 		{
-			Core::Memory::Release(DepthStencil);
+			width = i.width;
+			height = i.height;
+			mip_levels = i.mip_levels;
+			format_mode = i.format_mode;
+			usage = i.usage;
+			access_flags = i.access_flags;
+			binding = i.bind_flags;
 		}
-		Texture2D* RenderTarget::GetDepthStencil()
+		cpu_access texture_cube::get_access_flags() const
 		{
-			return DepthStencil;
+			return access_flags;
 		}
-		const Viewport& RenderTarget::GetViewport() const
+		format texture_cube::get_format_mode() const
 		{
-			return Viewarea;
+			return format_mode;
+		}
+		resource_usage texture_cube::get_usage() const
+		{
+			return usage;
+		}
+		resource_bind texture_cube::get_binding() const
+		{
+			return binding;
+		}
+		uint32_t texture_cube::get_width() const
+		{
+			return width;
+		}
+		uint32_t texture_cube::get_height() const
+		{
+			return height;
+		}
+		uint32_t texture_cube::get_mip_levels() const
+		{
+			return mip_levels;
 		}
 
-		RenderTarget2D::RenderTarget2D(const Desc& I) noexcept : RenderTarget(), Resource(nullptr)
+		depth_target_2d::depth_target_2d(const desc& i) noexcept : resource(nullptr), viewarea({ 0, 0, window_size, window_size, 0, 1 })
 		{
 		}
-		RenderTarget2D::~RenderTarget2D() noexcept
+		depth_target_2d::~depth_target_2d() noexcept
 		{
-			Core::Memory::Release(Resource);
+			core::memory::release(resource);
 		}
-		uint32_t RenderTarget2D::GetTargetCount() const
+		texture_2d* depth_target_2d::get_target()
+		{
+			return resource;
+		}
+		const viewport& depth_target_2d::get_viewport() const
+		{
+			return viewarea;
+		}
+
+		depth_target_cube::depth_target_cube(const desc& i) noexcept : resource(nullptr), viewarea({ 0, 0, window_size, window_size, 0, 1 })
+		{
+		}
+		depth_target_cube::~depth_target_cube() noexcept
+		{
+			core::memory::release(resource);
+		}
+		texture_cube* depth_target_cube::get_target()
+		{
+			return resource;
+		}
+		const viewport& depth_target_cube::get_viewport() const
+		{
+			return viewarea;
+		}
+
+		render_target::render_target() noexcept : depth_stencil(nullptr), viewarea({ 0, 0, window_size, window_size, 0, 1 })
+		{
+		}
+		render_target::~render_target() noexcept
+		{
+			core::memory::release(depth_stencil);
+		}
+		texture_2d* render_target::get_depth_stencil()
+		{
+			return depth_stencil;
+		}
+		const viewport& render_target::get_viewport() const
+		{
+			return viewarea;
+		}
+
+		render_target_2d::render_target_2d(const desc& i) noexcept : render_target(), resource(nullptr)
+		{
+		}
+		render_target_2d::~render_target_2d() noexcept
+		{
+			core::memory::release(resource);
+		}
+		uint32_t render_target_2d::get_target_count() const
 		{
 			return 1;
 		}
-		Texture2D* RenderTarget2D::GetTarget2D(uint32_t Index)
+		texture_2d* render_target_2d::get_target_2d(uint32_t index)
 		{
-			return GetTarget();
+			return get_target();
 		}
-		TextureCube* RenderTarget2D::GetTargetCube(uint32_t Index)
+		texture_cube* render_target_2d::get_target_cube(uint32_t index)
 		{
 			return nullptr;
 		}
-		Texture2D* RenderTarget2D::GetTarget()
+		texture_2d* render_target_2d::get_target()
 		{
-			return Resource;
+			return resource;
 		}
 
-		MultiRenderTarget2D::MultiRenderTarget2D(const Desc& I) noexcept : RenderTarget()
+		multi_render_target_2d::multi_render_target_2d(const desc& i) noexcept : render_target()
 		{
-			VI_ASSERT((uint32_t)I.Target <= 8, "target should be less than 9");
-			Target = I.Target;
+			VI_ASSERT((uint32_t)i.target <= 8, "target should be less than 9");
+			target = i.target;
 
 			for (uint32_t i = 0; i < 8; i++)
-				Resource[i] = nullptr;
+				resource[i] = nullptr;
 		}
-		MultiRenderTarget2D::~MultiRenderTarget2D() noexcept
+		multi_render_target_2d::~multi_render_target_2d() noexcept
 		{
-			VI_ASSERT((uint32_t)Target <= 8, "target should be less than 9");
-			for (uint32_t i = 0; i < (uint32_t)Target; i++)
-				Core::Memory::Release(Resource[i]);
+			VI_ASSERT((uint32_t)target <= 8, "target should be less than 9");
+			for (uint32_t i = 0; i < (uint32_t)target; i++)
+				core::memory::release(resource[i]);
 		}
-		uint32_t MultiRenderTarget2D::GetTargetCount() const
+		uint32_t multi_render_target_2d::get_target_count() const
 		{
-			return (uint32_t)Target;
+			return (uint32_t)target;
 		}
-		Texture2D* MultiRenderTarget2D::GetTarget2D(uint32_t Index)
+		texture_2d* multi_render_target_2d::get_target_2d(uint32_t index)
 		{
-			return GetTarget(Index);
+			return get_target(index);
 		}
-		TextureCube* MultiRenderTarget2D::GetTargetCube(uint32_t Index)
+		texture_cube* multi_render_target_2d::get_target_cube(uint32_t index)
 		{
 			return nullptr;
 		}
-		Texture2D* MultiRenderTarget2D::GetTarget(uint32_t Slot)
+		texture_2d* multi_render_target_2d::get_target(uint32_t slot)
 		{
-			VI_ASSERT(Slot < (uint32_t)Target, "slot should be less than targets count");
-			return Resource[Slot];
+			VI_ASSERT(slot < (uint32_t)target, "slot should be less than targets count");
+			return resource[slot];
 		}
 
-		RenderTargetCube::RenderTargetCube(const Desc& I) noexcept : RenderTarget(), Resource(nullptr)
+		render_target_cube::render_target_cube(const desc& i) noexcept : render_target(), resource(nullptr)
 		{
 		}
-		RenderTargetCube::~RenderTargetCube() noexcept
+		render_target_cube::~render_target_cube() noexcept
 		{
-			Core::Memory::Release(Resource);
+			core::memory::release(resource);
 		}
-		uint32_t RenderTargetCube::GetTargetCount() const
+		uint32_t render_target_cube::get_target_count() const
 		{
 			return 1;
 		}
-		Texture2D* RenderTargetCube::GetTarget2D(uint32_t Index)
+		texture_2d* render_target_cube::get_target_2d(uint32_t index)
 		{
 			return nullptr;
 		}
-		TextureCube* RenderTargetCube::GetTargetCube(uint32_t Index)
+		texture_cube* render_target_cube::get_target_cube(uint32_t index)
 		{
-			return GetTarget();
+			return get_target();
 		}
-		TextureCube* RenderTargetCube::GetTarget()
+		texture_cube* render_target_cube::get_target()
 		{
-			return Resource;
+			return resource;
 		}
 
-		MultiRenderTargetCube::MultiRenderTargetCube(const Desc& I) noexcept : RenderTarget()
+		multi_render_target_cube::multi_render_target_cube(const desc& i) noexcept : render_target()
 		{
-			VI_ASSERT((uint32_t)I.Target <= 8, "target should be less than 9");
-			Target = I.Target;
+			VI_ASSERT((uint32_t)i.target <= 8, "target should be less than 9");
+			target = i.target;
 
 			for (uint32_t i = 0; i < 8; i++)
-				Resource[i] = nullptr;
+				resource[i] = nullptr;
 		}
-		MultiRenderTargetCube::~MultiRenderTargetCube() noexcept
+		multi_render_target_cube::~multi_render_target_cube() noexcept
 		{
-			VI_ASSERT((uint32_t)Target <= 8, "target should be less than 9");
-			for (uint32_t i = 0; i < (uint32_t)Target; i++)
-				Core::Memory::Release(Resource[i]);
+			VI_ASSERT((uint32_t)target <= 8, "target should be less than 9");
+			for (uint32_t i = 0; i < (uint32_t)target; i++)
+				core::memory::release(resource[i]);
 		}
-		uint32_t MultiRenderTargetCube::GetTargetCount() const
+		uint32_t multi_render_target_cube::get_target_count() const
 		{
-			return (uint32_t)Target;
+			return (uint32_t)target;
 		}
-		Texture2D* MultiRenderTargetCube::GetTarget2D(uint32_t Index)
+		texture_2d* multi_render_target_cube::get_target_2d(uint32_t index)
 		{
 			return nullptr;
 		}
-		TextureCube* MultiRenderTargetCube::GetTargetCube(uint32_t Index)
+		texture_cube* multi_render_target_cube::get_target_cube(uint32_t index)
 		{
-			return GetTarget(Index);
+			return get_target(index);
 		}
-		TextureCube* MultiRenderTargetCube::GetTarget(uint32_t Slot)
+		texture_cube* multi_render_target_cube::get_target(uint32_t slot)
 		{
-			VI_ASSERT(Slot < (uint32_t)Target, "slot should be less than targets count");
-			return Resource[Slot];
-		}
-
-		Cubemap::Cubemap(const Desc& I) noexcept : Dest(nullptr), Meta(I)
-		{
-		}
-		bool Cubemap::IsValid() const
-		{
-			return Meta.Source != nullptr;
+			VI_ASSERT(slot < (uint32_t)target, "slot should be less than targets count");
+			return resource[slot];
 		}
 
-		Query::Query() noexcept
+		cubemap::cubemap(const desc& i) noexcept : dest(nullptr), meta(i)
+		{
+		}
+		bool cubemap::is_valid() const
+		{
+			return meta.source != nullptr;
+		}
+
+		query::query() noexcept
 		{
 		}
 
-		GraphicsDevice::GraphicsDevice(const Desc& I) noexcept : Primitives(PrimitiveTopology::Triangle_List), ShaderGen(ShaderModel::Invalid), ViewResource(nullptr), PresentFlags(I.PresentationFlags), CompileFlags(I.CompilationFlags), VSyncMode(I.VSyncMode), MaxElements(1), Backend(I.Backend), ShaderCache(I.ShaderCache), Debug(I.Debug)
+		graphics_device::graphics_device(const desc& i) noexcept : primitives(primitive_topology::triangle_list), shader_gen(shader_model::invalid), view_resource(nullptr), present_flags(i.presentation_flags), compile_flags(i.compilation_flags), vsync_mode(i.vsync_mode), max_elements(1), backend(i.backend), shader_cache(i.shader_cache), debug(i.debug)
 		{
-			RenderThread = std::this_thread::get_id();
-			if (!I.CacheDirectory.empty())
+			render_thread = std::this_thread::get_id();
+			if (!i.cache_directory.empty())
 			{
-				auto Directory = Core::OS::Path::ResolveDirectory(I.CacheDirectory.c_str());
-				if (Directory && Core::OS::Directory::IsExists(Directory->c_str()))
-					Caches = *Directory;
+				auto directory = core::os::path::resolve_directory(i.cache_directory.c_str());
+				if (directory && core::os::directory::is_exists(directory->c_str()))
+					caches = *directory;
 			}
 
-			if (!I.Window)
+			if (!i.window)
 			{
-				Activity::Desc Init;
-				Init.Title = "activity.virtual.hidden";
-				Init.Hidden = true;
-				Init.Borderless = true;
-				Init.Width = 128;
-				Init.Height = 128;
+				activity::desc init;
+				init.title = "activity.virtual.hidden";
+				init.hidden = true;
+				init.borderless = true;
+				init.width = 128;
+				init.height = 128;
 
-				VirtualWindow = new Activity(Init);
+				virtual_window = new activity(init);
 			}
 
-			CreateSections();
+			create_sections();
 		}
-		GraphicsDevice::~GraphicsDevice() noexcept
+		graphics_device::~graphics_device() noexcept
 		{
-			ReleaseProxy();
-			for (auto It = Sections.begin(); It != Sections.end(); It++)
-				Core::Memory::Delete(It->second);
+			release_proxy();
+			for (auto it = sections.begin(); it != sections.end(); it++)
+				core::memory::deinit(it->second);
 
-			Core::Memory::Release(VirtualWindow);
-			Sections.clear();
+			core::memory::release(virtual_window);
+			sections.clear();
 		}
-		void GraphicsDevice::SetVertexBuffer(ElementBuffer* Resource)
+		void graphics_device::set_vertex_buffer(element_buffer* resource)
 		{
-			if (Resource != nullptr)
-				SetVertexBuffers(&Resource, 1);
+			if (resource != nullptr)
+				set_vertex_buffers(&resource, 1);
 			else
-				SetVertexBuffers(nullptr, 0);
+				set_vertex_buffers(nullptr, 0);
 		}
-		void GraphicsDevice::SetShaderCache(bool Enabled)
+		void graphics_device::set_shader_cache(bool enabled)
 		{
-			ShaderCache = Enabled;
+			shader_cache = enabled;
 		}
-		void GraphicsDevice::SetVSyncMode(VSync Mode)
+		void graphics_device::set_vsync_mode(vsync mode)
 		{
-			VSyncMode = Mode;
+			vsync_mode = mode;
 		}
-		void GraphicsDevice::Lockup(RenderThreadCallback&& Callback)
+		void graphics_device::lockup(render_thread_callback&& callback)
 		{
-			VI_ASSERT(Callback != nullptr, "callback should be set");
-			Core::UMutex<std::recursive_mutex> Unique(Exclusive);
-			Callback(this);
+			VI_ASSERT(callback != nullptr, "callback should be set");
+			core::umutex<std::recursive_mutex> unique(exclusive);
+			callback(this);
 		}
-		void GraphicsDevice::Enqueue(RenderThreadCallback&& Callback)
+		void graphics_device::enqueue(render_thread_callback&& callback)
 		{
-			VI_ASSERT(Callback != nullptr, "callback should be set");
-			if (RenderThread != std::this_thread::get_id())
+			VI_ASSERT(callback != nullptr, "callback should be set");
+			if (render_thread != std::this_thread::get_id())
 			{
-				Core::UMutex<std::recursive_mutex> Unique(Exclusive);
-				Queue.emplace(std::move(Callback));
+				core::umutex<std::recursive_mutex> unique(exclusive);
+				queue.emplace(std::move(callback));
 			}
 			else
-				Callback(this);
+				callback(this);
 		}
-		void GraphicsDevice::DispatchQueue()
+		void graphics_device::dispatch_queue()
 		{
-			RenderThread = std::this_thread::get_id();
-			if (Queue.empty())
+			render_thread = std::this_thread::get_id();
+			if (queue.empty())
 				return;
 
-			Core::UMutex<std::recursive_mutex> Unique(Exclusive);
-			while (!Queue.empty())
+			core::umutex<std::recursive_mutex> unique(exclusive);
+			while (!queue.empty())
 			{
-				Queue.front()(this);
-				Queue.pop();
+				queue.front()(this);
+				queue.pop();
 			}
 		}
-		void GraphicsDevice::CreateStates()
+		void graphics_device::create_states()
 		{
-			DepthStencilState::Desc DepthStencil;
-			DepthStencil.DepthEnable = true;
-			DepthStencil.DepthWriteMask = DepthWrite::All;
-			DepthStencil.DepthFunction = Comparison::Less;
-			DepthStencil.StencilEnable = true;
-			DepthStencil.StencilReadMask = 0xFF;
-			DepthStencil.StencilWriteMask = 0xFF;
-			DepthStencil.FrontFaceStencilFailOperation = StencilOperation::Keep;
-			DepthStencil.FrontFaceStencilDepthFailOperation = StencilOperation::Add;
-			DepthStencil.FrontFaceStencilPassOperation = StencilOperation::Keep;
-			DepthStencil.FrontFaceStencilFunction = Comparison::Always;
-			DepthStencil.BackFaceStencilFailOperation = StencilOperation::Keep;
-			DepthStencil.BackFaceStencilDepthFailOperation = StencilOperation::Subtract;
-			DepthStencil.BackFaceStencilPassOperation = StencilOperation::Keep;
-			DepthStencil.BackFaceStencilFunction = Comparison::Always;
-			DepthStencilStates["drw_srw_lt"] = *CreateDepthStencilState(DepthStencil);
+			depth_stencil_state::desc depth_stencil;
+			depth_stencil.depth_enable = true;
+			depth_stencil.depth_write_mask = depth_write::all;
+			depth_stencil.depth_function = comparison::less;
+			depth_stencil.stencil_enable = true;
+			depth_stencil.stencil_read_mask = 0xFF;
+			depth_stencil.stencil_write_mask = 0xFF;
+			depth_stencil.front_face_stencil_fail_operation = stencil_operation::keep;
+			depth_stencil.front_face_stencil_depth_fail_operation = stencil_operation::add;
+			depth_stencil.front_face_stencil_pass_operation = stencil_operation::keep;
+			depth_stencil.front_face_stencil_function = comparison::always;
+			depth_stencil.back_face_stencil_fail_operation = stencil_operation::keep;
+			depth_stencil.back_face_stencil_depth_fail_operation = stencil_operation::subtract;
+			depth_stencil.back_face_stencil_pass_operation = stencil_operation::keep;
+			depth_stencil.back_face_stencil_function = comparison::always;
+			depth_stencil_states["drw_srw_lt"] = *create_depth_stencil_state(depth_stencil);
 
-			DepthStencil.DepthWriteMask = DepthWrite::Zero;
-			DepthStencil.StencilWriteMask = 0x0;
-			DepthStencilStates["dro_sro_lt"] = *CreateDepthStencilState(DepthStencil);
+			depth_stencil.depth_write_mask = depth_write::zero;
+			depth_stencil.stencil_write_mask = 0x0;
+			depth_stencil_states["dro_sro_lt"] = *create_depth_stencil_state(depth_stencil);
 
-			DepthStencil.DepthFunction = Comparison::Greater_Equal;
-			DepthStencilStates["dro_sro_gte"] = *CreateDepthStencilState(DepthStencil);
+			depth_stencil.depth_function = comparison::greater_equal;
+			depth_stencil_states["dro_sro_gte"] = *create_depth_stencil_state(depth_stencil);
 
-			DepthStencil.DepthWriteMask = DepthWrite::All;
-			DepthStencil.StencilWriteMask = 0xFF;
-			DepthStencilStates["dro_srw_gte"] = *CreateDepthStencilState(DepthStencil);
+			depth_stencil.depth_write_mask = depth_write::all;
+			depth_stencil.stencil_write_mask = 0xFF;
+			depth_stencil_states["dro_srw_gte"] = *create_depth_stencil_state(depth_stencil);
 
-			DepthStencil.DepthEnable = false;
-			DepthStencil.DepthFunction = Comparison::Less;
-			DepthStencil.StencilEnable = false;
-			DepthStencilStates["doo_soo_lt"] = *CreateDepthStencilState(DepthStencil);
+			depth_stencil.depth_enable = false;
+			depth_stencil.depth_function = comparison::less;
+			depth_stencil.stencil_enable = false;
+			depth_stencil_states["doo_soo_lt"] = *create_depth_stencil_state(depth_stencil);
 
-			DepthStencil.DepthEnable = true;
-			DepthStencil.DepthWriteMask = DepthWrite::Zero;
-			DepthStencil.StencilEnable = true;
-			DepthStencilStates["dro_srw_lt"] = *CreateDepthStencilState(DepthStencil);
+			depth_stencil.depth_enable = true;
+			depth_stencil.depth_write_mask = depth_write::zero;
+			depth_stencil.stencil_enable = true;
+			depth_stencil_states["dro_srw_lt"] = *create_depth_stencil_state(depth_stencil);
 
-			DepthStencil.DepthWriteMask = DepthWrite::All;
-			DepthStencil.StencilEnable = false;
-			DepthStencilStates["drw_soo_lt"] = *CreateDepthStencilState(DepthStencil);
+			depth_stencil.depth_write_mask = depth_write::all;
+			depth_stencil.stencil_enable = false;
+			depth_stencil_states["drw_soo_lt"] = *create_depth_stencil_state(depth_stencil);
 
-			DepthStencil.DepthFunction = Comparison::Less_Equal;
-			DepthStencil.DepthWriteMask = DepthWrite::Zero;
-			DepthStencil.StencilEnable = false;
-			DepthStencilStates["dro_soo_lte"] = *CreateDepthStencilState(DepthStencil);
+			depth_stencil.depth_function = comparison::less_equal;
+			depth_stencil.depth_write_mask = depth_write::zero;
+			depth_stencil.stencil_enable = false;
+			depth_stencil_states["dro_soo_lte"] = *create_depth_stencil_state(depth_stencil);
 
-			RasterizerState::Desc Rasterizer;
-			Rasterizer.AntialiasedLineEnable = false;
-			Rasterizer.CullMode = VertexCull::Back;
-			Rasterizer.DepthBias = 0;
-			Rasterizer.DepthBiasClamp = 0;
-			Rasterizer.DepthClipEnable = true;
-			Rasterizer.FillMode = SurfaceFill::Solid;
-			Rasterizer.FrontCounterClockwise = false;
-			Rasterizer.MultisampleEnable = false;
-			Rasterizer.ScissorEnable = false;
-			Rasterizer.SlopeScaledDepthBias = 0.0f;
-			RasterizerStates["so_cback"] = *CreateRasterizerState(Rasterizer);
+			rasterizer_state::desc rasterizer;
+			rasterizer.antialiased_line_enable = false;
+			rasterizer.cull_mode = vertex_cull::back;
+			rasterizer.depth_bias = 0;
+			rasterizer.depth_bias_clamp = 0;
+			rasterizer.depth_clip_enable = true;
+			rasterizer.fill_mode = surface_fill::solid;
+			rasterizer.front_counter_clockwise = false;
+			rasterizer.multisample_enable = false;
+			rasterizer.scissor_enable = false;
+			rasterizer.slope_scaled_depth_bias = 0.0f;
+			rasterizer_states["so_cback"] = *create_rasterizer_state(rasterizer);
 
-			Rasterizer.CullMode = VertexCull::Front;
-			RasterizerStates["so_cfront"] = *CreateRasterizerState(Rasterizer);
+			rasterizer.cull_mode = vertex_cull::front;
+			rasterizer_states["so_cfront"] = *create_rasterizer_state(rasterizer);
 
-			Rasterizer.CullMode = VertexCull::None;
-			RasterizerStates["so_co"] = *CreateRasterizerState(Rasterizer);
+			rasterizer.cull_mode = vertex_cull::none;
+			rasterizer_states["so_co"] = *create_rasterizer_state(rasterizer);
 
-			Rasterizer.ScissorEnable = true;
-			RasterizerStates["sw_co"] = *CreateRasterizerState(Rasterizer);
+			rasterizer.scissor_enable = true;
+			rasterizer_states["sw_co"] = *create_rasterizer_state(rasterizer);
 
-			Rasterizer.CullMode = VertexCull::Back;
-			RasterizerStates["sw_cback"] = *CreateRasterizerState(Rasterizer);
+			rasterizer.cull_mode = vertex_cull::back;
+			rasterizer_states["sw_cback"] = *create_rasterizer_state(rasterizer);
 
-			BlendState::Desc Blend;
-			Blend.AlphaToCoverageEnable = false;
-			Blend.IndependentBlendEnable = false;
-			Blend.RenderTarget[0].BlendEnable = false;
-			Blend.RenderTarget[0].RenderTargetWriteMask = (uint8_t)ColorWriteEnable::All;
-			BlendStates["bo_wrgba_one"] = *CreateBlendState(Blend);
+			blend_state::desc blend;
+			blend.alpha_to_coverage_enable = false;
+			blend.independent_blend_enable = false;
+			blend.render_target[0].blend_enable = false;
+			blend.render_target[0].render_target_write_mask = (uint8_t)color_write_enable::all;
+			blend_states["bo_wrgba_one"] = *create_blend_state(blend);
 
-			Blend.RenderTarget[0].RenderTargetWriteMask = (uint8_t)(ColorWriteEnable::Red | ColorWriteEnable::Green | ColorWriteEnable::Blue);
-			BlendStates["bo_wrgbo_one"] = *CreateBlendState(Blend);
+			blend.render_target[0].render_target_write_mask = (uint8_t)(color_write_enable::red | color_write_enable::green | color_write_enable::blue);
+			blend_states["bo_wrgbo_one"] = *create_blend_state(blend);
 
-			Blend.RenderTarget[0].RenderTargetWriteMask = 0;
-			BlendStates["bo_woooo_one"] = *CreateBlendState(Blend);
+			blend.render_target[0].render_target_write_mask = 0;
+			blend_states["bo_woooo_one"] = *create_blend_state(blend);
 
-			Blend.RenderTarget[0].BlendEnable = true;
-			Blend.RenderTarget[0].SrcBlend = Blend::One;
-			Blend.RenderTarget[0].DestBlend = Blend::One;
-			Blend.RenderTarget[0].BlendOperationMode = BlendOperation::Add;
-			Blend.RenderTarget[0].SrcBlendAlpha = Blend::One;
-			Blend.RenderTarget[0].DestBlendAlpha = Blend::One;
-			Blend.RenderTarget[0].BlendOperationAlpha = BlendOperation::Add;
-			Blend.RenderTarget[0].RenderTargetWriteMask = (uint8_t)ColorWriteEnable::All;
-			BlendStates["bw_wrgba_one"] = *CreateBlendState(Blend);
+			blend.render_target[0].blend_enable = true;
+			blend.render_target[0].src_blend = blend::one;
+			blend.render_target[0].dest_blend = blend::one;
+			blend.render_target[0].blend_operation_mode = blend_operation::add;
+			blend.render_target[0].src_blend_alpha = blend::one;
+			blend.render_target[0].dest_blend_alpha = blend::one;
+			blend.render_target[0].blend_operation_alpha = blend_operation::add;
+			blend.render_target[0].render_target_write_mask = (uint8_t)color_write_enable::all;
+			blend_states["bw_wrgba_one"] = *create_blend_state(blend);
 
-			Blend.RenderTarget[0].RenderTargetWriteMask = (uint8_t)(ColorWriteEnable::Red | ColorWriteEnable::Green | ColorWriteEnable::Blue);
-			BlendStates["bw_wrgbo_one"] = *CreateBlendState(Blend);
+			blend.render_target[0].render_target_write_mask = (uint8_t)(color_write_enable::red | color_write_enable::green | color_write_enable::blue);
+			blend_states["bw_wrgbo_one"] = *create_blend_state(blend);
 
-			Blend.IndependentBlendEnable = true;
+			blend.independent_blend_enable = true;
 			for (uint32_t i = 0; i < 8; i++)
 			{
-				Blend.RenderTarget[i].BlendEnable = (i != 1 && i != 2);
-				Blend.RenderTarget[i].SrcBlend = Blend::One;
-				Blend.RenderTarget[i].DestBlend = Blend::One;
-				Blend.RenderTarget[i].BlendOperationMode = BlendOperation::Add;
-				Blend.RenderTarget[i].SrcBlendAlpha = Blend::One;
-				Blend.RenderTarget[i].DestBlendAlpha = Blend::One;
-				Blend.RenderTarget[i].BlendOperationAlpha = BlendOperation::Add;
-				Blend.RenderTarget[i].RenderTargetWriteMask = (uint8_t)ColorWriteEnable::All;
+				blend.render_target[i].blend_enable = (i != 1 && i != 2);
+				blend.render_target[i].src_blend = blend::one;
+				blend.render_target[i].dest_blend = blend::one;
+				blend.render_target[i].blend_operation_mode = blend_operation::add;
+				blend.render_target[i].src_blend_alpha = blend::one;
+				blend.render_target[i].dest_blend_alpha = blend::one;
+				blend.render_target[i].blend_operation_alpha = blend_operation::add;
+				blend.render_target[i].render_target_write_mask = (uint8_t)color_write_enable::all;
 			}
-			BlendStates["bw_wrgba_gbuffer"] = *CreateBlendState(Blend);
+			blend_states["bw_wrgba_gbuffer"] = *create_blend_state(blend);
 
-			Blend.IndependentBlendEnable = false;
-			Blend.RenderTarget[0].BlendEnable = true;
-			Blend.RenderTarget[0].SrcBlend = Blend::Source_Alpha;
-			BlendStates["bw_wrgba_alpha"] = *CreateBlendState(Blend);
+			blend.independent_blend_enable = false;
+			blend.render_target[0].blend_enable = true;
+			blend.render_target[0].src_blend = blend::source_alpha;
+			blend_states["bw_wrgba_alpha"] = *create_blend_state(blend);
 
-			Blend.RenderTarget[0].DestBlend = Blend::Source_Alpha_Invert;
-			Blend.RenderTarget[0].SrcBlendAlpha = Blend::Source_Alpha_Invert;
-			Blend.RenderTarget[0].DestBlendAlpha = Blend::Zero;
-			BlendStates["bw_wrgba_source"] = *CreateBlendState(Blend);
+			blend.render_target[0].dest_blend = blend::source_alpha_invert;
+			blend.render_target[0].src_blend_alpha = blend::source_alpha_invert;
+			blend.render_target[0].dest_blend_alpha = blend::zero;
+			blend_states["bw_wrgba_source"] = *create_blend_state(blend);
 
-			SamplerState::Desc Sampler;
-			Sampler.Filter = PixelFilter::Anistropic;
-			Sampler.AddressU = TextureAddress::Wrap;
-			Sampler.AddressV = TextureAddress::Wrap;
-			Sampler.AddressW = TextureAddress::Wrap;
-			Sampler.MipLODBias = 0.0f;
-			Sampler.MaxAnisotropy = 16;
-			Sampler.ComparisonFunction = Comparison::Never;
-			Sampler.BorderColor[0] = 0.0f;
-			Sampler.BorderColor[1] = 0.0f;
-			Sampler.BorderColor[2] = 0.0f;
-			Sampler.BorderColor[3] = 0.0f;
-			Sampler.MinLOD = 0.0f;
-			Sampler.MaxLOD = std::numeric_limits<float>::max();
-			SamplerStates["a16_fa_wrap"] = *CreateSamplerState(Sampler);
+			sampler_state::desc sampler;
+			sampler.filter = pixel_filter::anistropic;
+			sampler.address_u = texture_address::wrap;
+			sampler.address_v = texture_address::wrap;
+			sampler.address_w = texture_address::wrap;
+			sampler.mip_lod_bias = 0.0f;
+			sampler.max_anisotropy = 16;
+			sampler.comparison_function = comparison::never;
+			sampler.border_color[0] = 0.0f;
+			sampler.border_color[1] = 0.0f;
+			sampler.border_color[2] = 0.0f;
+			sampler.border_color[3] = 0.0f;
+			sampler.min_lod = 0.0f;
+			sampler.max_lod = std::numeric_limits<float>::max();
+			sampler_states["a16_fa_wrap"] = *create_sampler_state(sampler);
 
-			Sampler.AddressU = TextureAddress::Mirror;
-			Sampler.AddressV = TextureAddress::Mirror;
-			Sampler.AddressW = TextureAddress::Mirror;
-			SamplerStates["a16_fa_mirror"] = *CreateSamplerState(Sampler);
+			sampler.address_u = texture_address::mirror;
+			sampler.address_v = texture_address::mirror;
+			sampler.address_w = texture_address::mirror;
+			sampler_states["a16_fa_mirror"] = *create_sampler_state(sampler);
 
-			Sampler.AddressU = TextureAddress::Clamp;
-			Sampler.AddressV = TextureAddress::Clamp;
-			Sampler.AddressW = TextureAddress::Clamp;
-			SamplerStates["a16_fa_clamp"] = *CreateSamplerState(Sampler);
+			sampler.address_u = texture_address::clamp;
+			sampler.address_v = texture_address::clamp;
+			sampler.address_w = texture_address::clamp;
+			sampler_states["a16_fa_clamp"] = *create_sampler_state(sampler);
 
-			Sampler.Filter = PixelFilter::Min_Mag_Mip_Linear;
-			SamplerStates["a16_fl_clamp"] = *CreateSamplerState(Sampler);
+			sampler.filter = pixel_filter::min_mag_mip_linear;
+			sampler_states["a16_fl_clamp"] = *create_sampler_state(sampler);
 
-			Sampler.Filter = PixelFilter::Min_Mag_Mip_Point;
-			Sampler.ComparisonFunction = Comparison::Never;
-			SamplerStates["a16_fp_clamp"] = *CreateSamplerState(Sampler);
+			sampler.filter = pixel_filter::min_mag_mip_point;
+			sampler.comparison_function = comparison::never;
+			sampler_states["a16_fp_clamp"] = *create_sampler_state(sampler);
 
-			Sampler.Filter = PixelFilter::Min_Mag_Mip_Linear;
-			Sampler.MaxAnisotropy = 1;
-			SamplerStates["a1_fl_clamp"] = *CreateSamplerState(Sampler);
+			sampler.filter = pixel_filter::min_mag_mip_linear;
+			sampler.max_anisotropy = 1;
+			sampler_states["a1_fl_clamp"] = *create_sampler_state(sampler);
 
-			Sampler.Filter = PixelFilter::Compare_Min_Mag_Mip_Linear;
-			Sampler.ComparisonFunction = Comparison::Less;
-			SamplerStates["a1_fl_clamp_cmp_lt"] = *CreateSamplerState(Sampler);
+			sampler.filter = pixel_filter::compare_min_mag_mip_linear;
+			sampler.comparison_function = comparison::less;
+			sampler_states["a1_fl_clamp_cmp_lt"] = *create_sampler_state(sampler);
 
-			Sampler.ComparisonFunction = Comparison::Greater_Equal;
-			SamplerStates["a1_fl_clamp_cmp_gte"] = *CreateSamplerState(Sampler);
+			sampler.comparison_function = comparison::greater_equal;
+			sampler_states["a1_fl_clamp_cmp_gte"] = *create_sampler_state(sampler);
 
-			InputLayout::Desc Layout;
-			Layout.Attributes =
+			input_layout::desc layout;
+			layout.attributes =
 			{
-				{ "POSITION", 0, AttributeType::Float, 3, 0 },
-				{ "TEXCOORD", 0, AttributeType::Float, 2, 3 * sizeof(float) }
+				{ "POSITION", 0, attribute_type::floatf, 3, 0 },
+				{ "TEXCOORD", 0, attribute_type::floatf, 2, 3 * sizeof(float) }
 			};
-			InputLayouts["vx_shape"] = *CreateInputLayout(Layout);
+			input_layouts["vx_shape"] = *create_input_layout(layout);
 
-			Layout.Attributes =
+			layout.attributes =
 			{
-				{ "POSITION", 0, AttributeType::Float, 3, 0 },
-				{ "TEXCOORD", 0, AttributeType::Float, 4, 3 * sizeof(float) },
-				{ "TEXCOORD", 1, AttributeType::Float, 4, 7 * sizeof(float) },
-				{ "TEXCOORD", 2, AttributeType::Float, 3, 11 * sizeof(float) }
+				{ "POSITION", 0, attribute_type::floatf, 3, 0 },
+				{ "TEXCOORD", 0, attribute_type::floatf, 4, 3 * sizeof(float) },
+				{ "TEXCOORD", 1, attribute_type::floatf, 4, 7 * sizeof(float) },
+				{ "TEXCOORD", 2, attribute_type::floatf, 3, 11 * sizeof(float) }
 			};
-			InputLayouts["vx_element"] = *CreateInputLayout(Layout);
+			input_layouts["vx_element"] = *create_input_layout(layout);
 
-			Layout.Attributes =
+			layout.attributes =
 			{
-				{ "POSITION", 0, AttributeType::Float, 3, 0 },
-				{ "TEXCOORD", 0, AttributeType::Float, 2, 3 * sizeof(float) },
-				{ "NORMAL", 0, AttributeType::Float, 3, 5 * sizeof(float) },
-				{ "TANGENT", 0, AttributeType::Float, 3, 8 * sizeof(float) },
-				{ "BINORMAL", 0, AttributeType::Float, 3, 11 * sizeof(float) }
+				{ "POSITION", 0, attribute_type::floatf, 3, 0 },
+				{ "TEXCOORD", 0, attribute_type::floatf, 2, 3 * sizeof(float) },
+				{ "NORMAL", 0, attribute_type::floatf, 3, 5 * sizeof(float) },
+				{ "TANGENT", 0, attribute_type::floatf, 3, 8 * sizeof(float) },
+				{ "BINORMAL", 0, attribute_type::floatf, 3, 11 * sizeof(float) }
 			};
-			InputLayouts["vx_base"] = *CreateInputLayout(Layout);
+			input_layouts["vx_base"] = *create_input_layout(layout);
 
-			Layout.Attributes =
+			layout.attributes =
 			{
-				{ "POSITION", 0, AttributeType::Float, 3, 0 },
-				{ "TEXCOORD", 0, AttributeType::Float, 2, 3 * sizeof(float) },
-				{ "NORMAL", 0, AttributeType::Float, 3, 5 * sizeof(float) },
-				{ "TANGENT", 0, AttributeType::Float, 3, 8 * sizeof(float) },
-				{ "BINORMAL", 0, AttributeType::Float, 3, 11 * sizeof(float) },
-				{ "OB_TRANSFORM", 0, AttributeType::Matrix, 16, 0, 1, false },
-				{ "OB_WORLD", 0, AttributeType::Matrix, 16, sizeof(Trigonometry::Matrix4x4), 1, false },
-				{ "OB_TEXCOORD", 0, AttributeType::Float, 2, sizeof(Trigonometry::Matrix4x4) * 2, 1, false },
-				{ "OB_MATERIAL", 0, AttributeType::Float, 4, sizeof(Trigonometry::Matrix4x4) * 2 + 2 * sizeof(float), 1, false }
+				{ "POSITION", 0, attribute_type::floatf, 3, 0 },
+				{ "TEXCOORD", 0, attribute_type::floatf, 2, 3 * sizeof(float) },
+				{ "NORMAL", 0, attribute_type::floatf, 3, 5 * sizeof(float) },
+				{ "TANGENT", 0, attribute_type::floatf, 3, 8 * sizeof(float) },
+				{ "BINORMAL", 0, attribute_type::floatf, 3, 11 * sizeof(float) },
+				{ "OB_TRANSFORM", 0, attribute_type::matrix, 16, 0, 1, false },
+				{ "OB_WORLD", 0, attribute_type::matrix, 16, sizeof(trigonometry::matrix4x4), 1, false },
+				{ "OB_TEXCOORD", 0, attribute_type::floatf, 2, sizeof(trigonometry::matrix4x4) * 2, 1, false },
+				{ "OB_MATERIAL", 0, attribute_type::floatf, 4, sizeof(trigonometry::matrix4x4) * 2 + 2 * sizeof(float), 1, false }
 			};
-			InputLayouts["vxi_base"] = *CreateInputLayout(Layout);
+			input_layouts["vxi_base"] = *create_input_layout(layout);
 
-			Layout.Attributes =
+			layout.attributes =
 			{
-				{ "POSITION", 0, AttributeType::Float, 3, 0 },
-				{ "TEXCOORD", 0, AttributeType::Float, 2, 3 * sizeof(float) },
-				{ "NORMAL", 0, AttributeType::Float, 3, 5 * sizeof(float) },
-				{ "TANGENT", 0, AttributeType::Float, 3, 8 * sizeof(float) },
-				{ "BINORMAL", 0, AttributeType::Float, 3, 11 * sizeof(float) },
-				{ "JOINTBIAS", 0, AttributeType::Float, 4, 14 * sizeof(float) },
-				{ "JOINTBIAS", 1, AttributeType::Float, 4, 18 * sizeof(float) }
+				{ "POSITION", 0, attribute_type::floatf, 3, 0 },
+				{ "TEXCOORD", 0, attribute_type::floatf, 2, 3 * sizeof(float) },
+				{ "NORMAL", 0, attribute_type::floatf, 3, 5 * sizeof(float) },
+				{ "TANGENT", 0, attribute_type::floatf, 3, 8 * sizeof(float) },
+				{ "BINORMAL", 0, attribute_type::floatf, 3, 11 * sizeof(float) },
+				{ "JOINTBIAS", 0, attribute_type::floatf, 4, 14 * sizeof(float) },
+				{ "JOINTBIAS", 1, attribute_type::floatf, 4, 18 * sizeof(float) }
 			};
-			InputLayouts["vx_skin"] = *CreateInputLayout(Layout);
+			input_layouts["vx_skin"] = *create_input_layout(layout);
 
-			Layout.Attributes =
+			layout.attributes =
 			{
-				{ "POSITION", 0, AttributeType::Float, 2, 0 },
-				{ "COLOR", 0, AttributeType::Ubyte, 4, 2 * sizeof(float) },
-				{ "TEXCOORD", 0, AttributeType::Float, 2, 2 * sizeof(float) + 4 * sizeof(uint8_t) }
+				{ "POSITION", 0, attribute_type::floatf, 2, 0 },
+				{ "COLOR", 0, attribute_type::ubyte, 4, 2 * sizeof(float) },
+				{ "TEXCOORD", 0, attribute_type::floatf, 2, 2 * sizeof(float) + 4 * sizeof(uint8_t) }
 			};
-			InputLayouts["vx_ui"] = *CreateInputLayout(Layout);
+			input_layouts["vx_ui"] = *create_input_layout(layout);
 
-			SetDepthStencilState(GetDepthStencilState("drw_srw_lt"));
-			SetRasterizerState(GetRasterizerState("so_cback"));
-			SetBlendState(GetBlendState("bo_wrgba_one"));
+			set_depth_stencil_state(get_depth_stencil_state("drw_srw_lt"));
+			set_rasterizer_state(get_rasterizer_state("so_cback"));
+			set_blend_state(get_blend_state("bo_wrgba_one"));
 		}
-		void GraphicsDevice::CreateSections()
+		void graphics_device::create_sections()
 		{
 #ifdef HAS_SHADER_BUNDLE
-			shader_bundle::foreach(this, [](void* Context, const char* Name, const uint8_t* Buffer, unsigned Size)
+			shader_bundle::foreach(this, [](void* context, const char* name, const uint8_t* buffer, unsigned size)
 			{
-				GraphicsDevice* Base = (GraphicsDevice*)Context;
-				if (Base != nullptr && Base->GetBackend() != RenderBackend::None)
-					Base->AddSection(Name, Core::String((const char*)Buffer, Size - 1));
+				graphics_device* base = (graphics_device*)context;
+				if (base != nullptr && base->get_backend() != render_backend::none)
+					base->add_section(name, core::string((const char*)buffer, size - 1));
 			});
 #endif
 		}
-		void GraphicsDevice::ReleaseProxy()
+		void graphics_device::release_proxy()
 		{
-			for (auto It = DepthStencilStates.begin(); It != DepthStencilStates.end(); It++)
-				Core::Memory::Release(It->second);
-			DepthStencilStates.clear();
+			for (auto it = depth_stencil_states.begin(); it != depth_stencil_states.end(); it++)
+				core::memory::release(it->second);
+			depth_stencil_states.clear();
 
-			for (auto It = RasterizerStates.begin(); It != RasterizerStates.end(); It++)
-				Core::Memory::Release(It->second);
-			RasterizerStates.clear();
+			for (auto it = rasterizer_states.begin(); it != rasterizer_states.end(); it++)
+				core::memory::release(it->second);
+			rasterizer_states.clear();
 
-			for (auto It = BlendStates.begin(); It != BlendStates.end(); It++)
-				Core::Memory::Release(It->second);
-			BlendStates.clear();
+			for (auto it = blend_states.begin(); it != blend_states.end(); it++)
+				core::memory::release(it->second);
+			blend_states.clear();
 
-			for (auto It = SamplerStates.begin(); It != SamplerStates.end(); It++)
-				Core::Memory::Release(It->second);
-			SamplerStates.clear();
+			for (auto it = sampler_states.begin(); it != sampler_states.end(); it++)
+				core::memory::release(it->second);
+			sampler_states.clear();
 
-			for (auto It = InputLayouts.begin(); It != InputLayouts.end(); It++)
-				Core::Memory::Release(It->second);
-			InputLayouts.clear();
-			Core::Memory::Release(RenderTarget);
+			for (auto it = input_layouts.begin(); it != input_layouts.end(); it++)
+				core::memory::release(it->second);
+			input_layouts.clear();
+			core::memory::release(render_target);
 		}
-		bool GraphicsDevice::AddSection(const std::string_view& Name, const std::string_view& Code)
+		bool graphics_device::add_section(const std::string_view& name, const std::string_view& code)
 		{
-			Core::String Language(Core::OS::Path::GetExtension(Name));
-			if (Language.empty())
+			core::string language(core::os::path::get_extension(name));
+			if (language.empty())
 				return false;
 
-			Language.erase(0, 1);
-			Core::Stringify::Trim(Language);
-			Core::Stringify::ToLower(Language);
-			RemoveSection(Name);
+			language.erase(0, 1);
+			core::stringify::trim(language);
+			core::stringify::to_lower(language);
+			remove_section(name);
 
-			Section* Include = Core::Memory::New<Section>();
-			Include->Code = Code;
-			Include->Name = Name;
-			Sections[Core::String(Name)] = Include;
+			section* include = core::memory::init<section>();
+			include->code = code;
+			include->name = name;
+			sections[core::string(name)] = include;
 
 			return true;
 		}
-		bool GraphicsDevice::RemoveSection(const std::string_view& Name)
+		bool graphics_device::remove_section(const std::string_view& name)
 		{
-			auto It = Sections.find(Core::KeyLookupCast(Name));
-			if (It == Sections.end())
+			auto it = sections.find(core::key_lookup_cast(name));
+			if (it == sections.end())
 				return false;
 
-			Core::Memory::Delete(It->second);
-			Sections.erase(It);
+			core::memory::deinit(it->second);
+			sections.erase(it);
 			return true;
 		}
-		Compute::ExpectsPreprocessor<void> GraphicsDevice::Preprocess(Shader::Desc& Subresult)
+		compute::expects_preprocessor<void> graphics_device::preprocess(shader::desc& subresult)
 		{
-			if (Subresult.Data.empty())
-				return Core::Expectation::Met;
+			if (subresult.data.empty())
+				return core::expectation::met;
 
-			switch (Backend)
+			switch (backend)
 			{
-				case Vitex::Graphics::RenderBackend::D3D11:
-					Subresult.Defines.push_back("TARGET_D3D");
+				case vitex::graphics::render_backend::d3d11:
+					subresult.defines.push_back("TARGET_D3D");
 					break;
-				case Vitex::Graphics::RenderBackend::OGL:
-					Subresult.Defines.push_back("TARGET_OGL");
+				case vitex::graphics::render_backend::ogl:
+					subresult.defines.push_back("TARGET_OGL");
 					break;
 				default:
 					break;
 			}
 
-			Compute::IncludeDesc Desc = Compute::IncludeDesc();
-			Desc.Exts.push_back(".hlsl");
-			Desc.Exts.push_back(".glsl");
-			Desc.Exts.push_back(".msl");
-			Desc.Exts.push_back(".spv");
-			Subresult.Features.Pragmas = false;
+			compute::include_desc desc = compute::include_desc();
+			desc.exts.push_back(".hlsl");
+			desc.exts.push_back(".glsl");
+			desc.exts.push_back(".msl");
+			desc.exts.push_back(".spv");
+			subresult.features.pragmas = false;
 
-			auto Directory = Core::OS::Directory::GetWorking();
-			if (Directory)
-				Desc.Root = *Directory;
+			auto directory = core::os::directory::get_working();
+			if (directory)
+				desc.root = *directory;
 
-			ExpectsGraphics<void> InternalStatus = Core::Expectation::Met;
-			Compute::Preprocessor* Processor = new Compute::Preprocessor();
-			Processor->SetIncludeCallback([this, &InternalStatus, &Subresult](Compute::Preprocessor* P, const Compute::IncludeResult& File, Core::String& Output) -> Compute::ExpectsPreprocessor<Compute::IncludeType>
+			expects_graphics<void> internal_status = core::expectation::met;
+			compute::preprocessor* processor = new compute::preprocessor();
+			processor->set_include_callback([this, &internal_status, &subresult](compute::preprocessor* p, const compute::include_result& file, core::string& output) -> compute::expects_preprocessor<compute::include_type>
 			{
-				if (Subresult.Include)
+				if (subresult.include)
 				{
-					auto Status = Subresult.Include(P, File, Output);
-					if (Status && *Status != Compute::IncludeType::Error)
-						return Status;
+					auto status = subresult.include(p, file, output);
+					if (status && *status != compute::include_type::error)
+						return status;
 				}
 
-				if (File.Module.empty() || (!File.IsFile && !File.IsAbstract))
-					return Compute::IncludeType::Error;
+				if (file.library.empty() || (!file.is_file && !file.is_abstract))
+					return compute::include_type::error;
 
-				if (File.IsAbstract && !File.IsFile)
+				if (file.is_abstract && !file.is_file)
 				{
-					Section* Result;
-					auto SectionStatus = GetSectionInfo(File.Module, &Result);
-					if (!SectionStatus)
+					section* result;
+					auto section_status = get_section_info(file.library, &result);
+					if (!section_status)
 					{
-						InternalStatus = std::move(SectionStatus);
-						return Compute::IncludeType::Error;
+						internal_status = std::move(section_status);
+						return compute::include_type::error;
 					}
 
-					Output.assign(Result->Code);
-					return Compute::IncludeType::Preprocess;
+					output.assign(result->code);
+					return compute::include_type::preprocess;
 				}
 
-				auto Data = Core::OS::File::ReadAsString(File.Module);
-				if (!Data)
-					return Compute::IncludeType::Error;
+				auto data = core::os::file::read_as_string(file.library);
+				if (!data)
+					return compute::include_type::error;
 
-				Output.assign(*Data);
-				return Compute::IncludeType::Preprocess;
+				output.assign(*data);
+				return compute::include_type::preprocess;
 			});
-			Processor->SetIncludeOptions(Desc);
-			Processor->SetFeatures(Subresult.Features);
+			processor->set_include_options(desc);
+			processor->set_features(subresult.features);
 
-			for (auto& Word : Subresult.Defines)
-				Processor->Define(Word);
+			for (auto& word : subresult.defines)
+				processor->define(word);
 
-			auto Result = Processor->Process(Subresult.Filename, Subresult.Data);
-			Core::Memory::Release(Processor);
-			if (!InternalStatus)
-				return Compute::PreprocessorException(Compute::PreprocessorError::IncludeNotFound, 0, InternalStatus.Error().message());
+			auto result = processor->process(subresult.filename, subresult.data);
+			core::memory::release(processor);
+			if (!internal_status)
+				return compute::preprocessor_exception(compute::preprocessor_error::include_not_found, 0, internal_status.error().message());
 
-			return Result;
+			return result;
 		}
-		ExpectsGraphics<void> GraphicsDevice::Transpile(Core::String* HLSL, ShaderType Type, ShaderLang To)
+		expects_graphics<void> graphics_device::transpile(core::string* hlsl, shader_type type, shader_lang to)
 		{
-			if (!HLSL || HLSL->empty())
-				return Core::Expectation::Met;
+			if (!hlsl || hlsl->empty())
+				return core::expectation::met;
 #ifdef VI_SPIRV
-			const char* Buffer = HLSL->c_str();
-			int Size = (int)HLSL->size();
+			const char* buffer = hlsl->c_str();
+			int size = (int)hlsl->size();
 
-			ShaderModel Model = GetShaderModel();
-			VI_ASSERT(Model != ShaderModel::Auto && Model != ShaderModel::Invalid, "transpilation requests a defined shader model to proceed");
+			shader_model model = get_shader_model();
+			VI_ASSERT(model != shader_model::any && model != shader_model::invalid, "transpilation requests a defined shader model to proceed");
 
-			EShLanguage Stage;
-			switch (Type)
+			EShLanguage stage;
+			switch (type)
 			{
-				case ShaderType::Vertex:
-					Stage = EShLangVertex;
+				case shader_type::vertex:
+					stage = EShLangVertex;
 					break;
-				case ShaderType::Pixel:
-					Stage = EShLangFragment;
+				case shader_type::pixel:
+					stage = EShLangFragment;
 					break;
-				case ShaderType::Geometry:
-					Stage = EShLangGeometry;
+				case shader_type::geometry:
+					stage = EShLangGeometry;
 					break;
-				case ShaderType::Hull:
-					Stage = EShLangTessControl;
+				case shader_type::hull:
+					stage = EShLangTessControl;
 					break;
-				case ShaderType::Domain:
-					Stage = EShLangTessEvaluation;
+				case shader_type::domain:
+					stage = EShLangTessEvaluation;
 					break;
-				case ShaderType::Compute:
-					Stage = EShLangCompute;
+				case shader_type::compute:
+					stage = EShLangCompute;
 					break;
 				default:
 					VI_ASSERT(false, "transpilation requests a defined shader type to proceed");
-					return GraphicsException("shader model is not valid");
+					return graphics_exception("shader model is not valid");
 			}
-			
-			Core::String Entry = GetShaderMain(Type);
-			std::vector<uint32_t> Binary;
+
+			core::string entry = get_shader_main(type);
+			std::vector<uint32_t> binary;
 			glslang::InitializeProcess();
 
-			glslang::TShader Transpiler(Stage);
-			Transpiler.setStringsWithLengths(&Buffer, &Size, 1);
-			Transpiler.setAutoMapBindings(false);
-			Transpiler.setAutoMapLocations(false);
-			Transpiler.setEnvInput(glslang::EShSourceHlsl, Stage, glslang::EShClientVulkan, 100);
-			Transpiler.setEnvTarget(glslang::EShTargetSpv, glslang::EShTargetSpv_1_4);
-			Transpiler.setEnvClient(glslang::EShClientVulkan, glslang::EShTargetVulkan_1_1);
-			Transpiler.setEntryPoint(Entry.c_str());
+			glslang::TShader transpiler(stage);
+			transpiler.setStringsWithLengths(&buffer, &size, 1);
+			transpiler.setAutoMapBindings(false);
+			transpiler.setAutoMapLocations(false);
+			transpiler.setEnvInput(glslang::EShSourceHlsl, stage, glslang::EShClientVulkan, 100);
+			transpiler.setEnvTarget(glslang::EShTargetSpv, glslang::EShTargetSpv_1_4);
+			transpiler.setEnvClient(glslang::EShClientVulkan, glslang::EShTargetVulkan_1_1);
+			transpiler.setEntryPoint(entry.c_str());
 
-			EShMessages Flags = (EShMessages)(EShMsgSpvRules | EShMsgReadHlsl | EShMsgHlslOffsets | EShMsgHlslLegalization | EShMsgKeepUncalled | EShMsgSuppressWarnings);
-			PrepareDriverLimits();
+			EShMessages flags = (EShMessages)(EShMsgSpvRules | EShMsgReadHlsl | EShMsgHlslOffsets | EShMsgHlslLegalization | EShMsgKeepUncalled | EShMsgSuppressWarnings);
+			prepare_driver_limits();
 
-			if (!Transpiler.parse(&DriverLimits, 100, true, Flags))
+			if (!transpiler.parse(&driver_limits, 100, true, flags))
 			{
-				Core::String Message = Transpiler.getInfoLog();
+				core::string message = transpiler.getInfoLog();
 				glslang::FinalizeProcess();
-				return GraphicsException(std::move(Message));
+				return graphics_exception(std::move(message));
 			}
 
 			try
 			{
-				glslang::SpvOptions Options;
-				Options.validate = false;
-				Options.disableOptimizer = false;
-				Options.optimizeSize = false;
+				glslang::SpvOptions options;
+				options.validate = false;
+				options.disableOptimizer = false;
+				options.optimizeSize = false;
 
-				spv::SpvBuildLogger Logger;
-				glslang::TIntermediate* Context = Transpiler.getIntermediate();
-				glslang::GlslangToSpv(*Context, Binary, &Logger, &Options);
+				spv::SpvBuildLogger logger;
+				glslang::TIntermediate* context = transpiler.getIntermediate();
+				glslang::GlslangToSpv(*context, binary, &logger, &options);
+				glslang::FinalizeProcess();
 			}
 			catch (...)
 			{
 				glslang::FinalizeProcess();
-				return GraphicsException("shader to spv: an internal error occurred");
+				return graphics_exception("shader to spv: an internal error occurred");
 			}
 
-			glslang::FinalizeProcess();
 			try
 			{
-				if (To == ShaderLang::GLSL || To == ShaderLang::GLSL_ES)
+				if (to == shader_lang::glsl || to == shader_lang::glsl_es)
 				{
-					spirv_cross::CompilerGLSL::Options Options;
-					Options.version = (uint32_t)Model;
-					Options.es = (To == ShaderLang::GLSL_ES);
+					spirv_cross::CompilerGLSL::Options options;
+					options.version = (uint32_t)model;
+					options.es = (to == shader_lang::glsl_es);
 
-					spirv_cross::CompilerGLSL Compiler(Binary);
-					Compiler.set_common_options(Options);
-					Compiler.build_dummy_sampler_for_combined_images();
-					Compiler.build_combined_image_samplers();
-					PrepareSamplers(&Compiler);
+					spirv_cross::CompilerGLSL compiler(binary);
+					compiler.set_common_options(options);
+					prepare_combined_samplers(&compiler);
 
-					*HLSL = Core::Copy<Core::String>(Compiler.compile());
-					if (!HLSL->empty())
+					*hlsl = core::copy<core::string>(compiler.compile());
+					if (!hlsl->empty())
 					{
-						Core::Stringify::ReplaceGroups(*HLSL, "layout\\(row_major\\)\\s+", "");
-						Core::Stringify::ReplaceGroups(*HLSL, "invocations\\s+=\\s+\\d+,\\s+", "");
+						core::stringify::replace_groups(*hlsl, "layout\\(row_major\\)\\s+", "");
+						core::stringify::replace_groups(*hlsl, "invocations\\s+=\\s+\\d+,\\s+", "");
 					}
-					return Core::Expectation::Met;
+
+					return core::expectation::met;
 				}
-				else if (To == ShaderLang::HLSL)
+				else if (to == shader_lang::hlsl)
 				{
 #ifdef VI_MICROSOFT
-					spirv_cross::CompilerHLSL::Options Options;
-					Options.shader_model = (uint32_t)Model;
+					spirv_cross::CompilerHLSL::Options options;
+					options.shader_model = (uint32_t)model;
 
-					spirv_cross::CompilerHLSL Compiler(Binary);
-					Compiler.set_hlsl_options(Options);
+					spirv_cross::CompilerHLSL compiler(binary);
+					compiler.set_hlsl_options(options);
 
-					*HLSL = Core::Copy<Core::String>(Compiler.compile());
-					return Core::Expectation::Met;
+					*hlsl = core::copy<core::string>(compiler.compile());
+					return core::expectation::met;
 #else
-					return GraphicsException("spv to hlsl: not supported");
+					return graphics_exception("spv to hlsl: not supported");
 #endif
 				}
-				else if (To == ShaderLang::MSL)
+				else if (to == shader_lang::msl)
 				{
 #ifdef VI_APPLE
-					spirv_cross::CompilerMSL::Options Options;
-					spirv_cross::CompilerMSL Compiler(Binary);
-					Compiler.set_msl_options(Options);
-					Compiler.build_dummy_sampler_for_combined_images();
-					Compiler.build_combined_image_samplers();
-					PrepareSamplers(&Compiler);
+					spirv_cross::CompilerMSL::Options options;
+					spirv_cross::CompilerMSL compiler(binary);
+					compiler.set_msl_options(options);
+					prepare_combined_samplers(&compiler);
 
-					*HLSL = Core::Copy<Core::String>(Compiler.compile());
-					return Core::Expectation::Met;
+					*hlsl = core::copy<core::string>(compiler.compile());
+					return core::expectation::met;
 #else
-					return GraphicsException("spv to msv: not supported");
+					return graphics_exception("spv to msv: not supported");
 #endif
 				}
-				else if (To == ShaderLang::SPV)
+				else if (to == shader_lang::spv)
 				{
-					Core::StringStream Stream;
-					std::copy(Binary.begin(), Binary.end(), std::ostream_iterator<uint32_t>(Stream, " "));
+					core::string_stream stream;
+					std::copy(binary.begin(), binary.end(), std::ostream_iterator<uint32_t>(stream, " "));
 
-					HLSL->assign(Stream.str());
-					return Core::Expectation::Met;
+					hlsl->assign(stream.str());
+					return core::expectation::met;
 				}
 			}
-			catch (const spirv_cross::CompilerError& Exception)
+			catch (const spirv_cross::CompilerError& exception)
 			{
-				return GraphicsException(Core::Stringify::Text("spv to shader: %s", Exception.what()));
+				return graphics_exception(core::stringify::text("spv to shader: %s", exception.what()));
 			}
 			catch (...)
 			{
-				return GraphicsException("spv to shader: an internal error occurred");
+				return graphics_exception("spv to shader: an internal error occurred");
 			}
 
-			return GraphicsException("shader transpiler supports only: GLSL, GLSL_ES, HLSL, MSL or SPV");
+			return graphics_exception("shader transpiler supports only: glsl, glsl_es, hlsl, msl or SPV");
 #else
-			return GraphicsException("shader transpiler is not supported");
+			return graphics_exception("shader transpiler is not supported");
 #endif
 		}
-		ExpectsGraphics<void> GraphicsDevice::GetSectionInfo(const std::string_view& Name, Section** Result)
+		expects_graphics<void> graphics_device::get_section_info(const std::string_view& name, section** result)
 		{
-			if (Name.empty() || Sections.empty())
-				return GraphicsException("shader section name is empty");
+			if (name.empty() || sections.empty())
+				return graphics_exception("shader section name is empty");
 
-			auto Resolve = [this, &Result](const std::string_view& Src)
+			auto resolve = [this, &result](const std::string_view& src)
 			{
-				auto It = Sections.find(Core::KeyLookupCast(Src));
-				if (It == Sections.end())
+				auto it = sections.find(core::key_lookup_cast(src));
+				if (it == sections.end())
 					return false;
 
-				if (Result != nullptr)
-					*Result = It->second;
+				if (result != nullptr)
+					*result = it->second;
 
 				return true;
 			};
 
-			if (Resolve(Name) ||
-				Resolve(Core::String(Name) + ".hlsl") ||
-				Resolve(Core::String(Name) + ".glsl") ||
-				Resolve(Core::String(Name) + ".msl") ||
-				Resolve(Core::String(Name) + ".spv"))
-				return Core::Expectation::Met;
-			if (Result != nullptr)
-				*Result = nullptr;
+			if (resolve(name) ||
+				resolve(core::string(name) + ".hlsl") ||
+				resolve(core::string(name) + ".glsl") ||
+				resolve(core::string(name) + ".msl") ||
+				resolve(core::string(name) + ".spv"))
+				return core::expectation::met;
+			if (result != nullptr)
+				*result = nullptr;
 
-			return GraphicsException("shader section not found: " + Core::String(Name));
+			return graphics_exception("shader section not found: " + core::string(name));
 		}
-		ExpectsGraphics<void> GraphicsDevice::GetSectionData(const std::string_view& Name, Shader::Desc* Result)
+		expects_graphics<void> graphics_device::get_section_data(const std::string_view& name, shader::desc* result)
 		{
-			if (Name.empty() || !Result)
-				return GraphicsException("shader section name is empty");
+			if (name.empty() || !result)
+				return graphics_exception("shader section name is empty");
 
-			Section* Subresult;
-			auto SectionStatus = GetSectionInfo(Name, &Subresult);
-			if (!SectionStatus)
-				return SectionStatus;
+			section* subresult;
+			auto section_status = get_section_info(name, &subresult);
+			if (!section_status)
+				return section_status;
 
-			Result->Filename.assign(Subresult->Name);
-			Result->Data.assign(Subresult->Code);
-			return Core::Expectation::Met;
+			result->filename.assign(subresult->name);
+			result->data.assign(subresult->code);
+			return core::expectation::met;
 		}
-		bool GraphicsDevice::IsDebug() const
+		bool graphics_device::is_debug() const
 		{
-			return Debug;
+			return debug;
 		}
-		bool GraphicsDevice::GetProgramCache(const std::string_view& Name, Core::String* Data)
+		bool graphics_device::get_program_cache(const std::string_view& name, core::string* data)
 		{
-			VI_ASSERT(Data != nullptr, "data should be set");
-			Data->clear();
+			VI_ASSERT(data != nullptr, "data should be set");
+			data->clear();
 
-			if (!ShaderCache || Caches.empty())
+			if (!shader_cache || caches.empty())
 				return false;
 
-			Core::String Path = Caches + Core::String(Name);
-			if (Path.empty())
+			core::string path = caches + core::string(name);
+			if (path.empty())
 				return false;
 
-			if (!Core::OS::File::IsExists(Path.c_str()))
+			if (!core::os::file::is_exists(path.c_str()))
 				return false;
 
-			Core::UPtr<Core::GzStream> Stream = new Core::GzStream();
-			if (!Stream->Open(Path.c_str(), Core::FileMode::Binary_Read_Only))
+			core::uptr<core::gz_stream> stream = new core::gz_stream();
+			if (!stream->open(path.c_str(), core::file_mode::binary_read_only))
 				return false;
 
-			uint8_t Buffer[Core::BLOB_SIZE]; size_t Size = 0;
-			while ((Size = (size_t)Stream->Read(Buffer, sizeof(Buffer)).Or(0)) > 0)
-				Data->append(std::string_view((char*)Buffer, Size));
+			uint8_t buffer[core::BLOB_SIZE]; size_t size = 0;
+			while ((size = (size_t)stream->read(buffer, sizeof(buffer)).or_else(0)) > 0)
+				data->append(std::string_view((char*)buffer, size));
 
-			VI_DEBUG("[graphics] load %.*s program cache", (int)Name.size(), Name.data());
-			return !Data->empty();
+			VI_DEBUG("[graphics] load %.*s program cache", (int)name.size(), name.data());
+			return !data->empty();
 		}
-		bool GraphicsDevice::SetProgramCache(const std::string_view& Name, const std::string_view& Data)
+		bool graphics_device::set_program_cache(const std::string_view& name, const std::string_view& data)
 		{
-			if (!ShaderCache || Caches.empty())
+			if (!shader_cache || caches.empty())
 				return true;
 
-			Core::String Path = Caches + Core::String(Name);
-			if (Path.empty())
+			core::string path = caches + core::string(name);
+			if (path.empty())
 				return false;
 
-			Core::UPtr<Core::GzStream> Stream = new Core::GzStream();
-			if (!Stream->Open(Path.c_str(), Core::FileMode::Binary_Write_Only))
+			core::uptr<core::gz_stream> stream = new core::gz_stream();
+			if (!stream->open(path.c_str(), core::file_mode::binary_write_only))
 				return false;
 
-			size_t Size = Data.size();
-			bool Result = (Stream->Write((uint8_t*)Data.data(), Size).Or(0) == Size);
-			VI_DEBUG("[graphics] save %.*s program cache", (int)Name.size(), Name.data());
-			return Result;
+			size_t size = data.size();
+			bool result = (stream->write((uint8_t*)data.data(), size).or_else(0) == size);
+			VI_DEBUG("[graphics] save %.*s program cache", (int)name.size(), name.data());
+			return result;
 		}
-		bool GraphicsDevice::IsLeftHanded() const
+		bool graphics_device::is_left_handed() const
 		{
-			return Backend == RenderBackend::D3D11;
+			return backend == render_backend::d3d11;
 		}
-		uint32_t GraphicsDevice::GetRowPitch(uint32_t Width, uint32_t ElementSize) const
+		uint32_t graphics_device::get_row_pitch(uint32_t width, uint32_t element_size) const
 		{
-			return Width * ElementSize;
+			return width * element_size;
 		}
-		uint32_t GraphicsDevice::GetDepthPitch(uint32_t RowPitch, uint32_t Height) const
+		uint32_t graphics_device::get_depth_pitch(uint32_t row_pitch, uint32_t height) const
 		{
-			return RowPitch * Height;
+			return row_pitch * height;
 		}
-		uint32_t GraphicsDevice::GetMipLevel(uint32_t Width, uint32_t Height) const
+		uint32_t graphics_device::get_mip_level(uint32_t width, uint32_t height) const
 		{
-			uint32_t MipLevels = 1;
-			while (Width > 1 && Height > 1)
+			uint32_t mip_levels = 1;
+			while (width > 1 && height > 1)
 			{
-				Width = (uint32_t)Compute::Mathf::Max((float)Width / 2.0f, 1.0f);
-				Height = (uint32_t)Compute::Mathf::Max((float)Height / 2.0f, 1.0f);
-				MipLevels++;
+				width = (uint32_t)compute::mathf::max((float)width / 2.0f, 1.0f);
+				height = (uint32_t)compute::mathf::max((float)height / 2.0f, 1.0f);
+				mip_levels++;
 			}
 
-			return MipLevels;
+			return mip_levels;
 		}
-		uint32_t GraphicsDevice::GetFormatSize(Format Mode) const
+		uint32_t graphics_device::get_format_size(format mode) const
 		{
-			switch (Mode)
+			switch (mode)
 			{
-				case Format::A8_Unorm:
-				case Format::R1_Unorm:
-				case Format::R8_Sint:
-				case Format::R8_Snorm:
-				case Format::R8_Uint:
-				case Format::R8_Unorm:
+				case format::a8_unorm:
+				case format::r1_unorm:
+				case format::r8_sint:
+				case format::r8_snorm:
+				case format::r8_uint:
+				case format::r8_unorm:
 					return 1;
-				case Format::D16_Unorm:
-				case Format::R16_Float:
-				case Format::R16_Sint:
-				case Format::R16_Snorm:
-				case Format::R16_Uint:
-				case Format::R16_Unorm:
-				case Format::R8G8_Sint:
-				case Format::R8G8_Snorm:
-				case Format::R8G8_Uint:
-				case Format::R8G8_Unorm:
+				case format::d16_unorm:
+				case format::r16_float:
+				case format::r16_sint:
+				case format::r16_snorm:
+				case format::r16_uint:
+				case format::r16_unorm:
+				case format::r8g8_sint:
+				case format::r8g8_snorm:
+				case format::r8g8_uint:
+				case format::r8g8_unorm:
 					return 2;
-				case Format::D24_Unorm_S8_Uint:
-				case Format::D32_Float:
-				case Format::R10G10B10A2_Uint:
-				case Format::R10G10B10A2_Unorm:
-				case Format::R11G11B10_Float:
-				case Format::R16G16_Float:
-				case Format::R16G16_Sint:
-				case Format::R16G16_Snorm:
-				case Format::R16G16_Uint:
-				case Format::R16G16_Unorm:
-				case Format::R32_Float:
-				case Format::R32_Sint:
-				case Format::R32_Uint:
-				case Format::R8G8B8A8_Sint:
-				case Format::R8G8B8A8_Snorm:
-				case Format::R8G8B8A8_Uint:
-				case Format::R8G8B8A8_Unorm:
-				case Format::R8G8B8A8_Unorm_SRGB:
-				case Format::R8G8_B8G8_Unorm:
-				case Format::R9G9B9E5_Share_Dexp:
+				case format::d24_unorm_s8_uint:
+				case format::d32_float:
+				case format::r10g10b10a2_uint:
+				case format::r10g10b10a2_unorm:
+				case format::r11g11b10_float:
+				case format::r16g16_float:
+				case format::r16g16_sint:
+				case format::r16g16_snorm:
+				case format::r16g16_uint:
+				case format::r16g16_unorm:
+				case format::r32_float:
+				case format::r32_sint:
+				case format::r32_uint:
+				case format::r8g8b8a8_sint:
+				case format::r8g8b8a8_snorm:
+				case format::r8g8b8a8_uint:
+				case format::r8g8b8a8_unorm:
+				case format::r8g8b8a8_unorm_srgb:
+				case format::r8g8b8g8_unorm:
+				case format::r9g9b9e5_share_dexp:
 					return 4;
-				case Format::R16G16B16A16_Float:
-				case Format::R16G16B16A16_Sint:
-				case Format::R16G16B16A16_Snorm:
-				case Format::R16G16B16A16_Uint:
-				case Format::R16G16B16A16_Unorm:
-				case Format::R32G32_Float:
-				case Format::R32G32_Sint:
-				case Format::R32G32_Uint:
+				case format::r16g16b16a16_float:
+				case format::r16g16b16a16_sint:
+				case format::r16g16b16a16_snorm:
+				case format::r16g16b16a16_uint:
+				case format::r16g16b16a16_unorm:
+				case format::r32g32_float:
+				case format::r32g32_sint:
+				case format::r32g32_uint:
 					return 8;
-				case Format::R32G32B32A32_Float:
-				case Format::R32G32B32A32_Sint:
-				case Format::R32G32B32A32_Uint:
+				case format::r32g32b32a32_float:
+				case format::r32g32b32a32_sint:
+				case format::r32g32b32a32_uint:
 					return 16;
-				case Format::R32G32B32_Float:
-				case Format::R32G32B32_Sint:
-				case Format::R32G32B32_Uint:
+				case format::r32g32b32_float:
+				case format::r32g32b32_sint:
+				case format::r32g32b32_uint:
 					return 12;
 				default:
 					return 0;
 			}
 		}
-		uint32_t GraphicsDevice::GetPresentFlags() const
+		uint32_t graphics_device::get_present_flags() const
 		{
-			return PresentFlags;
+			return present_flags;
 		}
-		uint32_t GraphicsDevice::GetCompileFlags() const
+		uint32_t graphics_device::get_compile_flags() const
 		{
-			return CompileFlags;
+			return compile_flags;
 		}
-		Core::Option<Core::String> GraphicsDevice::GetProgramName(const Shader::Desc& Desc)
+		core::option<core::string> graphics_device::get_program_name(const shader::desc& desc)
 		{
-			Core::String Result = Desc.Filename;
-			for (auto& Item : Desc.Defines)
-				Result += '&' + Item + "=1";
+			core::string result = desc.filename;
+			for (auto& item : desc.defines)
+				result += '&' + item + "=1";
 
-			if (Desc.Features.Pragmas)
-				Result += "&pragmas=on";
+			if (desc.features.pragmas)
+				result += "&pragmas=on";
 
-			if (Desc.Features.Includes)
-				Result += "&includes=on";
+			if (desc.features.includes)
+				result += "&includes=on";
 
-			if (Desc.Features.Defines)
-				Result += "&defines=on";
+			if (desc.features.defines)
+				result += "&defines=on";
 
-			if (Desc.Features.Conditions)
-				Result += "&conditions=on";
+			if (desc.features.conditions)
+				result += "&conditions=on";
 
-			switch (Desc.Stage)
+			switch (desc.stage)
 			{
-				case ShaderType::Vertex:
-					Result += "&stage=vertex";
+				case shader_type::vertex:
+					result += "&stage=vertex";
 					break;
-				case ShaderType::Pixel:
-					Result += "&stage=pixel";
+				case shader_type::pixel:
+					result += "&stage=pixel";
 					break;
-				case ShaderType::Geometry:
-					Result += "&stage=geometry";
+				case shader_type::geometry:
+					result += "&stage=geometry";
 					break;
-				case ShaderType::Hull:
-					Result += "&stage=hull";
+				case shader_type::hull:
+					result += "&stage=hull";
 					break;
-				case ShaderType::Domain:
-					Result += "&stage=domain";
+				case shader_type::domain:
+					result += "&stage=domain";
 					break;
-				case ShaderType::Compute:
-					Result += "&stage=compute";
+				case shader_type::compute:
+					result += "&stage=compute";
 					break;
 				default:
 					break;
 			}
 
-			auto Hash = Compute::Crypto::HashHex(Compute::Digests::MD5(), Result);
-			if (!Hash)
-				return Core::Optional::None;
+			auto hash = compute::crypto::hash_hex(compute::digests::MD5(), result);
+			if (!hash)
+				return core::optional::none;
 
-			Core::String Postfix;
-			switch (Backend)
+			core::string postfix;
+			switch (backend)
 			{
-				case Vitex::Graphics::RenderBackend::D3D11:
-					Postfix = ".hlsl";
+				case vitex::graphics::render_backend::d3d11:
+					postfix = ".hlsl";
 					break;
-				case Vitex::Graphics::RenderBackend::OGL:
-					Postfix = ".glsl";
+				case vitex::graphics::render_backend::ogl:
+					postfix = ".glsl";
 					break;
 				default:
 					break;
 			}
 
-			return *Hash + Postfix;
+			return *hash + postfix;
 		}
-		Core::String GraphicsDevice::GetShaderMain(ShaderType Type) const
+		core::string graphics_device::get_shader_main(shader_type type) const
 		{
-			switch (Type)
+			switch (type)
 			{
-				case ShaderType::Vertex:
+				case shader_type::vertex:
 					return "vs_main";
-				case ShaderType::Pixel:
+				case shader_type::pixel:
 					return "ps_main";
-				case ShaderType::Geometry:
+				case shader_type::geometry:
 					return "gs_main";
-				case ShaderType::Hull:
+				case shader_type::hull:
 					return "hs_main";
-				case ShaderType::Domain:
+				case shader_type::domain:
 					return "ds_main";
-				case ShaderType::Compute:
+				case shader_type::compute:
 					return "cs_main";
 				default:
 					return "main";
 			}
 		}
-		ShaderModel GraphicsDevice::GetShaderModel() const
+		shader_model graphics_device::get_shader_model() const
 		{
-			return ShaderGen;
+			return shader_gen;
 		}
-		const Core::UnorderedMap<Core::String, DepthStencilState*>& GraphicsDevice::GetDepthStencilStates() const
+		const core::unordered_map<core::string, depth_stencil_state*>& graphics_device::get_depth_stencil_states() const
 		{
-			return DepthStencilStates;
+			return depth_stencil_states;
 		}
-		const Core::UnorderedMap<Core::String, RasterizerState*>& GraphicsDevice::GetRasterizerStates() const
+		const core::unordered_map<core::string, rasterizer_state*>& graphics_device::get_rasterizer_states() const
 		{
-			return RasterizerStates;
+			return rasterizer_states;
 		}
-		const Core::UnorderedMap<Core::String, BlendState*>& GraphicsDevice::GetBlendStates() const
+		const core::unordered_map<core::string, blend_state*>& graphics_device::get_blend_states() const
 		{
-			return BlendStates;
+			return blend_states;
 		}
-		const Core::UnorderedMap<Core::String, SamplerState*>& GraphicsDevice::GetSamplerStates() const
+		const core::unordered_map<core::string, sampler_state*>& graphics_device::get_sampler_states() const
 		{
-			return SamplerStates;
+			return sampler_states;
 		}
-		const Core::UnorderedMap<Core::String, InputLayout*>& GraphicsDevice::GetInputLayouts() const
+		const core::unordered_map<core::string, input_layout*>& graphics_device::get_input_layouts() const
 		{
-			return InputLayouts;
+			return input_layouts;
 		}
-		ExpectsVideo<Surface*> GraphicsDevice::CreateSurface(Texture2D* Base)
+		expects_video<surface*> graphics_device::create_surface(texture_2d* base)
 		{
-			VI_ASSERT(Base != nullptr, "texture should be set");
+			VI_ASSERT(base != nullptr, "texture should be set");
 #ifdef VI_SDL2
-			int Width = (int)Base->GetWidth();
-			int Height = (int)Base->GetHeight();
-			int BytesPerPixel = GetFormatSize(Base->GetFormatMode());
-			int BitsPerPixel = BytesPerPixel * 8;
+			int width = (int)base->get_width();
+			int height = (int)base->get_height();
+			int bytes_per_pixel = get_format_size(base->get_format_mode());
+			int bits_per_pixel = bytes_per_pixel * 8;
 
-			Texture2D::Desc Desc;
-			Desc.AccessFlags = CPUAccess::Read;
-			Desc.Usage = ResourceUsage::Staging;
-			Desc.BindFlags = (ResourceBind)0;
-			Desc.FormatMode = Base->GetFormatMode();
-			Desc.Width = Base->GetWidth();
-			Desc.Height = Base->GetHeight();
-			Desc.MipLevels = Base->GetMipLevels();
+			texture_2d::desc desc;
+			desc.access_flags = cpu_access::read;
+			desc.usage = resource_usage::staging;
+			desc.bind_flags = (resource_bind)0;
+			desc.format_mode = base->get_format_mode();
+			desc.width = base->get_width();
+			desc.height = base->get_height();
+			desc.mip_levels = base->get_mip_levels();
 
-			auto Copy = CreateTexture2D(Desc);
-			if (!Copy)
-				return VideoException(std::move(Copy.Error()));
+			auto copy = create_texture_2d(desc);
+			if (!copy)
+				return video_exception(std::move(copy.error()));
 
-			Texture2D* CopyTextureAddress = *Copy;
-			Core::UPtr<Texture2D> CopyTexture = CopyTextureAddress;
-			auto CopyStatus = CopyTexture2D(Base, &CopyTextureAddress);
-			if (!CopyStatus)
-				return VideoException(std::move(CopyStatus.Error()));
+			texture_2d* copy_texture_address = *copy;
+			core::uptr<texture_2d> copy_texture = copy_texture_address;
+			auto copy_status = copy_texture_2d(base, &copy_texture_address);
+			if (!copy_status)
+				return video_exception(std::move(copy_status.error()));
 
-			MappedSubresource Data;
-			auto MapStatus = Map(CopyTextureAddress, ResourceMap::Read, &Data);
-			if (!MapStatus)
-				return VideoException(std::move(MapStatus.Error()));
+			mapped_subresource data;
+			auto map_status = map(copy_texture_address, resource_map::read, &data);
+			if (!map_status)
+				return video_exception(std::move(map_status.error()));
 #if SDL_BYTEORDER == SDL_BIG_ENDIAN
-			const Uint32 R = 0xff000000;
-			const Uint32 G = 0x00ff0000;
-			const Uint32 B = 0x0000ff00;
-			const Uint32 A = 0x000000ff;
+			const Uint32 r = 0xff000000;
+			const Uint32 g = 0x00ff0000;
+			const Uint32 b = 0x0000ff00;
+			const Uint32 a = 0x000000ff;
 #else
-			const Uint32 R = 0x000000ff;
-			const Uint32 G = 0x0000ff00;
-			const Uint32 B = 0x00ff0000;
-			const Uint32 A = 0xff000000;
+			const Uint32 r = 0x000000ff;
+			const Uint32 g = 0x0000ff00;
+			const Uint32 b = 0x00ff0000;
+			const Uint32 a = 0xff000000;
 #endif
-			SDL_Surface* Handle = SDL_CreateRGBSurface(0, Width, Height, BitsPerPixel, R, G, B, A);
-			if (Handle != nullptr)
+			SDL_Surface* handle = SDL_CreateRGBSurface(0, width, height, bits_per_pixel, r, g, b, a);
+			if (handle != nullptr)
 			{
-				SDL_SetSurfaceBlendMode(Handle, SDL_BlendMode::SDL_BLENDMODE_BLEND);
-				SDL_LockSurface(Handle);
-				memcpy(Handle->pixels, Data.Pointer, Width * Height * BytesPerPixel);
-				SDL_UnlockSurface(Handle);
+				SDL_SetSurfaceBlendMode(handle, SDL_BlendMode::SDL_BLENDMODE_BLEND);
+				SDL_LockSurface(handle);
+				memcpy(handle->pixels, data.pointer, width * height * bytes_per_pixel);
+				SDL_UnlockSurface(handle);
 			}
 
-			Unmap(CopyTextureAddress, &Data);
-			if (!Handle)
-				return VideoException();
+			unmap(copy_texture_address, &data);
+			if (!handle)
+				return video_exception();
 
-			return new Surface(Handle);
+			return new surface(handle);
 #else
-			return VideoException();
+			return video_exception();
 #endif
 		}
-		DepthStencilState* GraphicsDevice::GetDepthStencilState(const std::string_view& Name)
+		depth_stencil_state* graphics_device::get_depth_stencil_state(const std::string_view& name)
 		{
-			auto It = DepthStencilStates.find(Core::KeyLookupCast(Name));
-			if (It != DepthStencilStates.end())
-				return It->second;
+			auto it = depth_stencil_states.find(core::key_lookup_cast(name));
+			if (it != depth_stencil_states.end())
+				return it->second;
 
 			return nullptr;
 		}
-		BlendState* GraphicsDevice::GetBlendState(const std::string_view& Name)
+		blend_state* graphics_device::get_blend_state(const std::string_view& name)
 		{
-			auto It = BlendStates.find(Core::KeyLookupCast(Name));
-			if (It != BlendStates.end())
-				return It->second;
+			auto it = blend_states.find(core::key_lookup_cast(name));
+			if (it != blend_states.end())
+				return it->second;
 
 			return nullptr;
 		}
-		RasterizerState* GraphicsDevice::GetRasterizerState(const std::string_view& Name)
+		rasterizer_state* graphics_device::get_rasterizer_state(const std::string_view& name)
 		{
-			auto It = RasterizerStates.find(Core::KeyLookupCast(Name));
-			if (It != RasterizerStates.end())
-				return It->second;
+			auto it = rasterizer_states.find(core::key_lookup_cast(name));
+			if (it != rasterizer_states.end())
+				return it->second;
 
 			return nullptr;
 		}
-		SamplerState* GraphicsDevice::GetSamplerState(const std::string_view& Name)
+		sampler_state* graphics_device::get_sampler_state(const std::string_view& name)
 		{
-			auto It = SamplerStates.find(Core::KeyLookupCast(Name));
-			if (It != SamplerStates.end())
-				return It->second;
+			auto it = sampler_states.find(core::key_lookup_cast(name));
+			if (it != sampler_states.end())
+				return it->second;
 
 			return nullptr;
 		}
-		InputLayout* GraphicsDevice::GetInputLayout(const std::string_view& Name)
+		input_layout* graphics_device::get_input_layout(const std::string_view& name)
 		{
-			auto It = InputLayouts.find(Core::KeyLookupCast(Name));
-			if (It != InputLayouts.end())
-				return It->second;
+			auto it = input_layouts.find(core::key_lookup_cast(name));
+			if (it != input_layouts.end())
+				return it->second;
 
 			return nullptr;
 		}
-		RenderTarget2D* GraphicsDevice::GetRenderTarget()
+		render_target_2d* graphics_device::get_render_target()
 		{
-			return RenderTarget;
+			return render_target;
 		}
-		RenderBackend GraphicsDevice::GetBackend() const
+		render_backend graphics_device::get_backend() const
 		{
-			return Backend;
+			return backend;
 		}
-		VSync GraphicsDevice::GetVSyncMode() const
+		vsync graphics_device::get_vsync_mode() const
 		{
-			return VSyncMode;
+			return vsync_mode;
 		}
-		GraphicsDevice* GraphicsDevice::Create(Desc& I)
+		graphics_device* graphics_device::create(desc& i)
 		{
-			I.Backend = GetSupportedBackend(I.Backend);
+			i.backend = get_supported_backend(i.backend);
 #ifdef VI_MICROSOFT
-			if (I.Backend == RenderBackend::D3D11)
-				return new D3D11::D3D11Device(I);
+			if (i.backend == render_backend::d3d11)
+				return new d3d11::d3d11_device(i);
 #endif
 #ifdef VI_GL
-			if (I.Backend == RenderBackend::OGL)
-				return new OGL::OGLDevice(I);
+			if (i.backend == render_backend::ogl)
+				return new ogl::ogl_device(i);
 #endif
 			VI_PANIC(false, "renderer backend is not present or is invalid");
 			return nullptr;
 		}
-		ExpectsGraphics<void> GraphicsDevice::CompileBuiltinShaders(const Core::Vector<GraphicsDevice*>& Devices, const std::function<bool(GraphicsDevice*, const std::string_view&, const ExpectsGraphics<Shader*>&)>& Callback)
+		expects_graphics<void> graphics_device::compile_builtin_shaders(const core::vector<graphics_device*>& devices, const std::function<bool(graphics_device*, const std::string_view&, const expects_graphics<shader*>&)>& callback)
 		{
-			for (auto* Device : Devices)
+			for (auto* device : devices)
 			{
-				if (!Device)
+				if (!device)
 					continue;
 
-				Device->SetAsCurrentDevice();
-				for (auto& Section : Device->Sections)
+				device->set_as_current_device();
+				for (auto& section : device->sections)
 				{
-					Shader::Desc Desc;
-					if (!Device->GetSectionData(Section.first, &Desc))
+					shader::desc desc;
+					if (!device->get_section_data(section.first, &desc))
 						continue;
 
-					auto Result = Device->CreateShader(Desc);
-					if (Callback && !Callback(Device, Section.first, Result))
-						return Result ? GraphicsException("compilation stopped") : Result.Error();
-					else if (!Result)
-						return Result.Error();
-					if (!Callback)
-						Core::Memory::Release(*Result);
+					auto result = device->create_shader(desc);
+					if (callback && !callback(device, section.first, result))
+						return result ? graphics_exception("compilation stopped") : result.error();
+					else if (!result)
+						return result.error();
+					if (!callback)
+						core::memory::release(*result);
 				}
 			}
-			return Core::Expectation::Met;
+			return core::expectation::met;
 		}
 
-		Activity::Activity(const Desc& I) noexcept : Handle(nullptr), Favicon(nullptr), Options(I), Command(0), CX(0), CY(0), Message(this)
+		activity::activity(const desc& i) noexcept : handle(nullptr), favicon(nullptr), options(i), command(0), cx(0), cy(0), message(this)
 		{
 #ifdef VI_SDL2
-			Cursors[(size_t)DisplayCursor::Arrow] = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_ARROW);
-			Cursors[(size_t)DisplayCursor::TextInput] = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_IBEAM);
-			Cursors[(size_t)DisplayCursor::ResizeAll] = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_SIZEALL);
-			Cursors[(size_t)DisplayCursor::ResizeNS] = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_SIZENS);
-			Cursors[(size_t)DisplayCursor::ResizeEW] = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_SIZEWE);
-			Cursors[(size_t)DisplayCursor::ResizeNESW] = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_SIZENESW);
-			Cursors[(size_t)DisplayCursor::ResizeNWSE] = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_SIZENWSE);
-			Cursors[(size_t)DisplayCursor::Hand] = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_HAND);
-			Cursors[(size_t)DisplayCursor::Crosshair] = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_CROSSHAIR);
-			Cursors[(size_t)DisplayCursor::Wait] = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_WAIT);
-			Cursors[(size_t)DisplayCursor::Progress] = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_WAITARROW);
-			Cursors[(size_t)DisplayCursor::No] = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_NO);
+			cursors[(size_t)display_cursor::arrow] = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_ARROW);
+			cursors[(size_t)display_cursor::text_input] = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_IBEAM);
+			cursors[(size_t)display_cursor::resize_all] = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_SIZEALL);
+			cursors[(size_t)display_cursor::resize_ns] = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_SIZENS);
+			cursors[(size_t)display_cursor::resize_ew] = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_SIZEWE);
+			cursors[(size_t)display_cursor::resize_nesw] = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_SIZENESW);
+			cursors[(size_t)display_cursor::resize_nwse] = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_SIZENWSE);
+			cursors[(size_t)display_cursor::hand] = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_HAND);
+			cursors[(size_t)display_cursor::crosshair] = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_CROSSHAIR);
+			cursors[(size_t)display_cursor::wait] = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_WAIT);
+			cursors[(size_t)display_cursor::progress] = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_WAITARROW);
+			cursors[(size_t)display_cursor::no] = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_NO);
 #endif
-			memset(Keys[0], 0, sizeof(Keys[0]));
-			memset(Keys[1], 0, sizeof(Keys[1]));
-			if (!I.GPUAsRenderer)
-				ApplyConfiguration(RenderBackend::None);
+			memset(keys[0], 0, sizeof(keys[0]));
+			memset(keys[1], 0, sizeof(keys[1]));
+			if (!i.gpu_as_renderer)
+				apply_configuration(render_backend::none);
 		}
-		Activity::~Activity() noexcept
+		activity::~activity() noexcept
 		{
 #ifdef VI_SDL2
-			for (size_t i = 0; i < (size_t)DisplayCursor::Count; i++)
-				SDL_FreeCursor(Cursors[i]);
+			for (size_t i = 0; i < (size_t)display_cursor::count; i++)
+				SDL_FreeCursor(cursors[i]);
 
-			if (Handle != nullptr)
+			if (handle != nullptr)
 			{
-				SDL_DestroyWindow(Handle);
-				Handle = nullptr;
+				SDL_DestroyWindow(handle);
+				handle = nullptr;
 			}
 #endif
 		}
-		bool Activity::ApplySystemTheme()
+		bool activity::apply_system_theme()
 		{
 #ifdef VI_SDL2
 #ifdef VI_MICROSOFT
-			SDL_SysWMinfo Info;
-			SDL_VERSION(&Info.version);
-			SDL_GetWindowWMInfo(Handle, &Info);
-			HWND WindowHandle = Info.info.win.window;
-			if (WindowHandle == INVALID_HANDLE_VALUE)
+			SDL_SysWMinfo info;
+			SDL_VERSION(&info.version);
+			SDL_GetWindowWMInfo(handle, &info);
+			HWND window_handle = info.info.win.window;
+			if (window_handle == INVALID_HANDLE_VALUE)
 				return false;
 
-			HMODULE Library = LoadLibraryA("dwmapi.dll");
-			if (!Library)
+			HMODULE library = LoadLibraryA("dwmapi.dll");
+			if (!library)
 				return false;
 
 			typedef HRESULT(*DwmSetWindowAttributePtr1)(HWND, DWORD, LPCVOID, DWORD);
-			DwmSetWindowAttributePtr1 DWM_SetWindowAttribute = (DwmSetWindowAttributePtr1)GetProcAddress(Library, "DwmSetWindowAttribute");
+			DwmSetWindowAttributePtr1 DWM_SetWindowAttribute = (DwmSetWindowAttributePtr1)GetProcAddress(library, "DwmSetWindowAttribute");
 			if (!DWM_SetWindowAttribute)
 				return false;
 
-			HKEY Personalize;
-			DWORD IsLightTheme = 0, IsLightThemeSize = sizeof(DWORD), Type = REG_DWORD;
-			if (RegOpenKeyEx(HKEY_CURRENT_USER, "Software\\Microsoft\\Windows\\CurrentVersion\\Themes\\Personalize", 0, KEY_QUERY_VALUE, &Personalize) == ERROR_SUCCESS)
-				RegQueryValueEx(Personalize, "SystemUsesLightTheme", NULL, &Type, (LPBYTE)&IsLightTheme, &IsLightThemeSize);
-			RegCloseKey(Personalize);
+			HKEY personalize;
+			DWORD is_light_theme = 0, is_light_theme_size = sizeof(DWORD), type = REG_DWORD;
+			if (RegOpenKeyEx(HKEY_CURRENT_USER, "Software\\Microsoft\\Windows\\CurrentVersion\\Themes\\Personalize", 0, KEY_QUERY_VALUE, &personalize) == ERROR_SUCCESS)
+				RegQueryValueEx(personalize, "SystemUsesLightTheme", NULL, &type, (LPBYTE)&is_light_theme, &is_light_theme_size);
+			RegCloseKey(personalize);
 
-			BOOL DarkMode = IsLightTheme ? 0 : 1;
-			if (DWM_SetWindowAttribute(WindowHandle, DWMWA_USE_IMMERSIVE_DARK_MODE, &DarkMode, sizeof(DarkMode)) != S_OK)
+			BOOL dark_mode = is_light_theme ? 0 : 1;
+			if (DWM_SetWindowAttribute(window_handle, DWMWA_USE_IMMERSIVE_DARK_MODE, &dark_mode, sizeof(dark_mode)) != S_OK)
 			{
 				const DWORD DWMWA_USE_IMMERSIVE_DARK_MODE_DEPRECATED = 19;
-				DWM_SetWindowAttribute(WindowHandle, DWMWA_USE_IMMERSIVE_DARK_MODE_DEPRECATED, &DarkMode, sizeof(DarkMode));
+				DWM_SetWindowAttribute(window_handle, DWMWA_USE_IMMERSIVE_DARK_MODE_DEPRECATED, &dark_mode, sizeof(dark_mode));
 			}
 #if 0
-			DWM_SYSTEMBACKDROP_TYPE BackdropType = DWMSBT_MAINWINDOW;
-			if (DWM_SetWindowAttribute(WindowHandle, DWMWA_SYSTEMBACKDROP_TYPE, &BackdropType, sizeof(BackdropType)) != S_OK)
+			DWM_SYSTEMBACKDROP_TYPE backdrop_type = DWMSBT_MAINWINDOW;
+			if (DWM_SetWindowAttribute(window_handle, DWMWA_SYSTEMBACKDROP_TYPE, &backdrop_type, sizeof(backdrop_type)) != S_OK)
 			{
-				BOOL MicaEffect = true;
+				BOOL mica_effect = true;
 				const DWORD DWMWA_MICA_EFFECT_DEPRECATED = 1029;
-				DWM_SetWindowAttribute(WindowHandle, DWMWA_MICA_EFFECT_DEPRECATED, &MicaEffect, sizeof(MicaEffect));
+				DWM_SetWindowAttribute(window_handle, DWMWA_MICA_EFFECT_DEPRECATED, &mica_effect, sizeof(mica_effect));
 			}
 #endif
 			return true;
@@ -1964,697 +1964,697 @@ namespace Vitex
 			return false;
 #endif
 		}
-		void Activity::SetClipboardText(const std::string_view& Text)
+		void activity::set_clipboard_text(const std::string_view& text)
 		{
 #ifdef VI_SDL2
-			VI_ASSERT(Handle != nullptr, "activity should be initialized");
-			VI_ASSERT(Core::Stringify::IsCString(Text), "text should be set");
-			SDL_SetClipboardText(Text.data());
+			VI_ASSERT(handle != nullptr, "activity should be initialized");
+			VI_ASSERT(core::stringify::is_cstring(text), "text should be set");
+			SDL_SetClipboardText(text.data());
 #endif
 		}
-		void Activity::SetCursorPosition(const Trigonometry::Vector2& Position)
-		{
-#ifdef VI_SDL2
-#if SDL_VERSION_ATLEAST(2, 0, 4)
-			VI_ASSERT(Handle != nullptr, "activity should be initialized");
-			SDL_WarpMouseInWindow(Handle, (int)Position.X, (int)Position.Y);
-#endif
-#endif
-		}
-		void Activity::SetCursorPosition(float X, float Y)
+		void activity::set_cursor_position(const trigonometry::vector2& position)
 		{
 #ifdef VI_SDL2
 #if SDL_VERSION_ATLEAST(2, 0, 4)
-			VI_ASSERT(Handle != nullptr, "activity should be initialized");
-			SDL_WarpMouseInWindow(Handle, (int)X, (int)Y);
+			VI_ASSERT(handle != nullptr, "activity should be initialized");
+			SDL_WarpMouseInWindow(handle, (int)position.x, (int)position.y);
 #endif
 #endif
 		}
-		void Activity::SetGlobalCursorPosition(const Trigonometry::Vector2& Position)
+		void activity::set_cursor_position(float x, float y)
 		{
 #ifdef VI_SDL2
-			VI_ASSERT(Handle != nullptr, "activity should be initialized");
 #if SDL_VERSION_ATLEAST(2, 0, 4)
-			SDL_WarpMouseGlobal((int)Position.X, (int)Position.Y);
+			VI_ASSERT(handle != nullptr, "activity should be initialized");
+			SDL_WarpMouseInWindow(handle, (int)x, (int)y);
 #endif
 #endif
 		}
-		void Activity::SetGlobalCursorPosition(float X, float Y)
+		void activity::set_global_cursor_position(const trigonometry::vector2& position)
 		{
 #ifdef VI_SDL2
-			VI_ASSERT(Handle != nullptr, "activity should be initialized");
+			VI_ASSERT(handle != nullptr, "activity should be initialized");
 #if SDL_VERSION_ATLEAST(2, 0, 4)
-			SDL_WarpMouseGlobal((int)X, (int)Y);
+			SDL_WarpMouseGlobal((int)position.x, (int)position.y);
 #endif
 #endif
 		}
-		void Activity::SetKey(KeyCode Key, bool Value)
-		{
-			Keys[0][(size_t)Key] = Value;
-		}
-		void Activity::SetCursor(DisplayCursor Style)
+		void activity::set_global_cursor_position(float x, float y)
 		{
 #ifdef VI_SDL2
-			VI_ASSERT((size_t)Style <= (size_t)DisplayCursor::Count, "style should be less than %i", (int)DisplayCursor::Count);
-			if (Style != DisplayCursor::None)
+			VI_ASSERT(handle != nullptr, "activity should be initialized");
+#if SDL_VERSION_ATLEAST(2, 0, 4)
+			SDL_WarpMouseGlobal((int)x, (int)y);
+#endif
+#endif
+		}
+		void activity::set_key(key_code key, bool value)
+		{
+			keys[0][(size_t)key] = value;
+		}
+		void activity::set_cursor(display_cursor style)
+		{
+#ifdef VI_SDL2
+			VI_ASSERT((size_t)style <= (size_t)display_cursor::count, "style should be less than %i", (int)display_cursor::count);
+			if (style != display_cursor::none)
 			{
 				SDL_ShowCursor(1);
-				SDL_SetCursor(Cursors[(size_t)Style]);
+				SDL_SetCursor(cursors[(size_t)style]);
 			}
 			else
 			{
 				SDL_ShowCursor(0);
-				SDL_SetCursor(Cursors[(size_t)DisplayCursor::Arrow]);
+				SDL_SetCursor(cursors[(size_t)display_cursor::arrow]);
 			}
 #endif
 		}
-		void Activity::SetCursorVisibility(bool Enabled)
+		void activity::set_cursor_visibility(bool enabled)
 		{
 #ifdef VI_SDL2
-			VI_ASSERT(Handle != nullptr, "activity should be initialized");
-			SDL_ShowCursor(Enabled);
+			VI_ASSERT(handle != nullptr, "activity should be initialized");
+			SDL_ShowCursor(enabled);
 #endif
 		}
-		void Activity::SetGrabbing(bool Enabled)
+		void activity::set_grabbing(bool enabled)
 		{
 #ifdef VI_SDL2
-			VI_ASSERT(Handle != nullptr, "activity should be initialized");
-			SDL_SetWindowGrab(Handle, Enabled ? SDL_TRUE : SDL_FALSE);
+			VI_ASSERT(handle != nullptr, "activity should be initialized");
+			SDL_SetWindowGrab(handle, enabled ? SDL_TRUE : SDL_FALSE);
 #endif
 		}
-		void Activity::SetFullscreen(bool Enabled)
+		void activity::set_fullscreen(bool enabled)
 		{
 #ifdef VI_SDL2
-			VI_ASSERT(Handle != nullptr, "activity should be initialized");
-			SDL_SetWindowFullscreen(Handle, Enabled ? SDL_WINDOW_FULLSCREEN : 0);
+			VI_ASSERT(handle != nullptr, "activity should be initialized");
+			SDL_SetWindowFullscreen(handle, enabled ? SDL_WINDOW_FULLSCREEN : 0);
 #endif
 		}
-		void Activity::SetBorderless(bool Enabled)
+		void activity::set_borderless(bool enabled)
 		{
 #ifdef VI_SDL2
-			VI_ASSERT(Handle != nullptr, "activity should be initialized");
-			SDL_SetWindowBordered(Handle, Enabled ? SDL_TRUE : SDL_FALSE);
+			VI_ASSERT(handle != nullptr, "activity should be initialized");
+			SDL_SetWindowBordered(handle, enabled ? SDL_TRUE : SDL_FALSE);
 #endif
 		}
-		void Activity::SetScreenKeyboard(bool Enabled)
+		void activity::set_screen_keyboard(bool enabled)
 		{
 #ifdef VI_SDL2
-			VI_ASSERT(Handle != nullptr, "activity should be initialized");
+			VI_ASSERT(handle != nullptr, "activity should be initialized");
 			if (!SDL_HasScreenKeyboardSupport())
 				return;
 
-			if (Enabled)
+			if (enabled)
 				SDL_StartTextInput();
 			else
 				SDL_StopTextInput();
 #endif
 		}
-		void Activity::ApplyConfiguration(RenderBackend Backend)
+		void activity::apply_configuration(render_backend backend)
 		{
 #ifdef VI_SDL2
-			if (Handle != nullptr)
+			if (handle != nullptr)
 			{
-				EventSource.Pop(this);
-				SDL_DestroyWindow(Handle);
-				Handle = nullptr;
+				event_source.pop(this);
+				SDL_DestroyWindow(handle);
+				handle = nullptr;
 			}
 
-			Uint32 Flags = 0;
-			if (Options.Fullscreen)
-				Flags |= SDL_WINDOW_FULLSCREEN;
+			Uint32 flags = 0;
+			if (options.fullscreen)
+				flags |= SDL_WINDOW_FULLSCREEN;
 
-			if (Options.Hidden)
-				Flags |= SDL_WINDOW_HIDDEN;
+			if (options.hidden)
+				flags |= SDL_WINDOW_HIDDEN;
 
-			if (Options.Borderless)
-				Flags |= SDL_WINDOW_BORDERLESS;
+			if (options.borderless)
+				flags |= SDL_WINDOW_BORDERLESS;
 
-			if (Options.Resizable)
-				Flags |= SDL_WINDOW_RESIZABLE;
+			if (options.resizable)
+				flags |= SDL_WINDOW_RESIZABLE;
 
-			if (Options.Minimized)
-				Flags |= SDL_WINDOW_MINIMIZED;
+			if (options.minimized)
+				flags |= SDL_WINDOW_MINIMIZED;
 
-			if (Options.Maximized)
-				Flags |= SDL_WINDOW_MAXIMIZED;
+			if (options.maximized)
+				flags |= SDL_WINDOW_MAXIMIZED;
 
-			if (Options.Focused)
-				Flags |= SDL_WINDOW_INPUT_GRABBED;
+			if (options.focused)
+				flags |= SDL_WINDOW_INPUT_GRABBED;
 
-			if (Options.HighDPI)
-				Flags |= SDL_WINDOW_ALLOW_HIGHDPI;
+			if (options.high_dpi)
+				flags |= SDL_WINDOW_ALLOW_HIGHDPI;
 
-			if (Options.Centered)
+			if (options.centered)
 			{
-				Options.X = SDL_WINDOWPOS_CENTERED;
-				Options.Y = SDL_WINDOWPOS_CENTERED;
+				options.x = SDL_WINDOWPOS_CENTERED;
+				options.y = SDL_WINDOWPOS_CENTERED;
 			}
-			else if (Options.FreePosition)
+			else if (options.free_position)
 			{
-				Options.X = SDL_WINDOWPOS_UNDEFINED;
-				Options.Y = SDL_WINDOWPOS_UNDEFINED;
+				options.x = SDL_WINDOWPOS_UNDEFINED;
+				options.y = SDL_WINDOWPOS_UNDEFINED;
 			}
 
-			switch (Backend)
+			switch (backend)
 			{
-				case Vitex::Graphics::RenderBackend::OGL:
-					Flags |= SDL_WINDOW_OPENGL;
+				case vitex::graphics::render_backend::ogl:
+					flags |= SDL_WINDOW_OPENGL;
 					break;
 				default:
 					break;
 			}
 
-			Handle = SDL_CreateWindow(Options.Title.c_str(), Options.X, Options.Y, Options.Width, Options.Height, Flags);
-			if (Handle != nullptr)
+			handle = SDL_CreateWindow(options.title.c_str(), options.x, options.y, options.width, options.height, flags);
+			if (handle != nullptr)
 			{
-				EventSource.Push(this);
-				ApplySystemTheme();
+				event_source.push(this);
+				apply_system_theme();
 			}
 #endif
 		}
-		void Activity::Wakeup()
+		void activity::wakeup()
 		{
 #ifdef VI_SDL2
-			SDL_Event Event;
-			Event.type = SDL_USEREVENT;
-			Event.user.timestamp = SDL_GetTicks();
-			Event.user.windowID = SDL_GetWindowID(Handle);
-			Event.user.code = 200;
-			Event.user.data1 = nullptr;
-			Event.user.data2 = nullptr;
-			SDL_PushEvent(&Event);
+			SDL_Event event;
+			event.type = SDL_USEREVENT;
+			event.user.timestamp = SDL_GetTicks();
+			event.user.windowID = SDL_GetWindowID(handle);
+			event.user.code = 200;
+			event.user.data1 = nullptr;
+			event.user.data2 = nullptr;
+			SDL_PushEvent(&event);
 #endif
 		}
-		void Activity::Hide()
+		void activity::hide()
 		{
 #ifdef VI_SDL2
-			VI_ASSERT(Handle != nullptr, "activity should be initialized");
-			SDL_HideWindow(Handle);
+			VI_ASSERT(handle != nullptr, "activity should be initialized");
+			SDL_HideWindow(handle);
 #endif
 		}
-		void Activity::Show()
+		void activity::show()
 		{
 #ifdef VI_SDL2
-			VI_ASSERT(Handle != nullptr, "activity should be initialized");
-			SDL_ShowWindow(Handle);
+			VI_ASSERT(handle != nullptr, "activity should be initialized");
+			SDL_ShowWindow(handle);
 #endif
 		}
-		void Activity::Maximize()
+		void activity::maximize()
 		{
 #ifdef VI_SDL2
-			VI_ASSERT(Handle != nullptr, "activity should be initialized");
-			SDL_MaximizeWindow(Handle);
+			VI_ASSERT(handle != nullptr, "activity should be initialized");
+			SDL_MaximizeWindow(handle);
 #endif
 		}
-		void Activity::Minimize()
+		void activity::minimize()
 		{
 #ifdef VI_SDL2
-			VI_ASSERT(Handle != nullptr, "activity should be initialized");
-			SDL_MinimizeWindow(Handle);
+			VI_ASSERT(handle != nullptr, "activity should be initialized");
+			SDL_MinimizeWindow(handle);
 #endif
 		}
-		void Activity::Focus()
+		void activity::focus()
 		{
 #ifdef VI_SDL2
 #if SDL_VERSION_ATLEAST(2, 0, 5)
-			VI_ASSERT(Handle != nullptr, "activity should be initialized");
-			SDL_SetWindowInputFocus(Handle);
+			VI_ASSERT(handle != nullptr, "activity should be initialized");
+			SDL_SetWindowInputFocus(handle);
 #endif
 #endif
 		}
-		void Activity::Move(int X, int Y)
+		void activity::move(int x, int y)
 		{
 #ifdef VI_SDL2
-			VI_ASSERT(Handle != nullptr, "activity should be initialized");
-			SDL_SetWindowPosition(Handle, X, Y);
+			VI_ASSERT(handle != nullptr, "activity should be initialized");
+			SDL_SetWindowPosition(handle, x, y);
 #endif
 		}
-		void Activity::Resize(int W, int H)
+		void activity::resize(int w, int h)
 		{
 #ifdef VI_SDL2
-			VI_ASSERT(Handle != nullptr, "activity should be initialized");
-			SDL_SetWindowSize(Handle, W, H);
+			VI_ASSERT(handle != nullptr, "activity should be initialized");
+			SDL_SetWindowSize(handle, w, h);
 #endif
 		}
-		void Activity::SetTitle(const std::string_view& Value)
+		void activity::set_title(const std::string_view& value)
 		{
 #ifdef VI_SDL2
-			VI_ASSERT(Handle != nullptr, "activity should be initialized");
-			VI_ASSERT(Core::Stringify::IsCString(Value), "value should be set");
-			SDL_SetWindowTitle(Handle, Value.data());
+			VI_ASSERT(handle != nullptr, "activity should be initialized");
+			VI_ASSERT(core::stringify::is_cstring(value), "value should be set");
+			SDL_SetWindowTitle(handle, value.data());
 #endif
 		}
-		void Activity::SetIcon(Surface* Icon)
+		void activity::set_icon(surface* icon)
 		{
 #ifdef VI_SDL2
-			VI_ASSERT(Handle != nullptr, "activity should be initialized");
-			if (!Favicon)
-				Favicon = SDL_GetWindowSurface(Handle);
+			VI_ASSERT(handle != nullptr, "activity should be initialized");
+			if (!favicon)
+				favicon = SDL_GetWindowSurface(handle);
 
-			SDL_SetWindowIcon(Handle, Icon ? (SDL_Surface*)Icon->GetResource() : Favicon);
+			SDL_SetWindowIcon(handle, icon ? (SDL_Surface*)icon->get_resource() : favicon);
 #endif
 		}
-		void Activity::Load(SDL_SysWMinfo* Base)
+		void activity::load(SDL_SysWMinfo* base)
 		{
 #ifdef VI_SDL2
-			VI_ASSERT(Handle != nullptr, "activity should be initialized");
-			VI_ASSERT(Base != nullptr, "base should be set");
-			SDL_VERSION(&Base->version);
-			SDL_GetWindowWMInfo(Handle, Base);
+			VI_ASSERT(handle != nullptr, "activity should be initialized");
+			VI_ASSERT(base != nullptr, "base should be set");
+			SDL_VERSION(&base->version);
+			SDL_GetWindowWMInfo(handle, base);
 #endif
 		}
-		bool Activity::Dispatch(uint64_t TimeoutMs, bool DispatchAll)
+		bool activity::dispatch(uint64_t timeout_ms, bool dispatch_all)
 		{
-			return MultiDispatch(EventSource, TimeoutMs, DispatchAll);
+			return multi_dispatch(event_source, timeout_ms, dispatch_all);
 		}
-		bool Activity::MultiDispatch(const EventConsumers& Sources, uint64_t TimeoutMs, bool DispatchAll)
+		bool activity::multi_dispatch(const event_consumers& sources, uint64_t timeout_ms, bool dispatch_all)
 		{
-			VI_MEASURE(Core::Timings::Mixed);
+			VI_MEASURE(core::timings::mixed);
 #ifdef VI_SDL2
-			if (Sources.Consumers.empty())
+			if (sources.consumers.empty())
 				return false;
 
-			for (auto& Item : Sources.Consumers)
+			for (auto& item : sources.consumers)
 			{
-				auto* Target = Item.second;
-				VI_ASSERT(Target->Handle != nullptr, "activity should be initialized");
-				memcpy((void*)Target->Keys[1], (void*)Target->Keys[0], sizeof(Target->Keys[0]));
-				Target->Command = (int)SDL_GetModState();
-				Target->GetInputState();
-				Target->Message.Dispatch();
+				auto* target = item.second;
+				VI_ASSERT(target->handle != nullptr, "activity should be initialized");
+				memcpy((void*)target->keys[1], (void*)target->keys[0], sizeof(target->keys[0]));
+				target->command = (int)SDL_GetModState();
+				target->get_input_state();
+				target->message.dispatch();
 			}
 
-			SDL_Event Event;
-			size_t IncomingEvents = 0;
-			int HasEvents = TimeoutMs > 0 ? SDL_WaitEventTimeout(&Event, (int)TimeoutMs) : SDL_PollEvent(&Event);
-			while (HasEvents)
+			SDL_Event event;
+			size_t incoming_events = 0;
+			int has_events = timeout_ms > 0 ? SDL_WaitEventTimeout(&event, (int)timeout_ms) : SDL_PollEvent(&event);
+			while (has_events)
 			{
-				bool IsCommonEvent = true;
-				switch (Event.type)
+				bool is_common_event = true;
+				switch (event.type)
 				{
 					case SDL_QUIT:
-						for (auto& Item : Sources.Consumers)
+						for (auto& item : sources.consumers)
 						{
-							if (Item.second->Callbacks.WindowStateChange)
-								Item.second->Callbacks.WindowStateChange(WindowState::Close, 0, 0);
-							if (Item.second->Callbacks.AppStateChange)
-								Item.second->Callbacks.AppStateChange(AppState::Close);
+							if (item.second->callbacks.window_state_change)
+								item.second->callbacks.window_state_change(window_state::close, 0, 0);
+							if (item.second->callbacks.app_state_change)
+								item.second->callbacks.app_state_change(app_state::close);
 						}
 						break;
 					case SDL_APP_TERMINATING:
-						for (auto& Item : Sources.Consumers)
+						for (auto& item : sources.consumers)
 						{
-							if (Item.second->Callbacks.AppStateChange)
-								Item.second->Callbacks.AppStateChange(AppState::Terminating);
+							if (item.second->callbacks.app_state_change)
+								item.second->callbacks.app_state_change(app_state::terminating);
 						}
 						break;
 					case SDL_APP_LOWMEMORY:
-						for (auto& Item : Sources.Consumers)
+						for (auto& item : sources.consumers)
 						{
-							if (Item.second->Callbacks.AppStateChange)
-								Item.second->Callbacks.AppStateChange(AppState::Low_Memory);
+							if (item.second->callbacks.app_state_change)
+								item.second->callbacks.app_state_change(app_state::low_memory);
 						}
 						break;
 					case SDL_APP_WILLENTERBACKGROUND:
-						for (auto& Item : Sources.Consumers)
+						for (auto& item : sources.consumers)
 						{
-							if (Item.second->Callbacks.AppStateChange)
-								Item.second->Callbacks.AppStateChange(AppState::Enter_Background_Start);
+							if (item.second->callbacks.app_state_change)
+								item.second->callbacks.app_state_change(app_state::enter_background_start);
 						}
 						break;
 					case SDL_APP_DIDENTERBACKGROUND:
-						for (auto& Item : Sources.Consumers)
+						for (auto& item : sources.consumers)
 						{
-							if (Item.second->Callbacks.AppStateChange)
-								Item.second->Callbacks.AppStateChange(AppState::Enter_Background_End);
+							if (item.second->callbacks.app_state_change)
+								item.second->callbacks.app_state_change(app_state::enter_background_end);
 						}
 						break;
 					case SDL_APP_WILLENTERFOREGROUND:
-						for (auto& Item : Sources.Consumers)
+						for (auto& item : sources.consumers)
 						{
-							if (Item.second->Callbacks.AppStateChange)
-								Item.second->Callbacks.AppStateChange(AppState::Enter_Foreground_Start);
+							if (item.second->callbacks.app_state_change)
+								item.second->callbacks.app_state_change(app_state::enter_foreground_start);
 						}
 						break;
 					case SDL_APP_DIDENTERFOREGROUND:
-						for (auto& Item : Sources.Consumers)
+						for (auto& item : sources.consumers)
 						{
-							if (Item.second->Callbacks.AppStateChange)
-								Item.second->Callbacks.AppStateChange(AppState::Enter_Foreground_End);
+							if (item.second->callbacks.app_state_change)
+								item.second->callbacks.app_state_change(app_state::enter_foreground_end);
 						}
 						break;
 					default:
-						IsCommonEvent = false;
+						is_common_event = false;
 						break;
 				}
 
-				auto* Target = IsCommonEvent ? nullptr : Sources.Find(Event.window.windowID);
-				if (Target != nullptr)
+				auto* target = is_common_event ? nullptr : sources.find(event.window.windowID);
+				if (target != nullptr)
 				{
-					switch (Event.type)
+					switch (event.type)
 					{
 						case SDL_WINDOWEVENT:
-							switch (Event.window.event)
+							switch (event.window.event)
 							{
 								case SDL_WINDOWEVENT_SHOWN:
-									if (Target->Callbacks.WindowStateChange)
-										Target->Callbacks.WindowStateChange(WindowState::Show, 0, 0);
+									if (target->callbacks.window_state_change)
+										target->callbacks.window_state_change(window_state::show, 0, 0);
 									break;
 								case SDL_WINDOWEVENT_HIDDEN:
-									if (Target->Callbacks.WindowStateChange)
-										Target->Callbacks.WindowStateChange(WindowState::Hide, 0, 0);
+									if (target->callbacks.window_state_change)
+										target->callbacks.window_state_change(window_state::hide, 0, 0);
 									break;
 								case SDL_WINDOWEVENT_EXPOSED:
-									if (Target->Callbacks.WindowStateChange)
-										Target->Callbacks.WindowStateChange(WindowState::Expose, 0, 0);
+									if (target->callbacks.window_state_change)
+										target->callbacks.window_state_change(window_state::expose, 0, 0);
 									break;
 								case SDL_WINDOWEVENT_MOVED:
-									if (Target->Callbacks.WindowStateChange)
-										Target->Callbacks.WindowStateChange(WindowState::Move, Event.window.data1, Event.window.data2);
+									if (target->callbacks.window_state_change)
+										target->callbacks.window_state_change(window_state::move, event.window.data1, event.window.data2);
 									break;
 								case SDL_WINDOWEVENT_RESIZED:
-									if (Target->Callbacks.WindowStateChange)
-										Target->Callbacks.WindowStateChange(WindowState::Resize, Event.window.data1, Event.window.data2);
+									if (target->callbacks.window_state_change)
+										target->callbacks.window_state_change(window_state::resize, event.window.data1, event.window.data2);
 									break;
 								case SDL_WINDOWEVENT_SIZE_CHANGED:
-									if (Target->Callbacks.WindowStateChange)
-										Target->Callbacks.WindowStateChange(WindowState::Size_Change, Event.window.data1, Event.window.data2);
+									if (target->callbacks.window_state_change)
+										target->callbacks.window_state_change(window_state::size_change, event.window.data1, event.window.data2);
 									break;
 								case SDL_WINDOWEVENT_MINIMIZED:
-									if (Target->Callbacks.WindowStateChange)
-										Target->Callbacks.WindowStateChange(WindowState::Minimize, 0, 0);
+									if (target->callbacks.window_state_change)
+										target->callbacks.window_state_change(window_state::minimize, 0, 0);
 									break;
 								case SDL_WINDOWEVENT_MAXIMIZED:
-									if (Target->Callbacks.WindowStateChange)
-										Target->Callbacks.WindowStateChange(WindowState::Maximize, 0, 0);
+									if (target->callbacks.window_state_change)
+										target->callbacks.window_state_change(window_state::maximize, 0, 0);
 									break;
 								case SDL_WINDOWEVENT_RESTORED:
-									if (Target->Callbacks.WindowStateChange)
-										Target->Callbacks.WindowStateChange(WindowState::Restore, 0, 0);
+									if (target->callbacks.window_state_change)
+										target->callbacks.window_state_change(window_state::restore, 0, 0);
 									break;
 								case SDL_WINDOWEVENT_ENTER:
-									if (Target->Callbacks.WindowStateChange)
-										Target->Callbacks.WindowStateChange(WindowState::Enter, 0, 0);
+									if (target->callbacks.window_state_change)
+										target->callbacks.window_state_change(window_state::enter, 0, 0);
 									break;
 								case SDL_WINDOWEVENT_LEAVE:
-									if (Target->Callbacks.WindowStateChange)
-										Target->Callbacks.WindowStateChange(WindowState::Leave, 0, 0);
+									if (target->callbacks.window_state_change)
+										target->callbacks.window_state_change(window_state::leave, 0, 0);
 									break;
 #if SDL_VERSION_ATLEAST(2, 0, 5)
 								case SDL_WINDOWEVENT_TAKE_FOCUS:
 #endif
 								case SDL_WINDOWEVENT_FOCUS_GAINED:
-									if (Target->Callbacks.WindowStateChange)
-										Target->Callbacks.WindowStateChange(WindowState::Focus, 0, 0);
+									if (target->callbacks.window_state_change)
+										target->callbacks.window_state_change(window_state::focus, 0, 0);
 									break;
 								case SDL_WINDOWEVENT_FOCUS_LOST:
-									if (Target->Callbacks.WindowStateChange)
-										Target->Callbacks.WindowStateChange(WindowState::Blur, 0, 0);
+									if (target->callbacks.window_state_change)
+										target->callbacks.window_state_change(window_state::blur, 0, 0);
 									break;
 								case SDL_WINDOWEVENT_CLOSE:
-									if (Target->Callbacks.WindowStateChange)
-										Target->Callbacks.WindowStateChange(WindowState::Close, 0, 0);
+									if (target->callbacks.window_state_change)
+										target->callbacks.window_state_change(window_state::close, 0, 0);
 									break;
 							}
 							break;
 						case SDL_KEYDOWN:
-							if (Target->Callbacks.KeyState)
-								Target->Callbacks.KeyState((KeyCode)Event.key.keysym.scancode, (KeyMod)Event.key.keysym.mod, (int)Event.key.keysym.sym, (int)(Event.key.repeat != 0), true);
+							if (target->callbacks.key_state)
+								target->callbacks.key_state((key_code)event.key.keysym.scancode, (key_mod)event.key.keysym.mod, (int)event.key.keysym.sym, (int)(event.key.repeat != 0), true);
 
-							if (Target->Mapping.Enabled && !Target->Mapping.Mapped)
+							if (target->mapping.enabled && !target->mapping.mapped)
 							{
-								Target->Mapping.Key.Key = (KeyCode)Event.key.keysym.scancode;
-								Target->Mapping.Mapped = true;
-								Target->Mapping.Captured = false;
+								target->mapping.key.key = (key_code)event.key.keysym.scancode;
+								target->mapping.mapped = true;
+								target->mapping.captured = false;
 							}
 							break;
 						case SDL_KEYUP:
-							if (Target->Callbacks.KeyState)
-								Target->Callbacks.KeyState((KeyCode)Event.key.keysym.scancode, (KeyMod)Event.key.keysym.mod, (int)Event.key.keysym.sym, (int)(Event.key.repeat != 0), false);
+							if (target->callbacks.key_state)
+								target->callbacks.key_state((key_code)event.key.keysym.scancode, (key_mod)event.key.keysym.mod, (int)event.key.keysym.sym, (int)(event.key.repeat != 0), false);
 
-							if (Target->Mapping.Enabled && Target->Mapping.Mapped && Target->Mapping.Key.Key == (KeyCode)Event.key.keysym.scancode)
+							if (target->mapping.enabled && target->mapping.mapped && target->mapping.key.key == (key_code)event.key.keysym.scancode)
 							{
-								Target->Mapping.Key.Mod = (KeyMod)SDL_GetModState();
-								Target->Mapping.Captured = true;
+								target->mapping.key.mod = (key_mod)SDL_GetModState();
+								target->mapping.captured = true;
 							}
 							break;
 						case SDL_TEXTINPUT:
-							if (Target->Callbacks.Input)
-								Target->Callbacks.Input((char*)Event.text.text, (int)strlen(Event.text.text));
+							if (target->callbacks.input)
+								target->callbacks.input((char*)event.text.text, (int)strlen(event.text.text));
 							break;
 						case SDL_TEXTEDITING:
-							if (Target->Callbacks.InputEdit)
-								Target->Callbacks.InputEdit((char*)Event.edit.text, (int)Event.edit.start, (int)Event.edit.length);
+							if (target->callbacks.input_edit)
+								target->callbacks.input_edit((char*)event.edit.text, (int)event.edit.start, (int)event.edit.length);
 							break;
 						case SDL_MOUSEMOTION:
-							Target->CX = Event.motion.x;
-							Target->CY = Event.motion.y;
-							if (Target->Callbacks.CursorMove)
-								Target->Callbacks.CursorMove(Target->CX, Target->CY, (int)Event.motion.xrel, (int)Event.motion.yrel);
+							target->cx = event.motion.x;
+							target->cy = event.motion.y;
+							if (target->callbacks.cursor_move)
+								target->callbacks.cursor_move(target->cx, target->cy, (int)event.motion.xrel, (int)event.motion.yrel);
 							break;
 						case SDL_MOUSEBUTTONDOWN:
-							switch (Event.button.button)
+							switch (event.button.button)
 							{
 								case SDL_BUTTON_LEFT:
-									if (Target->Callbacks.KeyState)
-										Target->Callbacks.KeyState(KeyCode::CursorLeft, (KeyMod)SDL_GetModState(), (int)KeyCode::CursorLeft, (int)Event.button.clicks, true);
+									if (target->callbacks.key_state)
+										target->callbacks.key_state(key_code::cursor_left, (key_mod)SDL_GetModState(), (int)key_code::cursor_left, (int)event.button.clicks, true);
 
-									if (Target->Mapping.Enabled && !Target->Mapping.Mapped)
+									if (target->mapping.enabled && !target->mapping.mapped)
 									{
-										Target->Mapping.Key.Key = KeyCode::CursorLeft;
-										Target->Mapping.Mapped = true;
-										Target->Mapping.Captured = false;
+										target->mapping.key.key = key_code::cursor_left;
+										target->mapping.mapped = true;
+										target->mapping.captured = false;
 									}
 									break;
 								case SDL_BUTTON_MIDDLE:
-									if (Target->Callbacks.KeyState)
-										Target->Callbacks.KeyState(KeyCode::CursorMiddle, (KeyMod)SDL_GetModState(), (int)KeyCode::CursorMiddle, (int)Event.button.clicks, true);
+									if (target->callbacks.key_state)
+										target->callbacks.key_state(key_code::cursor_middle, (key_mod)SDL_GetModState(), (int)key_code::cursor_middle, (int)event.button.clicks, true);
 
-									if (Target->Mapping.Enabled && !Target->Mapping.Mapped)
+									if (target->mapping.enabled && !target->mapping.mapped)
 									{
-										Target->Mapping.Key.Key = KeyCode::CursorMiddle;
-										Target->Mapping.Mapped = true;
-										Target->Mapping.Captured = false;
+										target->mapping.key.key = key_code::cursor_middle;
+										target->mapping.mapped = true;
+										target->mapping.captured = false;
 									}
 									break;
 								case SDL_BUTTON_RIGHT:
-									if (Target->Callbacks.KeyState)
-										Target->Callbacks.KeyState(KeyCode::CursorRight, (KeyMod)SDL_GetModState(), (int)KeyCode::CursorRight, (int)Event.button.clicks, true);
+									if (target->callbacks.key_state)
+										target->callbacks.key_state(key_code::cursor_right, (key_mod)SDL_GetModState(), (int)key_code::cursor_right, (int)event.button.clicks, true);
 
-									if (Target->Mapping.Enabled && !Target->Mapping.Mapped)
+									if (target->mapping.enabled && !target->mapping.mapped)
 									{
-										Target->Mapping.Key.Key = KeyCode::CursorRight;
-										Target->Mapping.Mapped = true;
-										Target->Mapping.Captured = false;
+										target->mapping.key.key = key_code::cursor_right;
+										target->mapping.mapped = true;
+										target->mapping.captured = false;
 									}
 									break;
 								case SDL_BUTTON_X1:
-									if (Target->Callbacks.KeyState)
-										Target->Callbacks.KeyState(KeyCode::CursorX1, (KeyMod)SDL_GetModState(), (int)KeyCode::CursorX1, (int)Event.button.clicks, true);
+									if (target->callbacks.key_state)
+										target->callbacks.key_state(key_code::cursor_x1, (key_mod)SDL_GetModState(), (int)key_code::cursor_x1, (int)event.button.clicks, true);
 
-									if (Target->Mapping.Enabled && !Target->Mapping.Mapped)
+									if (target->mapping.enabled && !target->mapping.mapped)
 									{
-										Target->Mapping.Key.Key = KeyCode::CursorX1;
-										Target->Mapping.Mapped = true;
-										Target->Mapping.Captured = false;
+										target->mapping.key.key = key_code::cursor_x1;
+										target->mapping.mapped = true;
+										target->mapping.captured = false;
 									}
 									break;
 								case SDL_BUTTON_X2:
-									if (Target->Callbacks.KeyState)
-										Target->Callbacks.KeyState(KeyCode::CursorX2, (KeyMod)SDL_GetModState(), (int)KeyCode::CursorX2, (int)Event.button.clicks, true);
+									if (target->callbacks.key_state)
+										target->callbacks.key_state(key_code::cursor_x2, (key_mod)SDL_GetModState(), (int)key_code::cursor_x2, (int)event.button.clicks, true);
 
-									if (Target->Mapping.Enabled && !Target->Mapping.Mapped)
+									if (target->mapping.enabled && !target->mapping.mapped)
 									{
-										Target->Mapping.Key.Key = KeyCode::CursorX2;
-										Target->Mapping.Mapped = true;
-										Target->Mapping.Captured = false;
+										target->mapping.key.key = key_code::cursor_x2;
+										target->mapping.mapped = true;
+										target->mapping.captured = false;
 									}
 									break;
 							}
 							break;
 						case SDL_MOUSEBUTTONUP:
-							switch (Event.button.button)
+							switch (event.button.button)
 							{
 								case SDL_BUTTON_LEFT:
-									if (Target->Callbacks.KeyState)
-										Target->Callbacks.KeyState(KeyCode::CursorLeft, (KeyMod)SDL_GetModState(), (int)KeyCode::CursorLeft, (int)Event.button.clicks, false);
+									if (target->callbacks.key_state)
+										target->callbacks.key_state(key_code::cursor_left, (key_mod)SDL_GetModState(), (int)key_code::cursor_left, (int)event.button.clicks, false);
 
-									if (Target->Mapping.Enabled && Target->Mapping.Mapped && Target->Mapping.Key.Key == KeyCode::CursorLeft)
+									if (target->mapping.enabled && target->mapping.mapped && target->mapping.key.key == key_code::cursor_left)
 									{
-										Target->Mapping.Key.Mod = (KeyMod)SDL_GetModState();
-										Target->Mapping.Captured = true;
+										target->mapping.key.mod = (key_mod)SDL_GetModState();
+										target->mapping.captured = true;
 									}
 									break;
 								case SDL_BUTTON_MIDDLE:
-									if (Target->Callbacks.KeyState)
-										Target->Callbacks.KeyState(KeyCode::CursorMiddle, (KeyMod)SDL_GetModState(), (int)KeyCode::CursorMiddle, (int)Event.button.clicks, false);
+									if (target->callbacks.key_state)
+										target->callbacks.key_state(key_code::cursor_middle, (key_mod)SDL_GetModState(), (int)key_code::cursor_middle, (int)event.button.clicks, false);
 
-									if (Target->Mapping.Enabled && Target->Mapping.Mapped && Target->Mapping.Key.Key == KeyCode::CursorMiddle)
+									if (target->mapping.enabled && target->mapping.mapped && target->mapping.key.key == key_code::cursor_middle)
 									{
-										Target->Mapping.Key.Mod = (KeyMod)SDL_GetModState();
-										Target->Mapping.Captured = true;
+										target->mapping.key.mod = (key_mod)SDL_GetModState();
+										target->mapping.captured = true;
 									}
 									break;
 								case SDL_BUTTON_RIGHT:
-									if (Target->Callbacks.KeyState)
-										Target->Callbacks.KeyState(KeyCode::CursorRight, (KeyMod)SDL_GetModState(), (int)KeyCode::CursorRight, (int)Event.button.clicks, false);
+									if (target->callbacks.key_state)
+										target->callbacks.key_state(key_code::cursor_right, (key_mod)SDL_GetModState(), (int)key_code::cursor_right, (int)event.button.clicks, false);
 
-									if (Target->Mapping.Enabled && Target->Mapping.Mapped && Target->Mapping.Key.Key == KeyCode::CursorRight)
+									if (target->mapping.enabled && target->mapping.mapped && target->mapping.key.key == key_code::cursor_right)
 									{
-										Target->Mapping.Key.Mod = (KeyMod)SDL_GetModState();
-										Target->Mapping.Captured = true;
+										target->mapping.key.mod = (key_mod)SDL_GetModState();
+										target->mapping.captured = true;
 									}
 									break;
 								case SDL_BUTTON_X1:
-									if (Target->Callbacks.KeyState)
-										Target->Callbacks.KeyState(KeyCode::CursorX1, (KeyMod)SDL_GetModState(), (int)KeyCode::CursorX1, (int)Event.button.clicks, false);
+									if (target->callbacks.key_state)
+										target->callbacks.key_state(key_code::cursor_x1, (key_mod)SDL_GetModState(), (int)key_code::cursor_x1, (int)event.button.clicks, false);
 
-									if (Target->Mapping.Enabled && Target->Mapping.Mapped && Target->Mapping.Key.Key == KeyCode::CursorX1)
+									if (target->mapping.enabled && target->mapping.mapped && target->mapping.key.key == key_code::cursor_x1)
 									{
-										Target->Mapping.Key.Mod = (KeyMod)SDL_GetModState();
-										Target->Mapping.Captured = true;
+										target->mapping.key.mod = (key_mod)SDL_GetModState();
+										target->mapping.captured = true;
 									}
 									break;
 								case SDL_BUTTON_X2:
-									if (Target->Callbacks.KeyState)
-										Target->Callbacks.KeyState(KeyCode::CursorX2, (KeyMod)SDL_GetModState(), (int)KeyCode::CursorX2, (int)Event.button.clicks, false);
+									if (target->callbacks.key_state)
+										target->callbacks.key_state(key_code::cursor_x2, (key_mod)SDL_GetModState(), (int)key_code::cursor_x2, (int)event.button.clicks, false);
 
-									if (Target->Mapping.Enabled && Target->Mapping.Mapped && Target->Mapping.Key.Key == KeyCode::CursorX2)
+									if (target->mapping.enabled && target->mapping.mapped && target->mapping.key.key == key_code::cursor_x2)
 									{
-										Target->Mapping.Key.Mod = (KeyMod)SDL_GetModState();
-										Target->Mapping.Captured = true;
+										target->mapping.key.mod = (key_mod)SDL_GetModState();
+										target->mapping.captured = true;
 									}
 									break;
 							}
 							break;
 						case SDL_MOUSEWHEEL:
 #if SDL_VERSION_ATLEAST(2, 0, 4)
-							if (Target->Callbacks.CursorWheelState)
-								Target->Callbacks.CursorWheelState((int)Event.wheel.x, (int)Event.wheel.y, Event.wheel.direction == SDL_MOUSEWHEEL_NORMAL);
+							if (target->callbacks.cursor_wheel_state)
+								target->callbacks.cursor_wheel_state((int)event.wheel.x, (int)event.wheel.y, event.wheel.direction == SDL_MOUSEWHEEL_NORMAL);
 #else
-							if (Target->Callbacks.CursorWheelState)
-								Target->Callbacks.CursorWheelState((int)Event.wheel.x, (int)Event.wheel.y, 1);
+							if (target->callbacks.cursor_wheel_state)
+								target->callbacks.cursor_wheel_state((int)event.wheel.x, (int)event.wheel.y, 1);
 #endif
 							break;
 						case SDL_JOYAXISMOTION:
-							if (Target->Callbacks.JoyStickAxisMove)
-								Target->Callbacks.JoyStickAxisMove((int)Event.jaxis.which, (int)Event.jaxis.axis, (int)Event.jaxis.value);
+							if (target->callbacks.joy_stick_axis_move)
+								target->callbacks.joy_stick_axis_move((int)event.jaxis.which, (int)event.jaxis.axis, (int)event.jaxis.value);
 							break;
 						case SDL_JOYBALLMOTION:
-							if (Target->Callbacks.JoyStickBallMove)
-								Target->Callbacks.JoyStickBallMove((int)Event.jball.which, (int)Event.jball.ball, (int)Event.jball.xrel, (int)Event.jball.yrel);
+							if (target->callbacks.joy_stick_ball_move)
+								target->callbacks.joy_stick_ball_move((int)event.jball.which, (int)event.jball.ball, (int)event.jball.xrel, (int)event.jball.yrel);
 							break;
 						case SDL_JOYHATMOTION:
-							if (Target->Callbacks.JoyStickHatMove)
+							if (target->callbacks.joy_stick_hat_move)
 							{
-								switch (Event.jhat.value)
+								switch (event.jhat.value)
 								{
 									case SDL_HAT_CENTERED:
-										Target->Callbacks.JoyStickHatMove(JoyStickHat::Center, (int)Event.jhat.which, (int)Event.jhat.hat);
+										target->callbacks.joy_stick_hat_move(joy_stick_hat::center, (int)event.jhat.which, (int)event.jhat.hat);
 										break;
 									case SDL_HAT_UP:
-										Target->Callbacks.JoyStickHatMove(JoyStickHat::Up, (int)Event.jhat.which, (int)Event.jhat.hat);
+										target->callbacks.joy_stick_hat_move(joy_stick_hat::up, (int)event.jhat.which, (int)event.jhat.hat);
 										break;
 									case SDL_HAT_DOWN:
-										Target->Callbacks.JoyStickHatMove(JoyStickHat::Down, (int)Event.jhat.which, (int)Event.jhat.hat);
+										target->callbacks.joy_stick_hat_move(joy_stick_hat::down, (int)event.jhat.which, (int)event.jhat.hat);
 										break;
 									case SDL_HAT_LEFT:
-										Target->Callbacks.JoyStickHatMove(JoyStickHat::Left, (int)Event.jhat.which, (int)Event.jhat.hat);
+										target->callbacks.joy_stick_hat_move(joy_stick_hat::left, (int)event.jhat.which, (int)event.jhat.hat);
 										break;
 									case SDL_HAT_LEFTUP:
-										Target->Callbacks.JoyStickHatMove(JoyStickHat::Left_Up, (int)Event.jhat.which, (int)Event.jhat.hat);
+										target->callbacks.joy_stick_hat_move(joy_stick_hat::left_up, (int)event.jhat.which, (int)event.jhat.hat);
 										break;
 									case SDL_HAT_LEFTDOWN:
-										Target->Callbacks.JoyStickHatMove(JoyStickHat::Left_Down, (int)Event.jhat.which, (int)Event.jhat.hat);
+										target->callbacks.joy_stick_hat_move(joy_stick_hat::left_down, (int)event.jhat.which, (int)event.jhat.hat);
 										break;
 									case SDL_HAT_RIGHT:
-										Target->Callbacks.JoyStickHatMove(JoyStickHat::Right, (int)Event.jhat.which, (int)Event.jhat.hat);
+										target->callbacks.joy_stick_hat_move(joy_stick_hat::right, (int)event.jhat.which, (int)event.jhat.hat);
 										break;
 									case SDL_HAT_RIGHTUP:
-										Target->Callbacks.JoyStickHatMove(JoyStickHat::Right_Up, (int)Event.jhat.which, (int)Event.jhat.hat);
+										target->callbacks.joy_stick_hat_move(joy_stick_hat::right_up, (int)event.jhat.which, (int)event.jhat.hat);
 										break;
 									case SDL_HAT_RIGHTDOWN:
-										Target->Callbacks.JoyStickHatMove(JoyStickHat::Right_Down, (int)Event.jhat.which, (int)Event.jhat.hat);
+										target->callbacks.joy_stick_hat_move(joy_stick_hat::right_down, (int)event.jhat.which, (int)event.jhat.hat);
 										break;
 								}
 							}
 							break;
 						case SDL_JOYBUTTONDOWN:
-							if (Target->Callbacks.JoyStickKeyState)
-								Target->Callbacks.JoyStickKeyState((int)Event.jbutton.which, (int)Event.jbutton.button, true);
+							if (target->callbacks.joy_stick_key_state)
+								target->callbacks.joy_stick_key_state((int)event.jbutton.which, (int)event.jbutton.button, true);
 							break;
 						case SDL_JOYBUTTONUP:
-							if (Target->Callbacks.JoyStickKeyState)
-								Target->Callbacks.JoyStickKeyState((int)Event.jbutton.which, (int)Event.jbutton.button, false);
+							if (target->callbacks.joy_stick_key_state)
+								target->callbacks.joy_stick_key_state((int)event.jbutton.which, (int)event.jbutton.button, false);
 							break;
 						case SDL_JOYDEVICEADDED:
-							if (Target->Callbacks.JoyStickState)
-								Target->Callbacks.JoyStickState((int)Event.jdevice.which, true);
+							if (target->callbacks.joy_stick_state)
+								target->callbacks.joy_stick_state((int)event.jdevice.which, true);
 							break;
 						case SDL_JOYDEVICEREMOVED:
-							if (Target->Callbacks.JoyStickState)
-								Target->Callbacks.JoyStickState((int)Event.jdevice.which, false);
+							if (target->callbacks.joy_stick_state)
+								target->callbacks.joy_stick_state((int)event.jdevice.which, false);
 							break;
 						case SDL_CONTROLLERAXISMOTION:
-							if (Target->Callbacks.ControllerAxisMove)
-								Target->Callbacks.ControllerAxisMove((int)Event.caxis.which, (int)Event.caxis.axis, (int)Event.caxis.value);
+							if (target->callbacks.controller_axis_move)
+								target->callbacks.controller_axis_move((int)event.caxis.which, (int)event.caxis.axis, (int)event.caxis.value);
 							break;
 						case SDL_CONTROLLERBUTTONDOWN:
-							if (Target->Callbacks.ControllerKeyState)
-								Target->Callbacks.ControllerKeyState((int)Event.cbutton.which, (int)Event.cbutton.button, true);
+							if (target->callbacks.controller_key_state)
+								target->callbacks.controller_key_state((int)event.cbutton.which, (int)event.cbutton.button, true);
 							break;
 						case SDL_CONTROLLERBUTTONUP:
-							if (Target->Callbacks.ControllerKeyState)
-								Target->Callbacks.ControllerKeyState((int)Event.cbutton.which, (int)Event.cbutton.button, false);
+							if (target->callbacks.controller_key_state)
+								target->callbacks.controller_key_state((int)event.cbutton.which, (int)event.cbutton.button, false);
 							break;
 						case SDL_CONTROLLERDEVICEADDED:
-							if (Target->Callbacks.ControllerState)
-								Target->Callbacks.ControllerState((int)Event.cdevice.which, 1);
+							if (target->callbacks.controller_state)
+								target->callbacks.controller_state((int)event.cdevice.which, 1);
 							break;
 						case SDL_CONTROLLERDEVICEREMOVED:
-							if (Target->Callbacks.ControllerState)
-								Target->Callbacks.ControllerState((int)Event.cdevice.which, -1);
+							if (target->callbacks.controller_state)
+								target->callbacks.controller_state((int)event.cdevice.which, -1);
 							break;
 						case SDL_CONTROLLERDEVICEREMAPPED:
-							if (Target->Callbacks.ControllerState)
-								Target->Callbacks.ControllerState((int)Event.cdevice.which, 0);
+							if (target->callbacks.controller_state)
+								target->callbacks.controller_state((int)event.cdevice.which, 0);
 							break;
 						case SDL_FINGERMOTION:
-							if (Target->Callbacks.TouchMove)
-								Target->Callbacks.TouchMove((int)Event.tfinger.touchId, (int)Event.tfinger.fingerId, Event.tfinger.x, Event.tfinger.y, Event.tfinger.dx, Event.tfinger.dy, Event.tfinger.pressure);
+							if (target->callbacks.touch_move)
+								target->callbacks.touch_move((int)event.tfinger.touchId, (int)event.tfinger.fingerId, event.tfinger.x, event.tfinger.y, event.tfinger.dx, event.tfinger.dy, event.tfinger.pressure);
 							break;
 						case SDL_FINGERDOWN:
-							if (Target->Callbacks.TouchState)
-								Target->Callbacks.TouchState((int)Event.tfinger.touchId, (int)Event.tfinger.fingerId, Event.tfinger.x, Event.tfinger.y, Event.tfinger.dx, Event.tfinger.dy, Event.tfinger.pressure, true);
+							if (target->callbacks.touch_state)
+								target->callbacks.touch_state((int)event.tfinger.touchId, (int)event.tfinger.fingerId, event.tfinger.x, event.tfinger.y, event.tfinger.dx, event.tfinger.dy, event.tfinger.pressure, true);
 							break;
 						case SDL_FINGERUP:
-							if (Target->Callbacks.TouchState)
-								Target->Callbacks.TouchState((int)Event.tfinger.touchId, (int)Event.tfinger.fingerId, Event.tfinger.x, Event.tfinger.y, Event.tfinger.dx, Event.tfinger.dy, Event.tfinger.pressure, false);
+							if (target->callbacks.touch_state)
+								target->callbacks.touch_state((int)event.tfinger.touchId, (int)event.tfinger.fingerId, event.tfinger.x, event.tfinger.y, event.tfinger.dx, event.tfinger.dy, event.tfinger.pressure, false);
 							break;
 						case SDL_DOLLARGESTURE:
-							if (Target->Callbacks.GestureState)
-								Target->Callbacks.GestureState((int)Event.dgesture.touchId, (int)Event.dgesture.gestureId, (int)Event.dgesture.numFingers, Event.dgesture.x, Event.dgesture.y, Event.dgesture.error, false);
+							if (target->callbacks.gesture_state)
+								target->callbacks.gesture_state((int)event.dgesture.touchId, (int)event.dgesture.gestureId, (int)event.dgesture.numFingers, event.dgesture.x, event.dgesture.y, event.dgesture.error, false);
 							break;
 						case SDL_DOLLARRECORD:
-							if (Target->Callbacks.GestureState)
-								Target->Callbacks.GestureState((int)Event.dgesture.touchId, (int)Event.dgesture.gestureId, (int)Event.dgesture.numFingers, Event.dgesture.x, Event.dgesture.y, Event.dgesture.error, true);
+							if (target->callbacks.gesture_state)
+								target->callbacks.gesture_state((int)event.dgesture.touchId, (int)event.dgesture.gestureId, (int)event.dgesture.numFingers, event.dgesture.x, event.dgesture.y, event.dgesture.error, true);
 							break;
 						case SDL_MULTIGESTURE:
-							if (Target->Callbacks.MultiGestureState)
-								Target->Callbacks.MultiGestureState((int)Event.mgesture.touchId, (int)Event.mgesture.numFingers, Event.mgesture.x, Event.mgesture.y, Event.mgesture.dDist, Event.mgesture.dTheta);
+							if (target->callbacks.multi_gesture_state)
+								target->callbacks.multi_gesture_state((int)event.mgesture.touchId, (int)event.mgesture.numFingers, event.mgesture.x, event.mgesture.y, event.mgesture.dDist, event.mgesture.dTheta);
 							break;
 #if SDL_VERSION_ATLEAST(2, 0, 5)
 						case SDL_DROPFILE:
-							if (Target->Callbacks.DropFile)
-								Target->Callbacks.DropFile(Event.drop.file);
+							if (target->callbacks.drop_file)
+								target->callbacks.drop_file(event.drop.file);
 
-							SDL_free(Event.drop.file);
+							SDL_free(event.drop.file);
 							break;
 						case SDL_DROPTEXT:
-							if (Target->Callbacks.DropText)
-								Target->Callbacks.DropText(Event.drop.file);
+							if (target->callbacks.drop_text)
+								target->callbacks.drop_text(event.drop.file);
 
-							SDL_free(Event.drop.file);
+							SDL_free(event.drop.file);
 							break;
 #endif
 						default:
@@ -2662,507 +2662,507 @@ namespace Vitex
 					}
 				}
 
-				HasEvents = DispatchAll ? SDL_PollEvent(&Event) : 0;
-				++IncomingEvents;
+				has_events = dispatch_all ? SDL_PollEvent(&event) : 0;
+				++incoming_events;
 			}
 
-			if (TimeoutMs > 0 || !DispatchAll)
-				return IncomingEvents > 0;
+			if (timeout_ms > 0 || !dispatch_all)
+				return incoming_events > 0;
 
-			uint32_t Timeout = Sources.Consumers.begin()->second->Options.InactiveSleepMs;
-			for (auto& Item : Sources.Consumers)
+			uint32_t timeout = sources.consumers.begin()->second->options.inactive_sleep_ms;
+			for (auto& item : sources.consumers)
 			{
-				auto* Target = Item.second;
-				if (Target->Options.RenderEvenIfInactive)
+				auto* target = item.second;
+				if (target->options.render_even_if_inactive)
 					return true;
 
-				Uint32 Flags = SDL_GetWindowFlags(Target->Handle);
-				if (Flags & SDL_WINDOW_MAXIMIZED || Flags & SDL_WINDOW_INPUT_FOCUS || Flags & SDL_WINDOW_MOUSE_FOCUS)
+				Uint32 flags = SDL_GetWindowFlags(target->handle);
+				if (flags & SDL_WINDOW_MAXIMIZED || flags & SDL_WINDOW_INPUT_FOCUS || flags & SDL_WINDOW_MOUSE_FOCUS)
 					return true;
 
-				if (Timeout > Target->Options.InactiveSleepMs)
-					Timeout = Target->Options.InactiveSleepMs;
+				if (timeout > target->options.inactive_sleep_ms)
+					timeout = target->options.inactive_sleep_ms;
 			}
 
-			std::this_thread::sleep_for(std::chrono::milliseconds(Timeout));
+			std::this_thread::sleep_for(std::chrono::milliseconds(timeout));
 			return false;
 #else
 			return false;
 #endif
 		}
-		bool Activity::CaptureKeyMap(KeyMap* Value)
+		bool activity::capture_key_map(key_map* value)
 		{
-			if (!Value)
+			if (!value)
 			{
-				Mapping.Mapped = false;
-				Mapping.Captured = false;
-				Mapping.Enabled = false;
+				mapping.mapped = false;
+				mapping.captured = false;
+				mapping.enabled = false;
 				return false;
 			}
 
-			if (!Mapping.Enabled)
+			if (!mapping.enabled)
 			{
-				Mapping.Mapped = false;
-				Mapping.Captured = false;
-				Mapping.Enabled = true;
+				mapping.mapped = false;
+				mapping.captured = false;
+				mapping.enabled = true;
 				return false;
 			}
 
-			if (!Mapping.Mapped || !Mapping.Captured)
+			if (!mapping.mapped || !mapping.captured)
 				return false;
 
-			Mapping.Enabled = Mapping.Mapped = Mapping.Captured = false;
-			memcpy(Value, &Mapping.Key, sizeof(KeyMap));
+			mapping.enabled = mapping.mapped = mapping.captured = false;
+			memcpy(value, &mapping.key, sizeof(key_map));
 
 			return true;
 		}
-		bool Activity::IsFullscreen() const
+		bool activity::is_fullscreen() const
 		{
 #ifdef VI_SDL2
-			VI_ASSERT(Handle != nullptr, "activity should be initialized");
-			Uint32 Flags = SDL_GetWindowFlags(Handle);
-			return Flags & SDL_WINDOW_FULLSCREEN || Flags & SDL_WINDOW_FULLSCREEN_DESKTOP;
+			VI_ASSERT(handle != nullptr, "activity should be initialized");
+			Uint32 flags = SDL_GetWindowFlags(handle);
+			return flags & SDL_WINDOW_FULLSCREEN || flags & SDL_WINDOW_FULLSCREEN_DESKTOP;
 #else
 			return false;
 #endif
 		}
-		bool Activity::IsAnyKeyDown() const
+		bool activity::is_any_key_down() const
 		{
-			for (int i = 0; i < sizeof(Keys[0]) / sizeof(bool); i++)
+			for (int i = 0; i < sizeof(keys[0]) / sizeof(bool); i++)
 			{
-				if (Keys[0][i])
+				if (keys[0][i])
 					return true;
 			}
 
 			return false;
 		}
-		bool Activity::IsKeyDown(const KeyMap& Key) const
+		bool activity::is_key_down(const key_map& key) const
 		{
 #ifdef VI_SDL2
-			if (Key.Mod == KeyMod::None)
-				return Keys[0][(size_t)Key.Key];
+			if (key.mod == key_mod::none)
+				return keys[0][(size_t)key.key];
 
-			if (Key.Key == KeyCode::None)
-				return Command & (int)Key.Mod;
+			if (key.key == key_code::none)
+				return command & (int)key.mod;
 
-			return Command & (int)Key.Mod && Keys[0][(size_t)Key.Key];
+			return command & (int)key.mod && keys[0][(size_t)key.key];
 #else
-			return Keys[0][(size_t)Key.Key];
+			return keys[0][(size_t)key.key];
 #endif
 		}
-		bool Activity::IsKeyUp(const KeyMap& Key) const
+		bool activity::is_key_up(const key_map& key) const
 		{
-			return !IsKeyDown(Key);
+			return !is_key_down(key);
 		}
-		bool Activity::IsKeyDownHit(const KeyMap& Key) const
+		bool activity::is_key_down_hit(const key_map& key) const
 		{
 #ifdef VI_SDL2
-			if (Key.Mod == KeyMod::None)
-				return Keys[0][(size_t)Key.Key] && !Keys[1][(size_t)Key.Key];
+			if (key.mod == key_mod::none)
+				return keys[0][(size_t)key.key] && !keys[1][(size_t)key.key];
 
-			if (Key.Key == KeyCode::None)
-				return Command & (int)Key.Mod;
+			if (key.key == key_code::none)
+				return command & (int)key.mod;
 
-			return (Command & (int)Key.Mod) && Keys[0][(size_t)Key.Key] && !Keys[1][(size_t)Key.Key];
+			return (command & (int)key.mod) && keys[0][(size_t)key.key] && !keys[1][(size_t)key.key];
 #else
-			return Keys[0][(size_t)Key.Key] && !Keys[1][(size_t)Key.Key];
+			return keys[0][(size_t)key.key] && !keys[1][(size_t)key.key];
 #endif
 		}
-		bool Activity::IsKeyUpHit(const KeyMap& Key) const
+		bool activity::is_key_up_hit(const key_map& key) const
 		{
 #ifdef VI_SDL2
-			if (Key.Mod == KeyMod::None)
-				return !Keys[0][(size_t)Key.Key] && Keys[1][(size_t)Key.Key];
+			if (key.mod == key_mod::none)
+				return !keys[0][(size_t)key.key] && keys[1][(size_t)key.key];
 
-			if (Key.Key == KeyCode::None)
-				return !(Command & (int)Key.Mod);
+			if (key.key == key_code::none)
+				return !(command & (int)key.mod);
 
-			return !(Command & (int)Key.Mod) && !Keys[0][(size_t)Key.Key] && Keys[1][(size_t)Key.Key];
+			return !(command & (int)key.mod) && !keys[0][(size_t)key.key] && keys[1][(size_t)key.key];
 #else
-			return !Keys[0][(size_t)Key.Key] && Keys[1][(size_t)Key.Key];
+			return !keys[0][(size_t)key.key] && keys[1][(size_t)key.key];
 #endif
 		}
-		bool Activity::IsScreenKeyboardEnabled() const
+		bool activity::is_screen_keyboard_enabled() const
 		{
 #ifdef VI_SDL2
-			VI_ASSERT(Handle != nullptr, "activity should be initialized");
-			return SDL_IsScreenKeyboardShown(Handle);
+			VI_ASSERT(handle != nullptr, "activity should be initialized");
+			return SDL_IsScreenKeyboardShown(handle);
 #else
 			return false;
 #endif
 		}
-		uint32_t Activity::GetX() const
+		uint32_t activity::get_x() const
 		{
 #ifdef VI_SDL2
-			VI_ASSERT(Handle != nullptr, "activity should be initialized");
+			VI_ASSERT(handle != nullptr, "activity should be initialized");
 
-			int X, Y;
-			SDL_GetWindowPosition(Handle, &X, &Y);
-			return X;
+			int x, y;
+			SDL_GetWindowPosition(handle, &x, &y);
+			return x;
 #else
 			return 0;
 #endif
 		}
-		uint32_t Activity::GetY() const
+		uint32_t activity::get_y() const
 		{
 #ifdef VI_SDL2
-			VI_ASSERT(Handle != nullptr, "activity should be initialized");
+			VI_ASSERT(handle != nullptr, "activity should be initialized");
 
-			int X, Y;
-			SDL_GetWindowPosition(Handle, &X, &Y);
-			return Y;
+			int x, y;
+			SDL_GetWindowPosition(handle, &x, &y);
+			return y;
 #else
 			return 0;
 #endif
 		}
-		uint32_t Activity::GetWidth() const
+		uint32_t activity::get_width() const
 		{
 #ifdef VI_SDL2
-			VI_ASSERT(Handle != nullptr, "activity should be initialized");
+			VI_ASSERT(handle != nullptr, "activity should be initialized");
 
-			int W, H;
-			SDL_GetWindowSize(Handle, &W, &H);
-			return W;
+			int w, h;
+			SDL_GetWindowSize(handle, &w, &h);
+			return w;
 #else
 			return 0;
 #endif
 		}
-		uint32_t Activity::GetHeight() const
+		uint32_t activity::get_height() const
 		{
 #ifdef VI_SDL2
-			VI_ASSERT(Handle != nullptr, "activity should be initialized");
+			VI_ASSERT(handle != nullptr, "activity should be initialized");
 
-			int W, H;
-			SDL_GetWindowSize(Handle, &W, &H);
-			return H;
+			int w, h;
+			SDL_GetWindowSize(handle, &w, &h);
+			return h;
 #else
 			return 0;
 #endif
 		}
-		uint32_t Activity::GetId() const
+		uint32_t activity::get_id() const
 		{
 #ifdef VI_SDL2
-			VI_ASSERT(Handle != nullptr, "activity should be initialized");
-			return (uint32_t)SDL_GetWindowID(Handle);
+			VI_ASSERT(handle != nullptr, "activity should be initialized");
+			return (uint32_t)SDL_GetWindowID(handle);
 #else
 			return 0;
 #endif
 		}
-		float Activity::GetAspectRatio() const
+		float activity::get_aspect_ratio() const
 		{
 #ifdef VI_SDL2
-			VI_ASSERT(Handle != nullptr, "activity should be initialized");
+			VI_ASSERT(handle != nullptr, "activity should be initialized");
 
-			int W, H;
-			SDL_GetWindowSize(Handle, &W, &H);
-			return (H > 0 ? (float)W / (float)H : 0.0f);
+			int w, h;
+			SDL_GetWindowSize(handle, &w, &h);
+			return (h > 0 ? (float)w / (float)h : 0.0f);
 #else
 			return 0.0f;
 #endif
 		}
-		KeyMod Activity::GetKeyModState() const
+		key_mod activity::get_key_mod_state() const
 		{
 #ifdef VI_SDL2
-			VI_ASSERT(Handle != nullptr, "activity should be initialized");
-			return (KeyMod)SDL_GetModState();
+			VI_ASSERT(handle != nullptr, "activity should be initialized");
+			return (key_mod)SDL_GetModState();
 #else
-			return KeyMod::None;
+			return key_mod::none;
 #endif
 		}
-		Viewport Activity::GetViewport() const
+		viewport activity::get_viewport() const
 		{
 #ifdef VI_SDL2
-			VI_ASSERT(Handle != nullptr, "activity should be initialized");
+			VI_ASSERT(handle != nullptr, "activity should be initialized");
 
-			int W, H;
-			SDL_GetWindowSize(Handle, &W, &H);
+			int w, h;
+			SDL_GetWindowSize(handle, &w, &h);
 
-			Viewport Id;
-			Id.Width = (float)W;
-			Id.Height = (float)H;
-			Id.MinDepth = 0.0f;
-			Id.MaxDepth = 1.0f;
-			Id.TopLeftX = 0.0f;
-			Id.TopLeftY = 0.0f;
-			return Id;
+			viewport id;
+			id.width = (float)w;
+			id.height = (float)h;
+			id.min_depth = 0.0f;
+			id.max_depth = 1.0f;
+			id.top_left_x = 0.0f;
+			id.top_left_y = 0.0f;
+			return id;
 #else
-			return Viewport();
+			return viewport();
 #endif
 		}
-		Trigonometry::Vector2 Activity::GetSize() const
+		trigonometry::vector2 activity::get_size() const
 		{
 #ifdef VI_SDL2
-			VI_ASSERT(Handle != nullptr, "activity should be initialized");
+			VI_ASSERT(handle != nullptr, "activity should be initialized");
 
-			int W, H;
-			SDL_GL_GetDrawableSize(Handle, &W, &H);
-			return Trigonometry::Vector2((float)W, (float)H);
+			int w, h;
+			SDL_GL_GetDrawableSize(handle, &w, &h);
+			return trigonometry::vector2((float)w, (float)h);
 #else
-			return Trigonometry::Vector2();
+			return trigonometry::vector2();
 #endif
 		}
-		Trigonometry::Vector2 Activity::GetClientSize() const
+		trigonometry::vector2 activity::get_client_size() const
 		{
 #ifdef VI_SDL2
-			VI_ASSERT(Handle != nullptr, "activity should be initialized");
+			VI_ASSERT(handle != nullptr, "activity should be initialized");
 
-			int W, H;
-			SDL_GetWindowSize(Handle, &W, &H);
-			return Trigonometry::Vector2((float)W, (float)H);
+			int w, h;
+			SDL_GetWindowSize(handle, &w, &h);
+			return trigonometry::vector2((float)w, (float)h);
 #else
-			return Trigonometry::Vector2();
+			return trigonometry::vector2();
 #endif
 		}
-		Trigonometry::Vector2 Activity::GetDrawableSize(uint32_t Width, uint32_t Height) const
+		trigonometry::vector2 activity::get_drawable_size(uint32_t width, uint32_t height) const
 		{
 #ifdef VI_SDL2
-			VI_ASSERT(Handle != nullptr, "activity should be initialized");
+			VI_ASSERT(handle != nullptr, "activity should be initialized");
 
-			int W = -1, H = -1;
-			SDL_GL_GetDrawableSize(Handle, &W, &H);
-			return Trigonometry::Vector2((float)(W < 0 ? Width : W), (float)(H < 0 ? Height : H));
+			int w = -1, h = -1;
+			SDL_GL_GetDrawableSize(handle, &w, &h);
+			return trigonometry::vector2((float)(w < 0 ? width : w), (float)(h < 0 ? height : h));
 #else
-			return Trigonometry::Vector2(Width, Height);
+			return trigonometry::vector2(width, height);
 #endif
 		}
-		Trigonometry::Vector2 Activity::GetOffset() const
+		trigonometry::vector2 activity::get_offset() const
 		{
 #ifdef VI_SDL2
-			VI_ASSERT(Handle != nullptr, "activity should be initialized");
+			VI_ASSERT(handle != nullptr, "activity should be initialized");
 
-			SDL_DisplayMode Display;
-			SDL_GetCurrentDisplayMode(0, &Display);
-			Trigonometry::Vector2 Size = GetSize();
-			return Trigonometry::Vector2((float)Display.w / Size.X, (float)Display.h / Size.Y);
+			SDL_DisplayMode display;
+			SDL_GetCurrentDisplayMode(0, &display);
+			trigonometry::vector2 size = get_size();
+			return trigonometry::vector2((float)display.w / size.x, (float)display.h / size.y);
 #else
-			return Trigonometry::Vector2();
+			return trigonometry::vector2();
 #endif
 		}
-		Trigonometry::Vector2 Activity::GetGlobalCursorPosition() const
+		trigonometry::vector2 activity::get_global_cursor_position() const
 		{
 #ifdef VI_SDL2
-			VI_ASSERT(Handle != nullptr, "activity should be initialized");
+			VI_ASSERT(handle != nullptr, "activity should be initialized");
 #if SDL_VERSION_ATLEAST(2, 0, 4)
-			int X, Y;
-			SDL_GetGlobalMouseState(&X, &Y);
-			return Trigonometry::Vector2((float)X, (float)Y);
+			int x, y;
+			SDL_GetGlobalMouseState(&x, &y);
+			return trigonometry::vector2((float)x, (float)y);
 #else
-			return Trigonometry::Vector2();
+			return trigonometry::vector2();
 #endif
 #else
-			return Trigonometry::Vector2();
+			return trigonometry::vector2();
 #endif
 		}
-		Trigonometry::Vector2 Activity::GetCursorPosition() const
+		trigonometry::vector2 activity::get_cursor_position() const
 		{
 #ifdef VI_SDL2
-			VI_ASSERT(Handle != nullptr, "activity should be initialized");
+			VI_ASSERT(handle != nullptr, "activity should be initialized");
 #if SDL_VERSION_ATLEAST(2, 0, 4)
-			int X, Y;
-			SDL_GetMouseState(&X, &Y);
+			int x, y;
+			SDL_GetMouseState(&x, &y);
 
-			return Trigonometry::Vector2((float)X, (float)Y);
+			return trigonometry::vector2((float)x, (float)y);
 #else
-			return Trigonometry::Vector2();
+			return trigonometry::vector2();
 #endif
 #else
-			return Trigonometry::Vector2();
-#endif
-		}
-		Trigonometry::Vector2 Activity::GetCursorPosition(float ScreenWidth, float ScreenHeight) const
-		{
-#ifdef VI_SDL2
-			Trigonometry::Vector2 Size = GetSize();
-			return GetCursorPosition() * Trigonometry::Vector2(ScreenWidth, ScreenHeight) / Size;
-#else
-			return Trigonometry::Vector2();
+			return trigonometry::vector2();
 #endif
 		}
-		Trigonometry::Vector2 Activity::GetCursorPosition(const Trigonometry::Vector2& ScreenDimensions) const
+		trigonometry::vector2 activity::get_cursor_position(float screen_width, float screen_height) const
 		{
 #ifdef VI_SDL2
-			Trigonometry::Vector2 Size = GetSize();
-			return GetCursorPosition() * ScreenDimensions / Size;
+			trigonometry::vector2 size = get_size();
+			return get_cursor_position() * trigonometry::vector2(screen_width, screen_height) / size;
 #else
-			return Trigonometry::Vector2();
+			return trigonometry::vector2();
 #endif
 		}
-		Core::String Activity::GetClipboardText() const
+		trigonometry::vector2 activity::get_cursor_position(const trigonometry::vector2& screen_dimensions) const
 		{
 #ifdef VI_SDL2
-			VI_ASSERT(Handle != nullptr, "activity should be initialized");
-			char* Text = SDL_GetClipboardText();
-			Core::String Result = (Text ? Text : "");
+			trigonometry::vector2 size = get_size();
+			return get_cursor_position() * screen_dimensions / size;
+#else
+			return trigonometry::vector2();
+#endif
+		}
+		core::string activity::get_clipboard_text() const
+		{
+#ifdef VI_SDL2
+			VI_ASSERT(handle != nullptr, "activity should be initialized");
+			char* text = SDL_GetClipboardText();
+			core::string result = (text ? text : "");
 
-			if (Text != nullptr)
-				SDL_free(Text);
+			if (text != nullptr)
+				SDL_free(text);
 
-			return Result;
+			return result;
 #else
-			return Core::String();
+			return core::string();
 #endif
 		}
-		SDL_Window* Activity::GetHandle() const
+		SDL_Window* activity::get_handle() const
 		{
-			return Handle;
+			return handle;
 		}
-		Core::String Activity::GetError() const
+		core::string activity::get_error() const
 		{
 #ifdef VI_SDL2
-			VI_ASSERT(Handle != nullptr, "activity should be initialized");
-			const char* Error = SDL_GetError();
-			if (!Error)
+			VI_ASSERT(handle != nullptr, "activity should be initialized");
+			const char* error = SDL_GetError();
+			if (!error)
 				return "";
 
-			return Error;
+			return error;
 #else
 			return "";
 #endif
 		}
-		Activity::Desc& Activity::GetOptions()
+		activity::desc& activity::get_options()
 		{
-			return Options;
+			return options;
 		}
-		bool* Activity::GetInputState()
+		bool* activity::get_input_state()
 		{
 #ifdef VI_SDL2
-			int Count;
-			auto* Map = SDL_GetKeyboardState(&Count);
-			if (Count > sizeof(Keys[0]) / sizeof(bool))
-				Count = sizeof(Keys[0]) / sizeof(bool);
+			int count;
+			auto* map = SDL_GetKeyboardState(&count);
+			if (count > sizeof(keys[0]) / sizeof(bool))
+				count = sizeof(keys[0]) / sizeof(bool);
 
-			for (int i = 0; i < Count; i++)
-				Keys[0][i] = Map[i] > 0;
+			for (int i = 0; i < count; i++)
+				keys[0][i] = map[i] > 0;
 
-			Uint32 State = SDL_GetMouseState(nullptr, nullptr);
-			Keys[0][(size_t)KeyCode::CursorLeft] = (State & SDL_BUTTON(SDL_BUTTON_LEFT));
-			Keys[0][(size_t)KeyCode::CursorMiddle] = (State & SDL_BUTTON(SDL_BUTTON_MIDDLE));
-			Keys[0][(size_t)KeyCode::CursorRight] = (State & SDL_BUTTON(SDL_BUTTON_RIGHT));
-			Keys[0][(size_t)KeyCode::CursorX1] = (State & SDL_BUTTON(SDL_BUTTON_X1));
-			Keys[0][(size_t)KeyCode::CursorX2] = (State & SDL_BUTTON(SDL_BUTTON_X2));
+			Uint32 state = SDL_GetMouseState(nullptr, nullptr);
+			keys[0][(size_t)key_code::cursor_left] = (state & SDL_BUTTON(SDL_BUTTON_LEFT));
+			keys[0][(size_t)key_code::cursor_middle] = (state & SDL_BUTTON(SDL_BUTTON_MIDDLE));
+			keys[0][(size_t)key_code::cursor_right] = (state & SDL_BUTTON(SDL_BUTTON_RIGHT));
+			keys[0][(size_t)key_code::cursor_x1] = (state & SDL_BUTTON(SDL_BUTTON_X1));
+			keys[0][(size_t)key_code::cursor_x2] = (state & SDL_BUTTON(SDL_BUTTON_X2));
 #endif
-			return Keys[0];
+			return keys[0];
 		}
 
-		bool Alerts::Text(const std::string_view& Title, const std::string_view& Message, const std::string_view& DefaultInput, Core::String* Result)
+		bool alerts::text(const std::string_view& title, const std::string_view& message, const std::string_view& default_input, core::string* result)
 		{
 #ifdef VI_TINYFILEDIALOGS
-			VI_ASSERT(Core::Stringify::IsCString(Title) && Core::Stringify::IsCString(Message), "title and message should be set");
-			VI_TRACE("[tfd] open input { title: %.*s, message: %.*s }", (int)Title.size(), Title.data(), (int)Message.size(), Message.data());
-			const char* Data = tinyfd_inputBox(Title.data(), Message.data(), DefaultInput.data());
-			if (!Data)
+			VI_ASSERT(core::stringify::is_cstring(title) && core::stringify::is_cstring(message), "title and message should be set");
+			VI_TRACE("[tfd] open input { title: %.*s, message: %.*s }", (int)title.size(), title.data(), (int)message.size(), message.data());
+			const char* data = tinyfd_inputBox(title.data(), message.data(), default_input.data());
+			if (!data)
 				return false;
 
-			VI_TRACE("[tfd] close input: %s", Data ? Data : "NULL");
-			if (Result != nullptr)
-				*Result = Data;
+			VI_TRACE("[tfd] close input: %s", data ? data : "NULL");
+			if (result != nullptr)
+				*result = data;
 
 			return true;
 #else
 			return false;
 #endif
 		}
-		bool Alerts::Password(const std::string_view& Title, const std::string_view& Message, Core::String* Result)
+		bool alerts::password(const std::string_view& title, const std::string_view& message, core::string* result)
 		{
 #ifdef VI_TINYFILEDIALOGS
-			VI_ASSERT(Core::Stringify::IsCString(Title) && Core::Stringify::IsCString(Message), "title and message should be set");
-			VI_TRACE("[tfd] open password { title: %.*s, message: %.*s }", (int)Title.size(), Title.data(), (int)Message.size(), Message.data());
-			const char* Data = tinyfd_inputBox(Title.data(), Message.data(), nullptr);
-			if (!Data)
+			VI_ASSERT(core::stringify::is_cstring(title) && core::stringify::is_cstring(message), "title and message should be set");
+			VI_TRACE("[tfd] open password { title: %.*s, message: %.*s }", (int)title.size(), title.data(), (int)message.size(), message.data());
+			const char* data = tinyfd_inputBox(title.data(), message.data(), nullptr);
+			if (!data)
 				return false;
 
-			VI_TRACE("[tfd] close password: %s", Data ? Data : "NULL");
-			if (Result != nullptr)
-				*Result = Data;
+			VI_TRACE("[tfd] close password: %s", data ? data : "NULL");
+			if (result != nullptr)
+				*result = data;
 
 			return true;
 #else
 			return false;
 #endif
 		}
-		bool Alerts::Save(const std::string_view& Title, const std::string_view& DefaultPath, const std::string_view& Filter, const std::string_view& FilterDescription, Core::String* Result)
+		bool alerts::save(const std::string_view& title, const std::string_view& default_path, const std::string_view& filter, const std::string_view& filter_description, core::string* result)
 		{
 #ifdef VI_TINYFILEDIALOGS
-			VI_ASSERT(Core::Stringify::IsCString(Title) && Core::Stringify::IsCString(DefaultPath) && Core::Stringify::IsCString(Filter) && Core::Stringify::IsCString(FilterDescription), "title, default and filter should be set");
-			VI_ASSERT(FilterDescription.empty() || Core::Stringify::IsCString(FilterDescription), "desc should be set");
-			Core::Vector<Core::String> Sources = Core::Stringify::Split(Filter, ',');
-			Core::Vector<char*> Patterns;
-			for (auto& It : Sources)
-				Patterns.push_back((char*)It.c_str());
+			VI_ASSERT(core::stringify::is_cstring(title) && core::stringify::is_cstring(default_path) && core::stringify::is_cstring(filter) && core::stringify::is_cstring(filter_description), "title, default and filter should be set");
+			VI_ASSERT(filter_description.empty() || core::stringify::is_cstring(filter_description), "desc should be set");
+			core::vector<core::string> sources = core::stringify::split(filter, ',');
+			core::vector<char*> patterns;
+			for (auto& it : sources)
+				patterns.push_back((char*)it.c_str());
 
-			VI_TRACE("[tfd] open save { title: %.*s, filter: %.*s }", (int)Title.size(), Title.data(), (int)Filter.size(), Filter.data());
-			const char* Data = tinyfd_saveFileDialog(Title.data(), DefaultPath.data(), (int)Patterns.size(),
-				Patterns.empty() ? nullptr : Patterns.data(), FilterDescription.empty() ? nullptr : FilterDescription.data());
+			VI_TRACE("[tfd] open save { title: %.*s, filter: %.*s }", (int)title.size(), title.data(), (int)filter.size(), filter.data());
+			const char* data = tinyfd_saveFileDialog(title.data(), default_path.data(), (int)patterns.size(),
+				patterns.empty() ? nullptr : patterns.data(), filter_description.empty() ? nullptr : filter_description.data());
 
-			if (!Data)
+			if (!data)
 				return false;
 
-			VI_TRACE("[tfd] close save: %s", Data ? Data : "NULL");
-			if (Result != nullptr)
-				*Result = Data;
+			VI_TRACE("[tfd] close save: %s", data ? data : "NULL");
+			if (result != nullptr)
+				*result = data;
 
 			return true;
 #else
 			return false;
 #endif
 		}
-		bool Alerts::Open(const std::string_view& Title, const std::string_view& DefaultPath, const std::string_view& Filter, const std::string_view& FilterDescription, bool Multiple, Core::String* Result)
+		bool alerts::open(const std::string_view& title, const std::string_view& default_path, const std::string_view& filter, const std::string_view& filter_description, bool multiple, core::string* result)
 		{
 #ifdef VI_TINYFILEDIALOGS
-			VI_ASSERT(Core::Stringify::IsCString(Title) && Core::Stringify::IsCString(DefaultPath) && Core::Stringify::IsCString(Filter) && Core::Stringify::IsCString(FilterDescription), "title, default and filter should be set");
-			VI_ASSERT(FilterDescription.empty() || Core::Stringify::IsCString(FilterDescription), "desc should be set");
-			Core::Vector<Core::String> Sources = Core::Stringify::Split(Filter, ',');
-			Core::Vector<char*> Patterns;
-			for (auto& It : Sources)
-				Patterns.push_back((char*)It.c_str());
+			VI_ASSERT(core::stringify::is_cstring(title) && core::stringify::is_cstring(default_path) && core::stringify::is_cstring(filter) && core::stringify::is_cstring(filter_description), "title, default and filter should be set");
+			VI_ASSERT(filter_description.empty() || core::stringify::is_cstring(filter_description), "desc should be set");
+			core::vector<core::string> sources = core::stringify::split(filter, ',');
+			core::vector<char*> patterns;
+			for (auto& it : sources)
+				patterns.push_back((char*)it.c_str());
 
-			VI_TRACE("[tfd] open load { title: %.*s, filter: %.*s }", (int)Title.size(), Title.data(), (int)Filter.size(), Filter.data());
-			const char* Data = tinyfd_openFileDialog(Title.data(), DefaultPath.data(), (int)Patterns.size(),
-				Patterns.empty() ? nullptr : Patterns.data(), FilterDescription.empty() ? nullptr : FilterDescription.data(), Multiple);
+			VI_TRACE("[tfd] open load { title: %.*s, filter: %.*s }", (int)title.size(), title.data(), (int)filter.size(), filter.data());
+			const char* data = tinyfd_openFileDialog(title.data(), default_path.data(), (int)patterns.size(),
+				patterns.empty() ? nullptr : patterns.data(), filter_description.empty() ? nullptr : filter_description.data(), multiple);
 
-			if (!Data)
+			if (!data)
 				return false;
 
-			VI_TRACE("[tfd] close load: %s", Data ? Data : "NULL");
-			if (Result != nullptr)
-				*Result = Data;
+			VI_TRACE("[tfd] close load: %s", data ? data : "NULL");
+			if (result != nullptr)
+				*result = data;
 
 			return true;
 #else
 			return false;
 #endif
 		}
-		bool Alerts::Folder(const std::string_view& Title, const std::string_view& DefaultPath, Core::String* Result)
+		bool alerts::folder(const std::string_view& title, const std::string_view& default_path, core::string* result)
 		{
 #ifdef VI_TINYFILEDIALOGS
-			VI_ASSERT(Core::Stringify::IsCString(Title) && Core::Stringify::IsCString(DefaultPath), "title and default should be set");
-			VI_TRACE("[tfd] open folder { title: %.*s }", (int)Title.size(), Title.data());
-			const char* Data = tinyfd_selectFolderDialog(Title.data(), DefaultPath.data());
-			if (!Data)
+			VI_ASSERT(core::stringify::is_cstring(title) && core::stringify::is_cstring(default_path), "title and default should be set");
+			VI_TRACE("[tfd] open folder { title: %.*s }", (int)title.size(), title.data());
+			const char* data = tinyfd_selectFolderDialog(title.data(), default_path.data());
+			if (!data)
 				return false;
 
-			VI_TRACE("[tfd] close folder: %s", Data ? Data : "NULL");
-			if (Result != nullptr)
-				*Result = Data;
+			VI_TRACE("[tfd] close folder: %s", data ? data : "NULL");
+			if (result != nullptr)
+				*result = data;
 
 			return true;
 #else
 			return false;
 #endif
 		}
-		bool Alerts::Color(const std::string_view& Title, const std::string_view& DefaultHexRGB, Core::String* Result)
+		bool alerts::color(const std::string_view& title, const std::string_view& default_hex_rgb, core::string* result)
 		{
 #ifdef VI_TINYFILEDIALOGS
-			VI_ASSERT(Core::Stringify::IsCString(Title) && Core::Stringify::IsCString(DefaultHexRGB), "title and default should be set");
-			VI_TRACE("[tfd] open color { title: %.*s }", (int)Title.size(), Title.data());
+			VI_ASSERT(core::stringify::is_cstring(title) && core::stringify::is_cstring(default_hex_rgb), "title and default should be set");
+			VI_TRACE("[tfd] open color { title: %.*s }", (int)title.size(), title.data());
 			uint8_t RGB[3] = { 0, 0, 0 };
-			const char* Data = tinyfd_colorChooser(Title.data(), DefaultHexRGB.data(), RGB, RGB);
-			if (!Data)
+			const char* data = tinyfd_colorChooser(title.data(), default_hex_rgb.data(), RGB, RGB);
+			if (!data)
 				return false;
 
-			VI_TRACE("[tfd] close color: %s", Data ? Data : "NULL");
-			if (Result != nullptr)
-				*Result = Data;
+			VI_TRACE("[tfd] close color: %s", data ? data : "NULL");
+			if (result != nullptr)
+				*result = data;
 
 			return true;
 #else
@@ -3170,1105 +3170,1105 @@ namespace Vitex
 #endif
 		}
 
-		void* Video::Windows::GetHDC(Activity* Target)
+		void* video::windows::get_hdc(activity* target)
 		{
-			VI_ASSERT(Target != nullptr, "activity should be set");
+			VI_ASSERT(target != nullptr, "activity should be set");
 #ifdef SDL_VIDEO_DRIVER_WINDOWS
-			SDL_SysWMinfo Info;
-			Target->Load(&Info);
-			return Info.info.win.hdc;
+			SDL_SysWMinfo info;
+			target->load(&info);
+			return info.info.win.hdc;
 #else
 			return nullptr;
 #endif
 		}
-		void* Video::Windows::GetHINSTANCE(Activity* Target)
+		void* video::windows::get_hinstance(activity* target)
 		{
-			VI_ASSERT(Target != nullptr, "activity should be set");
+			VI_ASSERT(target != nullptr, "activity should be set");
 #ifdef SDL_VIDEO_DRIVER_WINDOWS
-			SDL_SysWMinfo Info;
-			Target->Load(&Info);
-			return Info.info.win.hinstance;
+			SDL_SysWMinfo info;
+			target->load(&info);
+			return info.info.win.hinstance;
 #else
 			return nullptr;
 #endif
 		}
-		void* Video::Windows::GetHWND(Activity* Target)
+		void* video::windows::get_hwnd(activity* target)
 		{
-			VI_ASSERT(Target != nullptr, "activity should be set");
+			VI_ASSERT(target != nullptr, "activity should be set");
 #ifdef SDL_VIDEO_DRIVER_WINDOWS
-			SDL_SysWMinfo Info;
-			Target->Load(&Info);
-			return Info.info.win.window;
+			SDL_SysWMinfo info;
+			target->load(&info);
+			return info.info.win.window;
 #else
 			return nullptr;
 #endif
 		}
-		void* Video::WinRT::GetIInspectable(Activity* Target)
+		void* video::win_rt::get_iinspectable(activity* target)
 		{
-			VI_ASSERT(Target != nullptr, "activity should be set");
+			VI_ASSERT(target != nullptr, "activity should be set");
 #ifdef SDL_VIDEO_DRIVER_WINRT
-			SDL_SysWMinfo Info;
-			Target->Load(&Info);
-			return Info.info.winrt.window;
+			SDL_SysWMinfo info;
+			target->load(&info);
+			return info.info.winrt.window;
 #else
 			return nullptr;
 #endif
 		}
-		void* Video::X11::GetDisplay(Activity* Target)
+		void* video::x11::get_display(activity* target)
 		{
-			VI_ASSERT(Target != nullptr, "activity should be set");
+			VI_ASSERT(target != nullptr, "activity should be set");
 #ifdef SDL_VIDEO_DRIVER_X11
-			SDL_SysWMinfo Info;
-			Target->Load(&Info);
-			return Info.info.x11.display;
+			SDL_SysWMinfo info;
+			target->load(&info);
+			return info.info.x11.display;
 #else
 			return nullptr;
 #endif
 		}
-		size_t Video::X11::GetWindow(Activity* Target)
+		size_t video::x11::get_window(activity* target)
 		{
-			VI_ASSERT(Target != nullptr, "activity should be set");
+			VI_ASSERT(target != nullptr, "activity should be set");
 #ifdef SDL_VIDEO_DRIVER_X11
-			SDL_SysWMinfo Info;
-			Target->Load(&Info);
-			return (size_t)Info.info.x11.window;
+			SDL_SysWMinfo info;
+			target->load(&info);
+			return (size_t)info.info.x11.window;
 #else
 			return 0;
 #endif
 		}
-		void* Video::DirectFB::GetIDirectFB(Activity* Target)
+		void* video::direct_fb::get_idirect_fb(activity* target)
 		{
-			VI_ASSERT(Target != nullptr, "activity should be set");
+			VI_ASSERT(target != nullptr, "activity should be set");
 #ifdef SDL_VIDEO_DRIVER_DIRECTFB
-			SDL_SysWMinfo Info;
-			Target->Load(&Info);
-			return (size_t)Info.info.dfb.dfb;
+			SDL_SysWMinfo info;
+			target->load(&info);
+			return (size_t)info.info.dfb.dfb;
 #else
 			return nullptr;
 #endif
 		}
-		void* Video::DirectFB::GetIDirectFBWindow(Activity* Target)
+		void* video::direct_fb::get_idirect_fb_window(activity* target)
 		{
-			VI_ASSERT(Target != nullptr, "activity should be set");
+			VI_ASSERT(target != nullptr, "activity should be set");
 #ifdef SDL_VIDEO_DRIVER_DIRECTFB
-			SDL_SysWMinfo Info;
-			Target->Load(&Info);
-			return (size_t)Info.info.dfb.window;
+			SDL_SysWMinfo info;
+			target->load(&info);
+			return (size_t)info.info.dfb.window;
 #else
 			return nullptr;
 #endif
 		}
-		void* Video::DirectFB::GetIDirectFBSurface(Activity* Target)
+		void* video::direct_fb::get_idirect_fb_surface(activity* target)
 		{
-			VI_ASSERT(Target != nullptr, "activity should be set");
+			VI_ASSERT(target != nullptr, "activity should be set");
 #ifdef SDL_VIDEO_DRIVER_DIRECTFB
-			SDL_SysWMinfo Info;
-			Target->Load(&Info);
-			return (size_t)Info.info.dfb.surface;
+			SDL_SysWMinfo info;
+			target->load(&info);
+			return (size_t)info.info.dfb.surface;
 #else
 			return nullptr;
 #endif
 		}
-		void* Video::Cocoa::GetNSWindow(Activity* Target)
+		void* video::cocoa::get_ns_window(activity* target)
 		{
-			VI_ASSERT(Target != nullptr, "activity should be set");
+			VI_ASSERT(target != nullptr, "activity should be set");
 #ifdef SDL_VIDEO_DRIVER_COCOA
-			SDL_SysWMinfo Info;
-			Target->Load(&Info);
-			return Info.info.cocoa.window;
+			SDL_SysWMinfo info;
+			target->load(&info);
+			return info.info.cocoa.window;
 #else
 			return nullptr;
 #endif
 		}
-		void* Video::UIKit::GetUIWindow(Activity* Target)
+		void* video::ui_kit::get_ui_window(activity* target)
 		{
-			VI_ASSERT(Target != nullptr, "activity should be set");
+			VI_ASSERT(target != nullptr, "activity should be set");
 #ifdef SDL_VIDEO_DRIVER_UIKIT
-			SDL_SysWMinfo Info;
-			Target->Load(&Info);
-			return (size_t)Info.info.uikit.window;
+			SDL_SysWMinfo info;
+			target->load(&info);
+			return (size_t)info.info.uikit.window;
 #else
 			return nullptr;
 #endif
 		}
-		void* Video::Wayland::GetWlDisplay(Activity* Target)
+		void* video::wayland::get_wl_display(activity* target)
 		{
-			VI_ASSERT(Target != nullptr, "activity should be set");
+			VI_ASSERT(target != nullptr, "activity should be set");
 #ifdef SDL_VIDEO_DRIVER_UIKIT
-			SDL_SysWMinfo Info;
-			Target->Load(&Info);
-			return (size_t)Info.info.wl.display;
+			SDL_SysWMinfo info;
+			target->load(&info);
+			return (size_t)info.info.wl.display;
 #else
 			return nullptr;
 #endif
 		}
-		void* Video::Wayland::GetWlSurface(Activity* Target)
+		void* video::wayland::get_wl_surface(activity* target)
 		{
-			VI_ASSERT(Target != nullptr, "activity should be set");
+			VI_ASSERT(target != nullptr, "activity should be set");
 #ifdef SDL_VIDEO_DRIVER_UIKIT
-			SDL_SysWMinfo Info;
-			Target->Load(&Info);
-			return (size_t)Info.info.wl.surface;
+			SDL_SysWMinfo info;
+			target->load(&info);
+			return (size_t)info.info.wl.surface;
 #else
 			return nullptr;
 #endif
 		}
-		void* Video::Wayland::GetWlEglWindow(Activity* Target)
+		void* video::wayland::get_wl_egl_window(activity* target)
 		{
-			VI_ASSERT(Target != nullptr, "activity should be set");
+			VI_ASSERT(target != nullptr, "activity should be set");
 #ifdef SDL_VIDEO_DRIVER_UIKIT
-			SDL_SysWMinfo Info;
-			Target->Load(&Info);
-			return (size_t)Info.info.wl.egl_window;
+			SDL_SysWMinfo info;
+			target->load(&info);
+			return (size_t)info.info.wl.egl_window;
 #else
 			return nullptr;
 #endif
 		}
-		void* Video::Wayland::GetXdgSurface(Activity* Target)
+		void* video::wayland::get_xdg_surface(activity* target)
 		{
-			VI_ASSERT(Target != nullptr, "activity should be set");
+			VI_ASSERT(target != nullptr, "activity should be set");
 #ifdef SDL_VIDEO_DRIVER_UIKIT
-			SDL_SysWMinfo Info;
-			Target->Load(&Info);
-			return (size_t)Info.info.wl.xdg_surface;
+			SDL_SysWMinfo info;
+			target->load(&info);
+			return (size_t)info.info.wl.xdg_surface;
 #else
 			return nullptr;
 #endif
 		}
-		void* Video::Wayland::GetXdgTopLevel(Activity* Target)
+		void* video::wayland::get_xdg_top_level(activity* target)
 		{
-			VI_ASSERT(Target != nullptr, "activity should be set");
+			VI_ASSERT(target != nullptr, "activity should be set");
 #ifdef SDL_VIDEO_DRIVER_UIKIT
-			SDL_SysWMinfo Info;
-			Target->Load(&Info);
-			return (size_t)Info.info.wl.xdg_toplevel;
+			SDL_SysWMinfo info;
+			target->load(&info);
+			return (size_t)info.info.wl.xdg_toplevel;
 #else
 			return nullptr;
 #endif
 		}
-		void* Video::Wayland::GetXdgPopup(Activity* Target)
+		void* video::wayland::get_xdg_popup(activity* target)
 		{
-			VI_ASSERT(Target != nullptr, "activity should be set");
+			VI_ASSERT(target != nullptr, "activity should be set");
 #ifdef SDL_VIDEO_DRIVER_UIKIT
-			SDL_SysWMinfo Info;
-			Target->Load(&Info);
-			return (size_t)Info.info.wl.xdg_popup;
+			SDL_SysWMinfo info;
+			target->load(&info);
+			return (size_t)info.info.wl.xdg_popup;
 #else
 			return nullptr;
 #endif
 		}
-		void* Video::Wayland::GetXdgPositioner(Activity* Target)
+		void* video::wayland::get_xdg_positioner(activity* target)
 		{
-			VI_ASSERT(Target != nullptr, "activity should be set");
+			VI_ASSERT(target != nullptr, "activity should be set");
 #ifdef SDL_VIDEO_DRIVER_UIKIT
-			SDL_SysWMinfo Info;
-			Target->Load(&Info);
-			return (size_t)Info.info.wl.xdg_positioner;
+			SDL_SysWMinfo info;
+			target->load(&info);
+			return (size_t)info.info.wl.xdg_positioner;
 #else
 			return nullptr;
 #endif
 		}
-		void* Video::Android::GetANativeWindow(Activity* Target)
+		void* video::android::get_anative_window(activity* target)
 		{
-			VI_ASSERT(Target != nullptr, "activity should be set");
+			VI_ASSERT(target != nullptr, "activity should be set");
 #ifdef SDL_VIDEO_DRIVER_ANDROID
-			SDL_SysWMinfo Info;
-			Target->Load(&Info);
-			return (size_t)Info.info.android.window;
+			SDL_SysWMinfo info;
+			target->load(&info);
+			return (size_t)info.info.android.window;
 #else
 			return nullptr;
 #endif
 		}
-		void* Video::OS2::GetHWND(Activity* Target)
+		void* video::os2::get_hwnd(activity* target)
 		{
-			VI_ASSERT(Target != nullptr, "activity should be set");
+			VI_ASSERT(target != nullptr, "activity should be set");
 #ifdef SDL_VIDEO_DRIVER_OS2
-			SDL_SysWMinfo Info;
-			Target->Load(&Info);
-			return (size_t)Info.info.os2.hwnd;
+			SDL_SysWMinfo info;
+			target->load(&info);
+			return (size_t)info.info.os2.hwnd;
 #else
 			return nullptr;
 #endif
 		}
-		void* Video::OS2::GetHWNDFrame(Activity* Target)
+		void* video::os2::get_hwnd_frame(activity* target)
 		{
-			VI_ASSERT(Target != nullptr, "activity should be set");
+			VI_ASSERT(target != nullptr, "activity should be set");
 #ifdef SDL_VIDEO_DRIVER_OS2
-			SDL_SysWMinfo Info;
-			Target->Load(&Info);
-			return (size_t)Info.info.os2.hwndFrame;
+			SDL_SysWMinfo info;
+			target->load(&info);
+			return (size_t)info.info.os2.hwndFrame;
 #else
 			return nullptr;
 #endif
 		}
-		bool Video::GLEW::SetSwapInterval(int32_t Interval)
+		bool video::glew::set_swap_interval(int32_t interval)
 		{
 #ifdef VI_SDL2
-			return SDL_GL_SetSwapInterval(Interval) == 0;
+			return SDL_GL_SetSwapInterval(interval) == 0;
 #else
 			return false;
 #endif
 		}
-		bool Video::GLEW::SetSwapParameters(int32_t R, int32_t G, int32_t B, int32_t A, bool Debugging)
+		bool video::glew::set_swap_parameters(int32_t r, int32_t g, int32_t b, int32_t a, bool debugging)
 		{
 #ifdef VI_SDL2
-			SDL_GL_SetAttribute(SDL_GL_RED_SIZE, R);
-			SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, G);
-			SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, B);
-			SDL_GL_SetAttribute(SDL_GL_ALPHA_SIZE, A);
+			SDL_GL_SetAttribute(SDL_GL_RED_SIZE, r);
+			SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, g);
+			SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, b);
+			SDL_GL_SetAttribute(SDL_GL_ALPHA_SIZE, a);
 			SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
 			SDL_GL_SetAttribute(SDL_GL_ACCELERATED_VISUAL, 1);
-			SDL_GL_SetAttribute(SDL_GL_CONTEXT_NO_ERROR, Debugging ? 0 : 1);
-			SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, Debugging ? SDL_GL_CONTEXT_DEBUG_FLAG : 0);
+			SDL_GL_SetAttribute(SDL_GL_CONTEXT_NO_ERROR, debugging ? 0 : 1);
+			SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, debugging ? SDL_GL_CONTEXT_DEBUG_FLAG : 0);
 			return true;
 #else
 			return false;
 #endif
 		}
-		bool Video::GLEW::SetContext(Activity* Target, void* Context)
+		bool video::glew::set_context(activity* target, void* context)
 		{
-			VI_ASSERT(Target != nullptr, "activity should be set");
+			VI_ASSERT(target != nullptr, "activity should be set");
 #ifdef VI_SDL2
-			return SDL_GL_MakeCurrent(Target->GetHandle(), Context) == 0;
+			return SDL_GL_MakeCurrent(target->get_handle(), context) == 0;
 #else
 			return false;
 #endif
 		}
-		bool Video::GLEW::PerformSwap(Activity* Target)
+		bool video::glew::perform_swap(activity* target)
 		{
-			VI_ASSERT(Target != nullptr, "activity should be set");
+			VI_ASSERT(target != nullptr, "activity should be set");
 #ifdef VI_SDL2
-			SDL_GL_SwapWindow(Target->GetHandle());
+			SDL_GL_SwapWindow(target->get_handle());
 			return true;
 #else
 			return false;
 #endif
 		}
-		void* Video::GLEW::CreateContext(Activity* Target)
+		void* video::glew::create_context(activity* target)
 		{
-			VI_ASSERT(Target != nullptr, "activity should be set");
+			VI_ASSERT(target != nullptr, "activity should be set");
 #ifdef VI_SDL2
-			return SDL_GL_CreateContext(Target->GetHandle());
+			return SDL_GL_CreateContext(target->get_handle());
 #else
 			return nullptr;
 #endif
 		}
-		void Video::GLEW::DestroyContext(void* Context)
+		void video::glew::destroy_context(void* context)
 		{
 #ifdef VI_SDL2
-			if (Context != nullptr)
-				SDL_GL_DeleteContext(Context);
+			if (context != nullptr)
+				SDL_GL_DeleteContext(context);
 #endif
 		}
-		uint32_t Video::GetDisplayCount()
+		uint32_t video::get_display_count()
 		{
 #ifdef VI_SDL2
-			int Displays = SDL_GetNumVideoDisplays();
-			return Displays >= 1 ? (uint32_t)(Displays - 1) : 0;
+			int displays = SDL_GetNumVideoDisplays();
+			return displays >= 1 ? (uint32_t)(displays - 1) : 0;
 #else
 			return 0;
 #endif
 		}
-		bool Video::GetDisplayInfo(uint32_t DisplayIndex, DisplayInfo* Info)
+		bool video::get_display_info(uint32_t display_index, display_info* info)
 		{
 #ifdef VI_SDL2
-			SDL_DisplayMode Display;
-			if (SDL_GetCurrentDisplayMode(DisplayIndex, &Display) != 0)
+			SDL_DisplayMode display;
+			if (SDL_GetCurrentDisplayMode(display_index, &display) != 0)
 				return false;
-			else if (!Info)
+			else if (!info)
 				return true;
 
-			const char* Name = SDL_GetDisplayName(DisplayIndex);
-			if (Name != nullptr)
-				Info->Name = Name;
+			const char* name = SDL_GetDisplayName(display_index);
+			if (name != nullptr)
+				info->name = name;
 
-			SDL_Rect Bounds;
-			if (!SDL_GetDisplayUsableBounds(DisplayIndex, &Bounds))
+			SDL_Rect bounds;
+			if (!SDL_GetDisplayUsableBounds(display_index, &bounds))
 			{
-				Info->X = Bounds.x;
-				Info->Y = Bounds.y;
-				Info->Width = Bounds.w;
-				Info->Height = Bounds.h;
+				info->x = bounds.x;
+				info->y = bounds.y;
+				info->width = bounds.w;
+				info->height = bounds.h;
 			}
 
-			SDL_GetDisplayDPI(DisplayIndex, &Info->DiagonalDPI, &Info->HorizontalDPI, &Info->VerticalDPI);
-			Info->Orientation = (OrientationType)SDL_GetDisplayOrientation(DisplayIndex);
-			Info->PixelFormat = (uint32_t)Display.format;
-			Info->PhysicalWidth = (uint32_t)Display.w;
-			Info->PhysicalHeight = (uint32_t)Display.h;
-			Info->RefreshRate = (uint32_t)Display.refresh_rate;
+			SDL_GetDisplayDPI(display_index, &info->diagonal_dpi, &info->horizontal_dpi, &info->vertical_dpi);
+			info->orientation = (orientation_type)SDL_GetDisplayOrientation(display_index);
+			info->pixel_format = (uint32_t)display.format;
+			info->physical_width = (uint32_t)display.w;
+			info->physical_height = (uint32_t)display.h;
+			info->refresh_rate = (uint32_t)display.refresh_rate;
 			return true;
 #else
 			return false;
 #endif
 		}
-		std::string_view Video::GetKeyCodeAsLiteral(KeyCode Code)
+		std::string_view video::get_key_code_as_literal(key_code code)
 		{
-			const char* Name;
-			switch (Code)
+			const char* name;
+			switch (code)
 			{
-				case KeyCode::G:
-					Name = "G";
+				case key_code::g:
+					name = "G";
 					break;
-				case KeyCode::H:
-					Name = "H";
+				case key_code::h:
+					name = "H";
 					break;
-				case KeyCode::I:
-					Name = "I";
+				case key_code::i:
+					name = "I";
 					break;
-				case KeyCode::J:
-					Name = "J";
+				case key_code::j:
+					name = "J";
 					break;
-				case KeyCode::K:
-					Name = "K";
+				case key_code::k:
+					name = "K";
 					break;
-				case KeyCode::L:
-					Name = "L";
+				case key_code::l:
+					name = "L";
 					break;
-				case KeyCode::M:
-					Name = "M";
+				case key_code::m:
+					name = "M";
 					break;
-				case KeyCode::N:
-					Name = "N";
+				case key_code::n:
+					name = "N";
 					break;
-				case KeyCode::O:
-					Name = "O";
+				case key_code::o:
+					name = "O";
 					break;
-				case KeyCode::P:
-					Name = "P";
+				case key_code::p:
+					name = "P";
 					break;
-				case KeyCode::Q:
-					Name = "Q";
+				case key_code::q:
+					name = "Q";
 					break;
-				case KeyCode::R:
-					Name = "R";
+				case key_code::r:
+					name = "R";
 					break;
-				case KeyCode::S:
-					Name = "S";
+				case key_code::s:
+					name = "S";
 					break;
-				case KeyCode::T:
-					Name = "T";
+				case key_code::t:
+					name = "T";
 					break;
-				case KeyCode::U:
-					Name = "U";
+				case key_code::u:
+					name = "U";
 					break;
-				case KeyCode::V:
-					Name = "V";
+				case key_code::v:
+					name = "V";
 					break;
-				case KeyCode::W:
-					Name = "W";
+				case key_code::w:
+					name = "W";
 					break;
-				case KeyCode::X:
-					Name = "X";
+				case key_code::x:
+					name = "X";
 					break;
-				case KeyCode::Y:
-					Name = "Y";
+				case key_code::y:
+					name = "Y";
 					break;
-				case KeyCode::Z:
-					Name = "Z";
+				case key_code::z:
+					name = "Z";
 					break;
-				case KeyCode::Return:
-					Name = "Return";
+				case key_code::defer:
+					name = "Return";
 					break;
-				case KeyCode::Escape:
-					Name = "Escape";
+				case key_code::escape:
+					name = "Escape";
 					break;
-				case KeyCode::LeftBracket:
-					Name = "Left Bracket";
+				case key_code::left_bracket:
+					name = "Left Bracket";
 					break;
-				case KeyCode::RightBracket:
-					Name = "Right Bracket";
+				case key_code::right_bracket:
+					name = "Right Bracket";
 					break;
-				case KeyCode::Backslash:
-					Name = "Backslash";
+				case key_code::backslash:
+					name = "Backslash";
 					break;
-				case KeyCode::NonUsHash:
-					Name = "Non-US Hash";
+				case key_code::non_us_hash:
+					name = "Non-US Hash";
 					break;
-				case KeyCode::Semicolon:
-					Name = "Semicolon";
+				case key_code::semicolon:
+					name = "Semicolon";
 					break;
-				case KeyCode::Apostrophe:
-					Name = "Apostrophe";
+				case key_code::apostrophe:
+					name = "Apostrophe";
 					break;
-				case KeyCode::Grave:
-					Name = "Grave";
+				case key_code::grave:
+					name = "Grave";
 					break;
-				case KeyCode::Slash:
-					Name = "Slash";
+				case key_code::slash:
+					name = "Slash";
 					break;
-				case KeyCode::Capslock:
-					Name = "Caps Lock";
+				case key_code::capslock:
+					name = "Caps Lock";
 					break;
-				case KeyCode::F1:
-					Name = "F1";
+				case key_code::f1:
+					name = "F1";
 					break;
-				case KeyCode::F2:
-					Name = "F2";
+				case key_code::f2:
+					name = "F2";
 					break;
-				case KeyCode::F3:
-					Name = "F3";
+				case key_code::f3:
+					name = "F3";
 					break;
-				case KeyCode::F4:
-					Name = "F4";
+				case key_code::f4:
+					name = "F4";
 					break;
-				case KeyCode::F5:
-					Name = "F5";
+				case key_code::f5:
+					name = "F5";
 					break;
-				case KeyCode::F6:
-					Name = "F6";
+				case key_code::f6:
+					name = "F6";
 					break;
-				case KeyCode::F7:
-					Name = "F7";
+				case key_code::f7:
+					name = "F7";
 					break;
-				case KeyCode::F8:
-					Name = "F8";
+				case key_code::f8:
+					name = "F8";
 					break;
-				case KeyCode::F9:
-					Name = "F9";
+				case key_code::f9:
+					name = "F9";
 					break;
-				case KeyCode::F10:
-					Name = "F10";
+				case key_code::f10:
+					name = "F10";
 					break;
-				case KeyCode::F11:
-					Name = "F11";
+				case key_code::f11:
+					name = "F11";
 					break;
-				case KeyCode::F12:
-					Name = "F12";
+				case key_code::f12:
+					name = "F12";
 					break;
-				case KeyCode::PrintScreen:
-					Name = "Print Screen";
+				case key_code::print_screen:
+					name = "Print Screen";
 					break;
-				case KeyCode::ScrollLock:
-					Name = "Scroll Lock";
+				case key_code::scroll_lock:
+					name = "Scroll Lock";
 					break;
-				case KeyCode::Pause:
-					Name = "Pause";
+				case key_code::pause:
+					name = "Pause";
 					break;
-				case KeyCode::Insert:
-					Name = "Insert";
+				case key_code::insert:
+					name = "Insert";
 					break;
-				case KeyCode::Home:
-					Name = "Home";
+				case key_code::home:
+					name = "Home";
 					break;
-				case KeyCode::PageUp:
-					Name = "Page Up";
+				case key_code::page_up:
+					name = "Page Up";
 					break;
-				case KeyCode::Delete:
-					Name = "Delete";
+				case key_code::deinit:
+					name = "Delete";
 					break;
-				case KeyCode::End:
-					Name = "End";
+				case key_code::end:
+					name = "End";
 					break;
-				case KeyCode::PageDown:
-					Name = "Page Down";
+				case key_code::page_down:
+					name = "Page Down";
 					break;
-				case KeyCode::Right:
-					Name = "Right";
+				case key_code::right:
+					name = "Right";
 					break;
-				case KeyCode::Left:
-					Name = "Left";
+				case key_code::left:
+					name = "Left";
 					break;
-				case KeyCode::Down:
-					Name = "Down";
+				case key_code::down:
+					name = "Down";
 					break;
-				case KeyCode::Up:
-					Name = "Up";
+				case key_code::up:
+					name = "Up";
 					break;
-				case KeyCode::NumLockClear:
-					Name = "Numlock Clear";
+				case key_code::num_lock_clear:
+					name = "Numlock Clear";
 					break;
-				case KeyCode::KpDivide:
-					Name = "Divide";
+				case key_code::kp_divide:
+					name = "Divide";
 					break;
-				case KeyCode::KpMultiply:
-					Name = "Multiply";
+				case key_code::kp_multiply:
+					name = "Multiply";
 					break;
-				case KeyCode::Minus:
-				case KeyCode::KpMinus:
-					Name = "Minus";
+				case key_code::minus:
+				case key_code::kp_minus:
+					name = "Minus";
 					break;
-				case KeyCode::KpPlus:
-					Name = "Plus";
+				case key_code::kp_plus:
+					name = "Plus";
 					break;
-				case KeyCode::KpEnter:
-					Name = "Enter";
+				case key_code::kp_enter:
+					name = "Enter";
 					break;
-				case KeyCode::D1:
-				case KeyCode::Kp1:
-					Name = "1";
+				case key_code::d1:
+				case key_code::kp1:
+					name = "1";
 					break;
-				case KeyCode::D2:
-				case KeyCode::Kp2:
-					Name = "2";
+				case key_code::d2:
+				case key_code::kp2:
+					name = "2";
 					break;
-				case KeyCode::D3:
-				case KeyCode::Kp3:
-					Name = "3";
+				case key_code::d3:
+				case key_code::kp3:
+					name = "3";
 					break;
-				case KeyCode::D4:
-				case KeyCode::Kp4:
-					Name = "4";
+				case key_code::d4:
+				case key_code::kp4:
+					name = "4";
 					break;
-				case KeyCode::D5:
-				case KeyCode::Kp5:
-					Name = "5";
+				case key_code::d5:
+				case key_code::kp5:
+					name = "5";
 					break;
-				case KeyCode::D6:
-				case KeyCode::Kp6:
-					Name = "6";
+				case key_code::d6:
+				case key_code::kp6:
+					name = "6";
 					break;
-				case KeyCode::D7:
-				case KeyCode::Kp7:
-					Name = "7";
+				case key_code::d7:
+				case key_code::kp7:
+					name = "7";
 					break;
-				case KeyCode::D8:
-				case KeyCode::Kp8:
-					Name = "8";
+				case key_code::d8:
+				case key_code::kp8:
+					name = "8";
 					break;
-				case KeyCode::D9:
-				case KeyCode::Kp9:
-					Name = "9";
+				case key_code::d9:
+				case key_code::kp9:
+					name = "9";
 					break;
-				case KeyCode::D0:
-				case KeyCode::Kp0:
-					Name = "0";
+				case key_code::d0:
+				case key_code::kp0:
+					name = "0";
 					break;
-				case KeyCode::Period:
-				case KeyCode::KpPeriod:
-					Name = "Period";
+				case key_code::period:
+				case key_code::kp_period:
+					name = "Period";
 					break;
-				case KeyCode::NonUsBackslash:
-					Name = "Non-US Backslash";
+				case key_code::non_us_backslash:
+					name = "Non-US Backslash";
 					break;
-				case KeyCode::App0:
-					Name = "Application";
+				case key_code::app0:
+					name = "Application";
 					break;
-				case KeyCode::Equals:
-				case KeyCode::KpEquals:
-					Name = "Equals";
+				case key_code::equals:
+				case key_code::kp_equals:
+					name = "Equals";
 					break;
-				case KeyCode::F13:
-					Name = "F13";
+				case key_code::f13:
+					name = "F13";
 					break;
-				case KeyCode::F14:
-					Name = "F14";
+				case key_code::f14:
+					name = "F14";
 					break;
-				case KeyCode::F15:
-					Name = "F15";
+				case key_code::f15:
+					name = "F15";
 					break;
-				case KeyCode::F16:
-					Name = "F16";
+				case key_code::f16:
+					name = "F16";
 					break;
-				case KeyCode::F17:
-					Name = "F17";
+				case key_code::f17:
+					name = "F17";
 					break;
-				case KeyCode::F18:
-					Name = "F18";
+				case key_code::f18:
+					name = "F18";
 					break;
-				case KeyCode::F19:
-					Name = "F19";
+				case key_code::f19:
+					name = "F19";
 					break;
-				case KeyCode::F20:
-					Name = "F20";
+				case key_code::f20:
+					name = "F20";
 					break;
-				case KeyCode::F21:
-					Name = "F21";
+				case key_code::f21:
+					name = "F21";
 					break;
-				case KeyCode::F22:
-					Name = "F22";
+				case key_code::f22:
+					name = "F22";
 					break;
-				case KeyCode::F23:
-					Name = "F23";
+				case key_code::f23:
+					name = "F23";
 					break;
-				case KeyCode::F24:
-					Name = "F24";
+				case key_code::f24:
+					name = "F24";
 					break;
-				case KeyCode::Execute:
-					Name = "Execute";
+				case key_code::execute:
+					name = "Execute";
 					break;
-				case KeyCode::Help:
-					Name = "Help";
+				case key_code::help:
+					name = "Help";
 					break;
-				case KeyCode::Menu:
-					Name = "Menu";
+				case key_code::menu:
+					name = "Menu";
 					break;
-				case KeyCode::Select:
-					Name = "Select";
+				case key_code::select:
+					name = "Select";
 					break;
-				case KeyCode::Stop:
-					Name = "Stop";
+				case key_code::stop:
+					name = "Stop";
 					break;
-				case KeyCode::Again:
-					Name = "Again";
+				case key_code::again:
+					name = "Again";
 					break;
-				case KeyCode::Undo:
-					Name = "Undo";
+				case key_code::undo:
+					name = "Undo";
 					break;
-				case KeyCode::Cut:
-					Name = "Cut";
+				case key_code::cut:
+					name = "Cut";
 					break;
-				case KeyCode::Copy:
-					Name = "Copy";
+				case key_code::copy:
+					name = "Copy";
 					break;
-				case KeyCode::Paste:
-					Name = "Paste";
+				case key_code::paste:
+					name = "Paste";
 					break;
-				case KeyCode::Find:
-					Name = "Find";
+				case key_code::find:
+					name = "Find";
 					break;
-				case KeyCode::Mute:
-					Name = "Mute";
+				case key_code::mute:
+					name = "Mute";
 					break;
-				case KeyCode::VolumeUp:
-					Name = "Volume Up";
+				case key_code::volume_up:
+					name = "Volume Up";
 					break;
-				case KeyCode::VolumeDown:
-					Name = "Volume Down";
+				case key_code::volume_down:
+					name = "Volume Down";
 					break;
-				case KeyCode::Comma:
-				case KeyCode::KpComma:
-					Name = "Comma";
+				case key_code::comma:
+				case key_code::kp_comma:
+					name = "Comma";
 					break;
-				case KeyCode::KpEqualsAs400:
-					Name = "Equals As 400";
+				case key_code::kp_equals_as400:
+					name = "Equals as 400";
 					break;
-				case KeyCode::International1:
-					Name = "International 1";
+				case key_code::international1:
+					name = "International 1";
 					break;
-				case KeyCode::International2:
-					Name = "International 2";
+				case key_code::international2:
+					name = "International 2";
 					break;
-				case KeyCode::International3:
-					Name = "International 3";
+				case key_code::international3:
+					name = "International 3";
 					break;
-				case KeyCode::International4:
-					Name = "International 4";
+				case key_code::international4:
+					name = "International 4";
 					break;
-				case KeyCode::International5:
-					Name = "International 5";
+				case key_code::international5:
+					name = "International 5";
 					break;
-				case KeyCode::International6:
-					Name = "International 6";
+				case key_code::international6:
+					name = "International 6";
 					break;
-				case KeyCode::International7:
-					Name = "International 7";
+				case key_code::international7:
+					name = "International 7";
 					break;
-				case KeyCode::International8:
-					Name = "International 8";
+				case key_code::international8:
+					name = "International 8";
 					break;
-				case KeyCode::International9:
-					Name = "International 9";
+				case key_code::international9:
+					name = "International 9";
 					break;
-				case KeyCode::Lang1:
-					Name = "Lang 1";
+				case key_code::lang1:
+					name = "Lang 1";
 					break;
-				case KeyCode::Lang2:
-					Name = "Lang 2";
+				case key_code::lang2:
+					name = "Lang 2";
 					break;
-				case KeyCode::Lang3:
-					Name = "Lang 3";
+				case key_code::lang3:
+					name = "Lang 3";
 					break;
-				case KeyCode::Lang4:
-					Name = "Lang 4";
+				case key_code::lang4:
+					name = "Lang 4";
 					break;
-				case KeyCode::Lang5:
-					Name = "Lang 5";
+				case key_code::lang5:
+					name = "Lang 5";
 					break;
-				case KeyCode::Lang6:
-					Name = "Lang 6";
+				case key_code::lang6:
+					name = "Lang 6";
 					break;
-				case KeyCode::Lang7:
-					Name = "Lang 7";
+				case key_code::lang7:
+					name = "Lang 7";
 					break;
-				case KeyCode::Lang8:
-					Name = "Lang 8";
+				case key_code::lang8:
+					name = "Lang 8";
 					break;
-				case KeyCode::Lang9:
-					Name = "Lang 9";
+				case key_code::lang9:
+					name = "Lang 9";
 					break;
-				case KeyCode::Alterase:
-					Name = "Alterase";
+				case key_code::alterase:
+					name = "Alterase";
 					break;
-				case KeyCode::SysReq:
-					Name = "System Request";
+				case key_code::sys_req:
+					name = "System Request";
 					break;
-				case KeyCode::Cancel:
-					Name = "Cancel";
+				case key_code::cancel:
+					name = "Cancel";
 					break;
-				case KeyCode::Prior:
-					Name = "Prior";
+				case key_code::prior:
+					name = "Prior";
 					break;
-				case KeyCode::Return2:
-					Name = "Return 2";
+				case key_code::return2:
+					name = "Return 2";
 					break;
-				case KeyCode::Separator:
-					Name = "Separator";
+				case key_code::separator:
+					name = "Separator";
 					break;
-				case KeyCode::Output:
-					Name = "Output";
+				case key_code::output:
+					name = "Output";
 					break;
-				case KeyCode::Operation:
-					Name = "Operation";
+				case key_code::operation:
+					name = "Operation";
 					break;
-				case KeyCode::ClearAgain:
-					Name = "Clear Again";
+				case key_code::clear_again:
+					name = "Clear Again";
 					break;
-				case KeyCode::CrSelect:
-					Name = "CR Select";
+				case key_code::cr_select:
+					name = "CR Select";
 					break;
-				case KeyCode::ExSelect:
-					Name = "EX Select";
+				case key_code::ex_select:
+					name = "EX Select";
 					break;
-				case KeyCode::Kp00:
-					Name = "00";
+				case key_code::kp00:
+					name = "00";
 					break;
-				case KeyCode::Kp000:
-					Name = "000";
+				case key_code::kp000:
+					name = "000";
 					break;
-				case KeyCode::ThousandsSeparator:
-					Name = "Thousands Separator";
+				case key_code::thousands_separator:
+					name = "Thousands Separator";
 					break;
-				case KeyCode::DecimalsSeparator:
-					Name = "Decimal Separator";
+				case key_code::decimals_separator:
+					name = "Decimal Separator";
 					break;
-				case KeyCode::CurrencyUnit:
-					Name = "Currency Unit";
+				case key_code::currency_unit:
+					name = "Currency Unit";
 					break;
-				case KeyCode::CurrencySubunit:
-					Name = "Currency Subunit";
+				case key_code::currency_subunit:
+					name = "Currency Subunit";
 					break;
-				case KeyCode::KpLeftParen:
-					Name = "Left Parent";
+				case key_code::kp_left_paren:
+					name = "Left Parent";
 					break;
-				case KeyCode::KpRightParen:
-					Name = "Right Parent";
+				case key_code::kp_right_paren:
+					name = "Right Parent";
 					break;
-				case KeyCode::KpLeftBrace:
-					Name = "Left Brace";
+				case key_code::kp_left_brace:
+					name = "Left Brace";
 					break;
-				case KeyCode::KpRightBrace:
-					Name = "Right Brace";
+				case key_code::kp_right_brace:
+					name = "Right Brace";
 					break;
-				case KeyCode::Tab:
-				case KeyCode::KpTab:
-					Name = "Tab";
+				case key_code::tab:
+				case key_code::kp_tab:
+					name = "Tab";
 					break;
-				case KeyCode::Backspace:
-				case KeyCode::KpBackspace:
-					Name = "Backspace";
+				case key_code::backspace:
+				case key_code::kp_backspace:
+					name = "Backspace";
 					break;
-				case KeyCode::A:
-				case KeyCode::KpA:
-					Name = "A";
+				case key_code::a:
+				case key_code::kp_a:
+					name = "A";
 					break;
-				case KeyCode::B:
-				case KeyCode::KpB:
-					Name = "B";
+				case key_code::b:
+				case key_code::kp_b:
+					name = "B";
 					break;
-				case KeyCode::C:
-				case KeyCode::KpC:
-					Name = "C";
+				case key_code::c:
+				case key_code::kp_c:
+					name = "C";
 					break;
-				case KeyCode::D:
-				case KeyCode::KpD:
-					Name = "D";
+				case key_code::d:
+				case key_code::kp_d:
+					name = "D";
 					break;
-				case KeyCode::E:
-				case KeyCode::KpE:
-					Name = "E";
+				case key_code::e:
+				case key_code::kp_e:
+					name = "E";
 					break;
-				case KeyCode::F:
-				case KeyCode::KpF:
-					Name = "F";
+				case key_code::f:
+				case key_code::kp_f:
+					name = "F";
 					break;
-				case KeyCode::KpXOR:
-					Name = "Xor";
+				case key_code::kp_xor:
+					name = "Xor";
 					break;
-				case KeyCode::Power:
-				case KeyCode::KpPower:
-					Name = "Power";
+				case key_code::power:
+				case key_code::kp_power:
+					name = "Power";
 					break;
-				case KeyCode::KpPercent:
-					Name = "Percent";
+				case key_code::kp_percent:
+					name = "Percent";
 					break;
-				case KeyCode::KpLess:
-					Name = "Less";
+				case key_code::kp_less:
+					name = "Less";
 					break;
-				case KeyCode::KpGreater:
-					Name = "Greater";
+				case key_code::kp_greater:
+					name = "Greater";
 					break;
-				case KeyCode::KpAmpersand:
-					Name = "Ampersand";
+				case key_code::kp_ampersand:
+					name = "Ampersand";
 					break;
-				case KeyCode::KpDBLAmpersand:
-					Name = "DBL Ampersand";
+				case key_code::kp_dbl_ampersand:
+					name = "DBL Ampersand";
 					break;
-				case KeyCode::KpVerticalBar:
-					Name = "Vertical Bar";
+				case key_code::kp_vertical_bar:
+					name = "Vertical Bar";
 					break;
-				case KeyCode::KpDBLVerticalBar:
-					Name = "OBL Vertical Bar";
+				case key_code::kp_dbl_vertical_bar:
+					name = "OBL vertical Bar";
 					break;
-				case KeyCode::KpColon:
-					Name = "Colon";
+				case key_code::kp_colon:
+					name = "Colon";
 					break;
-				case KeyCode::KpHash:
-					Name = "Hash";
+				case key_code::kp_hash:
+					name = "Hash";
 					break;
-				case KeyCode::Space:
-				case KeyCode::KpSpace:
-					Name = "Space";
+				case key_code::space:
+				case key_code::kp_space:
+					name = "Space";
 					break;
-				case KeyCode::KpAt:
-					Name = "At";
+				case key_code::kp_at:
+					name = "At";
 					break;
-				case KeyCode::KpExclaim:
-					Name = "Exclam";
+				case key_code::kp_exclaim:
+					name = "Exclam";
 					break;
-				case KeyCode::KpMemStore:
-					Name = "Mem Store";
+				case key_code::kp_mem_store:
+					name = "Mem Store";
 					break;
-				case KeyCode::KpMemRecall:
-					Name = "Mem Recall";
+				case key_code::kp_mem_recall:
+					name = "Mem Recall";
 					break;
-				case KeyCode::KpMemClear:
-					Name = "Mem Clear";
+				case key_code::kp_mem_clear:
+					name = "Mem Clear";
 					break;
-				case KeyCode::KpMemAdd:
-					Name = "Mem Add";
+				case key_code::kp_mem_add:
+					name = "Mem Add";
 					break;
-				case KeyCode::KpMemSubtract:
-					Name = "Mem Subtract";
+				case key_code::kp_mem_subtract:
+					name = "Mem Subtract";
 					break;
-				case KeyCode::KpMemMultiply:
-					Name = "Mem Multiply";
+				case key_code::kp_mem_multiply:
+					name = "Mem Multiply";
 					break;
-				case KeyCode::KpMemDivide:
-					Name = "Mem Divide";
+				case key_code::kp_mem_divide:
+					name = "Mem Divide";
 					break;
-				case KeyCode::KpPlusMinus:
-					Name = "Plus-Minus";
+				case key_code::kp_plus_minus:
+					name = "Plus-Minus";
 					break;
-				case KeyCode::Clear:
-				case KeyCode::KpClear:
-					Name = "Clear";
+				case key_code::clear:
+				case key_code::kp_clear:
+					name = "Clear";
 					break;
-				case KeyCode::KpClearEntry:
-					Name = "Clear Entry";
+				case key_code::kp_clear_entry:
+					name = "Clear Entry";
 					break;
-				case KeyCode::KpBinary:
-					Name = "Binary";
+				case key_code::kp_binary:
+					name = "Binary";
 					break;
-				case KeyCode::KpOctal:
-					Name = "Octal";
+				case key_code::kp_octal:
+					name = "Octal";
 					break;
-				case KeyCode::KpDecimal:
-					Name = "Decimal";
+				case key_code::kp_decimal:
+					name = "Decimal";
 					break;
-				case KeyCode::KpHexadecimal:
-					Name = "Hexadecimal";
+				case key_code::kp_hexadecimal:
+					name = "Hexadecimal";
 					break;
-				case KeyCode::LeftControl:
-					Name = "Left CTRL";
+				case key_code::left_control:
+					name = "Left CTRL";
 					break;
-				case KeyCode::LeftShift:
-					Name = "Left Shift";
+				case key_code::left_shift:
+					name = "Left Shift";
 					break;
-				case KeyCode::LeftAlt:
-					Name = "Left Alt";
+				case key_code::left_alt:
+					name = "Left Alt";
 					break;
-				case KeyCode::LeftGUI:
-					Name = "Left GUI";
+				case key_code::left_gui:
+					name = "Left GUI";
 					break;
-				case KeyCode::RightControl:
-					Name = "Right CTRL";
+				case key_code::right_control:
+					name = "Right CTRL";
 					break;
-				case KeyCode::RightShift:
-					Name = "Right Shift";
+				case key_code::right_shift:
+					name = "Right Shift";
 					break;
-				case KeyCode::RightAlt:
-					Name = "Right Alt";
+				case key_code::right_alt:
+					name = "Right Alt";
 					break;
-				case KeyCode::RightGUI:
-					Name = "Right GUI";
+				case key_code::right_gui:
+					name = "Right GUI";
 					break;
-				case KeyCode::Mode:
-					Name = "Mode";
+				case key_code::mode:
+					name = "Mode";
 					break;
-				case KeyCode::AudioNext:
-					Name = "Audio Next";
+				case key_code::audio_next:
+					name = "Audio Next";
 					break;
-				case KeyCode::AudioPrev:
-					Name = "Audio Prev";
+				case key_code::audio_prev:
+					name = "Audio Prev";
 					break;
-				case KeyCode::AudioStop:
-					Name = "Audio Stop";
+				case key_code::audio_stop:
+					name = "Audio Stop";
 					break;
-				case KeyCode::AudioPlay:
-					Name = "Audio Play";
+				case key_code::audio_play:
+					name = "Audio Play";
 					break;
-				case KeyCode::AudioMute:
-					Name = "Audio Mute";
+				case key_code::audio_mute:
+					name = "Audio Mute";
 					break;
-				case KeyCode::MediaSelect:
-					Name = "Media Select";
+				case key_code::media_select:
+					name = "Media Select";
 					break;
-				case KeyCode::WWW:
-					Name = "WWW";
+				case key_code::www:
+					name = "WWW";
 					break;
-				case KeyCode::Mail:
-					Name = "Mail";
+				case key_code::mail:
+					name = "Mail";
 					break;
-				case KeyCode::Calculator:
-					Name = "Calculator";
+				case key_code::calculator:
+					name = "Calculator";
 					break;
-				case KeyCode::Computer:
-					Name = "Computer";
+				case key_code::computer:
+					name = "Computer";
 					break;
-				case KeyCode::AcSearch:
-					Name = "AC Search";
+				case key_code::ac_search:
+					name = "AC Search";
 					break;
-				case KeyCode::AcHome:
-					Name = "AC Home";
+				case key_code::ac_home:
+					name = "AC Home";
 					break;
-				case KeyCode::AcBack:
-					Name = "AC Back";
+				case key_code::ac_back:
+					name = "AC Back";
 					break;
-				case KeyCode::AcForward:
-					Name = "AC Forward";
+				case key_code::ac_forward:
+					name = "AC Forward";
 					break;
-				case KeyCode::AcStop:
-					Name = "AC Stop";
+				case key_code::ac_stop:
+					name = "AC Stop";
 					break;
-				case KeyCode::AcRefresh:
-					Name = "AC Refresh";
+				case key_code::ac_refresh:
+					name = "AC Refresh";
 					break;
-				case KeyCode::AcBookmarks:
-					Name = "AC Bookmarks";
+				case key_code::ac_bookmarks:
+					name = "AC Bookmarks";
 					break;
-				case KeyCode::BrightnessDown:
-					Name = "Brigthness Down";
+				case key_code::brightness_down:
+					name = "Brigthness Down";
 					break;
-				case KeyCode::BrightnessUp:
-					Name = "Brigthness Up";
+				case key_code::brightness_up:
+					name = "Brigthness Up";
 					break;
-				case KeyCode::DisplaySwitch:
-					Name = "Display Switch";
+				case key_code::display_switch:
+					name = "Display Switch";
 					break;
-				case KeyCode::KbIllumToggle:
-					Name = "Dillum Toggle";
+				case key_code::kb_illum_toggle:
+					name = "Dillum Toggle";
 					break;
-				case KeyCode::KbIllumDown:
-					Name = "Dillum Down";
+				case key_code::kb_illum_down:
+					name = "Dillum Down";
 					break;
-				case KeyCode::KbIllumUp:
-					Name = "Dillum Up";
+				case key_code::kb_illum_up:
+					name = "Dillum Up";
 					break;
-				case KeyCode::Eject:
-					Name = "Eject";
+				case key_code::eject:
+					name = "Eject";
 					break;
-				case KeyCode::Sleep:
-					Name = "Sleep";
+				case key_code::sleep:
+					name = "Sleep";
 					break;
-				case KeyCode::App1:
-					Name = "App 1";
+				case key_code::app1:
+					name = "App 1";
 					break;
-				case KeyCode::App2:
-					Name = "App 2";
+				case key_code::app2:
+					name = "App 2";
 					break;
-				case KeyCode::AudioRewind:
-					Name = "Audio Rewind";
+				case key_code::audio_rewind:
+					name = "Audio Rewind";
 					break;
-				case KeyCode::AudioFastForward:
-					Name = "Audio Fast Forward";
+				case key_code::audio_fast_forward:
+					name = "Audio fast Forward";
 					break;
-				case KeyCode::CursorLeft:
-					Name = "Cursor Left";
+				case key_code::cursor_left:
+					name = "Cursor Left";
 					break;
-				case KeyCode::CursorMiddle:
-					Name = "Cursor Middle";
+				case key_code::cursor_middle:
+					name = "Cursor Middle";
 					break;
-				case KeyCode::CursorRight:
-					Name = "Cursor Right";
+				case key_code::cursor_right:
+					name = "Cursor Right";
 					break;
-				case KeyCode::CursorX1:
-					Name = "Cursor X1";
+				case key_code::cursor_x1:
+					name = "Cursor X1";
 					break;
-				case KeyCode::CursorX2:
-					Name = "Cursor X2";
+				case key_code::cursor_x2:
+					name = "Cursor X2";
 					break;
 				default:
-					Name = "";
+					name = "";
 					break;
 			}
 
-			return Name;
+			return name;
 		}
-		std::string_view Video::GetKeyModAsLiteral(KeyMod Code)
+		std::string_view video::get_key_mod_as_literal(key_mod code)
 		{
-			const char* Name;
-			switch (Code)
+			const char* name;
+			switch (code)
 			{
-				case KeyMod::LeftShift:
-					Name = "Left Shift";
+				case key_mod::left_shift:
+					name = "Left Shift";
 					break;
-				case KeyMod::RightShift:
-					Name = "Right Shift";
+				case key_mod::right_shift:
+					name = "Right Shift";
 					break;
-				case KeyMod::LeftControl:
-					Name = "Left Ctrl";
+				case key_mod::left_control:
+					name = "Left Ctrl";
 					break;
-				case KeyMod::RightControl:
-					Name = "Right Ctrl";
+				case key_mod::right_control:
+					name = "Right Ctrl";
 					break;
-				case KeyMod::LeftAlt:
-					Name = "Left Alt";
+				case key_mod::left_alt:
+					name = "Left Alt";
 					break;
-				case KeyMod::RightAlt:
-					Name = "Right Alt";
+				case key_mod::right_alt:
+					name = "Right Alt";
 					break;
-				case KeyMod::LeftGUI:
-					Name = "Left Gui";
+				case key_mod::left_gui:
+					name = "Left Gui";
 					break;
-				case KeyMod::RightGUI:
-					Name = "Right Gui";
+				case key_mod::right_gui:
+					name = "Right Gui";
 					break;
-				case KeyMod::Num:
-					Name = "Num-lock";
+				case key_mod::num:
+					name = "Num-lock";
 					break;
-				case KeyMod::Caps:
-					Name = "Caps-lock";
+				case key_mod::caps:
+					name = "Caps-lock";
 					break;
-				case KeyMod::Mode:
-					Name = "Mode";
+				case key_mod::mode:
+					name = "Mode";
 					break;
-				case KeyMod::Shift:
-					Name = "Shift";
+				case key_mod::shift:
+					name = "Shift";
 					break;
-				case KeyMod::Control:
-					Name = "Ctrl";
+				case key_mod::control:
+					name = "Ctrl";
 					break;
-				case KeyMod::Alt:
-					Name = "Alt";
+				case key_mod::alt:
+					name = "Alt";
 					break;
-				case KeyMod::GUI:
-					Name = "Gui";
+				case key_mod::gui:
+					name = "Gui";
 					break;
 				default:
-					Name = "";
+					name = "";
 					break;
 			}
 
-			return Name;
+			return name;
 		}
-		Core::String Video::GetKeyCodeAsString(KeyCode Code)
+		core::string video::get_key_code_as_string(key_code code)
 		{
-			return Core::String(GetKeyCodeAsLiteral(Code));
+			return core::string(get_key_code_as_literal(code));
 		}
-		Core::String Video::GetKeyModAsString(KeyMod Code)
+		core::string video::get_key_mod_as_string(key_mod code)
 		{
-			return Core::String(GetKeyModAsLiteral(Code));
+			return core::string(get_key_mod_as_literal(code));
 		}
 	}
 }

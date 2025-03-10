@@ -5,10 +5,10 @@
 #include "internal/utils_raymarching.hlsl"
 #include "internal/utils_random.hlsl"
 
-Texture2D StochasticNormalMap : register(t5);
-Texture2D EmissionMap : register(t6);
+Texture2D ImageBuffer : register(t5);
+Texture2D EmissionBuffer : register(t6);
 
-cbuffer RenderConstant : register(b3)
+cbuffer RenderBuffer : register(b3)
 {
     float2 Random;
 	float Samples;
@@ -41,10 +41,10 @@ static const float3 RayCastingSphere[16] =
     float3(-0.4776, 0.2847, -0.0271)
 };
 
-float3 GetLightAt(float2 TexCoord)
+float3 GetLightAt(float2 Texcoord)
 {
-    float Emission = SurfaceBuffer.SampleLevel(Sampler, TexCoord, 0).w;
-    float3 Light = EmissionMap.SampleLevel(Sampler, TexCoord, 0).xyz;
+    float Emission = SurfaceBuffer.SampleLevel(Sampler, Texcoord, 0).w;
+    float3 Light = EmissionBuffer.SampleLevel(Sampler, Texcoord, 0).xyz;
     Light += Light * Emission;
     return Swing * pow(abs(Light), 1.0 / Attenuation);
 }
@@ -53,28 +53,24 @@ VOutput vs_main(VInput V)
 {
 	VOutput Result = (VOutput)0;
 	Result.Position = float4(V.Position, 1.0);
-	Result.TexCoord = Result.Position;
+	Result.Texcoord = Result.Position;
 
 	return Result;
 }
 
 float4 ps_main(VOutput V) : SV_TARGET0
 {
-    float2 UV = GetTexCoord(V.TexCoord);
-    float3 Color = EmissionMap.SampleLevel(Sampler, UV, 0).xyz;
-    if (Initial > 0.0)
-        Color = float3(0.0, 0.0, 0.0);
-    
+    float2 UV = GetTexcoord(V.Texcoord);
 	Fragment Frag = GetFragment(UV);
 	[branch] if (Frag.Depth >= 1.0)
-		return float4(Color.xyz, 1.0);
+		return float4(0.0, 0.0, 0.0, 1.0);
 
 	Material Mat = Materials[Frag.Material];
 	float3 Metallic = 1.0 - GetMetallic(Frag, Mat);
     float3 Accumulation = 0.0;
     float2 Jitter = RandomFloat2(UV + Random) + 0.5;
-	float4 Normal = StochasticNormalMap.SampleLevel(Sampler, UV, 0);
-    float Step = (1.0 / (float)Samples), Counter = 0.0;
+	float4 Normal = ImageBuffer.SampleLevel(Sampler, UV, 0);
+    float Step = (1.0 / (float)Samples), Weight = 0.0;
     Step = Step * (Jitter.x + Jitter.y) + Step;
 
     for (float i = 0; i < Samples; i++)
@@ -83,19 +79,20 @@ float4 ps_main(VOutput V) : SV_TARGET0
         [branch] if (dot(Frag.Normal, Direction) < Cutoff)
             continue;
 
-        float3 TexCoord = Raymarch(Frag.Position, Direction, Samples, Step * Distance);
-        [branch] if (TexCoord.z == -1.0)
+        float3 Texcoord = Raymarch(Frag.Position, Direction, Samples, Step * Distance);
+        [branch] if (Texcoord.z == -1.0)
             continue;
 
-        float3 Light = GetLightAt(TexCoord.xy);
-        float Emission = distance(Frag.Position, GetPosition(TexCoord.xy, TexCoord.z)) / Distance;
+        float3 Light = GetLightAt(Texcoord.xy);
+        float Emission = distance(Frag.Position, GetPosition(Texcoord.xy, Texcoord.z)) / Distance;
         Emission = Bias * Emission * length(Light) / 3.0;
-        Accumulation += Light * (1.0 - Emission * Emission);
-        Counter++;
+		Emission = 1.0 - Emission * Emission;
+        Accumulation += Light * Emission;
+		Weight += Emission;
     }
 
-    if (Counter > 0.0)
-        Accumulation /= Counter;
+    if (Weight > 0.0)
+        Accumulation /= Weight;
     
-    return float4(Color + Metallic * Accumulation, 1.0);
+    return float4(Metallic * Accumulation, 1.0);
 };

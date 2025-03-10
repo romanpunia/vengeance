@@ -1,129 +1,129 @@
 #include "filters.h"
 #include "../layer.h"
-#define ReturnErrorIf do { auto __error = AudioException(); if (__error.has_error()) return __error; else return Core::Expectation::Met; } while (0)
+#define return_error_if do { auto __error = audio_exception(); if (__error.has_error()) return __error; else return core::expectation::met; } while (0)
 
-namespace Vitex
+namespace vitex
 {
-	namespace Audio
+	namespace audio
 	{
-		namespace Filters
+		namespace filters
 		{
-			Lowpass::Lowpass()
+			lowpass::lowpass()
 			{
-				Initialize([this]()
+				initialize([this]()
 				{
-					AudioContext::SetFilter1I(Filter, FilterEx::Filter_Type, (int)FilterEx::Filter_Lowpass);
+					audio_context::set_filter1i(filter, filter_ex::filter_type, (int)filter_ex::filter_lowpass);
 					return true;
 				});
 			}
-			Lowpass::~Lowpass()
+			lowpass::~lowpass()
 			{
 			}
-			ExpectsAudio<void> Lowpass::Synchronize()
+			expects_audio<void> lowpass::synchronize()
 			{
-				AudioContext::SetFilter1F(Filter, FilterEx::Lowpass_Gain, Gain);
-				AudioContext::SetFilter1F(Filter, FilterEx::Lowpass_Gain_HF, GainHF);
-				ReturnErrorIf;
+				audio_context::set_filter1f(filter, filter_ex::lowpass_gain, gain);
+				audio_context::set_filter1f(filter, filter_ex::lowpass_gain_hf, gain_hf);
+				return_error_if;
 			}
-			void Lowpass::Deserialize(Core::Schema* Node)
+			void lowpass::deserialize(core::schema* node)
 			{
-				VI_ASSERT(Node != nullptr, "schema should be set");
-				Layer::Series::Unpack(Node->Find("gain"), &Gain);
-				Layer::Series::Unpack(Node->Find("gain-hf"), &GainHF);
+				VI_ASSERT(node != nullptr, "schema should be set");
+				layer::series::unpack(node->find("gain"), &gain);
+				layer::series::unpack(node->find("gain-hf"), &gain_hf);
 			}
-			void Lowpass::Serialize(Core::Schema* Node) const
+			void lowpass::serialize(core::schema* node) const
 			{
-				VI_ASSERT(Node != nullptr, "schema should be set");
-				Layer::Series::Pack(Node->Set("gain"), Gain);
-				Layer::Series::Pack(Node->Set("gain-hf"), GainHF);
+				VI_ASSERT(node != nullptr, "schema should be set");
+				layer::series::pack(node->set("gain"), gain);
+				layer::series::pack(node->set("gain-hf"), gain_hf);
 			}
-			AudioFilter* Lowpass::Copy() const
+			audio_filter* lowpass::copy() const
 			{
-				Lowpass* Target = new Lowpass();
-				Target->Gain = Gain;
-				Target->GainHF = GainHF;
+				lowpass* target = new lowpass();
+				target->gain = gain;
+				target->gain_hf = gain_hf;
 
-				return Target;
+				return target;
 			}
 
-			Highpass::Highpass()
+			highpass::highpass()
 			{
-				Initialize([this]()
+				initialize([this]()
 				{
-					AudioContext::SetFilter1I(Filter, FilterEx::Filter_Type, (int)FilterEx::Filter_Highpass);
+					audio_context::set_filter1i(filter, filter_ex::filter_type, (int)filter_ex::filter_highpass);
 					return true;
 				});
 			}
-			Highpass::~Highpass()
+			highpass::~highpass()
 			{
 			}
-			ExpectsAudio<void> Highpass::Synchronize()
+			expects_audio<void> highpass::synchronize()
 			{
-				AudioContext::SetFilter1F(Filter, FilterEx::Highpass_Gain, Gain);
-				AudioContext::SetFilter1F(Filter, FilterEx::Highpass_Gain_LF, GainLF);
-				ReturnErrorIf;
+				audio_context::set_filter1f(filter, filter_ex::highpass_gain, gain);
+				audio_context::set_filter1f(filter, filter_ex::highpass_gain_lf, gain_lf);
+				return_error_if;
 			}
-			void Highpass::Deserialize(Core::Schema* Node)
+			void highpass::deserialize(core::schema* node)
 			{
-				VI_ASSERT(Node != nullptr, "schema should be set");
-				Layer::Series::Unpack(Node->Find("gain"), &Gain);
-				Layer::Series::Unpack(Node->Find("gain-lf"), &GainLF);
+				VI_ASSERT(node != nullptr, "schema should be set");
+				layer::series::unpack(node->find("gain"), &gain);
+				layer::series::unpack(node->find("gain-lf"), &gain_lf);
 			}
-			void Highpass::Serialize(Core::Schema* Node) const
+			void highpass::serialize(core::schema* node) const
 			{
-				VI_ASSERT(Node != nullptr, "schema should be set");
-				Layer::Series::Pack(Node->Set("gain"), Gain);
-				Layer::Series::Pack(Node->Set("gain-lf"), GainLF);
+				VI_ASSERT(node != nullptr, "schema should be set");
+				layer::series::pack(node->set("gain"), gain);
+				layer::series::pack(node->set("gain-lf"), gain_lf);
 			}
-			AudioFilter* Highpass::Copy() const
+			audio_filter* highpass::copy() const
 			{
-				Highpass* Target = new Highpass();
-				Target->Gain = Gain;
-				Target->GainLF = GainLF;
+				highpass* target = new highpass();
+				target->gain = gain;
+				target->gain_lf = gain_lf;
 
-				return Target;
+				return target;
 			}
 
-			Bandpass::Bandpass()
+			bandpass::bandpass()
 			{
-				Initialize([this]()
+				initialize([this]()
 				{
-					AudioContext::SetFilter1I(Filter, FilterEx::Filter_Type, (int)FilterEx::Filter_Bandpass);
+					audio_context::set_filter1i(filter, filter_ex::filter_type, (int)filter_ex::filter_bandpass);
 					return true;
 				});
 			}
-			Bandpass::~Bandpass()
+			bandpass::~bandpass()
 			{
 			}
-			ExpectsAudio<void> Bandpass::Synchronize()
+			expects_audio<void> bandpass::synchronize()
 			{
-				AudioContext::SetFilter1F(Filter, FilterEx::Bandpass_Gain, Gain);
-				AudioContext::SetFilter1F(Filter, FilterEx::Bandpass_Gain_LF, GainLF);
-				AudioContext::SetFilter1F(Filter, FilterEx::Bandpass_Gain_HF, GainHF);
-				ReturnErrorIf;
+				audio_context::set_filter1f(filter, filter_ex::bandpass_gain, gain);
+				audio_context::set_filter1f(filter, filter_ex::bandpass_gain_lf, gain_lf);
+				audio_context::set_filter1f(filter, filter_ex::bandpass_gain_hf, gain_hf);
+				return_error_if;
 			}
-			void Bandpass::Deserialize(Core::Schema* Node)
+			void bandpass::deserialize(core::schema* node)
 			{
-				VI_ASSERT(Node != nullptr, "schema should be set");
-				Layer::Series::Unpack(Node->Find("gain"), &Gain);
-				Layer::Series::Unpack(Node->Find("gain-lf"), &GainLF);
-				Layer::Series::Unpack(Node->Find("gain-hf"), &GainHF);
+				VI_ASSERT(node != nullptr, "schema should be set");
+				layer::series::unpack(node->find("gain"), &gain);
+				layer::series::unpack(node->find("gain-lf"), &gain_lf);
+				layer::series::unpack(node->find("gain-hf"), &gain_hf);
 			}
-			void Bandpass::Serialize(Core::Schema* Node) const
+			void bandpass::serialize(core::schema* node) const
 			{
-				VI_ASSERT(Node != nullptr, "schema should be set");
-				Layer::Series::Pack(Node->Set("gain"), Gain);
-				Layer::Series::Pack(Node->Set("gain-lf"), GainLF);
-				Layer::Series::Pack(Node->Set("gain-hf"), GainHF);
+				VI_ASSERT(node != nullptr, "schema should be set");
+				layer::series::pack(node->set("gain"), gain);
+				layer::series::pack(node->set("gain-lf"), gain_lf);
+				layer::series::pack(node->set("gain-hf"), gain_hf);
 			}
-			AudioFilter* Bandpass::Copy() const
+			audio_filter* bandpass::copy() const
 			{
-				Bandpass* Target = new Bandpass();
-				Target->Gain = Gain;
-				Target->GainLF = GainLF;
-				Target->GainHF = GainHF;
+				bandpass* target = new bandpass();
+				target->gain = gain;
+				target->gain_lf = gain_lf;
+				target->gain_hf = gain_hf;
 
-				return Target;
+				return target;
 			}
 		}
 	}

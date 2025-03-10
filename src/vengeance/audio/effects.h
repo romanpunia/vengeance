@@ -2,273 +2,273 @@
 #define VI_AUDIO_EFFECTS_H
 #include "../audio.h"
 
-namespace Vitex
+namespace vitex
 {
-	namespace Audio
+	namespace audio
 	{
-		namespace Effects
+		namespace effects
 		{
-			class VI_OUT Reverb final : public AudioEffect
+			class reverb final : public audio_effect
 			{
 			private:
 				bool EAX = false;
 
 			public:
-				Trigonometry::Vector3 LateReverbPan;
-				Trigonometry::Vector3 ReflectionsPan;
-				float Density = 1.0f;
-				float Diffusion = 1.0f;
-				float Gain = 0.32f;
-				float GainHF = 0.89f;
-				float GainLF = 1.0f;
-				float DecayTime = 1.49f;
-				float DecayHFRatio = 0.83f;
-				float DecayLFRatio = 1.0f;
-				float ReflectionsGain = 0.05f;
-				float ReflectionsDelay = 0.007f;
-				float LateReverbGain = 1.26f;
-				float LateReverbDelay = 0.011f;
-				float EchoTime = 0.25f;
-				float EchoDepth = 0.0f;
-				float ModulationTime = 0.25f;
-				float ModulationDepth = 0.0f;
-				float AirAbsorptionGainHF = 0.994f;
-				float HFReference = 5000.0f;
-				float LFReference = 250.0f;
-				float RoomRolloffFactor = 0.0f;
-				bool IsDecayHFLimited = true;
+				trigonometry::vector3 late_reverb_pan;
+				trigonometry::vector3 reflections_pan;
+				float density = 1.0f;
+				float diffusion = 1.0f;
+				float gain = 0.32f;
+				float gain_hf = 0.89f;
+				float gain_lf = 1.0f;
+				float decay_time = 1.49f;
+				float decay_hf_ratio = 0.83f;
+				float decay_lf_ratio = 1.0f;
+				float reflections_gain = 0.05f;
+				float reflections_delay = 0.007f;
+				float late_reverb_gain = 1.26f;
+				float late_reverb_delay = 0.011f;
+				float echo_time = 0.25f;
+				float echo_depth = 0.0f;
+				float modulation_time = 0.25f;
+				float modulation_depth = 0.0f;
+				float air_absorption_gain_hf = 0.994f;
+				float hf_reference = 5000.0f;
+				float lf_reference = 250.0f;
+				float room_rolloff_factor = 0.0f;
+				bool is_decay_hf_limited = true;
 
 			public:
-				Reverb();
-				~Reverb() override;
-				ExpectsAudio<void> Synchronize() override;
-				void Deserialize(Core::Schema* Node) override;
-				void Serialize(Core::Schema* Node) const override;
-				Core::Unique<AudioEffect> Copy() const override;
+				reverb();
+				~reverb() override;
+				expects_audio<void> synchronize() override;
+				void deserialize(core::schema* node) override;
+				void serialize(core::schema* node) const override;
+				core::unique<audio_effect> copy() const override;
 
 			public:
 				VI_COMPONENT("reverb_effect");
 			};
 
-			class VI_OUT Chorus final : public AudioEffect
+			class chorus final : public audio_effect
 			{
 			public:
-				float Rate = 1.1f;
-				float Depth = 0.1f;
-				float Feedback = 0.25f;
-				float Delay = 0.016f;
-				int Waveform = 1;
-				int Phase = 90;
+				float rate = 1.1f;
+				float depth = 0.1f;
+				float feedback = 0.25f;
+				float delay = 0.016f;
+				int waveform = 1;
+				int phase = 90;
 
 			public:
-				Chorus();
-				~Chorus() override;
-				ExpectsAudio<void> Synchronize() override;
-				void Deserialize(Core::Schema* Node) override;
-				void Serialize(Core::Schema* Node) const override;
-				Core::Unique<AudioEffect> Copy() const override;
+				chorus();
+				~chorus() override;
+				expects_audio<void> synchronize() override;
+				void deserialize(core::schema* node) override;
+				void serialize(core::schema* node) const override;
+				core::unique<audio_effect> copy() const override;
 
 			public:
 				VI_COMPONENT("chorus_effect");
 			};
 
-			class VI_OUT Distortion final : public AudioEffect
+			class distortion final : public audio_effect
 			{
 			public:
-				float Edge = 0.2f;
-				float Gain = 0.05f;
-				float LowpassCutOff = 8000.0f;
-				float EQCenter = 3600.0f;
-				float EQBandwidth = 3600.0f;
+				float edge = 0.2f;
+				float gain = 0.05f;
+				float lowpass_cut_off = 8000.0f;
+				float eq_center = 3600.0f;
+				float eq_bandwidth = 3600.0f;
 
 			public:
-				Distortion();
-				~Distortion() override;
-				ExpectsAudio<void> Synchronize() override;
-				void Deserialize(Core::Schema* Node) override;
-				void Serialize(Core::Schema* Node) const override;
-				Core::Unique<AudioEffect> Copy() const override;
+				distortion();
+				~distortion() override;
+				expects_audio<void> synchronize() override;
+				void deserialize(core::schema* node) override;
+				void serialize(core::schema* node) const override;
+				core::unique<audio_effect> copy() const override;
 
 			public:
 				VI_COMPONENT("distortion_effect");
 			};
 
-			class VI_OUT Echo final : public AudioEffect
+			class echo final : public audio_effect
 			{
 			public:
-				float Delay = 0.1f;
-				float LRDelay = 0.1f;
-				float Damping = 0.5f;
-				float Feedback = 0.5f;
-				float Spread = -1.0f;
+				float delay = 0.1f;
+				float lr_delay = 0.1f;
+				float damping = 0.5f;
+				float feedback = 0.5f;
+				float spread = -1.0f;
 
 			public:
-				Echo();
-				~Echo() override;
-				ExpectsAudio<void> Synchronize() override;
-				void Deserialize(Core::Schema* Node) override;
-				void Serialize(Core::Schema* Node) const override;
-				Core::Unique<AudioEffect> Copy() const override;
+				echo();
+				~echo() override;
+				expects_audio<void> synchronize() override;
+				void deserialize(core::schema* node) override;
+				void serialize(core::schema* node) const override;
+				core::unique<audio_effect> copy() const override;
 
 			public:
 				VI_COMPONENT("echo_effect");
 			};
 
-			class VI_OUT Flanger final : public AudioEffect
+			class flanger final : public audio_effect
 			{
 			public:
-				float Rate = 0.27f;
-				float Depth = 1.0f;
-				float Feedback = -0.5f;
-				float Delay = 0.002f;
-				int Waveform = 1;
-				int Phase = 0;
+				float rate = 0.27f;
+				float depth = 1.0f;
+				float feedback = -0.5f;
+				float delay = 0.002f;
+				int waveform = 1;
+				int phase = 0;
 
 			public:
-				Flanger();
-				~Flanger() override;
-				ExpectsAudio<void> Synchronize() override;
-				void Deserialize(Core::Schema* Node) override;
-				void Serialize(Core::Schema* Node) const override;
-				Core::Unique<AudioEffect> Copy() const override;
+				flanger();
+				~flanger() override;
+				expects_audio<void> synchronize() override;
+				void deserialize(core::schema* node) override;
+				void serialize(core::schema* node) const override;
+				core::unique<audio_effect> copy() const override;
 
 			public:
 				VI_COMPONENT("flanger_effect");
 			};
 
-			class VI_OUT FrequencyShifter final : public AudioEffect
+			class frequency_shifter final : public audio_effect
 			{
 			public:
-				float Frequency = 0.0f;
-				int LeftDirection = 0;
-				int RightDirection = 0;
+				float frequency = 0.0f;
+				int left_direction = 0;
+				int right_direction = 0;
 
 			public:
-				FrequencyShifter();
-				~FrequencyShifter() override;
-				ExpectsAudio<void> Synchronize() override;
-				void Deserialize(Core::Schema* Node) override;
-				void Serialize(Core::Schema* Node) const override;
-				Core::Unique<AudioEffect> Copy() const override;
+				frequency_shifter();
+				~frequency_shifter() override;
+				expects_audio<void> synchronize() override;
+				void deserialize(core::schema* node) override;
+				void serialize(core::schema* node) const override;
+				core::unique<audio_effect> copy() const override;
 
 			public:
 				VI_COMPONENT("frequency_shifter_effect");
 			};
 
-			class VI_OUT VocalMorpher final : public AudioEffect
+			class vocal_morpher final : public audio_effect
 			{
 			public:
-				float Rate = 1.41f;
-				int Phonemea = 0;
-				int PhonemeaCoarseTuning = 0;
-				int Phonemeb = 10;
-				int PhonemebCoarseTuning = 0;
-				int Waveform = 0;
+				float rate = 1.41f;
+				int phonemea = 0;
+				int phonemea_coarse_tuning = 0;
+				int phonemeb = 10;
+				int phonemeb_coarse_tuning = 0;
+				int waveform = 0;
 
 			public:
-				VocalMorpher();
-				~VocalMorpher() override;
-				ExpectsAudio<void> Synchronize() override;
-				void Deserialize(Core::Schema* Node) override;
-				void Serialize(Core::Schema* Node) const override;
-				Core::Unique<AudioEffect> Copy() const override;
+				vocal_morpher();
+				~vocal_morpher() override;
+				expects_audio<void> synchronize() override;
+				void deserialize(core::schema* node) override;
+				void serialize(core::schema* node) const override;
+				core::unique<audio_effect> copy() const override;
 
 			public:
 				VI_COMPONENT("vocal_morpher_effect");
 			};
 
-			class VI_OUT PitchShifter final : public AudioEffect
+			class pitch_shifter final : public audio_effect
 			{
 			public:
-				int CoarseTune = 12;
-				int FineTune = 0;
+				int coarse_tune = 12;
+				int fine_tune = 0;
 
 			public:
-				PitchShifter();
-				~PitchShifter() override;
-				ExpectsAudio<void> Synchronize() override;
-				void Deserialize(Core::Schema* Node) override;
-				void Serialize(Core::Schema* Node) const override;
-				Core::Unique<AudioEffect> Copy() const override;
+				pitch_shifter();
+				~pitch_shifter() override;
+				expects_audio<void> synchronize() override;
+				void deserialize(core::schema* node) override;
+				void serialize(core::schema* node) const override;
+				core::unique<audio_effect> copy() const override;
 
 			public:
 				VI_COMPONENT("pitch_shifter_effect");
 			};
 
-			class VI_OUT RingModulator final : public AudioEffect
+			class ring_modulator final : public audio_effect
 			{
 			public:
-				float Frequency = 440.0f;
-				float HighpassCutOff = 800.0f;
-				int Waveform = 0;
+				float frequency = 440.0f;
+				float highpass_cut_off = 800.0f;
+				int waveform = 0;
 
 			public:
-				RingModulator();
-				~RingModulator() override;
-				ExpectsAudio<void> Synchronize() override;
-				void Deserialize(Core::Schema* Node) override;
-				void Serialize(Core::Schema* Node) const override;
-				Core::Unique<AudioEffect> Copy() const override;
+				ring_modulator();
+				~ring_modulator() override;
+				expects_audio<void> synchronize() override;
+				void deserialize(core::schema* node) override;
+				void serialize(core::schema* node) const override;
+				core::unique<audio_effect> copy() const override;
 
 			public:
 				VI_COMPONENT("ring_modulator_effect");
 			};
 
-			class VI_OUT Autowah final : public AudioEffect
+			class autowah final : public audio_effect
 			{
 			public:
-				float AttackTime = 0.06f;
-				float ReleaseTime = 0.06f;
-				float Resonance = 1000.0f;
-				float PeakGain = 11.22f;
+				float attack_time = 0.06f;
+				float release_time = 0.06f;
+				float resonance = 1000.0f;
+				float peak_gain = 11.22f;
 
 			public:
-				Autowah();
-				~Autowah() override;
-				ExpectsAudio<void> Synchronize() override;
-				void Deserialize(Core::Schema* Node) override;
-				void Serialize(Core::Schema* Node) const override;
-				Core::Unique<AudioEffect> Copy() const override;
+				autowah();
+				~autowah() override;
+				expects_audio<void> synchronize() override;
+				void deserialize(core::schema* node) override;
+				void serialize(core::schema* node) const override;
+				core::unique<audio_effect> copy() const override;
 
 			public:
 				VI_COMPONENT("autowah_effect");
 			};
 
-			class VI_OUT Compressor final : public AudioEffect
+			class compressor final : public audio_effect
 			{
 			public:
-				Compressor();
-				~Compressor() override;
-				ExpectsAudio<void> Synchronize() override;
-				void Deserialize(Core::Schema* Node) override;
-				void Serialize(Core::Schema* Node) const override;
-				Core::Unique<AudioEffect> Copy() const override;
+				compressor();
+				~compressor() override;
+				expects_audio<void> synchronize() override;
+				void deserialize(core::schema* node) override;
+				void serialize(core::schema* node) const override;
+				core::unique<audio_effect> copy() const override;
 
 			public:
 				VI_COMPONENT("compressor_effect");
 			};
 
-			class VI_OUT Equalizer final : public AudioEffect
+			class equalizer final : public audio_effect
 			{
 			public:
-				float LowGain = 1.0f;
-				float LowCutOff = 200.0f;
-				float Mid1Gain = 1.0f;
-				float Mid1Center = 500.0f;
-				float Mid1Width = 1.0f;
-				float Mid2Gain = 1.0f;
-				float Mid2Center = 3000.0f;
-				float Mid2Width = 1.0f;
-				float HighGain = 1.0f;
-				float HighCutOff = 6000.0f;
+				float low_gain = 1.0f;
+				float low_cut_off = 200.0f;
+				float mid1_gain = 1.0f;
+				float mid1_center = 500.0f;
+				float mid1_width = 1.0f;
+				float mid2_gain = 1.0f;
+				float mid2_center = 3000.0f;
+				float mid2_width = 1.0f;
+				float high_gain = 1.0f;
+				float high_cut_off = 6000.0f;
 
 			public:
-				Equalizer();
-				~Equalizer() override;
-				ExpectsAudio<void> Synchronize() override;
-				void Deserialize(Core::Schema* Node) override;
-				void Serialize(Core::Schema* Node) const override;
-				Core::Unique<AudioEffect> Copy() const override;
+				equalizer();
+				~equalizer() override;
+				expects_audio<void> synchronize() override;
+				void deserialize(core::schema* node) override;
+				void serialize(core::schema* node) const override;
+				core::unique<audio_effect> copy() const override;
 
 			public:
 				VI_COMPONENT("equalizer_effect");

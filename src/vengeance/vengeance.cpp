@@ -13,34 +13,34 @@
 #include <GL/glew.h>
 #endif
 
-namespace Vitex
+namespace vitex
 {
-	HeavyRuntime::HeavyRuntime(size_t Modules, Core::GlobalAllocator* Allocator) noexcept : Runtime(Modules, Allocator)
+	heavy_runtime::heavy_runtime(size_t modules, core::global_allocator* allocator) noexcept : runtime(modules, allocator)
 	{
-		if (Modes & LOAD_PLATFORM)
-			InitializePlatform();
+		if (modes & use_platform)
+			initialize_platform();
 
-		if (Modes & LOAD_GRAPHICS)
-			InitializeGraphics();
+		if (modes & use_graphics)
+			initialize_graphics();
 
-		if (Modes & LOAD_AUDIO)
-			InitializeAudio();
+		if (modes & use_audio)
+			initialize_audio();
 	}
-	HeavyRuntime::~HeavyRuntime() noexcept
+	heavy_runtime::~heavy_runtime() noexcept
 	{
-		Core::ErrorHandling::SetFlag(Core::LogOption::Async, false);
-		CleanupInstances();
-		if (Modes & LOAD_PLATFORM)
-			CleanupPlatform();
-		CleanupImporter();
-		CleanupScripting();
+		core::error_handling::set_flag(core::log_option::async, false);
+		cleanup_instances();
+		if (modes & use_platform)
+			cleanup_platform();
+		cleanup_importer();
+		cleanup_scripting();
 	}
-	bool HeavyRuntime::InitializePlatform() noexcept
+	bool heavy_runtime::initialize_platform() noexcept
 	{
 #ifdef VI_SDL2
 		SDL_SetMainReady();
-		int Code = SDL_Init(SDL_INIT_VIDEO | SDL_INIT_GAMECONTROLLER | SDL_INIT_HAPTIC);
-		VI_PANIC(Code == 0, "SDL2 initialization failed code:%i", Code);
+		int code = SDL_Init(SDL_INIT_VIDEO | SDL_INIT_GAMECONTROLLER | SDL_INIT_HAPTIC);
+		VI_PANIC(code == 0, "SDL2 initialization failed code:%i", code);
 		SDL_EventState(SDL_QUIT, SDL_ENABLE);
 		SDL_EventState(SDL_APP_TERMINATING, SDL_ENABLE);
 		SDL_EventState(SDL_APP_LOWMEMORY, SDL_ENABLE);
@@ -102,8 +102,8 @@ namespace Vitex
 		SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
 		SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 8);
 
-		const char* Platform = SDL_GetPlatform();
-		if (!strcmp(Platform, "iOS") || !strcmp(Platform, "Android") || !strcmp(Platform, "Unknown"))
+		const char* platform = SDL_GetPlatform();
+		if (!strcmp(platform, "iOS") || !strcmp(platform, "Android") || !strcmp(platform, "Unknown"))
 			SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_ES);
 		else
 			SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
@@ -114,7 +114,7 @@ namespace Vitex
 		return false;
 #endif
 	}
-	bool HeavyRuntime::InitializeGraphics() noexcept
+	bool heavy_runtime::initialize_graphics() noexcept
 	{
 #ifdef VI_GLEW
 		glewExperimental = true;
@@ -124,42 +124,42 @@ namespace Vitex
 		return false;
 #endif
 	}
-	bool HeavyRuntime::InitializeAudio() noexcept
+	bool heavy_runtime::initialize_audio() noexcept
 	{
 		VI_TRACE("[lib] initialize audio library");
-		auto Status = Audio::AudioContext::Initialize();
-		Status.Report("audio initialization error");
-		return !!Status;
+		auto status = audio::audio_context::initialize();
+		status.report("audio initialization error");
+		return !!status;
 	}
-	void HeavyRuntime::CleanupInstances() noexcept
+	void heavy_runtime::cleanup_instances() noexcept
 	{
-		Runtime::CleanupInstances();
-		Layer::GUI::Subsystem::CleanupInstance();
+		runtime::cleanup_instances();
+		layer::gui::subsystem::cleanup_instance();
 	}
-	void HeavyRuntime::CleanupPlatform() noexcept
+	void heavy_runtime::cleanup_platform() noexcept
 	{
 #ifdef VI_SDL2
 		SDL_Quit();
 		VI_TRACE("[lib] free sdl2 library");
 #endif
 	}
-	void HeavyRuntime::CleanupImporter() noexcept
+	void heavy_runtime::cleanup_importer() noexcept
 	{
 #ifdef VI_ASSIMP
 		Assimp::DefaultLogger::kill();
 		VI_TRACE("[lib] free importer library");
 #endif
 	}
-	void HeavyRuntime::CleanupScripting() noexcept
+	void heavy_runtime::cleanup_scripting() noexcept
 	{
-		Scripting::Bindings::HeavyRegistry().Cleanup();
+		scripting::bindings::heavy_registry().cleanup();
 		VI_TRACE("[lib] free heavy bindings registry");
 	}
-	bool HeavyRuntime::HasFtShaders() const noexcept
+	bool heavy_runtime::has_ft_shaders() const noexcept
 	{
-		return HasSoSpirv();
+		return has_so_spirv();
 	}
-	bool HeavyRuntime::HasSoOpenGL() const noexcept
+	bool heavy_runtime::has_so_opengl() const noexcept
 	{
 #ifdef VI_OPENGL
 		return true;
@@ -167,7 +167,7 @@ namespace Vitex
 		return false;
 #endif
 	}
-	bool HeavyRuntime::HasSoOpenAL() const noexcept
+	bool heavy_runtime::has_so_openal() const noexcept
 	{
 #ifdef VI_OPENAL
 		return true;
@@ -175,7 +175,7 @@ namespace Vitex
 		return false;
 #endif
 	}
-	bool HeavyRuntime::HasSoSDL2() const noexcept
+	bool heavy_runtime::has_so_sdl2() const noexcept
 	{
 #ifdef VI_SDL2
 		return true;
@@ -183,7 +183,7 @@ namespace Vitex
 		return false;
 #endif
 	}
-	bool HeavyRuntime::HasSoGLEW() const noexcept
+	bool heavy_runtime::has_so_glew() const noexcept
 	{
 #ifdef VI_GLEW
 		return true;
@@ -191,7 +191,7 @@ namespace Vitex
 		return false;
 #endif
 	}
-	bool HeavyRuntime::HasSoSpirv() const noexcept
+	bool heavy_runtime::has_so_spirv() const noexcept
 	{
 #ifdef VI_SPIRV
 		return true;
@@ -199,7 +199,7 @@ namespace Vitex
 		return false;
 #endif
 	}
-	bool HeavyRuntime::HasSoAssimp() const noexcept
+	bool heavy_runtime::has_so_assimp() const noexcept
 	{
 #ifdef VI_ASSIMP
 		return true;
@@ -207,7 +207,7 @@ namespace Vitex
 		return false;
 #endif
 	}
-	bool HeavyRuntime::HasSoFreeType() const noexcept
+	bool heavy_runtime::has_so_freetype() const noexcept
 	{
 #ifdef VI_FREETYPE
 		return true;
@@ -215,7 +215,7 @@ namespace Vitex
 		return false;
 #endif
 	}
-	bool HeavyRuntime::HasMdRmlUI() const noexcept
+	bool heavy_runtime::has_md_rmlui() const noexcept
 	{
 #ifdef VI_RMLUI
 		return true;
@@ -223,7 +223,7 @@ namespace Vitex
 		return false;
 #endif
 	}
-	bool HeavyRuntime::HasMdBullet3() const noexcept
+	bool heavy_runtime::has_md_bullet3() const noexcept
 	{
 #ifdef VI_BULLET3
 		return true;
@@ -231,7 +231,7 @@ namespace Vitex
 		return false;
 #endif
 	}
-	bool HeavyRuntime::HasMdTinyFileDialogs() const noexcept
+	bool heavy_runtime::has_md_tinyfiledialogs() const noexcept
 	{
 #ifdef VI_TINYFILEDIALOGS
 		return true;
@@ -239,7 +239,7 @@ namespace Vitex
 		return false;
 #endif
 	}
-	bool HeavyRuntime::HasMdStb() const noexcept
+	bool heavy_runtime::has_md_stb() const noexcept
 	{
 #ifdef VI_STB
 		return true;
@@ -247,7 +247,7 @@ namespace Vitex
 		return false;
 #endif
 	}
-	bool HeavyRuntime::HasMdVectorclass() const noexcept
+	bool heavy_runtime::has_md_vectorclass() const noexcept
 	{
 #ifdef VI_VECTORCLASS
 		return true;
@@ -255,77 +255,77 @@ namespace Vitex
 		return false;
 #endif
 	}
-	Core::String HeavyRuntime::GetDetails() const noexcept
+	core::string heavy_runtime::get_details() const noexcept
 	{
-		Core::Vector<Core::String> Features;
-		if (HasSoOpenGL())
-			Features.push_back("so:opengl");
-		if (HasSoOpenAL())
-			Features.push_back("so:openal");
-		if (HasSoOpenSSL())
-			Features.push_back("so:openssl");
-		if (HasSoSDL2())
-			Features.push_back("so:sdl2");
-		if (HasSoGLEW())
-			Features.push_back("so:glew");
-		if (HasSoSpirv())
-			Features.push_back("so:spirv");
-		if (HasSoZLib())
-			Features.push_back("so:zlib");
-		if (HasSoAssimp())
-			Features.push_back("so:assimp");
-		if (HasSoMongoc())
-			Features.push_back("so:mongoc");
-		if (HasSoPostgreSQL())
-			Features.push_back("so:pq");
-		if (HasSoSQLite())
-			Features.push_back("so:sqlite");
-		if (HasSoFreeType())
-			Features.push_back("so:freetype");
-		if (HasMdAngelScript())
-			Features.push_back("md:angelscript");
-		if (HasMdBackwardCpp())
-			Features.push_back("md:backward-cpp");
-		if (HasMdRmlUI())
-			Features.push_back("md:rmlui");
-		if (HasMdBullet3())
-			Features.push_back("md:bullet3");
-		if (HasMdTinyFileDialogs())
-			Features.push_back("md:tinyfiledialogs");
-		if (HasMdWepoll())
-			Features.push_back("md:wepoll");
-		if (HasMdStb())
-			Features.push_back("md:stb");
-		if (HasMdPugiXml())
-			Features.push_back("md:pugixml");
-		if (HasMdRapidJson())
-			Features.push_back("md:rapidjson");
-		if (HasMdVectorclass())
-			Features.push_back("md:vectorclass");
-		if (HasFtFContext())
-			Features.push_back("ft:fcontext");
-		if (HasFtAllocator())
-			Features.push_back("ft:allocator");
-		if (HasFtPessimistic())
-			Features.push_back("ft:pessimistic");
-		if (HasFtBindings())
-			Features.push_back("ft:bindings");
-		if (HasFtShaders())
-			Features.push_back("ft:shaders");
+		core::vector<core::string> features;
+		if (has_so_opengl())
+			features.push_back("so:opengl");
+		if (has_so_openal())
+			features.push_back("so:openal");
+		if (has_so_openssl())
+			features.push_back("so:openssl");
+		if (has_so_sdl2())
+			features.push_back("so:sdl2");
+		if (has_so_glew())
+			features.push_back("so:glew");
+		if (has_so_spirv())
+			features.push_back("so:spirv");
+		if (has_so_zlib())
+			features.push_back("so:zlib");
+		if (has_so_assimp())
+			features.push_back("so:assimp");
+		if (has_so_mongoc())
+			features.push_back("so:mongoc");
+		if (has_so_postgresql())
+			features.push_back("so:pq");
+		if (has_so_sqlite())
+			features.push_back("so:sqlite");
+		if (has_so_freetype())
+			features.push_back("so:freetype");
+		if (has_md_angelscript())
+			features.push_back("md:angelscript");
+		if (has_md_backwardcpp())
+			features.push_back("md:backward-cpp");
+		if (has_md_rmlui())
+			features.push_back("md:rmlui");
+		if (has_md_bullet3())
+			features.push_back("md:bullet3");
+		if (has_md_tinyfiledialogs())
+			features.push_back("md:tinyfiledialogs");
+		if (has_md_wepoll())
+			features.push_back("md:wepoll");
+		if (has_md_stb())
+			features.push_back("md:stb");
+		if (has_md_pugixml())
+			features.push_back("md:pugixml");
+		if (has_md_rapidjson())
+			features.push_back("md:rapidjson");
+		if (has_md_vectorclass())
+			features.push_back("md:vectorclass");
+		if (has_ft_fcontext())
+			features.push_back("ft:fcontext");
+		if (has_ft_allocator())
+			features.push_back("ft:allocator");
+		if (has_ft_pessimistic())
+			features.push_back("ft:pessimistic");
+		if (has_ft_bindings())
+			features.push_back("ft:bindings");
+		if (has_ft_shaders())
+			features.push_back("ft:shaders");
 
-		Core::StringStream Result;
-		Result << "library: " << MAJOR_VERSION << "." << MINOR_VERSION << "." << PATCH_VERSION << "." << BUILD_VERSION << " / " << VERSION << "\n";
-		Result << "  platform: " << GetPlatform() << " / " << GetBuild() << "\n";
-		Result << "  compiler: " << GetCompiler() << "\n";
-        Result << "configuration:" << "\n";
-        
-		for (size_t i = 0; i < Features.size(); i++)
-			Result << "  " << Features[i] << "\n";
+		core::string_stream result;
+		result << "library: " << major_version << "." << minor_version << "." << patch_version << "." << build_version << " / " << version << "\n";
+		result << "  platform: " << get_platform() << " / " << get_build() << "\n";
+		result << "  compiler: " << get_compiler() << "\n";
+		result << "configuration:" << "\n";
 
-		return Result.str();
+		for (size_t i = 0; i < features.size(); i++)
+			result << "  " << features[i] << "\n";
+
+		return result.str();
 	}
-	HeavyRuntime* HeavyRuntime::Get() noexcept
+	heavy_runtime* heavy_runtime::get() noexcept
 	{
-		return (HeavyRuntime*)Runtime::Get();
+		return (heavy_runtime*)runtime::get();
 	}
 }

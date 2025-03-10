@@ -10,37 +10,37 @@ Texture2D DepthBuffer : register(t3);
 Texture2D SurfaceBuffer : register(t4);
 SamplerState Sampler : register(s1);
 
-bool IsInPixelGrid(float2 TexCoord)
+bool IsInPixelGrid(float2 Texcoord)
 {
-	return TexCoord.x >= 0.0 && TexCoord.x <= 1.0 && TexCoord.y >= 0.0 && TexCoord.y <= 1.0;
+	return Texcoord.x >= 0.0 && Texcoord.x <= 1.0 && Texcoord.y >= 0.0 && Texcoord.y <= 1.0;
 }
 float Linearize(float Depth)
 {
 	return vb_Near * vb_Far / (vb_Far + Depth * (vb_Near - vb_Far));
 }
-float GetDepth(float2 TexCoord)
+float GetDepth(float2 Texcoord)
 {
-	return DepthBuffer.SampleLevel(Sampler, TexCoord, 0).x;
+	return DepthBuffer.SampleLevel(Sampler, Texcoord, 0).x;
 }
-float3 GetNormal(float2 TexCoord)
+float3 GetNormal(float2 Texcoord)
 {
-	return NormalBuffer.SampleLevel(Sampler, TexCoord, 0).xyz;
+	return NormalBuffer.SampleLevel(Sampler, Texcoord, 0).xyz;
 }
-float4 GetDiffuse(float2 TexCoord, float Level)
+float4 GetDiffuse(float2 Texcoord, float Level)
 {
-	return DiffuseBuffer.SampleLevel(Sampler, TexCoord, Level);
+	return DiffuseBuffer.SampleLevel(Sampler, Texcoord, Level);
 }
-float4 GetDiffuseSample(float2 TexCoord)
+float4 GetDiffuseSample(float2 Texcoord)
 {
-	return DiffuseBuffer.Sample(Sampler, TexCoord);
+	return DiffuseBuffer.Sample(Sampler, Texcoord);
 }
-Fragment GetFragment(float2 TexCoord)
+Fragment GetFragment(float2 Texcoord)
 {
-	float4 C0 = DiffuseBuffer.SampleLevel(Sampler, TexCoord, 0);
-	float4 C1 = NormalBuffer.SampleLevel(Sampler, TexCoord, 0);
-	float4 C2 = DepthBuffer.SampleLevel(Sampler, TexCoord, 0);
-	float4 C3 = SurfaceBuffer.SampleLevel(Sampler, TexCoord, 0);
-	float3 Position = GetPosition(TexCoord, C2.x);
+	float4 C0 = DiffuseBuffer.SampleLevel(Sampler, Texcoord, 0);
+	float4 C1 = NormalBuffer.SampleLevel(Sampler, Texcoord, 0);
+	float4 C2 = DepthBuffer.SampleLevel(Sampler, Texcoord, 0);
+	float4 C3 = SurfaceBuffer.SampleLevel(Sampler, Texcoord, 0);
+	float3 Position = GetPosition(Texcoord, C2.x);
 
 	Fragment Result;
 	Result.Position = Position;

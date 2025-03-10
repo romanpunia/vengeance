@@ -1,367 +1,364 @@
 #include "../gui.h"
 #ifdef VI_RMLUI
-#include <RmlUi/Core.h>
-#include <Source/Core/TransformState.h>
+#include <RmlUi/core.h>
+#include <source/core/TransformState.h>
 
-namespace Vitex
+namespace vitex
 {
-	namespace Layer
+	namespace layer
 	{
-		namespace GUI
+		namespace gui
 		{
-			static class BoxShadowInstancer* IBoxShadow = nullptr;
-			static class BoxBlurInstancer* IBoxBlur = nullptr;
+			static class box_shadow_instancer* ibox_shadow = nullptr;
+			static class box_blur_instancer* ibox_blur = nullptr;
 
-			class DecoratorUtils
+			class decorator_utils
 			{
 			public:
-				static void SetWorldViewProjection(RenderConstants* Constants, Rml::Element* Element, const Rml::Vector2f& Position, const Rml::Vector2f& Size, const Trigonometry::Vector2& Mul = 1.0f)
+				static void set_world_view_projection(render_constants* constants, Rml::Element* element, const Rml::Vector2f& position, const Rml::Vector2f& size, const trigonometry::vector2& mul = 1.0f)
 				{
-					VI_ASSERT(Constants != nullptr, "graphics device should be set");
-					VI_ASSERT(Element != nullptr, "element should be set");
+					VI_ASSERT(constants != nullptr, "graphics device should be set");
+					VI_ASSERT(element != nullptr, "element should be set");
 
-					Trigonometry::Vector3 Scale(Size.x / 2.0f, Size.y / 2.0f);
-					Trigonometry::Vector3 Offset(Position.x + Scale.X, Position.y + Scale.Y);
-					Trigonometry::Matrix4x4& Ortho = *Subsystem::Get()->GetProjection();
+					trigonometry::vector3 scale(size.x / 2.0f, size.y / 2.0f);
+					trigonometry::vector3 offset(position.x + scale.x, position.y + scale.y);
+					trigonometry::matrix4x4& ortho = *subsystem::get()->get_projection();
 
-					const Rml::TransformState* State = Element->GetTransformState();
-					if (State != nullptr && State->GetTransform() != nullptr)
+					const Rml::TransformState* state = element->GetTransformState();
+					if (state != nullptr && state->GetTransform() != nullptr)
 					{
-						Trigonometry::Matrix4x4 View = Utils::ToMatrix(State->GetTransform());
-						Constants->Render.Transform = Trigonometry::Matrix4x4::CreateTranslatedScale(Offset, Scale + Mul) * View * Ortho;
-						Constants->Render.World = (Trigonometry::Matrix4x4::CreateTranslation(Trigonometry::Vector2(Position.x, Position.y)) * View * Ortho).Inv();
+						trigonometry::matrix4x4 view = utils::to_matrix(state->GetTransform());
+						constants->render.transform = trigonometry::matrix4x4::create_translated_scale(offset, scale + mul) * view * ortho;
+						constants->render.world = (trigonometry::matrix4x4::create_translation(trigonometry::vector2(position.x, position.y)) * view * ortho).inv();
 					}
 					else
 					{
-						Constants->Render.Transform = Trigonometry::Matrix4x4::CreateTranslatedScale(Offset, Scale + Mul) * Ortho;
-						Constants->Render.World = (Trigonometry::Matrix4x4::CreateTranslation(Trigonometry::Vector2(Position.x, Position.y)) * Ortho).Inv();
+						constants->render.transform = trigonometry::matrix4x4::create_translated_scale(offset, scale + mul) * ortho;
+						constants->render.world = (trigonometry::matrix4x4::create_translation(trigonometry::vector2(position.x, position.y)) * ortho).inv();
 					}
 				}
 			};
 
-			class BoxShadowInstancer final : public Rml::DecoratorInstancer
+			class box_shadow_instancer final : public Rml::DecoratorInstancer
 			{
 			public:
-				struct RenderConstant
+				struct render_constant
 				{
-					Trigonometry::Vector4 Color;
-					Trigonometry::Vector4 Radius;
-					Trigonometry::Vector2 Size;
-					Trigonometry::Vector2 Position;
-					Trigonometry::Vector2 Offset;
-					float Softness = 0.0f;
-					float Padding = 0.0f;
-				} RenderPass;
+					trigonometry::vector4 color;
+					trigonometry::vector4 radius;
+					trigonometry::vector2 size;
+					trigonometry::vector2 position;
+					trigonometry::vector2 offset;
+					float softness = 0.0f;
+					float padding = 0.0f;
+				} render_pass;
 
 				struct
 				{
-					uint32_t Object = (uint32_t)-1;
-					uint32_t Constant = (uint32_t)-1;
-				} Slots;
+					uint32_t object_buffer = (uint32_t)-1;
+					uint32_t ui_buffer = (uint32_t)-1;
+				} slots;
 
 			public:
-				Rml::PropertyId Color;
-				Rml::PropertyId OffsetX;
-				Rml::PropertyId OffsetY;
-				Rml::PropertyId Softness;
+				Rml::PropertyId color;
+				Rml::PropertyId offset_x;
+				Rml::PropertyId offset_y;
+				Rml::PropertyId softness;
 
 			public:
-				Graphics::ElementBuffer* VertexBuffer;
-				Graphics::Shader* Shader;
-				Graphics::GraphicsDevice* Device;
-				RenderConstants* Constants;
+				graphics::element_buffer* vertex_buffer;
+				graphics::shader* shader;
+				graphics::graphics_device* device;
+				render_constants* constants;
 
 			public:
-				BoxShadowInstancer(RenderConstants* NewConstants);
-				virtual ~BoxShadowInstancer() override;
-				Rml::SharedPtr<Rml::Decorator> InstanceDecorator(const Rml::String& Name, const Rml::PropertyDictionary& Props, const Rml::DecoratorInstancerInterface& Interface) override;
+				box_shadow_instancer(render_constants* new_constants);
+				virtual ~box_shadow_instancer() override;
+				Rml::SharedPtr<Rml::Decorator> InstanceDecorator(const Rml::String& name, const Rml::PropertyDictionary& props, const Rml::DecoratorInstancerInterface& interfacef) override;
 			};
 
-			class BoxBlurInstancer final : public Rml::DecoratorInstancer
+			class box_blur_instancer final : public Rml::DecoratorInstancer
 			{
 			public:
-				struct RenderConstant
+				struct render_constant
 				{
-					Trigonometry::Vector4 Color;
-					Trigonometry::Vector4 Radius;
-					Trigonometry::Vector2 Texel;
-					Trigonometry::Vector2 Size;
-					Trigonometry::Vector2 Position;
-					float Softness = 0.0f;
-					float Alpha = 1.0f;
-				} RenderPass;
+					trigonometry::vector4 color;
+					trigonometry::vector4 radius;
+					trigonometry::vector2 texel;
+					trigonometry::vector2 size;
+					trigonometry::vector2 position;
+					float softness = 0.0f;
+					float alpha = 1.0f;
+				} render_pass;
 
 				struct
 				{
-					uint32_t DiffuseMap = (uint32_t)-1;
-					uint32_t Sampler = (uint32_t)-1;
-					uint32_t Object = (uint32_t)-1;
-					uint32_t Constant = (uint32_t)-1;
-				} Slots;
+					uint32_t diffuse_map = (uint32_t)-1;
+					uint32_t object_buffer = (uint32_t)-1;
+					uint32_t ui_buffer = (uint32_t)-1;
+				} slots;
 
 			public:
-				Rml::PropertyId Color;
-				Rml::PropertyId Softness;
+				Rml::PropertyId color;
+				Rml::PropertyId softness;
 
 			public:
-				Graphics::Texture2D* Background;
-				Graphics::ElementBuffer* VertexBuffer;
-				Graphics::SamplerState* Sampler;
-				Graphics::Shader* Shader;
-				Graphics::GraphicsDevice* Device;
-				RenderConstants* Constants;
+				graphics::texture_2d* background;
+				graphics::element_buffer* vertex_buffer;
+				graphics::sampler_state* sampler;
+				graphics::shader* shader;
+				graphics::graphics_device* device;
+				render_constants* constants;
 
 			public:
-				BoxBlurInstancer(RenderConstants* NewConstants);
-				virtual ~BoxBlurInstancer() override;
-				Rml::SharedPtr<Rml::Decorator> InstanceDecorator(const Rml::String& Name, const Rml::PropertyDictionary& Props, const Rml::DecoratorInstancerInterface& Interface) override;
+				box_blur_instancer(render_constants* new_constants);
+				virtual ~box_blur_instancer() override;
+				Rml::SharedPtr<Rml::Decorator> InstanceDecorator(const Rml::String& name, const Rml::PropertyDictionary& props, const Rml::DecoratorInstancerInterface& interfacef) override;
 			};
 
-			class BoxShadow final : public Rml::Decorator
+			class box_shadow final : public Rml::Decorator
 			{
 			private:
-				Trigonometry::Vector4 Color;
-				Trigonometry::Vector2 Offset;
-				float Softness;
+				trigonometry::vector4 color;
+				trigonometry::vector2 offset;
+				float softness;
 
 			public:
-				BoxShadow(const Trigonometry::Vector4& NewColor, const Trigonometry::Vector2& NewOffset, float NewSoftness) : Color(NewColor.Div(255.0f)), Offset(NewOffset), Softness(NewSoftness)
+				box_shadow(const trigonometry::vector4& new_color, const trigonometry::vector2& new_offset, float new_softness) : color(new_color.div(255.0f)), offset(new_offset), softness(new_softness)
 				{
 				}
-				virtual ~BoxShadow() = default;
-				Rml::DecoratorDataHandle GenerateElementData(Rml::Element* Element, Rml::BoxArea PaintArea) const override
+				virtual ~box_shadow() = default;
+				Rml::DecoratorDataHandle GenerateElementData(Rml::Element* element, Rml::BoxArea paint_area) const override
 				{
 					return 1;
 				}
-				void ReleaseElementData(Rml::DecoratorDataHandle ElementData) const override
+				void ReleaseElementData(Rml::DecoratorDataHandle element_data) const override
 				{
 				}
-				void RenderElement(Rml::Element* Element, Rml::DecoratorDataHandle ElementData) const override
+				void RenderElement(Rml::Element* element, Rml::DecoratorDataHandle element_data) const override
 				{
-					VI_ASSERT(Element != nullptr, "element should be set");
-					Rml::Vector2f Position = Element->GetAbsoluteOffset(Rml::BoxArea::Padding).Round();
-					Rml::Vector2f Size = Element->GetBox().GetSize(Rml::BoxArea::Padding).Round();
-					float Alpha = Element->GetProperty<float>("opacity");
-					float Radius = Softness * 0.85f;
+					VI_ASSERT(element != nullptr, "element should be set");
+					Rml::Vector2f position = element->GetAbsoluteOffset(Rml::BoxArea::Padding).Round();
+					Rml::Vector2f size = element->GetBox().GetSize(Rml::BoxArea::Padding).Round();
+					float alpha = element->GetProperty<float>("opacity");
+					float radius = softness * 0.85f;
 
-					Graphics::GraphicsDevice* Device = IBoxShadow->Device;
-					IBoxShadow->RenderPass.Position = Trigonometry::Vector2(Position.x, Position.y);
-					IBoxShadow->RenderPass.Size = Trigonometry::Vector2(Size.x, Size.y);
-					IBoxShadow->RenderPass.Color = Color;
-					IBoxShadow->RenderPass.Color.W *= Alpha;
-					IBoxShadow->RenderPass.Offset = Offset;
-					IBoxShadow->RenderPass.Softness = Softness;
-					IBoxShadow->RenderPass.Radius.X = Element->GetProperty<float>("border-bottom-left-radius");
-					IBoxShadow->RenderPass.Radius.Y = Element->GetProperty<float>("border-bottom-right-radius");
-					IBoxShadow->RenderPass.Radius.Z = Element->GetProperty<float>("border-top-right-radius");
-					IBoxShadow->RenderPass.Radius.W = Element->GetProperty<float>("border-top-left-radius");
+					graphics::graphics_device* device = ibox_shadow->device;
+					ibox_shadow->render_pass.position = trigonometry::vector2(position.x, position.y);
+					ibox_shadow->render_pass.size = trigonometry::vector2(size.x, size.y);
+					ibox_shadow->render_pass.color = color;
+					ibox_shadow->render_pass.color.w *= alpha;
+					ibox_shadow->render_pass.offset = offset;
+					ibox_shadow->render_pass.softness = softness;
+					ibox_shadow->render_pass.radius.x = element->GetProperty<float>("border-bottom-left-radius");
+					ibox_shadow->render_pass.radius.y = element->GetProperty<float>("border-bottom-right-radius");
+					ibox_shadow->render_pass.radius.z = element->GetProperty<float>("border-top-right-radius");
+					ibox_shadow->render_pass.radius.w = element->GetProperty<float>("border-top-left-radius");
 
-					RenderConstants* Constants = IBoxShadow->Constants;
-					DecoratorUtils::SetWorldViewProjection(Constants, Element, Position, Size, Offset.Abs() + Radius + 4096.0f);
-					Constants->SetUpdatedConstantBuffer(RenderBufferType::Render, IBoxShadow->Slots.Object, VI_VS | VI_PS);
-					Device->SetShader(IBoxShadow->Shader, VI_VS | VI_PS);
-					Device->SetBuffer(IBoxShadow->Shader, IBoxShadow->Slots.Constant, VI_PS);
-					Device->SetVertexBuffer(IBoxShadow->VertexBuffer);
-					Device->UpdateBuffer(IBoxShadow->Shader, &IBoxShadow->RenderPass);
-					Device->Draw((unsigned int)IBoxShadow->VertexBuffer->GetElements(), 0);
+					render_constants* constants = ibox_shadow->constants;
+					decorator_utils::set_world_view_projection(constants, element, position, size, offset.abs() + radius + 4096.0f);
+					constants->set_updated_constant_buffer(render_buffer_type::render, ibox_shadow->slots.object_buffer, VI_VS | VI_PS);
+					device->set_shader(ibox_shadow->shader, VI_VS | VI_PS);
+					device->set_buffer(ibox_shadow->shader, ibox_shadow->slots.ui_buffer, VI_PS);
+					device->set_vertex_buffer(ibox_shadow->vertex_buffer);
+					device->update_buffer(ibox_shadow->shader, &ibox_shadow->render_pass);
+					device->draw((unsigned int)ibox_shadow->vertex_buffer->get_elements(), 0);
 				}
 			};
 
-			class BoxBlur final : public Rml::Decorator
+			class box_blur final : public Rml::Decorator
 			{
 			private:
-				Trigonometry::Vector4 Color;
-				float Softness;
+				trigonometry::vector4 color;
+				float softness;
 
 			public:
-				BoxBlur(const Trigonometry::Vector4& NewColor, float NewSoftness) : Color(NewColor.Div(255)), Softness(NewSoftness)
+				box_blur(const trigonometry::vector4& new_color, float new_softness) : color(new_color.div(255)), softness(new_softness)
 				{
 				}
-				virtual ~BoxBlur() = default;
-				Rml::DecoratorDataHandle GenerateElementData(Rml::Element* Element, Rml::BoxArea PaintArea) const override
+				virtual ~box_blur() = default;
+				Rml::DecoratorDataHandle GenerateElementData(Rml::Element* element, Rml::BoxArea paint_area) const override
 				{
 					return 1;
 				}
-				void ReleaseElementData(Rml::DecoratorDataHandle ElementData) const override
+				void ReleaseElementData(Rml::DecoratorDataHandle element_data) const override
 				{
 				}
-				void RenderElement(Rml::Element* Element, Rml::DecoratorDataHandle ElementData) const override
+				void RenderElement(Rml::Element* element, Rml::DecoratorDataHandle element_data) const override
 				{
-					VI_ASSERT(Element != nullptr, "element should be set");
-					Graphics::Texture2D* Background = Subsystem::Get()->GetBackground();
-					if (!Background)
+					VI_ASSERT(element != nullptr, "element should be set");
+					graphics::texture_2d* background = subsystem::get()->get_background();
+					if (!background)
 						return;
 
-					Rml::Vector2i Screen = Element->GetContext()->GetDimensions();
-					Rml::Vector2f Position = Element->GetAbsoluteOffset(Rml::BoxArea::Padding).Round();
-					Rml::Vector2f Size = Element->GetBox().GetSize(Rml::BoxArea::Padding).Round();
-					float Alpha = Element->GetProperty<float>("opacity");
+					Rml::Vector2i screen = element->GetContext()->GetDimensions();
+					Rml::Vector2f position = element->GetAbsoluteOffset(Rml::BoxArea::Padding).Round();
+					Rml::Vector2f size = element->GetBox().GetSize(Rml::BoxArea::Padding).Round();
+					float alpha = element->GetProperty<float>("opacity");
 
-					Graphics::GraphicsDevice* Device = IBoxBlur->Device;
-					IBoxBlur->RenderPass.Color = Color;
-					IBoxBlur->RenderPass.Texel = Trigonometry::Vector2((float)Screen.x, (float)Screen.y);
-					IBoxBlur->RenderPass.Position = Trigonometry::Vector2(Position.x, Position.y);
-					IBoxBlur->RenderPass.Size = Trigonometry::Vector2(Size.x, Size.y);
-					IBoxBlur->RenderPass.Softness = Softness;
-					IBoxBlur->RenderPass.Alpha = Alpha;
-					IBoxBlur->RenderPass.Radius.X = Element->GetProperty<float>("border-bottom-left-radius");
-					IBoxBlur->RenderPass.Radius.Y = Element->GetProperty<float>("border-bottom-right-radius");
-					IBoxBlur->RenderPass.Radius.Z = Element->GetProperty<float>("border-top-right-radius");
-					IBoxBlur->RenderPass.Radius.W = Element->GetProperty<float>("border-top-left-radius");
+					graphics::graphics_device* device = ibox_blur->device;
+					ibox_blur->render_pass.color = color;
+					ibox_blur->render_pass.texel = trigonometry::vector2((float)screen.x, (float)screen.y);
+					ibox_blur->render_pass.position = trigonometry::vector2(position.x, position.y);
+					ibox_blur->render_pass.size = trigonometry::vector2(size.x, size.y);
+					ibox_blur->render_pass.softness = softness;
+					ibox_blur->render_pass.alpha = alpha;
+					ibox_blur->render_pass.radius.x = element->GetProperty<float>("border-bottom-left-radius");
+					ibox_blur->render_pass.radius.y = element->GetProperty<float>("border-bottom-right-radius");
+					ibox_blur->render_pass.radius.z = element->GetProperty<float>("border-top-right-radius");
+					ibox_blur->render_pass.radius.w = element->GetProperty<float>("border-top-left-radius");
 
-					RenderConstants* Constants = IBoxBlur->Constants;
-					DecoratorUtils::SetWorldViewProjection(Constants, Element, Position, Size);
-					Constants->SetUpdatedConstantBuffer(RenderBufferType::Render, IBoxBlur->Slots.Object, VI_VS | VI_PS);
-					Device->CopyTexture2D(Background, &IBoxBlur->Background);
-					Device->SetTexture2D(IBoxBlur->Background, IBoxBlur->Slots.DiffuseMap, VI_PS);
-					Device->SetSamplerState(IBoxBlur->Sampler, IBoxBlur->Slots.Sampler, 1, VI_PS);
-					Device->SetShader(IBoxBlur->Shader, VI_VS | VI_PS);
-					Device->SetBuffer(IBoxBlur->Shader, IBoxBlur->Slots.Constant, VI_PS);
-					Device->SetVertexBuffer(IBoxBlur->VertexBuffer);
-					Device->UpdateBuffer(IBoxBlur->Shader, &IBoxBlur->RenderPass);
-					Device->Draw((unsigned int)IBoxBlur->VertexBuffer->GetElements(), 0);
+					render_constants* constants = ibox_blur->constants;
+					decorator_utils::set_world_view_projection(constants, element, position, size);
+					constants->set_updated_constant_buffer(render_buffer_type::render, ibox_blur->slots.object_buffer, VI_VS | VI_PS);
+					device->copy_texture_2d(background, &ibox_blur->background);
+					device->set_texture_2d(ibox_blur->background, ibox_blur->slots.diffuse_map, VI_PS);
+					device->set_shader(ibox_blur->shader, VI_VS | VI_PS);
+					device->set_buffer(ibox_blur->shader, ibox_blur->slots.ui_buffer, VI_PS);
+					device->set_vertex_buffer(ibox_blur->vertex_buffer);
+					device->update_buffer(ibox_blur->shader, &ibox_blur->render_pass);
+					device->draw((unsigned int)ibox_blur->vertex_buffer->get_elements(), 0);
 				}
 			};
 
-			BoxShadowInstancer::BoxShadowInstancer(RenderConstants* NewConstants) : Shader(nullptr), Device(nullptr), Constants(NewConstants)
+			box_shadow_instancer::box_shadow_instancer(render_constants* new_constants) : shader(nullptr), device(nullptr), constants(new_constants)
 			{
-				VI_ASSERT(Constants != nullptr, "render constants should be set");
-				VI_ASSERT(Constants->GetDevice() != nullptr, "graphics device should be set");
-				Device = Constants->GetDevice();
+				VI_ASSERT(constants != nullptr, "render constants should be set");
+				VI_ASSERT(constants->get_device() != nullptr, "graphics device should be set");
+				device = constants->get_device();
 
-				Graphics::Shader::Desc I = Graphics::Shader::Desc();
-				if (Device->GetSectionData("materials/material_ui_box_shadow", &I))
+				graphics::shader::desc i = graphics::shader::desc();
+				if (device->get_section_data("materials/material_ui_box_shadow", &i))
 				{
-					Shader = *Device->CreateShader(I);
-					Slots.Object = *Device->GetShaderSlot(Shader, "Object");
-					Slots.Constant = *Device->GetShaderSlot(Shader, "RenderConstant");
-					Device->UpdateBufferSize(Shader, sizeof(RenderPass));
+					shader = *device->create_shader(i);
+					slots.object_buffer = *device->get_shader_slot(shader, "ObjectBuffer");
+					slots.ui_buffer = *device->get_shader_slot(shader, "UiBuffer");
+					device->update_buffer_size(shader, sizeof(render_pass));
 				}
 
-				Rml::Vertex Elements[6];
-				Elements[0] = { Rml::Vector2f(-1.0f, -1.0f), Rml::ColourbPremultiplied(0, 0, 0, 0), Rml::Vector2f(-1, 0) };
-				Elements[1] = { Rml::Vector2f(-1.0f, 1.0f), Rml::ColourbPremultiplied(0, 0, 0, 0), Rml::Vector2f(-1, 1) };
-				Elements[2] = { Rml::Vector2f(1.0f, 1.0f), Rml::ColourbPremultiplied(0, 0, 0, 0), Rml::Vector2f(0, 1) };
-				Elements[3] = { Rml::Vector2f(-1.0f, -1.0f), Rml::ColourbPremultiplied(0, 0, 0, 0), Rml::Vector2f(-1, 0) };
-				Elements[4] = { Rml::Vector2f(1.0f, 1.0f), Rml::ColourbPremultiplied(0, 0, 0, 0), Rml::Vector2f(0, 1) };
-				Elements[5] = { Rml::Vector2f(1.0f, -1.0f), Rml::ColourbPremultiplied(0, 0, 0, 0), Rml::Vector2f(0, 0) };
+				Rml::Vertex elements[6];
+				elements[0] = { Rml::Vector2f(-1.0f, -1.0f), Rml::ColourbPremultiplied(0, 0, 0, 0), Rml::Vector2f(-1, 0) };
+				elements[1] = { Rml::Vector2f(-1.0f, 1.0f), Rml::ColourbPremultiplied(0, 0, 0, 0), Rml::Vector2f(-1, 1) };
+				elements[2] = { Rml::Vector2f(1.0f, 1.0f), Rml::ColourbPremultiplied(0, 0, 0, 0), Rml::Vector2f(0, 1) };
+				elements[3] = { Rml::Vector2f(-1.0f, -1.0f), Rml::ColourbPremultiplied(0, 0, 0, 0), Rml::Vector2f(-1, 0) };
+				elements[4] = { Rml::Vector2f(1.0f, 1.0f), Rml::ColourbPremultiplied(0, 0, 0, 0), Rml::Vector2f(0, 1) };
+				elements[5] = { Rml::Vector2f(1.0f, -1.0f), Rml::ColourbPremultiplied(0, 0, 0, 0), Rml::Vector2f(0, 0) };
 
-				Graphics::ElementBuffer::Desc F = Graphics::ElementBuffer::Desc();
-				F.AccessFlags = Graphics::CPUAccess::None;
-				F.Usage = Graphics::ResourceUsage::Default;
-				F.BindFlags = Graphics::ResourceBind::Vertex_Buffer;
-				F.ElementCount = 6;
-				F.ElementWidth = sizeof(Rml::Vertex);
-				F.Elements = &Elements[0];
+				graphics::element_buffer::desc f = graphics::element_buffer::desc();
+				f.access_flags = graphics::cpu_access::none;
+				f.usage = graphics::resource_usage::defaults;
+				f.bind_flags = graphics::resource_bind::vertex_buffer;
+				f.element_count = 6;
+				f.element_width = sizeof(Rml::Vertex);
+				f.elements = &elements[0];
 
-				VertexBuffer = *Device->CreateElementBuffer(F);
-				Color = RegisterProperty("color", "#000").AddParser("color").GetId();
-				Softness = RegisterProperty("softness", "60").AddParser("number").GetId();
-				OffsetX = RegisterProperty("x", "0").AddParser("number").GetId();
-				OffsetY = RegisterProperty("y", "10").AddParser("number").GetId();
+				vertex_buffer = *device->create_element_buffer(f);
+				color = RegisterProperty("color", "#000").AddParser("color").GetId();
+				softness = RegisterProperty("softness", "60").AddParser("number").GetId();
+				offset_x = RegisterProperty("x", "0").AddParser("number").GetId();
+				offset_y = RegisterProperty("y", "10").AddParser("number").GetId();
 				RegisterShorthand("decorator", "x, y, softness, color", Rml::ShorthandType::FallThrough);
 			}
-			BoxShadowInstancer::~BoxShadowInstancer()
+			box_shadow_instancer::~box_shadow_instancer()
 			{
-				Core::Memory::Release(Shader);
-				Core::Memory::Release(VertexBuffer);
+				core::memory::release(shader);
+				core::memory::release(vertex_buffer);
 			}
-			Rml::SharedPtr<Rml::Decorator> BoxShadowInstancer::InstanceDecorator(const Rml::String& Name, const Rml::PropertyDictionary& Props, const Rml::DecoratorInstancerInterface& Interface)
+			Rml::SharedPtr<Rml::Decorator> box_shadow_instancer::InstanceDecorator(const Rml::String& name, const Rml::PropertyDictionary& props, const Rml::DecoratorInstancerInterface& interfacef)
 			{
-				const Rml::Property* SColor = Props.GetProperty(Color);
-				const Rml::Property* SSoftness = Props.GetProperty(Softness);
-				const Rml::Property* SOffsetX = Props.GetProperty(OffsetX);
-				const Rml::Property* SOffsetY = Props.GetProperty(OffsetY);
+				const Rml::Property* scolor = props.GetProperty(color);
+				const Rml::Property* ssoftness = props.GetProperty(softness);
+				const Rml::Property* soffset_x = props.GetProperty(offset_x);
+				const Rml::Property* soffset_y = props.GetProperty(offset_y);
 
-				Rml::Colourb IColor = SColor->Get<Rml::Colourb>();
-				float ISoftness = SSoftness->Get<float>();
-				float IOffsetX = SOffsetX->Get<float>();
-				float IOffsetY = SOffsetY->Get<float>();
+				Rml::Colourb icolor = scolor->Get<Rml::Colourb>();
+				float isoftness = ssoftness->Get<float>();
+				float ioffset_x = soffset_x->Get<float>();
+				float ioffset_y = soffset_y->Get<float>();
 
-				return Rml::MakeShared<BoxShadow>(
-					Trigonometry::Vector4(IColor.red, IColor.green, IColor.blue, IColor.alpha),
-					Trigonometry::Vector2(IOffsetX, IOffsetY), ISoftness);
+				return Rml::MakeShared<box_shadow>(
+					trigonometry::vector4(icolor.red, icolor.green, icolor.blue, icolor.alpha),
+					trigonometry::vector2(ioffset_x, ioffset_y), isoftness);
 			}
 
-			BoxBlurInstancer::BoxBlurInstancer(RenderConstants* NewConstants) : Background(nullptr), Shader(nullptr), Device(nullptr), Constants(NewConstants)
+			box_blur_instancer::box_blur_instancer(render_constants* new_constants) : background(nullptr), shader(nullptr), device(nullptr), constants(new_constants)
 			{
-				VI_ASSERT(Constants != nullptr, "render constants should be set");
-				VI_ASSERT(Constants->GetDevice() != nullptr, "graphics device should be set");
-				Device = Constants->GetDevice();
+				VI_ASSERT(constants != nullptr, "render constants should be set");
+				VI_ASSERT(constants->get_device() != nullptr, "graphics device should be set");
+				device = constants->get_device();
 
-				Graphics::Shader::Desc I = Graphics::Shader::Desc();
-				if (Device->GetSectionData("materials/material_ui_box_blur", &I))
+				graphics::shader::desc i = graphics::shader::desc();
+				if (device->get_section_data("materials/material_ui_box_blur", &i))
 				{
-					Shader = *Device->CreateShader(I);
-					Slots.DiffuseMap = *Device->GetShaderSlot(Shader, "DiffuseMap");
-					Slots.Sampler = *Device->GetShaderSamplerSlot(Shader, "DiffuseMap", "Sampler");
-					Slots.Object = *Device->GetShaderSlot(Shader, "Object");
-					Slots.Constant = *Device->GetShaderSlot(Shader, "RenderConstant");
-					Device->UpdateBufferSize(Shader, sizeof(RenderPass));
+					shader = *device->create_shader(i);
+					slots.diffuse_map = *device->get_shader_slot(shader, "DiffuseMap");
+					slots.object_buffer = *device->get_shader_slot(shader, "ObjectBuffer");
+					slots.ui_buffer = *device->get_shader_slot(shader, "UiBuffer");
+					device->update_buffer_size(shader, sizeof(render_pass));
 				}
 
-				Rml::Vertex Elements[6];
-				Elements[0] = { Rml::Vector2f(-1.0f, -1.0f), Rml::ColourbPremultiplied(0, 0, 0, 0), Rml::Vector2f(-1, 0) };
-				Elements[1] = { Rml::Vector2f(-1.0f, 1.0f), Rml::ColourbPremultiplied(0, 0, 0, 0), Rml::Vector2f(-1, 1) };
-				Elements[2] = { Rml::Vector2f(1.0f, 1.0f), Rml::ColourbPremultiplied(0, 0, 0, 0), Rml::Vector2f(0, 1) };
-				Elements[3] = { Rml::Vector2f(-1.0f, -1.0f), Rml::ColourbPremultiplied(0, 0, 0, 0), Rml::Vector2f(-1, 0) };
-				Elements[4] = { Rml::Vector2f(1.0f, 1.0f), Rml::ColourbPremultiplied(0, 0, 0, 0), Rml::Vector2f(0, 1) };
-				Elements[5] = { Rml::Vector2f(1.0f, -1.0f), Rml::ColourbPremultiplied(0, 0, 0, 0), Rml::Vector2f(0, 0) };
+				Rml::Vertex elements[6];
+				elements[0] = { Rml::Vector2f(-1.0f, -1.0f), Rml::ColourbPremultiplied(0, 0, 0, 0), Rml::Vector2f(-1, 0) };
+				elements[1] = { Rml::Vector2f(-1.0f, 1.0f), Rml::ColourbPremultiplied(0, 0, 0, 0), Rml::Vector2f(-1, 1) };
+				elements[2] = { Rml::Vector2f(1.0f, 1.0f), Rml::ColourbPremultiplied(0, 0, 0, 0), Rml::Vector2f(0, 1) };
+				elements[3] = { Rml::Vector2f(-1.0f, -1.0f), Rml::ColourbPremultiplied(0, 0, 0, 0), Rml::Vector2f(-1, 0) };
+				elements[4] = { Rml::Vector2f(1.0f, 1.0f), Rml::ColourbPremultiplied(0, 0, 0, 0), Rml::Vector2f(0, 1) };
+				elements[5] = { Rml::Vector2f(1.0f, -1.0f), Rml::ColourbPremultiplied(0, 0, 0, 0), Rml::Vector2f(0, 0) };
 
-				Graphics::ElementBuffer::Desc F = Graphics::ElementBuffer::Desc();
-				F.AccessFlags = Graphics::CPUAccess::None;
-				F.Usage = Graphics::ResourceUsage::Default;
-				F.BindFlags = Graphics::ResourceBind::Vertex_Buffer;
-				F.ElementCount = 6;
-				F.ElementWidth = sizeof(Rml::Vertex);
-				F.Elements = &Elements[0];
+				graphics::element_buffer::desc f = graphics::element_buffer::desc();
+				f.access_flags = graphics::cpu_access::none;
+				f.usage = graphics::resource_usage::defaults;
+				f.bind_flags = graphics::resource_bind::vertex_buffer;
+				f.element_count = 6;
+				f.element_width = sizeof(Rml::Vertex);
+				f.elements = &elements[0];
 
-				VertexBuffer = *Device->CreateElementBuffer(F);
-				Sampler = Device->GetSamplerState("a16_fa_wrap");
-				Color = RegisterProperty("color", "#fff").AddParser("color").GetId();
-				Softness = RegisterProperty("softness", "8").AddParser("number").GetId();
+				vertex_buffer = *device->create_element_buffer(f);
+				sampler = device->get_sampler_state("a16_fa_wrap");
+				color = RegisterProperty("color", "#fff").AddParser("color").GetId();
+				softness = RegisterProperty("softness", "8").AddParser("number").GetId();
 				RegisterShorthand("decorator", "softness, color", Rml::ShorthandType::FallThrough);
 			}
-			BoxBlurInstancer::~BoxBlurInstancer()
+			box_blur_instancer::~box_blur_instancer()
 			{
-				Core::Memory::Release(Shader);
-				Core::Memory::Release(VertexBuffer);
-				Core::Memory::Release(Background);
+				core::memory::release(shader);
+				core::memory::release(vertex_buffer);
+				core::memory::release(background);
 			}
-			Rml::SharedPtr<Rml::Decorator> BoxBlurInstancer::InstanceDecorator(const Rml::String& Name, const Rml::PropertyDictionary& Props, const Rml::DecoratorInstancerInterface& Interface)
+			Rml::SharedPtr<Rml::Decorator> box_blur_instancer::InstanceDecorator(const Rml::String& name, const Rml::PropertyDictionary& props, const Rml::DecoratorInstancerInterface& interfacef)
 			{
-				const Rml::Property* SColor = Props.GetProperty(Color);
-				const Rml::Property* SSoftness = Props.GetProperty(Softness);
+				const Rml::Property* scolor = props.GetProperty(color);
+				const Rml::Property* ssoftness = props.GetProperty(softness);
 
-				Rml::Colourb IColor = SColor->Get<Rml::Colourb>();
-				float ISoftness = SSoftness->Get<float>();
+				Rml::Colourb icolor = scolor->Get<Rml::Colourb>();
+				float isoftness = ssoftness->Get<float>();
 
-				return Rml::MakeShared<BoxBlur>(Trigonometry::Vector4(IColor.red, IColor.green, IColor.blue, IColor.alpha), ISoftness);
+				return Rml::MakeShared<box_blur>(trigonometry::vector4(icolor.red, icolor.green, icolor.blue, icolor.alpha), isoftness);
 			}
 
-			void Subsystem::ResizeDecorators(int Width, int Height) noexcept
+			void subsystem::resize_decorators(int width, int height) noexcept
 			{
-				if (IBoxBlur != nullptr)
-					Core::Memory::Release(IBoxBlur->Background);
+				if (ibox_blur != nullptr)
+					core::memory::release(ibox_blur->background);
 			}
-			void Subsystem::CreateDecorators(RenderConstants* Constants) noexcept
+			void subsystem::create_decorators(render_constants* constants) noexcept
 			{
-				VI_ASSERT(Constants != nullptr, "render constants should be set");
-				ReleaseDecorators();
+				VI_ASSERT(constants != nullptr, "render constants should be set");
+				release_decorators();
 
-				IBoxShadow = Core::Memory::New<BoxShadowInstancer>(Constants);
-				Rml::Factory::RegisterDecoratorInstancer("box-shadow", IBoxShadow);
+				ibox_shadow = core::memory::init<box_shadow_instancer>(constants);
+				Rml::Factory::RegisterDecoratorInstancer("box-shadow", ibox_shadow);
 
-				IBoxBlur = Core::Memory::New<BoxBlurInstancer>(Constants);
-				Rml::Factory::RegisterDecoratorInstancer("box-blur", IBoxBlur);
+				ibox_blur = core::memory::init<box_blur_instancer>(constants);
+				Rml::Factory::RegisterDecoratorInstancer("box-blur", ibox_blur);
 			}
-			void Subsystem::ReleaseDecorators() noexcept
+			void subsystem::release_decorators() noexcept
 			{
-				Core::Memory::Delete(IBoxShadow);
-				IBoxShadow = nullptr;
+				core::memory::deinit(ibox_shadow);
+				ibox_shadow = nullptr;
 
-				Core::Memory::Delete(IBoxBlur);
-				IBoxBlur = nullptr;
+				core::memory::deinit(ibox_blur);
+				ibox_blur = nullptr;
 			}
 		}
 	}

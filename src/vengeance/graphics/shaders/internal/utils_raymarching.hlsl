@@ -5,14 +5,14 @@ float Rayprefix(float3 Eye, float3 Direction)
 {
 	return 1.0 - smoothstep(0.1, 0.75, dot(-Eye, Direction));
 }
-float Raypostfix(float2 TexCoord, float3 Direction)
+float Raypostfix(float2 Texcoord, float3 Direction)
 {
-	float2 Size = smoothstep(0.1, 0.2, TexCoord) * (1.0 - smoothstep(0.9, 1.0, TexCoord));
-	return Size.x * Size.y * smoothstep(-0.05, 0.0, dot(GetNormal(TexCoord), -Direction));
+	float2 Size = smoothstep(0.1, 0.2, Texcoord) * (1.0 - smoothstep(0.9, 1.0, Texcoord));
+	return Size.x * Size.y * smoothstep(-0.05, 0.0, dot(GetNormal(Texcoord), -Direction));
 }
-float Rayreduce(float3 Position, float3 TexCoord, float Power)
+float Rayreduce(float3 Position, float3 Texcoord, float Power)
 {
-	float Size = length(GetPosition(TexCoord.xy, TexCoord.z) - Position) * Power;
+	float Size = length(GetPosition(Texcoord.xy, Texcoord.z) - Position) * Power;
 	return 1.0 / (1.0 + 6.0 * Size * Size);
 }
 float3 Raysearch(float3 Ray1, float3 Ray2)

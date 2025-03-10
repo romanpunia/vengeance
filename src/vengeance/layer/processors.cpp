@@ -4,7 +4,7 @@
 #include <vitex/network/http.h>
 #ifdef VI_OPENAL
 #ifdef VI_AL_AT_OPENAL
-#include <OpenAL/al.h>
+#include <open_al/al.h>
 #else
 #include <AL/al.h>
 #endif
@@ -28,1641 +28,1637 @@ extern "C"
 }
 #endif
 
-namespace Vitex
+namespace vitex
 {
-	namespace Layer
+	namespace layer
 	{
-		namespace Processors
+		namespace processors
 		{
 #ifdef VI_ASSIMP
-			Trigonometry::Matrix4x4 FromAssimpMatrix(const aiMatrix4x4& Root)
+			trigonometry::matrix4x4 from_assimp_matrix(const aiMatrix4x4& root)
 			{
-				return Trigonometry::Matrix4x4(
-					Root.a1, Root.a2, Root.a3, Root.a4,
-					Root.b1, Root.b2, Root.b3, Root.b4,
-					Root.c1, Root.c2, Root.c3, Root.c4,
-					Root.d1, Root.d2, Root.d3, Root.d4).Transpose();
+				return trigonometry::matrix4x4(
+					root.a1, root.a2, root.a3, root.a4,
+					root.b1, root.b2, root.b3, root.b4,
+					root.c1, root.c2, root.c3, root.c4,
+					root.d1, root.d2, root.d3, root.d4).transpose();
 			}
-			Core::String GetMeshName(const std::string_view& Name, ModelInfo* Info)
+			core::string get_mesh_name(const std::string_view& name, model_info* info)
 			{
-				if (Name.empty())
+				if (name.empty())
 				{
-					auto Random = Compute::Crypto::RandomBytes(8);
-					if (!Random)
+					auto random = compute::crypto::random_bytes(8);
+					if (!random)
 						return "NULL";
 
-					auto Hash = Compute::Crypto::HashHex(Compute::Digests::MD5(), *Random);
-					if (!Hash)
+					auto hash = compute::crypto::hash_hex(compute::digests::MD5(), *random);
+					if (!hash)
 						return "NULL";
 
-					return Hash->substr(0, 8);
+					return hash->substr(0, 8);
 				}
 
-				Core::String Result = Core::String(Name);
-				for (auto&& Data : Info->Meshes)
+				core::string result = core::string(name);
+				for (auto&& data : info->meshes)
 				{
-					if (Data.Name == Result)
-						Result += '_';
+					if (data.name == result)
+						result += '_';
 				}
 
-				return Result;
+				return result;
 			}
-			Core::String GetJointName(const std::string_view& BaseName, ModelInfo* Info, MeshBlob* Blob)
+			core::string get_joint_name(const std::string_view& base_name, model_info* info, mesh_blob* blob)
 			{
-				if (!BaseName.empty())
-					return Core::String(BaseName);
+				if (!base_name.empty())
+					return core::string(base_name);
 
-				Core::String Name = Core::String(BaseName) + '?';
-				while (Info->JointOffsets.find(Name) != Info->JointOffsets.end())
-					Name += '?';
+				core::string name = core::string(base_name) + '?';
+				while (info->joint_offsets.find(name) != info->joint_offsets.end())
+					name += '?';
 
-				return Name;
+				return name;
 			}
-			bool GetKeyFromTime(Core::Vector<Trigonometry::AnimatorKey>& Keys, float Time, Trigonometry::AnimatorKey& Result)
+			bool get_key_from_time(core::vector<trigonometry::animator_key>& keys, float time, trigonometry::animator_key& result)
 			{
-				for (auto& Key : Keys)
+				for (auto& key : keys)
 				{
-					if (Key.Time == Time)
+					if (key.time == time)
 					{
-						Result = Key;
+						result = key;
 						return true;
 					}
-					
-					if (Key.Time < Time)
-						Result = Key;
+
+					if (key.time < time)
+						result = key;
 				}
 
 				return false;
 			}
-			void UpdateSceneBounds(ModelInfo* Info)
+			void update_scene_bounds(model_info* info)
 			{
-				if (Info->Min.X < Info->Low)
-					Info->Low = Info->Min.X;
+				if (info->min.x < info->low)
+					info->low = info->min.x;
 
-				if (Info->Min.Y < Info->Low)
-					Info->Low = Info->Min.Y;
+				if (info->min.y < info->low)
+					info->low = info->min.y;
 
-				if (Info->Min.Z < Info->Low)
-					Info->Low = Info->Min.Z;
+				if (info->min.z < info->low)
+					info->low = info->min.z;
 
-				if (Info->Max.X > Info->High)
-					Info->High = Info->Max.X;
+				if (info->max.x > info->high)
+					info->high = info->max.x;
 
-				if (Info->Max.Y > Info->High)
-					Info->High = Info->Max.Y;
+				if (info->max.y > info->high)
+					info->high = info->max.y;
 
-				if (Info->Max.Z > Info->High)
-					Info->High = Info->Max.Z;
+				if (info->max.z > info->high)
+					info->high = info->max.z;
 			}
-			void UpdateSceneBounds(ModelInfo* Info, const Trigonometry::SkinVertex& Element)
+			void update_scene_bounds(model_info* info, const trigonometry::skin_vertex& element)
 			{
-				if (Element.PositionX > Info->Max.X)
-					Info->Max.X = Element.PositionX;
-				else if (Element.PositionX < Info->Min.X)
-					Info->Min.X = Element.PositionX;
+				if (element.position_x > info->max.x)
+					info->max.x = element.position_x;
+				else if (element.position_x < info->min.x)
+					info->min.x = element.position_x;
 
-				if (Element.PositionY > Info->Max.Y)
-					Info->Max.Y = Element.PositionY;
-				else if (Element.PositionY < Info->Min.Y)
-					Info->Min.Y = Element.PositionY;
+				if (element.position_y > info->max.y)
+					info->max.y = element.position_y;
+				else if (element.position_y < info->min.y)
+					info->min.y = element.position_y;
 
-				if (Element.PositionZ > Info->Max.Z)
-					Info->Max.Z = Element.PositionZ;
-				else if (Element.PositionZ < Info->Min.Z)
-					Info->Min.Z = Element.PositionZ;
+				if (element.position_z > info->max.z)
+					info->max.z = element.position_z;
+				else if (element.position_z < info->min.z)
+					info->min.z = element.position_z;
 			}
-			bool FillSceneSkeleton(ModelInfo* Info, aiNode* Node, Trigonometry::Joint* Top)
+			bool fill_scene_skeleton(model_info* info, aiNode* node, trigonometry::joint* top)
 			{
-				Core::String Name = Node->mName.C_Str();
-				auto It = Info->JointOffsets.find(Name);
-				if (It == Info->JointOffsets.end())
+				core::string name = node->mName.C_Str();
+				auto it = info->joint_offsets.find(name);
+				if (it == info->joint_offsets.end())
 				{
-					if (Top != nullptr)
+					if (top != nullptr)
 					{
-						auto& Global = Info->JointOffsets[Name];
-						Global.Index = Info->GlobalIndex++;
-						Global.Linking = true;
+						auto& global = info->joint_offsets[name];
+						global.index = info->global_index++;
+						global.linking = true;
 
-						It = Info->JointOffsets.find(Name);
-						goto AddLinkingJoint;
+						it = info->joint_offsets.find(name);
+						goto add_linking_joint;
 					}
 
-					for (uint32_t i = 0; i < Node->mNumChildren; i++)
+					for (uint32_t i = 0; i < node->mNumChildren; i++)
 					{
-						auto& Next = Node->mChildren[i];
-						if (FillSceneSkeleton(Info, Next, Top))
+						auto& next = node->mChildren[i];
+						if (fill_scene_skeleton(info, next, top))
 							return true;
 					}
 
 					return false;
 				}
 
-				if (Top != nullptr)
+				if (top != nullptr)
 				{
-				AddLinkingJoint:
-					Top->Childs.emplace_back();
-					auto& Next = Top->Childs.back();
-					Top = &Next;
+				add_linking_joint:
+					top->childs.emplace_back();
+					auto& next = top->childs.back();
+					top = &next;
 				}
 				else
-					Top = &Info->Skeleton;
+					top = &info->skeleton;
 
-				Top->Global = FromAssimpMatrix(Node->mTransformation);
-				Top->Local = It->second.Local;
-				Top->Index = It->second.Index;
-				Top->Name = Name;
+				top->global = from_assimp_matrix(node->mTransformation);
+				top->local = it->second.local;
+				top->index = it->second.index;
+				top->name = name;
 
-				for (uint32_t i = 0; i < Node->mNumChildren; i++)
+				for (uint32_t i = 0; i < node->mNumChildren; i++)
 				{
-					auto& Next = Node->mChildren[i];
-					FillSceneSkeleton(Info, Next, Top);
+					auto& next = node->mChildren[i];
+					fill_scene_skeleton(info, next, top);
 				}
 
 				return true;
 			}
-			void FillSceneGeometry(ModelInfo* Info, MeshBlob* Blob, aiMesh* Mesh)
+			void fill_scene_geometry(model_info* info, mesh_blob* blob, aiMesh* mesh)
 			{
-				Blob->Vertices.reserve((size_t)Mesh->mNumVertices);
-				for (uint32_t v = 0; v < Mesh->mNumVertices; v++)
+				blob->vertices.reserve((size_t)mesh->mNumVertices);
+				for (uint32_t v = 0; v < mesh->mNumVertices; v++)
 				{
-					auto& Vertex = Mesh->mVertices[v];
-					Trigonometry::SkinVertex Next = { Vertex.x, Vertex.y, Vertex.z, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1, -1, -1, -1, 0, 0, 0, 0 };
-					UpdateSceneBounds(Info, Next);
+					auto& vertex = mesh->mVertices[v];
+					trigonometry::skin_vertex next = { vertex.x, vertex.y, vertex.z, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1, -1, -1, -1, 0, 0, 0, 0 };
+					update_scene_bounds(info, next);
 
-					if (Mesh->HasNormals())
+					if (mesh->HasNormals())
 					{
-						auto& Normal = Mesh->mNormals[v];
-						Next.NormalX = Normal.x;
-						Next.NormalY = Normal.y;
-						Next.NormalZ = Normal.z;
+						auto& normal = mesh->mNormals[v];
+						next.normal_x = normal.x;
+						next.normal_y = normal.y;
+						next.normal_z = normal.z;
 					}
 
-					if (Mesh->HasTextureCoords(0))
+					if (mesh->HasTextureCoords(0))
 					{
-						auto& TexCoord = Mesh->mTextureCoords[0][v];
-						Next.TexCoordX = TexCoord.x;
-						Next.TexCoordY = -TexCoord.y;
+						auto& texcoord = mesh->mTextureCoords[0][v];
+						next.texcoord_x = texcoord.x;
+						next.texcoord_y = -texcoord.y;
 					}
 
-					if (Mesh->HasTangentsAndBitangents())
+					if (mesh->HasTangentsAndBitangents())
 					{
-						auto& Tangent = Mesh->mTangents[v];
-						Next.TangentX = Tangent.x;
-						Next.TangentY = Tangent.y;
-						Next.TangentZ = Tangent.z;
+						auto& tangent = mesh->mTangents[v];
+						next.tangent_x = tangent.x;
+						next.tangent_y = tangent.y;
+						next.tangent_z = tangent.z;
 
-						auto& Bitangent = Mesh->mBitangents[v];
-						Next.BitangentX = Bitangent.x;
-						Next.BitangentY = Bitangent.y;
-						Next.BitangentZ = Bitangent.z;
+						auto& bitangent = mesh->mBitangents[v];
+						next.bitangent_x = bitangent.x;
+						next.bitangent_y = bitangent.y;
+						next.bitangent_z = bitangent.z;
 					}
 
-					Blob->Vertices.push_back(Next);
+					blob->vertices.push_back(next);
 				}
 
-				for (uint32_t f = 0; f < Mesh->mNumFaces; f++)
+				for (uint32_t f = 0; f < mesh->mNumFaces; f++)
 				{
-					auto* Face = &Mesh->mFaces[f];
-					Blob->Indices.reserve(Blob->Indices.size() + (size_t)Face->mNumIndices);
-					for (uint32_t i = 0; i < Face->mNumIndices; i++)
-						Blob->Indices.push_back(Face->mIndices[i]);
+					auto* face = &mesh->mFaces[f];
+					blob->indices.reserve(blob->indices.size() + (size_t)face->mNumIndices);
+					for (uint32_t i = 0; i < face->mNumIndices; i++)
+						blob->indices.push_back(face->mIndices[i]);
 				}
 			}
-			void FillSceneJoints(ModelInfo* Info, MeshBlob* Blob, aiMesh* Mesh)
+			void fill_scene_joints(model_info* info, mesh_blob* blob, aiMesh* mesh)
 			{
-				for (uint32_t i = 0; i < Mesh->mNumBones; i++)
+				for (uint32_t i = 0; i < mesh->mNumBones; i++)
 				{
-					auto& Bone = Mesh->mBones[i];
-					auto Name = GetJointName(Bone->mName.C_Str(), Info, Blob);
+					auto& bone = mesh->mBones[i];
+					auto name = get_joint_name(bone->mName.C_Str(), info, blob);
 
-					auto Global = Info->JointOffsets.find(Name);
-					if (Global == Info->JointOffsets.end())
+					auto global = info->joint_offsets.find(name);
+					if (global == info->joint_offsets.end())
 					{
-						auto& Next = Info->JointOffsets[Name];
-						Next.Local = FromAssimpMatrix(Bone->mOffsetMatrix);
-						Next.Index = Info->GlobalIndex++;
-						Next.Linking = false;
-						Global = Info->JointOffsets.find(Name);
+						auto& next = info->joint_offsets[name];
+						next.local = from_assimp_matrix(bone->mOffsetMatrix);
+						next.index = info->global_index++;
+						next.linking = false;
+						global = info->joint_offsets.find(name);
 					}
 
-					auto& Local = Blob->JointIndices[Global->second.Index];
-					Local = Blob->LocalIndex++;
+					auto& local = blob->joint_indices[global->second.index];
+					local = blob->local_index++;
 
-					for (uint32_t j = 0; j < Bone->mNumWeights; j++)
+					for (uint32_t j = 0; j < bone->mNumWeights; j++)
 					{
-						auto& Weight = Bone->mWeights[j];
-						auto& Vertex = Blob->Vertices[Weight.mVertexId];
-						if (Vertex.JointIndex0 == -1.0f)
+						auto& weight = bone->mWeights[j];
+						auto& vertex = blob->vertices[weight.mVertexId];
+						if (vertex.joint_index0 == -1.0f)
 						{
-							Vertex.JointIndex0 = (float)Local;
-							Vertex.JointBias0 = Weight.mWeight;
+							vertex.joint_index0 = (float)local;
+							vertex.joint_bias0 = weight.mWeight;
 						}
-						else if (Vertex.JointIndex1 == -1.0f)
+						else if (vertex.joint_index1 == -1.0f)
 						{
-							Vertex.JointIndex1 = (float)Local;
-							Vertex.JointBias1 = Weight.mWeight;
+							vertex.joint_index1 = (float)local;
+							vertex.joint_bias1 = weight.mWeight;
 						}
-						else if (Vertex.JointIndex2 == -1.0f)
+						else if (vertex.joint_index2 == -1.0f)
 						{
-							Vertex.JointIndex2 = (float)Local;
-							Vertex.JointBias2 = Weight.mWeight;
+							vertex.joint_index2 = (float)local;
+							vertex.joint_bias2 = weight.mWeight;
 						}
-						else if (Vertex.JointIndex3 == -1.0f)
+						else if (vertex.joint_index3 == -1.0f)
 						{
-							Vertex.JointIndex3 = (float)Local;
-							Vertex.JointBias3 = Weight.mWeight;
+							vertex.joint_index3 = (float)local;
+							vertex.joint_bias3 = weight.mWeight;
 						}
 					}
 				}
 			}
-			void FillSceneGeometries(ModelInfo* Info, const aiScene* Scene, aiNode* Node, const aiMatrix4x4& ParentTransform)
+			void fill_scene_geometries(model_info* info, const aiScene* scene, aiNode* node, const aiMatrix4x4& parent_transform)
 			{
-				Info->Meshes.reserve(Info->Meshes.size() + (size_t)Node->mNumMeshes);
-				if (Node == Scene->mRootNode)
-					Info->Transform = FromAssimpMatrix(Scene->mRootNode->mTransformation).Inv();
+				info->meshes.reserve(info->meshes.size() + (size_t)node->mNumMeshes);
+				if (node == scene->mRootNode)
+					info->transform = from_assimp_matrix(scene->mRootNode->mTransformation).inv();
 
-				for (uint32_t n = 0; n < Node->mNumMeshes; n++)
+				for (uint32_t n = 0; n < node->mNumMeshes; n++)
 				{
-					Info->Meshes.emplace_back();
-					MeshBlob& Blob = Info->Meshes.back();
-					auto& Geometry = Scene->mMeshes[Node->mMeshes[n]];
-					Blob.Name = GetMeshName(Geometry->mName.C_Str(), Info);
-					Blob.Transform = FromAssimpMatrix(ParentTransform);
+					info->meshes.emplace_back();
+					mesh_blob& blob = info->meshes.back();
+					auto& geometry = scene->mMeshes[node->mMeshes[n]];
+					blob.name = get_mesh_name(geometry->mName.C_Str(), info);
+					blob.transform = from_assimp_matrix(parent_transform);
 
-					FillSceneGeometry(Info, &Blob, Geometry);
-					FillSceneJoints(Info, &Blob, Geometry);
-					UpdateSceneBounds(Info);
+					fill_scene_geometry(info, &blob, geometry);
+					fill_scene_joints(info, &blob, geometry);
+					update_scene_bounds(info);
 				}
 
-				for (uint32_t n = 0; n < Node->mNumChildren; n++)
+				for (uint32_t n = 0; n < node->mNumChildren; n++)
 				{
-					auto& Next = Node->mChildren[n];
-					FillSceneGeometries(Info, Scene, Next, ParentTransform);
+					auto& next = node->mChildren[n];
+					fill_scene_geometries(info, scene, next, parent_transform);
 				}
 			}
-			void FillSceneSkeletons(ModelInfo* Info, const aiScene* Scene)
+			void fill_scene_skeletons(model_info* info, const aiScene* scene)
 			{
-				FillSceneSkeleton(Info, Scene->mRootNode, nullptr);
-				for (auto& Blob : Info->Meshes)
+				fill_scene_skeleton(info, scene->mRootNode, nullptr);
+				for (auto& blob : info->meshes)
 				{
-					for (auto& Vertex : Blob.Vertices)
+					for (auto& vertex : blob.vertices)
 					{
-						float Weight = 0.0f;
-						if (Vertex.JointBias0 > 0.0f)
-							Weight += Vertex.JointBias0;
-						if (Vertex.JointBias1 > 0.0f)
-							Weight += Vertex.JointBias1;
-						if (Vertex.JointBias2 > 0.0f)
-							Weight += Vertex.JointBias2;
-						if (Vertex.JointBias3 > 0.0f)
-							Weight += Vertex.JointBias3;
+						float weight = 0.0f;
+						if (vertex.joint_bias0 > 0.0f)
+							weight += vertex.joint_bias0;
+						if (vertex.joint_bias1 > 0.0f)
+							weight += vertex.joint_bias1;
+						if (vertex.joint_bias2 > 0.0f)
+							weight += vertex.joint_bias2;
+						if (vertex.joint_bias3 > 0.0f)
+							weight += vertex.joint_bias3;
 
-						if (!Weight)
+						if (!weight)
 							continue;
 
-						if (Vertex.JointBias0 > 0.0f)
-							Vertex.JointBias0 /= Weight;
-						if (Vertex.JointBias1 > 0.0f)
-							Vertex.JointBias1 /= Weight;
-						if (Vertex.JointBias2 > 0.0f)
-							Vertex.JointBias2 /= Weight;
-						if (Vertex.JointBias3 > 0.0f)
-							Vertex.JointBias3 /= Weight;
+						if (vertex.joint_bias0 > 0.0f)
+							vertex.joint_bias0 /= weight;
+						if (vertex.joint_bias1 > 0.0f)
+							vertex.joint_bias1 /= weight;
+						if (vertex.joint_bias2 > 0.0f)
+							vertex.joint_bias2 /= weight;
+						if (vertex.joint_bias3 > 0.0f)
+							vertex.joint_bias3 /= weight;
 					}
 				}
 			}
-			void FillSceneChannel(aiNodeAnim* Channel, ModelChannel& Target)
+			void fill_scene_channel(aiNodeAnim* channel, model_channel& target)
 			{
-				Target.Positions.reserve((size_t)Channel->mNumPositionKeys);
-				for (uint32_t k = 0; k < Channel->mNumPositionKeys; k++)
+				target.positions.reserve((size_t)channel->mNumPositionKeys);
+				for (uint32_t k = 0; k < channel->mNumPositionKeys; k++)
 				{
-					aiVectorKey& Key = Channel->mPositionKeys[k];
-					Target.Positions[Key.mTime] = Trigonometry::Vector3(Key.mValue.x, Key.mValue.y, Key.mValue.z);
+					aiVectorKey& key = channel->mPositionKeys[k];
+					target.positions[key.mTime] = trigonometry::vector3(key.mValue.x, key.mValue.y, key.mValue.z);
 				}
 
-				Target.Scales.reserve((size_t)Channel->mNumScalingKeys);
-				for (uint32_t k = 0; k < Channel->mNumScalingKeys; k++)
+				target.scales.reserve((size_t)channel->mNumScalingKeys);
+				for (uint32_t k = 0; k < channel->mNumScalingKeys; k++)
 				{
-					aiVectorKey& Key = Channel->mScalingKeys[k];
-					Target.Scales[Key.mTime] = Trigonometry::Vector3(Key.mValue.x, Key.mValue.y, Key.mValue.z);
+					aiVectorKey& key = channel->mScalingKeys[k];
+					target.scales[key.mTime] = trigonometry::vector3(key.mValue.x, key.mValue.y, key.mValue.z);
 				}
 
-				Target.Rotations.reserve((size_t)Channel->mNumRotationKeys);
-				for (uint32_t k = 0; k < Channel->mNumRotationKeys; k++)
+				target.rotations.reserve((size_t)channel->mNumRotationKeys);
+				for (uint32_t k = 0; k < channel->mNumRotationKeys; k++)
 				{
-					aiQuatKey& Key = Channel->mRotationKeys[k];
-					Target.Rotations[Key.mTime] = Trigonometry::Quaternion(Key.mValue.x, Key.mValue.y, Key.mValue.z, Key.mValue.w);
+					aiQuatKey& key = channel->mRotationKeys[k];
+					target.rotations[key.mTime] = trigonometry::quaternion(key.mValue.x, key.mValue.y, key.mValue.z, key.mValue.w);
 				}
 			}
-			void FillSceneTimeline(const Core::UnorderedSet<float>& Timings, Core::Vector<float>& Timeline)
+			void fill_scene_timeline(const core::unordered_set<float>& timings, core::vector<float>& timeline)
 			{
-				Timeline.reserve(Timings.size());
-				for (auto& Time : Timings)
-					Timeline.push_back(Time);
+				timeline.reserve(timings.size());
+				for (auto& time : timings)
+					timeline.push_back(time);
 
-				VI_SORT(Timeline.begin(), Timeline.end(), [](float A, float B)
+				VI_SORT(timeline.begin(), timeline.end(), [](float a, float b)
 				{
-					return A < B;
+					return a < b;
 				});
 			}
-			void FillSceneKeys(ModelChannel& Info, Core::Vector<Trigonometry::AnimatorKey>& Keys)
+			void fill_scene_keys(model_channel& info, core::vector<trigonometry::animator_key>& keys)
 			{
-				Core::UnorderedSet<float> Timings;
-				Timings.reserve(Keys.size());
+				core::unordered_set<float> timings;
+				timings.reserve(keys.size());
 
-				float FirstPosition = std::numeric_limits<float>::max();
-				for (auto& Item : Info.Positions)
+				float first_position = std::numeric_limits<float>::max();
+				for (auto& item : info.positions)
 				{
-					Timings.insert(Item.first);
-					if (Item.first < FirstPosition)
-						FirstPosition = Item.first;
+					timings.insert(item.first);
+					if (item.first < first_position)
+						first_position = item.first;
 				}
 
-				float FirstScale = std::numeric_limits<float>::max();
-				for (auto& Item : Info.Scales)
+				float first_scale = std::numeric_limits<float>::max();
+				for (auto& item : info.scales)
 				{
-					Timings.insert(Item.first);
-					if (Item.first < FirstScale)
-						FirstScale = Item.first;
+					timings.insert(item.first);
+					if (item.first < first_scale)
+						first_scale = item.first;
 				}
 
-				float FirstRotation = std::numeric_limits<float>::max();
-				for (auto& Item : Info.Rotations)
+				float first_rotation = std::numeric_limits<float>::max();
+				for (auto& item : info.rotations)
 				{
-					Timings.insert(Item.first);
-					if (Item.first < FirstRotation)
-						FirstRotation = Item.first;
+					timings.insert(item.first);
+					if (item.first < first_rotation)
+						first_rotation = item.first;
 				}
 
-				Core::Vector<float> Timeline;
-				Trigonometry::Vector3 LastPosition = (Info.Positions.empty() ? Trigonometry::Vector3::Zero() : Info.Positions[FirstPosition]);
-				Trigonometry::Vector3 LastScale = (Info.Scales.empty() ? Trigonometry::Vector3::One() : Info.Scales[FirstScale]);
-				Trigonometry::Quaternion LastRotation = (Info.Rotations.empty() ? Trigonometry::Quaternion() : Info.Rotations[FirstRotation]);
-				FillSceneTimeline(Timings, Timeline);
-				Keys.resize(Timings.size());
+				core::vector<float> timeline;
+				trigonometry::vector3 last_position = (info.positions.empty() ? trigonometry::vector3::zero() : info.positions[first_position]);
+				trigonometry::vector3 last_scale = (info.scales.empty() ? trigonometry::vector3::one() : info.scales[first_scale]);
+				trigonometry::quaternion last_rotation = (info.rotations.empty() ? trigonometry::quaternion() : info.rotations[first_rotation]);
+				fill_scene_timeline(timings, timeline);
+				keys.resize(timings.size());
 
-				size_t Index = 0;
-				for (auto& Time : Timeline)
+				size_t index = 0;
+				for (auto& time : timeline)
 				{
-					auto& Target = Keys[Index++];
-					Target.Position = LastPosition;
-					Target.Scale = LastScale;
-					Target.Rotation = LastRotation;
-					Target.Time = Time;
+					auto& target = keys[index++];
+					target.position = last_position;
+					target.scale = last_scale;
+					target.rotation = last_rotation;
+					target.time = time;
 
-					auto Position = Info.Positions.find(Time);
-					if (Position != Info.Positions.end())
+					auto position = info.positions.find(time);
+					if (position != info.positions.end())
 					{
-						Target.Position = Position->second;
-						LastPosition = Target.Position;
+						target.position = position->second;
+						last_position = target.position;
 					}
 
-					auto Scale = Info.Scales.find(Time);
-					if (Scale != Info.Scales.end())
+					auto scale = info.scales.find(time);
+					if (scale != info.scales.end())
 					{
-						Target.Scale = Scale->second;
-						LastScale = Target.Scale;
+						target.scale = scale->second;
+						last_scale = target.scale;
 					}
 
-					auto Rotation = Info.Rotations.find(Time);
-					if (Rotation != Info.Rotations.end())
+					auto rotation = info.rotations.find(time);
+					if (rotation != info.rotations.end())
 					{
-						Target.Rotation = Rotation->second;
-						LastRotation = Target.Rotation;
+						target.rotation = rotation->second;
+						last_rotation = target.rotation;
 					}
 				}
 			}
-			void FillSceneClip(Trigonometry::SkinAnimatorClip& Clip, Core::UnorderedMap<Core::String, MeshBone>& Indices, Core::UnorderedMap<Core::String, Core::Vector<Trigonometry::AnimatorKey>>& Channels)
+			void fill_scene_clip(trigonometry::skin_animator_clip& clip, core::unordered_map<core::string, mesh_bone>& indices, core::unordered_map<core::string, core::vector<trigonometry::animator_key>>& channels)
 			{
-				Core::UnorderedSet<float> Timings;
-				for (auto& Channel : Channels)
+				core::unordered_set<float> timings;
+				for (auto& channel : channels)
 				{
-					Timings.reserve(Channel.second.size());
-					for (auto& Key : Channel.second)
-						Timings.insert(Key.Time);
+					timings.reserve(channel.second.size());
+					for (auto& key : channel.second)
+						timings.insert(key.time);
 				}
 
-				Core::Vector<float> Timeline;
-				FillSceneTimeline(Timings, Timeline);
+				core::vector<float> timeline;
+				fill_scene_timeline(timings, timeline);
 
-				for (auto& Time : Timeline)
+				for (auto& time : timeline)
 				{
-					Clip.Keys.emplace_back();
-					auto& Key = Clip.Keys.back();
-					Key.Pose.resize(Indices.size());
-					Key.Time = Time;
+					clip.keys.emplace_back();
+					auto& key = clip.keys.back();
+					key.pose.resize(indices.size());
+					key.time = time;
 
-					for (auto& Index : Indices)
+					for (auto& index : indices)
 					{
-						auto& Pose = Key.Pose[Index.second.Index];
-						Pose.Position = Index.second.Default.Position;
-						Pose.Scale = Index.second.Default.Scale;
-						Pose.Rotation = Index.second.Default.Rotation;
-						Pose.Time = Time;
+						auto& pose = key.pose[index.second.index];
+						pose.position = index.second.defaults.position;
+						pose.scale = index.second.defaults.scale;
+						pose.rotation = index.second.defaults.rotation;
+						pose.time = time;
 					}
 
-					for (auto& Channel : Channels)
+					for (auto& channel : channels)
 					{
-						auto Index = Indices.find(Channel.first);
-						if (Index == Indices.end())
+						auto index = indices.find(channel.first);
+						if (index == indices.end())
 							continue;
 
-						auto& Next = Key.Pose[Index->second.Index];
-						if (GetKeyFromTime(Channel.second, Time, Next))
-							Next.Time = Time;
+						auto& next = key.pose[index->second.index];
+						if (get_key_from_time(channel.second, time, next))
+							next.time = time;
 					}
 				}
 			}
-			void FillSceneJointIndices(const aiScene* Scene, aiNode* Node, Core::UnorderedMap<Core::String, MeshBone>& Indices, size_t& Index)
+			void fill_scene_joint_indices(const aiScene* scene, aiNode* node, core::unordered_map<core::string, mesh_bone>& indices, size_t& index)
 			{
-				for (uint32_t n = 0; n < Node->mNumMeshes; n++)
+				for (uint32_t n = 0; n < node->mNumMeshes; n++)
 				{
-					auto& Mesh = Scene->mMeshes[Node->mMeshes[n]];
-					for (uint32_t i = 0; i < Mesh->mNumBones; i++)
+					auto& mesh = scene->mMeshes[node->mMeshes[n]];
+					for (uint32_t i = 0; i < mesh->mNumBones; i++)
 					{
-						auto& Bone = Mesh->mBones[i];
-						auto Joint = Indices.find(Bone->mName.C_Str());
-						if (Joint == Indices.end())
-							Indices[Bone->mName.C_Str()].Index = Index++;
+						auto& bone = mesh->mBones[i];
+						auto joint = indices.find(bone->mName.C_Str());
+						if (joint == indices.end())
+							indices[bone->mName.C_Str()].index = index++;
 					}
 				}
 
-				for (uint32_t n = 0; n < Node->mNumChildren; n++)
+				for (uint32_t n = 0; n < node->mNumChildren; n++)
 				{
-					auto& Next = Node->mChildren[n];
-					FillSceneJointIndices(Scene, Next, Indices, Index);
+					auto& next = node->mChildren[n];
+					fill_scene_joint_indices(scene, next, indices, index);
 				}
 			}
-			bool FillSceneJointDefaults(aiNode* Node, Core::UnorderedMap<Core::String, MeshBone>& Indices, size_t& Index, bool InSkeleton)
+			bool fill_scene_joint_defaults(aiNode* node, core::unordered_map<core::string, mesh_bone>& indices, size_t& index, bool in_skeleton)
 			{
-				Core::String Name = Node->mName.C_Str();
-				auto It = Indices.find(Name);
-				if (It == Indices.end())
+				core::string name = node->mName.C_Str();
+				auto it = indices.find(name);
+				if (it == indices.end())
 				{
-					if (InSkeleton)
+					if (in_skeleton)
 					{
-						auto& Joint = Indices[Name];
-						Joint.Index = Index++;
-						It = Indices.find(Name);
-						goto AddLinkingJoint;
+						auto& joint = indices[name];
+						joint.index = index++;
+						it = indices.find(name);
+						goto add_linking_joint;
 					}
 
-					for (uint32_t i = 0; i < Node->mNumChildren; i++)
+					for (uint32_t i = 0; i < node->mNumChildren; i++)
 					{
-						auto& Next = Node->mChildren[i];
-						if (FillSceneJointDefaults(Next, Indices, Index, InSkeleton))
+						auto& next = node->mChildren[i];
+						if (fill_scene_joint_defaults(next, indices, index, in_skeleton))
 							return true;
 					}
 
 					return false;
 				}
 
-			AddLinkingJoint:
-				auto Offset = FromAssimpMatrix(Node->mTransformation);
-				It->second.Default.Position = Offset.Position();
-				It->second.Default.Scale = Offset.Scale();
-				It->second.Default.Rotation = Offset.RotationQuaternion();
+			add_linking_joint:
+				auto offset = from_assimp_matrix(node->mTransformation);
+				it->second.defaults.position = offset.position();
+				it->second.defaults.scale = offset.scale();
+				it->second.defaults.rotation = offset.rotation_quaternion();
 
-				for (uint32_t i = 0; i < Node->mNumChildren; i++)
+				for (uint32_t i = 0; i < node->mNumChildren; i++)
 				{
-					auto& Next = Node->mChildren[i];
-					FillSceneJointDefaults(Next, Indices, Index, true);
+					auto& next = node->mChildren[i];
+					fill_scene_joint_defaults(next, indices, index, true);
 				}
 
 				return true;
 			}
-			void FillSceneAnimations(Core::Vector<Trigonometry::SkinAnimatorClip>* Info, const aiScene* Scene)
+			void fill_scene_animations(core::vector<trigonometry::skin_animator_clip>* info, const aiScene* scene)
 			{
-				Core::UnorderedMap<Core::String, MeshBone> Indices; size_t Index = 0;
-				FillSceneJointIndices(Scene, Scene->mRootNode, Indices, Index);
-				FillSceneJointDefaults(Scene->mRootNode, Indices, Index, false);
+				core::unordered_map<core::string, mesh_bone> indices; size_t index = 0;
+				fill_scene_joint_indices(scene, scene->mRootNode, indices, index);
+				fill_scene_joint_defaults(scene->mRootNode, indices, index, false);
 
-				Info->reserve((size_t)Scene->mNumAnimations);
-				for (uint32_t i = 0; i < Scene->mNumAnimations; i++)
+				info->reserve((size_t)scene->mNumAnimations);
+				for (uint32_t i = 0; i < scene->mNumAnimations; i++)
 				{
-					aiAnimation* Animation = Scene->mAnimations[i];
-					Info->emplace_back();
+					aiAnimation* animation = scene->mAnimations[i];
+					info->emplace_back();
 
-					auto& Clip = Info->back();
-					Clip.Name = Animation->mName.C_Str();
-					Clip.Duration = (float)Animation->mDuration;
-					Clip.Rate = Compute::Mathf::Max(0.01f, (float)Animation->mTicksPerSecond);
+					auto& clip = info->back();
+					clip.name = animation->mName.C_Str();
+					clip.duration = (float)animation->mDuration;
+					clip.rate = compute::mathf::max(0.01f, (float)animation->mTicksPerSecond);
 
-					Core::UnorderedMap<Core::String, Core::Vector<Trigonometry::AnimatorKey>> Channels;
-					for (uint32_t j = 0; j < Animation->mNumChannels; j++)
+					core::unordered_map<core::string, core::vector<trigonometry::animator_key>> channels;
+					for (uint32_t j = 0; j < animation->mNumChannels; j++)
 					{
-						auto& Channel = Animation->mChannels[j];
-						auto& Frames = Channels[Channel->mNodeName.C_Str()];
+						auto& channel = animation->mChannels[j];
+						auto& frames = channels[channel->mNodeName.C_Str()];
 
-						ModelChannel Target;
-						FillSceneChannel(Channel, Target);
-						FillSceneKeys(Target, Frames);
+						model_channel target;
+						fill_scene_channel(channel, target);
+						fill_scene_keys(target, frames);
 					}
-					FillSceneClip(Clip, Indices, Channels);
+					fill_scene_clip(clip, indices, channels);
 				}
 			}
 #endif
-			Core::Vector<Trigonometry::Vertex> SkinVerticesToVertices(const Core::Vector<Trigonometry::SkinVertex>& Data)
+			core::vector<trigonometry::vertex> skin_vertices_to_vertices(const core::vector<trigonometry::skin_vertex>& data)
 			{
-				Core::Vector<Trigonometry::Vertex> Result;
-				Result.resize(Data.size());
+				core::vector<trigonometry::vertex> result;
+				result.resize(data.size());
 
-				for (size_t i = 0; i < Data.size(); i++)
+				for (size_t i = 0; i < data.size(); i++)
 				{
-					auto& From = Data[i];
-					auto& To = Result[i];
-					To.PositionX = From.PositionX;
-					To.PositionY = From.PositionY;
-					To.PositionZ = From.PositionZ;
-					To.TexCoordX = From.TexCoordX;
-					To.TexCoordY = From.TexCoordY;
-					To.NormalX = From.NormalX;
-					To.NormalY = From.NormalY;
-					To.NormalZ = From.NormalZ;
-					To.TangentX = From.TangentX;
-					To.TangentY = From.TangentY;
-					To.TangentZ = From.TangentZ;
-					To.BitangentX = From.BitangentX;
-					To.BitangentY = From.BitangentY;
-					To.BitangentZ = From.BitangentZ;
+					auto& from = data[i];
+					auto& to = result[i];
+					to.position_x = from.position_x;
+					to.position_y = from.position_y;
+					to.position_z = from.position_z;
+					to.texcoord_x = from.texcoord_x;
+					to.texcoord_y = from.texcoord_y;
+					to.normal_x = from.normal_x;
+					to.normal_y = from.normal_y;
+					to.normal_z = from.normal_z;
+					to.tangent_x = from.tangent_x;
+					to.tangent_y = from.tangent_y;
+					to.tangent_z = from.tangent_z;
+					to.bitangent_x = from.bitangent_x;
+					to.bitangent_y = from.bitangent_y;
+					to.bitangent_z = from.bitangent_z;
 				}
 
-				return Result;
+				return result;
 			}
-			template <typename T>
-			T ProcessRendererJob(Graphics::GraphicsDevice* Device, std::function<T(Graphics::GraphicsDevice*)>&& Callback)
+			template <typename t>
+			t process_renderer_job(graphics::graphics_device* device, std::function<t(graphics::graphics_device*)>&& callback)
 			{
-				Core::Promise<T> Future;
-				Graphics::RenderThreadCallback Job = [Future, Callback = std::move(Callback)](Graphics::GraphicsDevice* Device) mutable
+				core::promise<t> future;
+				graphics::render_thread_callback job = [future, callback = std::move(callback)](graphics::graphics_device* device) mutable
 				{
-					Future.Set(Callback(Device));
+					future.set(callback(device));
 				};
 
-				auto* App = HeavyApplication::HasInstance() ? HeavyApplication::Get() : nullptr;
-				if (!App || App->GetState() != ApplicationState::Active || Device != App->Renderer)
-					Device->Lockup(std::move(Job));
+				auto* app = heavy_application::has_instance() ? heavy_application::get() : nullptr;
+				if (!app || app->get_state() != application_state::active || device != app->renderer)
+					device->lockup(std::move(job));
 				else
-					Device->Enqueue(std::move(Job));
+					device->enqueue(std::move(job));
 
-				return Future.Get();
+				return future.get();
 			}
 
-			MaterialProcessor::MaterialProcessor(ContentManager* Manager) : Processor(Manager)
+			material_processor::material_processor(content_manager* manager) : processor(manager)
 			{
 			}
-			ExpectsContent<void*> MaterialProcessor::Duplicate(AssetCache* Asset, const Core::VariantArgs& Args)
+			expects_content<void*> material_processor::duplicate(asset_cache* asset, const core::variant_args& args)
 			{
-				VI_ASSERT(Asset != nullptr, "asset should be set");
-				VI_ASSERT(Asset->Resource != nullptr, "instance should be set");
+				VI_ASSERT(asset != nullptr, "asset should be set");
+				VI_ASSERT(asset->resource != nullptr, "instance should be set");
 
-				((Layer::Material*)Asset->Resource)->AddRef();
-				return Asset->Resource;
+				((layer::material*)asset->resource)->add_ref();
+				return asset->resource;
 			}
-			ExpectsContent<void*> MaterialProcessor::Deserialize(Core::Stream* Stream, size_t Offset, const Core::VariantArgs& Args)
+			expects_content<void*> material_processor::deserialize(core::stream* stream, size_t offset, const core::variant_args& args)
 			{
-				VI_ASSERT(Stream != nullptr, "stream should be set");
-				auto DataStatus = Content->Load<Core::Schema>(Stream->VirtualName());
-				if (!DataStatus)
-					return DataStatus.Error();
+				VI_ASSERT(stream != nullptr, "stream should be set");
+				auto data_status = content->load<core::schema>(stream->virtual_name());
+				if (!data_status)
+					return data_status.error();
 
-				Core::String Path;
-				Core::UPtr<Core::Schema> Data = *DataStatus;
-				Core::UPtr<Layer::Material> Object = new Layer::Material(nullptr);
-				if (Series::Unpack(Data->Get("diffuse-map"), &Path) && !Path.empty())
+				core::string path;
+				core::uptr<core::schema> data = *data_status;
+				core::uptr<layer::material> object = new layer::material(nullptr);
+				if (series::unpack(data->get("diffuse-map"), &path) && !path.empty())
 				{
-					auto NewTexture = Content->Load<Graphics::Texture2D>(Path);
-					if (!NewTexture)
-						return NewTexture.Error();
+					auto new_texture = content->load<graphics::texture_2d>(path);
+					if (!new_texture)
+						return new_texture.error();
 
-					Object->SetDiffuseMap(*NewTexture);
-					Core::Memory::Release(*NewTexture);
+					object->set_diffuse_map(*new_texture);
+					core::memory::release(*new_texture);
 				}
 
-				if (Series::Unpack(Data->Get("normal-map"), &Path) && !Path.empty())
+				if (series::unpack(data->get("normal-map"), &path) && !path.empty())
 				{
-					auto NewTexture = Content->Load<Graphics::Texture2D>(Path);
-					if (!NewTexture)
-						return NewTexture.Error();
+					auto new_texture = content->load<graphics::texture_2d>(path);
+					if (!new_texture)
+						return new_texture.error();
 
-					Object->SetNormalMap(*NewTexture);
-					Core::Memory::Release(*NewTexture);
+					object->set_normal_map(*new_texture);
+					core::memory::release(*new_texture);
 				}
 
-				if (Series::Unpack(Data->Get("metallic-map"), &Path) && !Path.empty())
+				if (series::unpack(data->get("metallic-map"), &path) && !path.empty())
 				{
-					auto NewTexture = Content->Load<Graphics::Texture2D>(Path);
-					if (!NewTexture)
-						return NewTexture.Error();
+					auto new_texture = content->load<graphics::texture_2d>(path);
+					if (!new_texture)
+						return new_texture.error();
 
-					Object->SetMetallicMap(*NewTexture);
-					Core::Memory::Release(*NewTexture);
+					object->set_metallic_map(*new_texture);
+					core::memory::release(*new_texture);
 				}
 
-				if (Series::Unpack(Data->Get("roughness-map"), &Path) && !Path.empty())
+				if (series::unpack(data->get("roughness-map"), &path) && !path.empty())
 				{
-					auto NewTexture = Content->Load<Graphics::Texture2D>(Path);
-					if (!NewTexture)
-						return NewTexture.Error();
+					auto new_texture = content->load<graphics::texture_2d>(path);
+					if (!new_texture)
+						return new_texture.error();
 
-					Object->SetRoughnessMap(*NewTexture);
-					Core::Memory::Release(*NewTexture);
+					object->set_roughness_map(*new_texture);
+					core::memory::release(*new_texture);
 				}
 
-				if (Series::Unpack(Data->Get("height-map"), &Path) && !Path.empty())
+				if (series::unpack(data->get("height-map"), &path) && !path.empty())
 				{
-					auto NewTexture = Content->Load<Graphics::Texture2D>(Path);
-					if (!NewTexture)
-						return NewTexture.Error();
+					auto new_texture = content->load<graphics::texture_2d>(path);
+					if (!new_texture)
+						return new_texture.error();
 
-					Object->SetHeightMap(*NewTexture);
-					Core::Memory::Release(*NewTexture);
+					object->set_height_map(*new_texture);
+					core::memory::release(*new_texture);
 				}
 
-				if (Series::Unpack(Data->Get("occlusion-map"), &Path) && !Path.empty())
+				if (series::unpack(data->get("occlusion-map"), &path) && !path.empty())
 				{
-					auto NewTexture = Content->Load<Graphics::Texture2D>(Path);
-					if (!NewTexture)
-						return NewTexture.Error();
+					auto new_texture = content->load<graphics::texture_2d>(path);
+					if (!new_texture)
+						return new_texture.error();
 
-					Object->SetOcclusionMap(*NewTexture);
-					Core::Memory::Release(*NewTexture);
+					object->set_occlusion_map(*new_texture);
+					core::memory::release(*new_texture);
 				}
 
-				if (Series::Unpack(Data->Get("emission-map"), &Path) && !Path.empty())
+				if (series::unpack(data->get("emission-map"), &path) && !path.empty())
 				{
-					auto NewTexture = Content->Load<Graphics::Texture2D>(Path);
-					if (!NewTexture)
-						return NewTexture.Error();
+					auto new_texture = content->load<graphics::texture_2d>(path);
+					if (!new_texture)
+						return new_texture.error();
 
-					Object->SetEmissionMap(*NewTexture);
-					Core::Memory::Release(*NewTexture);
+					object->set_emission_map(*new_texture);
+					core::memory::release(*new_texture);
 				}
 
-				Core::String Name;
-				HeavySeries::Unpack(Data->Get("emission"), &Object->Surface.Emission);
-				HeavySeries::Unpack(Data->Get("metallic"), &Object->Surface.Metallic);
-				HeavySeries::Unpack(Data->Get("penetration"), &Object->Surface.Penetration);
-				HeavySeries::Unpack(Data->Get("diffuse"), &Object->Surface.Diffuse);
-				HeavySeries::Unpack(Data->Get("scattering"), &Object->Surface.Scattering);
-				HeavySeries::Unpack(Data->Get("roughness"), &Object->Surface.Roughness);
-				HeavySeries::Unpack(Data->Get("occlusion"), &Object->Surface.Occlusion);
-				Series::Unpack(Data->Get("fresnel"), &Object->Surface.Fresnel);
-				Series::Unpack(Data->Get("refraction"), &Object->Surface.Refraction);
-				Series::Unpack(Data->Get("transparency"), &Object->Surface.Transparency);
-				Series::Unpack(Data->Get("environment"), &Object->Surface.Environment);
-				Series::Unpack(Data->Get("radius"), &Object->Surface.Radius);
-				Series::Unpack(Data->Get("height"), &Object->Surface.Height);
-				Series::Unpack(Data->Get("bias"), &Object->Surface.Bias);
-				Series::Unpack(Data->Get("name"), &Name);
-				Object->SetName(Name);
+				core::string name;
+				heavy_series::unpack(data->get("emission"), &object->surface.emission);
+				heavy_series::unpack(data->get("metallic"), &object->surface.metallic);
+				heavy_series::unpack(data->get("penetration"), &object->surface.penetration);
+				heavy_series::unpack(data->get("diffuse"), &object->surface.diffuse);
+				heavy_series::unpack(data->get("scattering"), &object->surface.scattering);
+				heavy_series::unpack(data->get("roughness"), &object->surface.roughness);
+				heavy_series::unpack(data->get("occlusion"), &object->surface.occlusion);
+				series::unpack(data->get("fresnel"), &object->surface.fresnel);
+				series::unpack(data->get("refraction"), &object->surface.refraction);
+				series::unpack(data->get("transparency"), &object->surface.transparency);
+				series::unpack(data->get("environment"), &object->surface.environment);
+				series::unpack(data->get("radius"), &object->surface.radius);
+				series::unpack(data->get("height"), &object->surface.height);
+				series::unpack(data->get("bias"), &object->surface.bias);
+				series::unpack(data->get("name"), &name);
+				object->set_name(name);
 
-				auto* Existing = (Layer::Material*)Content->TryToCache(this, Stream->VirtualName(), *Object);
-				if (Existing != nullptr)
-					Object = Existing;
+				auto* existing = (layer::material*)content->try_to_cache(this, stream->virtual_name(), *object);
+				if (existing != nullptr)
+					object = existing;
 
-				Object->AddRef();
-				return Object.Reset();
+				object->add_ref();
+				return object.reset();
 			}
-			ExpectsContent<void> MaterialProcessor::Serialize(Core::Stream* Stream, void* Instance, const Core::VariantArgs& Args)
+			expects_content<void> material_processor::serialize(core::stream* stream, void* instance, const core::variant_args& args)
 			{
-				VI_ASSERT(Stream != nullptr, "stream should be set");
-				VI_ASSERT(Instance != nullptr, "instance should be set");
+				VI_ASSERT(stream != nullptr, "stream should be set");
+				VI_ASSERT(instance != nullptr, "instance should be set");
 
-				Layer::Material* Object = (Layer::Material*)Instance;
-				Core::UPtr<Core::Schema> Data = Core::Var::Set::Object();
-				Data->Key = "material";
+				layer::material* object = (layer::material*)instance;
+				core::uptr<core::schema> data = core::var::set::object();
+				data->key = "material";
 
-				AssetCache* Asset = Content->FindCache<Graphics::Texture2D>(Object->GetDiffuseMap());
-				if (Asset != nullptr)
-					Series::Pack(Data->Set("diffuse-map"), Asset->Path);
+				asset_cache* asset = content->find_cache<graphics::texture_2d>(object->get_diffuse_map());
+				if (asset != nullptr)
+					series::pack(data->set("diffuse-map"), asset->path);
 
-				Asset = Content->FindCache<Graphics::Texture2D>(Object->GetNormalMap());
-				if (Asset != nullptr)
-					Series::Pack(Data->Set("normal-map"), Asset->Path);
+				asset = content->find_cache<graphics::texture_2d>(object->get_normal_map());
+				if (asset != nullptr)
+					series::pack(data->set("normal-map"), asset->path);
 
-				Asset = Content->FindCache<Graphics::Texture2D>(Object->GetMetallicMap());
-				if (Asset != nullptr)
-					Series::Pack(Data->Set("metallic-map"), Asset->Path);
+				asset = content->find_cache<graphics::texture_2d>(object->get_metallic_map());
+				if (asset != nullptr)
+					series::pack(data->set("metallic-map"), asset->path);
 
-				Asset = Content->FindCache<Graphics::Texture2D>(Object->GetRoughnessMap());
-				if (Asset != nullptr)
-					Series::Pack(Data->Set("roughness-map"), Asset->Path);
+				asset = content->find_cache<graphics::texture_2d>(object->get_roughness_map());
+				if (asset != nullptr)
+					series::pack(data->set("roughness-map"), asset->path);
 
-				Asset = Content->FindCache<Graphics::Texture2D>(Object->GetHeightMap());
-				if (Asset != nullptr)
-					Series::Pack(Data->Set("height-map"), Asset->Path);
+				asset = content->find_cache<graphics::texture_2d>(object->get_height_map());
+				if (asset != nullptr)
+					series::pack(data->set("height-map"), asset->path);
 
-				Asset = Content->FindCache<Graphics::Texture2D>(Object->GetOcclusionMap());
-				if (Asset != nullptr)
-					Series::Pack(Data->Set("occlusion-map"), Asset->Path);
+				asset = content->find_cache<graphics::texture_2d>(object->get_occlusion_map());
+				if (asset != nullptr)
+					series::pack(data->set("occlusion-map"), asset->path);
 
-				Asset = Content->FindCache<Graphics::Texture2D>(Object->GetEmissionMap());
-				if (Asset != nullptr)
-					Series::Pack(Data->Set("emission-map"), Asset->Path);
+				asset = content->find_cache<graphics::texture_2d>(object->get_emission_map());
+				if (asset != nullptr)
+					series::pack(data->set("emission-map"), asset->path);
 
-				HeavySeries::Pack(Data->Set("emission"), Object->Surface.Emission);
-				HeavySeries::Pack(Data->Set("metallic"), Object->Surface.Metallic);
-				HeavySeries::Pack(Data->Set("penetration"), Object->Surface.Penetration);
-				HeavySeries::Pack(Data->Set("diffuse"), Object->Surface.Diffuse);
-				HeavySeries::Pack(Data->Set("scattering"), Object->Surface.Scattering);
-				HeavySeries::Pack(Data->Set("roughness"), Object->Surface.Roughness);
-				HeavySeries::Pack(Data->Set("occlusion"), Object->Surface.Occlusion);
-				Series::Pack(Data->Set("fresnel"), Object->Surface.Fresnel);
-				Series::Pack(Data->Set("refraction"), Object->Surface.Refraction);
-				Series::Pack(Data->Set("transparency"), Object->Surface.Transparency);
-				Series::Pack(Data->Set("environment"), Object->Surface.Environment);
-				Series::Pack(Data->Set("radius"), Object->Surface.Radius);
-				Series::Pack(Data->Set("height"), Object->Surface.Height);
-				Series::Pack(Data->Set("bias"), Object->Surface.Bias);
-				Series::Pack(Data->Set("name"), Object->GetName());
-				return Content->Save<Core::Schema>(Stream->VirtualName(), *Data, Args);
+				heavy_series::pack(data->set("emission"), object->surface.emission);
+				heavy_series::pack(data->set("metallic"), object->surface.metallic);
+				heavy_series::pack(data->set("penetration"), object->surface.penetration);
+				heavy_series::pack(data->set("diffuse"), object->surface.diffuse);
+				heavy_series::pack(data->set("scattering"), object->surface.scattering);
+				heavy_series::pack(data->set("roughness"), object->surface.roughness);
+				heavy_series::pack(data->set("occlusion"), object->surface.occlusion);
+				series::pack(data->set("fresnel"), object->surface.fresnel);
+				series::pack(data->set("refraction"), object->surface.refraction);
+				series::pack(data->set("transparency"), object->surface.transparency);
+				series::pack(data->set("environment"), object->surface.environment);
+				series::pack(data->set("radius"), object->surface.radius);
+				series::pack(data->set("height"), object->surface.height);
+				series::pack(data->set("bias"), object->surface.bias);
+				series::pack(data->set("name"), object->get_name());
+				return content->save<core::schema>(stream->virtual_name(), *data, args);
 			}
-			void MaterialProcessor::Free(AssetCache* Asset)
+			void material_processor::free(asset_cache* asset)
 			{
-				VI_ASSERT(Asset != nullptr, "asset should be set");
-				auto* Value = (Layer::Material*)Asset->Resource;
-				Asset->Resource = nullptr;
-				Core::Memory::Release(Value);
+				VI_ASSERT(asset != nullptr, "asset should be set");
+				auto* value = (layer::material*)asset->resource;
+				asset->resource = nullptr;
+				core::memory::release(value);
 			}
 
-			SceneGraphProcessor::SceneGraphProcessor(ContentManager* Manager) : Processor(Manager)
+			scene_graph_processor::scene_graph_processor(content_manager* manager) : processor(manager)
 			{
 			}
-			ExpectsContent<void*> SceneGraphProcessor::Deserialize(Core::Stream* Stream, size_t Offset, const Core::VariantArgs& Args)
+			expects_content<void*> scene_graph_processor::deserialize(core::stream* stream, size_t offset, const core::variant_args& args)
 			{
-				Layer::SceneGraph::Desc I = Layer::SceneGraph::Desc::Get(HeavyApplication::HasInstance() ? HeavyApplication::Get() : nullptr);
-				VI_ASSERT(Stream != nullptr, "stream should be set");
-				VI_ASSERT(I.Shared.Device != nullptr, "graphics device should be set");
+				layer::scene_graph::desc i = layer::scene_graph::desc::get(heavy_application::has_instance() ? heavy_application::get() : nullptr);
+				VI_ASSERT(stream != nullptr, "stream should be set");
+				VI_ASSERT(i.shared.device != nullptr, "graphics device should be set");
 
-				auto BlobStatus = Content->Load<Core::Schema>(Stream->VirtualName());
-				if (!BlobStatus)
-					return BlobStatus.Error();
+				auto blob_status = content->load<core::schema>(stream->virtual_name());
+				if (!blob_status)
+					return blob_status.error();
 
-				Core::UPtr<Core::Schema> Blob = *BlobStatus;
-				Core::Schema* Metadata = Blob->Find("metadata");
-				if (Metadata != nullptr)
+				core::uptr<core::schema> blob = *blob_status;
+				core::schema* metadata = blob->find("metadata");
+				if (metadata != nullptr)
 				{
-					Core::Schema* Simulator = Metadata->Find("simulator");
-					if (Simulator != nullptr)
+					core::schema* simulator = metadata->find("simulator");
+					if (simulator != nullptr)
 					{
-						Series::Unpack(Simulator->Find("enable-soft-body"), &I.Simulator.EnableSoftBody);
-						Series::Unpack(Simulator->Find("max-displacement"), &I.Simulator.MaxDisplacement);
-						Series::Unpack(Simulator->Find("air-density"), &I.Simulator.AirDensity);
-						Series::Unpack(Simulator->Find("water-offset"), &I.Simulator.WaterOffset);
-						Series::Unpack(Simulator->Find("water-density"), &I.Simulator.WaterDensity);
-						HeavySeries::Unpack(Simulator->Find("water-normal"), &I.Simulator.WaterNormal);
-						HeavySeries::Unpack(Simulator->Find("gravity"), &I.Simulator.Gravity);
+						series::unpack(simulator->find("enable-soft-body"), &i.simulator.enable_soft_body);
+						series::unpack(simulator->find("max-displacement"), &i.simulator.max_displacement);
+						series::unpack(simulator->find("air-density"), &i.simulator.air_density);
+						series::unpack(simulator->find("water-offset"), &i.simulator.water_offset);
+						series::unpack(simulator->find("water-density"), &i.simulator.water_density);
+						heavy_series::unpack(simulator->find("water-normal"), &i.simulator.water_normal);
+						heavy_series::unpack(simulator->find("gravity"), &i.simulator.gravity);
 					}
 
-					Series::UnpackA(Metadata->Find("materials"), &I.StartMaterials);
-					Series::UnpackA(Metadata->Find("entities"), &I.StartEntities);
-					Series::UnpackA(Metadata->Find("components"), &I.StartComponents);
-					Series::Unpack(Metadata->Find("render-quality"), &I.RenderQuality);
-					Series::Unpack(Metadata->Find("enable-hdr"), &I.EnableHDR);
-					Series::UnpackA(Metadata->Find("grow-margin"), &I.GrowMargin);
-					Series::Unpack(Metadata->Find("grow-rate"), &I.GrowRate);
-					Series::UnpackA(Metadata->Find("max-updates"), &I.MaxUpdates);
-					Series::UnpackA(Metadata->Find("voxels-size"), &I.VoxelsSize);
-					Series::UnpackA(Metadata->Find("voxels-max"), &I.VoxelsMax);
-					Series::UnpackA(Metadata->Find("points-size"), &I.PointsSize);
-					Series::UnpackA(Metadata->Find("points-max"), &I.PointsMax);
-					Series::UnpackA(Metadata->Find("spots-size"), &I.SpotsSize);
-					Series::UnpackA(Metadata->Find("spots-max"), &I.SpotsMax);
-					Series::UnpackA(Metadata->Find("line-size"), &I.LinesSize);
-					Series::UnpackA(Metadata->Find("lines-max"), &I.LinesMax);
+					series::unpack_a(metadata->find("materials"), &i.start_materials);
+					series::unpack_a(metadata->find("entities"), &i.start_entities);
+					series::unpack_a(metadata->find("components"), &i.start_components);
+					series::unpack(metadata->find("render-quality"), &i.render_quality);
+					series::unpack(metadata->find("enable-hdr"), &i.enable_hdr);
+					series::unpack_a(metadata->find("grow-margin"), &i.grow_margin);
+					series::unpack(metadata->find("grow-rate"), &i.grow_rate);
+					series::unpack_a(metadata->find("max-updates"), &i.max_updates);
+					series::unpack_a(metadata->find("points-size"), &i.points_size);
+					series::unpack_a(metadata->find("points-max"), &i.points_max);
+					series::unpack_a(metadata->find("spots-size"), &i.spots_size);
+					series::unpack_a(metadata->find("spots-max"), &i.spots_max);
+					series::unpack_a(metadata->find("line-size"), &i.lines_size);
+					series::unpack_a(metadata->find("lines-max"), &i.lines_max);
 				}
 
-				bool IntegrityCheck = false;
-				auto EnsureIntegrity = Args.find("integrity");
-				if (EnsureIntegrity != Args.end())
-					IntegrityCheck = EnsureIntegrity->second.GetBoolean();
+				bool integrity_check = false;
+				auto ensure_integrity = args.find("integrity");
+				if (ensure_integrity != args.end())
+					integrity_check = ensure_integrity->second.get_boolean();
 
-				auto HasMutations = Args.find("mutations");
-				if (HasMutations != Args.end())
-					I.Mutations = HasMutations->second.GetBoolean();
+				auto has_mutations = args.find("mutations");
+				if (has_mutations != args.end())
+					i.mutations = has_mutations->second.get_boolean();
 
-				Layer::SceneGraph* Object = new Layer::SceneGraph(I);
-				Layer::IdxSnapshot Snapshot;
-				Object->Snapshot = &Snapshot;
-				if (SetupCallback)
-					SetupCallback(Object);
+				layer::scene_graph* object = new layer::scene_graph(i);
+				layer::idx_snapshot snapshot;
+				object->snapshot = &snapshot;
+				if (setup_callback)
+					setup_callback(object);
 
-				auto IsActive = Args.find("active");
-				if (IsActive != Args.end())
-					Object->SetActive(IsActive->second.GetBoolean());
+				auto is_active = args.find("active");
+				if (is_active != args.end())
+					object->set_active(is_active->second.get_boolean());
 
-				Core::Schema* Materials = Blob->Find("materials");
-				if (Materials != nullptr)
+				core::schema* materials = blob->find("materials");
+				if (materials != nullptr)
 				{
-					Core::Vector<Core::Schema*> Collection = Materials->FindCollection("material");
-					for (auto& It : Collection)
+					core::vector<core::schema*> collection = materials->find_collection("material");
+					for (auto& it : collection)
 					{
-						Core::String Path;
-						if (!Series::Unpack(It, &Path) || Path.empty())
+						core::string path;
+						if (!series::unpack(it, &path) || path.empty())
 							continue;
 
-						auto Value = Content->Load<Layer::Material>(Path);
-						if (Value)
+						auto value = content->load<layer::material>(path);
+						if (value)
 						{
-							Series::UnpackA(It, &Value->Slot);
-							Object->AddMaterial(*Value);
+							series::unpack_a(it, &value->slot);
+							object->add_material(*value);
 						}
-						else if (IntegrityCheck)
-							return Value.Error();
+						else if (integrity_check)
+							return value.error();
 					}
 				}
 
-				Core::Schema* Entities = Blob->Find("entities");
-				if (Entities != nullptr)
+				core::schema* entities = blob->find("entities");
+				if (entities != nullptr)
 				{
-					Core::Vector<Core::Schema*> Collection = Entities->FindCollection("entity");
-					for (auto& It : Collection)
+					core::vector<core::schema*> collection = entities->find_collection("entity");
+					for (auto& it : collection)
 					{
-						Entity* Entity = Object->AddEntity();
-						int64_t Refer = -1;
+						entity* entity = object->add_entity();
+						int64_t refer = -1;
 
-						if (Series::Unpack(It->Find("refer"), &Refer) && Refer >= 0)
+						if (series::unpack(it->find("refer"), &refer) && refer >= 0)
 						{
-							Snapshot.To[Entity] = (size_t)Refer;
-							Snapshot.From[(size_t)Refer] = Entity;
+							snapshot.to[entity] = (size_t)refer;
+							snapshot.from[(size_t)refer] = entity;
 						}
 					}
 
-					size_t Next = 0;
-					for (auto& It : Collection)
+					size_t next = 0;
+					for (auto& it : collection)
 					{
-						Entity* Entity = Object->GetEntity(Next++);
-						if (!Entity)
+						entity* entity = object->get_entity(next++);
+						if (!entity)
 							continue;
 
-						Core::String Name;
-						Series::Unpack(It->Find("name"), &Name);
-						Entity->SetName(Name);
+						core::string name;
+						series::unpack(it->find("name"), &name);
+						entity->set_name(name);
 
-						Core::Schema* Transform = It->Find("transform");
-						if (Transform != nullptr)
+						core::schema* transform = it->find("transform");
+						if (transform != nullptr)
 						{
-							Trigonometry::Transform* Offset = Entity->GetTransform();
-							Trigonometry::Transform::Spacing& Space = Offset->GetSpacing(Trigonometry::Positioning::Global);
-							bool Scaling = Offset->HasScaling();
-							HeavySeries::Unpack(Transform->Find("position"), &Space.Position);
-							HeavySeries::Unpack(Transform->Find("rotation"), &Space.Rotation);
-							HeavySeries::Unpack(Transform->Find("scale"), &Space.Scale);
-							Series::Unpack(Transform->Find("scaling"), &Scaling);
-							Offset->SetScaling(Scaling);
+							trigonometry::transform* offset = entity->get_transform();
+							trigonometry::transform::spacing& space = offset->get_spacing(trigonometry::positioning::global);
+							bool scaling = offset->has_scaling();
+							heavy_series::unpack(transform->find("position"), &space.position);
+							heavy_series::unpack(transform->find("rotation"), &space.rotation);
+							heavy_series::unpack(transform->find("scale"), &space.scale);
+							series::unpack(transform->find("scaling"), &scaling);
+							offset->set_scaling(scaling);
 						}
 
-						Core::Schema* Parent = It->Find("parent");
-						if (Parent != nullptr)
+						core::schema* parent = it->find("parent");
+						if (parent != nullptr)
 						{
-							Trigonometry::Transform* Root = nullptr;
-							Trigonometry::Transform::Spacing* Space = Core::Memory::New<Trigonometry::Transform::Spacing>();
-							HeavySeries::Unpack(Parent->Find("position"), &Space->Position);
-							HeavySeries::Unpack(Parent->Find("rotation"), &Space->Rotation);
-							HeavySeries::Unpack(Parent->Find("scale"), &Space->Scale);
-							HeavySeries::Unpack(Parent->Find("world"), &Space->Offset);
+							trigonometry::transform* root = nullptr;
+							trigonometry::transform::spacing* space = core::memory::init<trigonometry::transform::spacing>();
+							heavy_series::unpack(parent->find("position"), &space->position);
+							heavy_series::unpack(parent->find("rotation"), &space->rotation);
+							heavy_series::unpack(parent->find("scale"), &space->scale);
+							heavy_series::unpack(parent->find("world"), &space->offset);
 
-							size_t Where = 0;
-							if (Series::UnpackA(Parent->Find("where"), &Where))
+							size_t where = 0;
+							if (series::unpack_a(parent->find("where"), &where))
 							{
-								auto It = Snapshot.From.find(Where);
-								if (It != Snapshot.From.end() && It->second != Entity)
-									Root = It->second->GetTransform();
+								auto it = snapshot.from.find(where);
+								if (it != snapshot.from.end() && it->second != entity)
+									root = it->second->get_transform();
 							}
 
-							Trigonometry::Transform* Offset = Entity->GetTransform();
-							Offset->SetPivot(Root, Space);
-							Offset->MakeDirty();
+							trigonometry::transform* offset = entity->get_transform();
+							offset->set_pivot(root, space);
+							offset->make_dirty();
 						}
 
-						Core::Schema* Components = It->Find("components");
-						if (Components != nullptr)
+						core::schema* components = it->find("components");
+						if (components != nullptr)
 						{
-							Core::Vector<Core::Schema*> Elements = Components->FindCollection("component");
-							for (auto& Element : Elements)
+							core::vector<core::schema*> elements = components->find_collection("component");
+							for (auto& element : elements)
 							{
-								uint64_t Id;
-								if (!Series::Unpack(Element->Find("id"), &Id))
+								uint64_t id;
+								if (!series::unpack(element->find("id"), &id))
 									continue;
 
-								Component* Target = Core::Composer::Create<Component>(Id, Entity);
-								if (!Entity->AddComponent(Target))
+								component* target = core::composer::create<component>(id, entity);
+								if (!entity->add_component(target))
 									continue;
 
-								bool Active = true;
-								if (Series::Unpack(Element->Find("active"), &Active))
-									Target->SetActive(Active);
+								bool active = true;
+								if (series::unpack(element->find("active"), &active))
+									target->set_active(active);
 
-								Core::Schema* Meta = Element->Find("metadata");
-								if (!Meta)
-									Meta = Element->Set("metadata");
-								Target->Deserialize(Meta);
+								core::schema* meta = element->find("metadata");
+								if (!meta)
+									meta = element->set("metadata");
+								target->deserialize(meta);
 							}
 						}
 					}
 				}
 
-				Object->Snapshot = nullptr;
-				Object->Actualize();
-				return Object;
+				object->snapshot = nullptr;
+				object->actualize();
+				return object;
 			}
-			ExpectsContent<void> SceneGraphProcessor::Serialize(Core::Stream* Stream, void* Instance, const Core::VariantArgs& Args)
+			expects_content<void> scene_graph_processor::serialize(core::stream* stream, void* instance, const core::variant_args& args)
 			{
-				VI_ASSERT(Stream != nullptr, "stream should be set");
-				VI_ASSERT(Instance != nullptr, "instance should be set");
+				VI_ASSERT(stream != nullptr, "stream should be set");
+				VI_ASSERT(instance != nullptr, "instance should be set");
 
-				auto Ext = Core::OS::Path::GetExtension(Stream->VirtualName());
-				if (Ext.empty())
+				auto ext = core::os::path::get_extension(stream->virtual_name());
+				if (ext.empty())
 				{
-					auto Type = Args.find("type");
-					if (Type->second == Core::Var::String("XML"))
-						Ext = ".xml";
-					else if (Type->second == Core::Var::String("JSON"))
-						Ext = ".json";
-					else if (Type->second == Core::Var::String("JSONB"))
-						Ext = ".jsonb";
+					auto type = args.find("type");
+					if (type->second == core::var::string("XML"))
+						ext = ".xml";
+					else if (type->second == core::var::string("JSON"))
+						ext = ".json";
+					else if (type->second == core::var::string("JSONB"))
+						ext = ".jsonb";
 					else
-						Ext = ".xml";
+						ext = ".xml";
 				}
 
-				Layer::SceneGraph* Object = (Layer::SceneGraph*)Instance;
-				if (SetupCallback)
-					SetupCallback(Object);
-				Object->Actualize();
+				layer::scene_graph* object = (layer::scene_graph*)instance;
+				if (setup_callback)
+					setup_callback(object);
+				object->actualize();
 
-				Layer::IdxSnapshot Snapshot;
-				Object->MakeSnapshot(&Snapshot);
-				Object->Snapshot = &Snapshot;
+				layer::idx_snapshot snapshot;
+				object->make_snapshot(&snapshot);
+				object->snapshot = &snapshot;
 
-				Core::UPtr<Core::Schema> Blob = Core::Var::Set::Object();
-				Blob->Key = "scene";
+				core::uptr<core::schema> blob = core::var::set::object();
+				blob->key = "scene";
 
-				auto& Conf = Object->GetConf();
-				Core::Schema* Metadata = Blob->Set("metadata");
-				Series::Pack(Metadata->Set("materials"), (uint64_t)Conf.StartMaterials);
-				Series::Pack(Metadata->Set("entities"), (uint64_t)Conf.StartEntities);
-				Series::Pack(Metadata->Set("components"), (uint64_t)Conf.StartComponents);
-				Series::Pack(Metadata->Set("render-quality"), Conf.RenderQuality);
-				Series::Pack(Metadata->Set("enable-hdr"), Conf.EnableHDR);
-				Series::Pack(Metadata->Set("grow-margin"), (uint64_t)Conf.GrowMargin);
-				Series::Pack(Metadata->Set("grow-rate"), Conf.GrowRate);
-				Series::Pack(Metadata->Set("max-updates"), (uint64_t)Conf.MaxUpdates);
-				Series::Pack(Metadata->Set("voxels-size"), (uint64_t)Conf.VoxelsSize);
-				Series::Pack(Metadata->Set("voxels-max"), (uint64_t)Conf.VoxelsMax);
-				Series::Pack(Metadata->Set("points-size"), (uint64_t)Conf.PointsSize);
-				Series::Pack(Metadata->Set("points-max"), (uint64_t)Conf.PointsMax);
-				Series::Pack(Metadata->Set("spots-size"), (uint64_t)Conf.SpotsSize);
-				Series::Pack(Metadata->Set("spots-max"), (uint64_t)Conf.SpotsMax);
-				Series::Pack(Metadata->Set("line-size"), (uint64_t)Conf.LinesSize);
-				Series::Pack(Metadata->Set("lines-max"), (uint64_t)Conf.LinesMax);
+				auto& conf = object->get_conf();
+				core::schema* metadata = blob->set("metadata");
+				series::pack(metadata->set("materials"), (uint64_t)conf.start_materials);
+				series::pack(metadata->set("entities"), (uint64_t)conf.start_entities);
+				series::pack(metadata->set("components"), (uint64_t)conf.start_components);
+				series::pack(metadata->set("render-quality"), conf.render_quality);
+				series::pack(metadata->set("enable-hdr"), conf.enable_hdr);
+				series::pack(metadata->set("grow-margin"), (uint64_t)conf.grow_margin);
+				series::pack(metadata->set("grow-rate"), conf.grow_rate);
+				series::pack(metadata->set("max-updates"), (uint64_t)conf.max_updates);
+				series::pack(metadata->set("points-size"), (uint64_t)conf.points_size);
+				series::pack(metadata->set("points-max"), (uint64_t)conf.points_max);
+				series::pack(metadata->set("spots-size"), (uint64_t)conf.spots_size);
+				series::pack(metadata->set("spots-max"), (uint64_t)conf.spots_max);
+				series::pack(metadata->set("line-size"), (uint64_t)conf.lines_size);
+				series::pack(metadata->set("lines-max"), (uint64_t)conf.lines_max);
 
-				auto* fSimulator = Object->GetSimulator();
-				Core::Schema* Simulator = Metadata->Set("simulator");
-				Series::Pack(Simulator->Set("enable-soft-body"), fSimulator->HasSoftBodySupport());
-				Series::Pack(Simulator->Set("max-displacement"), fSimulator->GetMaxDisplacement());
-				Series::Pack(Simulator->Set("air-density"), fSimulator->GetAirDensity());
-				Series::Pack(Simulator->Set("water-offset"), fSimulator->GetWaterOffset());
-				Series::Pack(Simulator->Set("water-density"), fSimulator->GetWaterDensity());
-				HeavySeries::Pack(Simulator->Set("water-normal"), fSimulator->GetWaterNormal());
-				HeavySeries::Pack(Simulator->Set("gravity"), fSimulator->GetGravity());
+				auto* fSimulator = object->get_simulator();
+				core::schema* simulator = metadata->set("simulator");
+				series::pack(simulator->set("enable-soft-body"), fSimulator->has_soft_body_support());
+				series::pack(simulator->set("max-displacement"), fSimulator->get_max_displacement());
+				series::pack(simulator->set("air-density"), fSimulator->get_air_density());
+				series::pack(simulator->set("water-offset"), fSimulator->get_water_offset());
+				series::pack(simulator->set("water-density"), fSimulator->get_water_density());
+				heavy_series::pack(simulator->set("water-normal"), fSimulator->get_water_normal());
+				heavy_series::pack(simulator->set("gravity"), fSimulator->get_gravity());
 
-				Core::Schema* Materials = Blob->Set("materials", Core::Var::Array());
-				for (size_t i = 0; i < Object->GetMaterialsCount(); i++)
+				core::schema* materials = blob->set("materials", core::var::array());
+				for (size_t i = 0; i < object->get_materials_count(); i++)
 				{
-					Layer::Material* Material = Object->GetMaterial(i);
-					if (!Material || Material == Object->GetInvalidMaterial())
+					layer::material* material = object->get_material(i);
+					if (!material || material == object->get_invalid_material())
 						continue;
 
-					Core::String Path;
-					AssetCache* Asset = Content->FindCache<Layer::Material>(Material);
-					if (!Asset)
-						Path.assign("./materials/" + Material->GetName() + ".modified");
+					core::string path;
+					asset_cache* asset = content->find_cache<layer::material>(material);
+					if (!asset)
+						path.assign("./materials/" + material->get_name() + ".modified");
 					else
-						Path.assign(Asset->Path);
+						path.assign(asset->path);
 
-					if (!Core::Stringify::EndsWith(Path, Ext))
-						Path.append(Ext);
+					if (!core::stringify::ends_with(path, ext))
+						path.append(ext);
 
-					if (Content->Save<Layer::Material>(Path, Material, Args))
+					if (content->save<layer::material>(path, material, args))
 					{
-						Core::Schema* Where = Materials->Set("material");
-						Series::Pack(Where, (uint64_t)Material->Slot);
-						Series::Pack(Where, Path);
+						core::schema* where = materials->set("material");
+						series::pack(where, (uint64_t)material->slot);
+						series::pack(where, path);
 					}
 				}
 
-				Core::Schema* Entities = Blob->Set("entities", Core::Var::Array());
-				for (size_t i = 0; i < Object->GetEntitiesCount(); i++)
+				core::schema* entities = blob->set("entities", core::var::array());
+				for (size_t i = 0; i < object->get_entities_count(); i++)
 				{
-					Entity* Ref = Object->GetEntity(i);
-					auto* Offset = Ref->GetTransform();
+					entity* ref = object->get_entity(i);
+					auto* offset = ref->get_transform();
 
-					Core::Schema* Entity = Entities->Set("entity");
-					Series::Pack(Entity->Set("name"), Ref->GetName());
-					Series::Pack(Entity->Set("refer"), (uint64_t)i);
+					core::schema* entity = entities->set("entity");
+					series::pack(entity->set("name"), ref->get_name());
+					series::pack(entity->set("refer"), (uint64_t)i);
 
-					Core::Schema* Transform = Entity->Set("transform");
-					HeavySeries::Pack(Transform->Set("position"), Offset->GetPosition());
-					HeavySeries::Pack(Transform->Set("rotation"), Offset->GetRotation());
-					HeavySeries::Pack(Transform->Set("scale"), Offset->GetScale());
-					Series::Pack(Transform->Set("scaling"), Offset->HasScaling());
+					core::schema* transform = entity->set("transform");
+					heavy_series::pack(transform->set("position"), offset->get_position());
+					heavy_series::pack(transform->set("rotation"), offset->get_rotation());
+					heavy_series::pack(transform->set("scale"), offset->get_scale());
+					series::pack(transform->set("scaling"), offset->has_scaling());
 
-					if (Offset->GetRoot() != nullptr)
+					if (offset->get_root() != nullptr)
 					{
-						Core::Schema* Parent = Entity->Set("parent");
-						if (Offset->GetRoot()->UserData != nullptr)
+						core::schema* parent = entity->set("parent");
+						if (offset->get_root()->user_data != nullptr)
 						{
-							auto It = Snapshot.To.find((Layer::Entity*)Offset->GetRoot());
-							if (It != Snapshot.To.end())
-								Series::Pack(Parent->Set("where"), (uint64_t)It->second);
+							auto it = snapshot.to.find((layer::entity*)offset->get_root());
+							if (it != snapshot.to.end())
+								series::pack(parent->set("where"), (uint64_t)it->second);
 						}
 
-						Trigonometry::Transform::Spacing& Space = Offset->GetSpacing();
-						HeavySeries::Pack(Parent->Set("position"), Space.Position);
-						HeavySeries::Pack(Parent->Set("rotation"), Space.Rotation);
-						HeavySeries::Pack(Parent->Set("scale"), Space.Scale);
-						HeavySeries::Pack(Parent->Set("world"), Space.Offset);
+						trigonometry::transform::spacing& space = offset->get_spacing();
+						heavy_series::pack(parent->set("position"), space.position);
+						heavy_series::pack(parent->set("rotation"), space.rotation);
+						heavy_series::pack(parent->set("scale"), space.scale);
+						heavy_series::pack(parent->set("world"), space.offset);
 					}
 
-					if (!Ref->GetComponentsCount())
+					if (!ref->get_components_count())
 						continue;
 
-					Core::Schema* Components = Entity->Set("components", Core::Var::Array());
-					for (auto& Item : *Ref)
+					core::schema* components = entity->set("components", core::var::array());
+					for (auto& item : *ref)
 					{
-						Core::Schema* Component = Components->Set("component");
-						Series::Pack(Component->Set("id"), Item.second->GetId());
-						Series::Pack(Component->Set("active"), Item.second->IsActive());
-						Item.second->Serialize(Component->Set("metadata"));
+						core::schema* component = components->set("component");
+						series::pack(component->set("id"), item.second->get_id());
+						series::pack(component->set("active"), item.second->is_active());
+						item.second->serialize(component->set("metadata"));
 					}
 				}
 
-				Object->Snapshot = nullptr;
-				return Content->Save<Core::Schema>(Stream->VirtualName(), *Blob, Args);
+				object->snapshot = nullptr;
+				return content->save<core::schema>(stream->virtual_name(), *blob, args);
 			}
 
-			AudioClipProcessor::AudioClipProcessor(ContentManager* Manager) : Processor(Manager)
+			audio_clip_processor::audio_clip_processor(content_manager* manager) : processor(manager)
 			{
 			}
-			AudioClipProcessor::~AudioClipProcessor()
+			audio_clip_processor::~audio_clip_processor()
 			{
 			}
-			ExpectsContent<void*> AudioClipProcessor::Duplicate(AssetCache* Asset, const Core::VariantArgs& Args)
+			expects_content<void*> audio_clip_processor::duplicate(asset_cache* asset, const core::variant_args& args)
 			{
-				VI_ASSERT(Asset != nullptr, "asset should be set");
-				VI_ASSERT(Asset->Resource != nullptr, "asset resource should be set");
+				VI_ASSERT(asset != nullptr, "asset should be set");
+				VI_ASSERT(asset->resource != nullptr, "asset resource should be set");
 
-				((Audio::AudioClip*)Asset->Resource)->AddRef();
-				return Asset->Resource;
+				((audio::audio_clip*)asset->resource)->add_ref();
+				return asset->resource;
 			}
-			ExpectsContent<void*> AudioClipProcessor::Deserialize(Core::Stream* Stream, size_t Offset, const Core::VariantArgs& Args)
+			expects_content<void*> audio_clip_processor::deserialize(core::stream* stream, size_t offset, const core::variant_args& args)
 			{
-				if (Core::Stringify::EndsWith(Stream->VirtualName(), ".wav"))
-					return DeserializeWAVE(Stream, Offset, Args);
-				else if (Core::Stringify::EndsWith(Stream->VirtualName(), ".ogg"))
-					return DeserializeOGG(Stream, Offset, Args);
+				if (core::stringify::ends_with(stream->virtual_name(), ".wav"))
+					return deserialize_wave(stream, offset, args);
+				else if (core::stringify::ends_with(stream->virtual_name(), ".ogg"))
+					return deserialize_ogg(stream, offset, args);
 
-				return ContentException("deserialize audio unsupported: " + Core::String(Core::OS::Path::GetExtension(Stream->VirtualName())));
+				return content_exception("deserialize audio unsupported: " + core::string(core::os::path::get_extension(stream->virtual_name())));
 			}
-			ExpectsContent<void*> AudioClipProcessor::DeserializeWAVE(Core::Stream* Stream, size_t Offset, const Core::VariantArgs& Args)
+			expects_content<void*> audio_clip_processor::deserialize_wave(core::stream* stream, size_t offset, const core::variant_args& args)
 			{
-				VI_ASSERT(Stream != nullptr, "stream should be set");
+				VI_ASSERT(stream != nullptr, "stream should be set");
 #ifdef VI_SDL2
-				Core::Vector<char> Data;
-				Stream->ReadAll([&Data](uint8_t* Buffer, size_t Size)
+				core::vector<char> data;
+				stream->read_all([&data](uint8_t* buffer, size_t size)
 				{
-					Data.reserve(Data.size() + Size);
-					for (size_t i = 0; i < Size; i++)
-						Data.push_back(Buffer[i]);
+					data.reserve(data.size() + size);
+					for (size_t i = 0; i < size; i++)
+						data.push_back(buffer[i]);
 				});
 
-				SDL_RWops* WavData = SDL_RWFromMem(Data.data(), (int)Data.size());
-				SDL_AudioSpec WavInfo;
-				Uint8* WavSamples;
-				Uint32 WavCount;
+				SDL_RWops* wav_data = SDL_RWFromMem(data.data(), (int)data.size());
+				SDL_AudioSpec wav_info;
+				Uint8* wav_samples;
+				Uint32 wav_count;
 
-				if (!SDL_LoadWAV_RW(WavData, 1, &WavInfo, &WavSamples, &WavCount))
+				if (!SDL_LoadWAV_RW(wav_data, 1, &wav_info, &wav_samples, &wav_count))
 				{
-					SDL_RWclose(WavData);
-					return ContentException(std::move(Graphics::VideoException().message()));
+					SDL_RWclose(wav_data);
+					return content_exception(std::move(graphics::video_exception().message()));
 				}
 
-				int Format = 0;
+				int format = 0;
 #ifdef VI_OPENAL
-				switch (WavInfo.format)
+				switch (wav_info.format)
 				{
 					case AUDIO_U8:
 					case AUDIO_S8:
-						Format = WavInfo.channels == 2 ? AL_FORMAT_STEREO8 : AL_FORMAT_MONO8;
+						format = wav_info.channels == 2 ? AL_FORMAT_STEREO8 : AL_FORMAT_MONO8;
 						break;
 					case AUDIO_U16:
 					case AUDIO_S16:
-						Format = WavInfo.channels == 2 ? AL_FORMAT_STEREO16 : AL_FORMAT_MONO16;
+						format = wav_info.channels == 2 ? AL_FORMAT_STEREO16 : AL_FORMAT_MONO16;
 						break;
 					default:
-						SDL_FreeWAV(WavSamples);
-						SDL_RWclose(WavData);
-						return ContentException("load wave audio: unsupported audio format");
+						SDL_FreeWAV(wav_samples);
+						SDL_RWclose(wav_data);
+						return content_exception("load wave audio: unsupported audio format");
 				}
 #endif
-				Core::UPtr<Audio::AudioClip> Object = new Audio::AudioClip(1, Format);
-				Audio::AudioContext::SetBufferData(Object->GetBuffer(), (int)Format, (const void*)WavSamples, (int)WavCount, (int)WavInfo.freq);
-				SDL_FreeWAV(WavSamples);
-				SDL_RWclose(WavData);
+				core::uptr<audio::audio_clip> object = new audio::audio_clip(1, format);
+				audio::audio_context::set_buffer_data(object->get_buffer(), (int)format, (const void*)wav_samples, (int)wav_count, (int)wav_info.freq);
+				SDL_FreeWAV(wav_samples);
+				SDL_RWclose(wav_data);
 
-				auto* Existing = (Audio::AudioClip*)Content->TryToCache(this, Stream->VirtualName(), *Object);
-				if (Existing != nullptr)
-					Object = Existing;
+				auto* existing = (audio::audio_clip*)content->try_to_cache(this, stream->virtual_name(), *object);
+				if (existing != nullptr)
+					object = existing;
 
-				Object->AddRef();
-				return Object.Reset();
+				object->add_ref();
+				return object.reset();
 #else
-				return ContentException("load wave audio: unsupported");
+				return content_exception("load wave audio: unsupported");
 #endif
 			}
-			ExpectsContent<void*> AudioClipProcessor::DeserializeOGG(Core::Stream* Stream, size_t Offset, const Core::VariantArgs& Args)
+			expects_content<void*> audio_clip_processor::deserialize_ogg(core::stream* stream, size_t offset, const core::variant_args& args)
 			{
 #ifdef VI_STB
-				VI_ASSERT(Stream != nullptr, "stream should be set");
-				Core::Vector<char> Data;
-				Stream->ReadAll([&Data](uint8_t* Buffer, size_t Size)
+				VI_ASSERT(stream != nullptr, "stream should be set");
+				core::vector<char> data;
+				stream->read_all([&data](uint8_t* buffer, size_t size)
 				{
-					Data.reserve(Data.size() + Size);
-					for (size_t i = 0; i < Size; i++)
-						Data.push_back(Buffer[i]);
+					data.reserve(data.size() + size);
+					for (size_t i = 0; i < size; i++)
+						data.push_back(buffer[i]);
 				});
 
-				short* Buffer;
-				int Channels, SampleRate;
-				int Samples = stb_vorbis_decode_memory((const uint8_t*)Data.data(), (int)Data.size(), &Channels, &SampleRate, &Buffer);
-				if (Samples <= 0)
-					return ContentException("load ogg audio: invalid file");
+				short* buffer;
+				int channels, sample_rate;
+				int samples = stb_vorbis_decode_memory((const uint8_t*)data.data(), (int)data.size(), &channels, &sample_rate, &buffer);
+				if (samples <= 0)
+					return content_exception("load ogg audio: invalid file");
 
-				int Format = 0;
+				int format = 0;
 #ifdef VI_OPENAL
-				if (Channels == 2)
-					Format = AL_FORMAT_STEREO16;
+				if (channels == 2)
+					format = AL_FORMAT_STEREO16;
 				else
-					Format = AL_FORMAT_MONO16;
+					format = AL_FORMAT_MONO16;
 #endif
-				Core::UPtr<Audio::AudioClip> Object = new Audio::AudioClip(1, Format);
-				Audio::AudioContext::SetBufferData(Object->GetBuffer(), (int)Format, (const void*)Buffer, Samples * sizeof(short) * Channels, (int)SampleRate);
-				Core::Memory::Deallocate(Buffer);
+				core::uptr<audio::audio_clip> object = new audio::audio_clip(1, format);
+				audio::audio_context::set_buffer_data(object->get_buffer(), (int)format, (const void*)buffer, samples * sizeof(short) * channels, (int)sample_rate);
+				core::memory::deallocate(buffer);
 
-				auto* Existing = (Audio::AudioClip*)Content->TryToCache(this, Stream->VirtualName(), *Object);
-				if (Existing != nullptr)
-					Object = Existing;
+				auto* existing = (audio::audio_clip*)content->try_to_cache(this, stream->virtual_name(), *object);
+				if (existing != nullptr)
+					object = existing;
 
-				Object->AddRef();
-				return Object.Reset();
+				object->add_ref();
+				return object.reset();
 #else
-				return ContentException("load ogg audio: unsupported");
+				return content_exception("load ogg audio: unsupported");
 #endif
 			}
-			void AudioClipProcessor::Free(AssetCache* Asset)
+			void audio_clip_processor::free(asset_cache* asset)
 			{
-				VI_ASSERT(Asset != nullptr, "asset should be set");
-				auto* Value = (Audio::AudioClip*)Asset->Resource;
-				Core::Memory::Release(Value);
-				Asset->Resource = nullptr;
+				VI_ASSERT(asset != nullptr, "asset should be set");
+				auto* value = (audio::audio_clip*)asset->resource;
+				core::memory::release(value);
+				asset->resource = nullptr;
 			}
 
-			Texture2DProcessor::Texture2DProcessor(ContentManager* Manager) : Processor(Manager)
+			texture_2d_processor::texture_2d_processor(content_manager* manager) : processor(manager)
 			{
 			}
-			Texture2DProcessor::~Texture2DProcessor()
+			texture_2d_processor::~texture_2d_processor()
 			{
 			}
-			ExpectsContent<void*> Texture2DProcessor::Duplicate(AssetCache* Asset, const Core::VariantArgs& Args)
+			expects_content<void*> texture_2d_processor::duplicate(asset_cache* asset, const core::variant_args& args)
 			{
-				VI_ASSERT(Asset != nullptr, "asset should be set");
-				VI_ASSERT(Asset->Resource != nullptr, "instance should be set");
+				VI_ASSERT(asset != nullptr, "asset should be set");
+				VI_ASSERT(asset->resource != nullptr, "instance should be set");
 
-				((Graphics::Texture2D*)Asset->Resource)->AddRef();
-				return Asset->Resource;
+				((graphics::texture_2d*)asset->resource)->add_ref();
+				return asset->resource;
 			}
-			ExpectsContent<void*> Texture2DProcessor::Deserialize(Core::Stream* Stream, size_t Offset, const Core::VariantArgs& Args)
+			expects_content<void*> texture_2d_processor::deserialize(core::stream* stream, size_t offset, const core::variant_args& args)
 			{
 #ifdef VI_STB
-				VI_ASSERT(Stream != nullptr, "stream should be set");
-				Core::Vector<char> Data;
-				Stream->ReadAll([&Data](uint8_t* Buffer, size_t Size)
+				VI_ASSERT(stream != nullptr, "stream should be set");
+				core::vector<char> data;
+				stream->read_all([&data](uint8_t* buffer, size_t size)
 				{
-					Data.reserve(Data.size() + Size);
-					for (size_t i = 0; i < Size; i++)
-						Data.push_back(Buffer[i]);
+					data.reserve(data.size() + size);
+					for (size_t i = 0; i < size; i++)
+						data.push_back(buffer[i]);
 				});
 
-				int Width, Height, Channels;
-				uint8_t* Resource = stbi_load_from_memory((const uint8_t*)Data.data(), (int)Data.size(), &Width, &Height, &Channels, STBI_rgb_alpha);
-				if (!Resource)
-					return ContentException("load texture 2d: invalid file");
+				int width, height, channels;
+				uint8_t* resource = stbi_load_from_memory((const uint8_t*)data.data(), (int)data.size(), &width, &height, &channels, STBI_rgb_alpha);
+				if (!resource)
+					return content_exception("load texture 2d: invalid file");
 
-				auto* HeavyContent = (HeavyContentManager*)Content;
-				auto* Device = HeavyContent->GetDevice();
-				Graphics::Texture2D::Desc I = Graphics::Texture2D::Desc();
-				I.Data = (void*)Resource;
-				I.Width = (uint32_t)Width;
-				I.Height = (uint32_t)Height;
-				I.RowPitch = Device->GetRowPitch(I.Width);
-				I.DepthPitch = Device->GetDepthPitch(I.RowPitch, I.Height);
-				I.MipLevels = Device->GetMipLevel(I.Width, I.Height);
+				auto* heavy_content = (heavy_content_manager*)content;
+				auto* device = heavy_content->get_device();
+				graphics::texture_2d::desc i = graphics::texture_2d::desc();
+				i.data = (void*)resource;
+				i.width = (uint32_t)width;
+				i.height = (uint32_t)height;
+				i.row_pitch = device->get_row_pitch(i.width);
+				i.depth_pitch = device->get_depth_pitch(i.row_pitch, i.height);
+				i.mip_levels = device->get_mip_level(i.width, i.height);
 
-				auto ObjectStatus = ProcessRendererJob<Graphics::ExpectsGraphics<Graphics::Texture2D*>>(Device, [&I](Graphics::GraphicsDevice* Device) { return Device->CreateTexture2D(I); });
-				stbi_image_free(Resource);
-				if (!ObjectStatus)
-					return ContentException(std::move(ObjectStatus.Error().message()));
+				auto object_status = process_renderer_job<graphics::expects_graphics<graphics::texture_2d*>>(device, [&i](graphics::graphics_device* device) { return device->create_texture_2d(i); });
+				stbi_image_free(resource);
+				if (!object_status)
+					return content_exception(std::move(object_status.error().message()));
 
-				Core::UPtr<Graphics::Texture2D> Object = *ObjectStatus;
-				auto* Existing = (Graphics::Texture2D*)Content->TryToCache(this, Stream->VirtualName(), *Object);
-				if (Existing != nullptr)
-					Object = Existing;
+				core::uptr<graphics::texture_2d> object = *object_status;
+				auto* existing = (graphics::texture_2d*)content->try_to_cache(this, stream->virtual_name(), *object);
+				if (existing != nullptr)
+					object = existing;
 
-				Object->AddRef();
-				return Object.Reset();
+				object->add_ref();
+				return object.reset();
 #else
-				return ContentException("load texture 2d: unsupported");
+				return content_exception("load texture 2d: unsupported");
 #endif
 			}
-			void Texture2DProcessor::Free(AssetCache* Asset)
+			void texture_2d_processor::free(asset_cache* asset)
 			{
-				VI_ASSERT(Asset != nullptr, "asset should be set");
-				auto* Value = (Graphics::Texture2D*)Asset->Resource;
-				Asset->Resource = nullptr;
-				Core::Memory::Release(Value);
+				VI_ASSERT(asset != nullptr, "asset should be set");
+				auto* value = (graphics::texture_2d*)asset->resource;
+				asset->resource = nullptr;
+				core::memory::release(value);
 			}
 
-			ShaderProcessor::ShaderProcessor(ContentManager* Manager) : Processor(Manager)
+			shader_processor::shader_processor(content_manager* manager) : processor(manager)
 			{
 			}
-			ShaderProcessor::~ShaderProcessor()
+			shader_processor::~shader_processor()
 			{
 			}
-			ExpectsContent<void*> ShaderProcessor::Duplicate(AssetCache* Asset, const Core::VariantArgs& Args)
+			expects_content<void*> shader_processor::duplicate(asset_cache* asset, const core::variant_args& args)
 			{
-				VI_ASSERT(Asset != nullptr, "asset should be set");
-				VI_ASSERT(Asset->Resource != nullptr, "instance should be set");
+				VI_ASSERT(asset != nullptr, "asset should be set");
+				VI_ASSERT(asset->resource != nullptr, "instance should be set");
 
-				((Graphics::Shader*)Asset->Resource)->AddRef();
-				return Asset->Resource;
+				((graphics::shader*)asset->resource)->add_ref();
+				return asset->resource;
 			}
-			ExpectsContent<void*> ShaderProcessor::Deserialize(Core::Stream* Stream, size_t Offset, const Core::VariantArgs& Args)
+			expects_content<void*> shader_processor::deserialize(core::stream* stream, size_t offset, const core::variant_args& args)
 			{
-				VI_ASSERT(Stream != nullptr, "stream should be set");
-				Core::String Data;
-				Stream->ReadAll([&Data](uint8_t* Buffer, size_t Size) { Data.append((char*)Buffer, Size); });
+				VI_ASSERT(stream != nullptr, "stream should be set");
+				core::string data;
+				stream->read_all([&data](uint8_t* buffer, size_t size) { data.append((char*)buffer, size); });
 
-				Graphics::Shader::Desc I = Graphics::Shader::Desc();
-				I.Filename = Stream->VirtualName();
-				I.Data = Data;
+				graphics::shader::desc i = graphics::shader::desc();
+				i.filename = stream->virtual_name();
+				i.data = data;
 
-				auto* HeavyContent = (HeavyContentManager*)Content;
-				auto* Device = HeavyContent->GetDevice();
-				auto ObjectStatus = ProcessRendererJob<Graphics::ExpectsGraphics<Graphics::Shader*>>(Device, [&I](Graphics::GraphicsDevice* Device) { return Device->CreateShader(I); });
-				if (!ObjectStatus)
-					return ContentException(std::move(ObjectStatus.Error().message()));
+				auto* heavy_content = (heavy_content_manager*)content;
+				auto* device = heavy_content->get_device();
+				auto object_status = process_renderer_job<graphics::expects_graphics<graphics::shader*>>(device, [&i](graphics::graphics_device* device) { return device->create_shader(i); });
+				if (!object_status)
+					return content_exception(std::move(object_status.error().message()));
 
-				Core::UPtr<Graphics::Shader> Object = *ObjectStatus;
-				auto* Existing = (Graphics::Shader*)Content->TryToCache(this, Stream->VirtualName(), *Object);
-				if (Existing != nullptr)
-					Object = Existing;
+				core::uptr<graphics::shader> object = *object_status;
+				auto* existing = (graphics::shader*)content->try_to_cache(this, stream->virtual_name(), *object);
+				if (existing != nullptr)
+					object = existing;
 
-				Object->AddRef();
-				return Object.Reset();
+				object->add_ref();
+				return object.reset();
 			}
-			void ShaderProcessor::Free(AssetCache* Asset)
+			void shader_processor::free(asset_cache* asset)
 			{
-				VI_ASSERT(Asset != nullptr, "asset should be set");
-				auto* Value = (Graphics::Shader*)Asset->Resource;
-				Asset->Resource = nullptr;
-				Core::Memory::Release(Value);
+				VI_ASSERT(asset != nullptr, "asset should be set");
+				auto* value = (graphics::shader*)asset->resource;
+				asset->resource = nullptr;
+				core::memory::release(value);
 			}
 
-			ModelProcessor::ModelProcessor(ContentManager* Manager) : Processor(Manager)
-			{
-			}
-			ModelProcessor::~ModelProcessor()
+			model_processor::model_processor(content_manager* manager) : processor(manager)
 			{
 			}
-			ExpectsContent<void*> ModelProcessor::Duplicate(AssetCache* Asset, const Core::VariantArgs& Args)
+			model_processor::~model_processor()
 			{
-				VI_ASSERT(Asset != nullptr, "asset should be set");
-				VI_ASSERT(Asset->Resource != nullptr, "instance should be set");
-
-				((Model*)Asset->Resource)->AddRef();
-				return Asset->Resource;
 			}
-			ExpectsContent<void*> ModelProcessor::Deserialize(Core::Stream* Stream, size_t Offset, const Core::VariantArgs& Args)
+			expects_content<void*> model_processor::duplicate(asset_cache* asset, const core::variant_args& args)
 			{
-				VI_ASSERT(Stream != nullptr, "stream should be set");
-				Core::UPtr<Model> Object = new Model();
-				auto Path = Stream->VirtualName();
-				if (Core::Stringify::EndsWith(Path, ".xml") || Core::Stringify::EndsWith(Path, ".json") || Core::Stringify::EndsWith(Path, ".jsonb") || Core::Stringify::EndsWith(Path, ".xml.gz") || Core::Stringify::EndsWith(Path, ".json.gz") || Core::Stringify::EndsWith(Path, ".jsonb.gz"))
+				VI_ASSERT(asset != nullptr, "asset should be set");
+				VI_ASSERT(asset->resource != nullptr, "instance should be set");
+
+				((model*)asset->resource)->add_ref();
+				return asset->resource;
+			}
+			expects_content<void*> model_processor::deserialize(core::stream* stream, size_t offset, const core::variant_args& args)
+			{
+				VI_ASSERT(stream != nullptr, "stream should be set");
+				core::uptr<model> object = new model();
+				auto path = stream->virtual_name();
+				if (core::stringify::ends_with(path, ".xml") || core::stringify::ends_with(path, ".json") || core::stringify::ends_with(path, ".jsonb") || core::stringify::ends_with(path, ".xml.gz") || core::stringify::ends_with(path, ".json.gz") || core::stringify::ends_with(path, ".jsonb.gz"))
 				{
-					auto DataStatus = Content->Load<Core::Schema>(Path);
-					if (!DataStatus)
-						return DataStatus.Error();
+					auto data_status = content->load<core::schema>(path);
+					if (!data_status)
+						return data_status.error();
 
-					Core::UPtr<Core::Schema> Data = *DataStatus;
-					HeavySeries::Unpack(Data->Get("min"), &Object->Min);
-					HeavySeries::Unpack(Data->Get("max"), &Object->Max);
+					core::uptr<core::schema> data = *data_status;
+					heavy_series::unpack(data->get("min"), &object->min);
+					heavy_series::unpack(data->get("max"), &object->max);
 
-					auto* Meshes = Data->Get("meshes");
-					if (Meshes != nullptr)
+					auto* meshes = data->get("meshes");
+					if (meshes != nullptr)
 					{
-						Object->Meshes.reserve(Meshes->Size());
-						for (auto& Mesh : Meshes->GetChilds())
+						object->meshes.reserve(meshes->size());
+						for (auto& mesh : meshes->get_childs())
 						{
-							Graphics::MeshBuffer::Desc I;
-							I.AccessFlags = Options.AccessFlags;
-							I.Usage = Options.Usage;
+							graphics::mesh_buffer::desc i;
+							i.access_flags = options.access_flags;
+							i.usage = options.usage;
 
-							if (!Series::Unpack(Mesh->Get("indices"), &I.Indices))
-								return ContentException("import model: invalid indices");
+							if (!series::unpack(mesh->get("indices"), &i.indices))
+								return content_exception("import model: invalid indices");
 
-							if (!HeavySeries::Unpack(Mesh->Get("vertices"), &I.Elements))
-								return ContentException("import model: invalid vertices");
+							if (!heavy_series::unpack(mesh->get("vertices"), &i.elements))
+								return content_exception("import model: invalid vertices");
 
-							auto* HeavyContent = (HeavyContentManager*)Content;
-							auto* Device = HeavyContent->GetDevice();
-							auto NewBuffer = ProcessRendererJob<Graphics::ExpectsGraphics<Graphics::MeshBuffer*>>(Device, [&I](Graphics::GraphicsDevice* Device) { return Device->CreateMeshBuffer(I); });
-							if (!NewBuffer)
-								return ContentException(std::move(NewBuffer.Error().message()));
+							auto* heavy_content = (heavy_content_manager*)content;
+							auto* device = heavy_content->get_device();
+							auto new_buffer = process_renderer_job<graphics::expects_graphics<graphics::mesh_buffer*>>(device, [&i](graphics::graphics_device* device) { return device->create_mesh_buffer(i); });
+							if (!new_buffer)
+								return content_exception(std::move(new_buffer.error().message()));
 
-							Object->Meshes.emplace_back(*NewBuffer);
-							Series::Unpack(Mesh->Get("name"), &NewBuffer->Name);
-							HeavySeries::Unpack(Mesh->Get("transform"), &NewBuffer->Transform);
+							object->meshes.emplace_back(*new_buffer);
+							series::unpack(mesh->get("name"), &new_buffer->name);
+							heavy_series::unpack(mesh->get("transform"), &new_buffer->transform);
 						}
 					}
 				}
 				else
 				{
-					auto Data = ImportForImmediateUse(Stream);
-					if (!Data)
-						return Data.Error();
+					auto data = import_for_immediate_use(stream);
+					if (!data)
+						return data.error();
 
-					Object->Meshes.reserve(Data->Meshes.size());
-					Object->Min = Data->Min;
-					Object->Max = Data->Max;
-					for (auto& Mesh : Data->Meshes)
+					object->meshes.reserve(data->meshes.size());
+					object->min = data->min;
+					object->max = data->max;
+					for (auto& mesh : data->meshes)
 					{
-						Graphics::MeshBuffer::Desc I;
-						I.AccessFlags = Options.AccessFlags;
-						I.Usage = Options.Usage;
-						I.Indices = std::move(Mesh.Indices);
-						I.Elements = SkinVerticesToVertices(Mesh.Vertices);
+						graphics::mesh_buffer::desc i;
+						i.access_flags = options.access_flags;
+						i.usage = options.usage;
+						i.indices = std::move(mesh.indices);
+						i.elements = skin_vertices_to_vertices(mesh.vertices);
 
-						auto* HeavyContent = (HeavyContentManager*)Content;
-						auto* Device = HeavyContent->GetDevice();
-						auto NewBuffer = ProcessRendererJob<Graphics::ExpectsGraphics<Graphics::MeshBuffer*>>(Device, [&I](Graphics::GraphicsDevice* Device) { return Device->CreateMeshBuffer(I); });
-						if (!NewBuffer)
-							return ContentException(std::move(NewBuffer.Error().message()));
+						auto* heavy_content = (heavy_content_manager*)content;
+						auto* device = heavy_content->get_device();
+						auto new_buffer = process_renderer_job<graphics::expects_graphics<graphics::mesh_buffer*>>(device, [&i](graphics::graphics_device* device) { return device->create_mesh_buffer(i); });
+						if (!new_buffer)
+							return content_exception(std::move(new_buffer.error().message()));
 
-						Object->Meshes.emplace_back(*NewBuffer);
-						NewBuffer->Name = Mesh.Name;
-						NewBuffer->Transform = Mesh.Transform;
+						object->meshes.emplace_back(*new_buffer);
+						new_buffer->name = mesh.name;
+						new_buffer->transform = mesh.transform;
 					}
 				}
 
-				auto* Existing = (Model*)Content->TryToCache(this, Stream->VirtualName(), *Object);
-				if (Existing != nullptr)
-					Object = Existing;
+				auto* existing = (model*)content->try_to_cache(this, stream->virtual_name(), *object);
+				if (existing != nullptr)
+					object = existing;
 
-				Object->AddRef();
-				return Object.Reset();
+				object->add_ref();
+				return object.reset();
 			}
-			ExpectsContent<Core::Schema*> ModelProcessor::Import(Core::Stream* Stream, uint64_t Opts)
+			expects_content<core::schema*> model_processor::import(core::stream * stream, uint64_t opts)
 			{
-				auto Info = ImportForImmediateUse(Stream, Opts);
-				if (!Info || (Info->Meshes.empty() && Info->JointOffsets.empty()))
+				auto info = import_for_immediate_use(stream, opts);
+				if (!info || (info->meshes.empty() && info->joint_offsets.empty()))
 				{
-					if (!Info)
-						return Info.Error();
+					if (!info)
+						return info.error();
 
-					return ContentException("import model: no mesh data");
+					return content_exception("import model: no mesh data");
 				}
 
-				auto* Blob = Core::Var::Set::Object();
-				Blob->Key = "model";
+				auto* blob = core::var::set::object();
+				blob->key = "model";
 
-				Series::Pack(Blob->Set("options"), Opts);
-				HeavySeries::Pack(Blob->Set("inv-transform"), Info->Transform);
-				HeavySeries::Pack(Blob->Set("min"), Info->Min.XYZW().SetW(Info->Low));
-				HeavySeries::Pack(Blob->Set("max"), Info->Max.XYZW().SetW(Info->High));
-				HeavySeries::Pack(Blob->Set("skeleton"), Info->Skeleton);
+				series::pack(blob->set("options"), opts);
+				heavy_series::pack(blob->set("inv-transform"), info->transform);
+				heavy_series::pack(blob->set("min"), info->min.xyzw().set_w(info->low));
+				heavy_series::pack(blob->set("max"), info->max.xyzw().set_w(info->high));
+				heavy_series::pack(blob->set("skeleton"), info->skeleton);
 
-				Core::Schema* Meshes = Blob->Set("meshes", Core::Var::Array());
-				for (auto&& It : Info->Meshes)
+				core::schema* meshes = blob->set("meshes", core::var::array());
+				for (auto&& it : info->meshes)
 				{
-					Core::Schema* Mesh = Meshes->Set("mesh");
-					Series::Pack(Mesh->Set("name"), It.Name);
-					HeavySeries::Pack(Mesh->Set("transform"), It.Transform);
-					HeavySeries::Pack(Mesh->Set("vertices"), It.Vertices);
-					Series::Pack(Mesh->Set("indices"), It.Indices);
-					Series::Pack(Mesh->Set("joints"), It.JointIndices);
+					core::schema* mesh = meshes->set("mesh");
+					series::pack(mesh->set("name"), it.name);
+					heavy_series::pack(mesh->set("transform"), it.transform);
+					heavy_series::pack(mesh->set("vertices"), it.vertices);
+					series::pack(mesh->set("indices"), it.indices);
+					series::pack(mesh->set("joints"), it.joint_indices);
 				}
 
-				return Blob;
+				return blob;
 			}
-			ExpectsContent<ModelInfo> ModelProcessor::ImportForImmediateUse(Core::Stream* Stream, uint64_t Opts)
+			expects_content<model_info> model_processor::import_for_immediate_use(core::stream* stream, uint64_t opts)
 			{
 #ifdef VI_ASSIMP
-				Core::Vector<char> Data;
-				Stream->ReadAll([&Data](uint8_t* Buffer, size_t Size)
+				core::vector<char> data;
+				stream->read_all([&data](uint8_t* buffer, size_t size)
 				{
-					Data.reserve(Data.size() + Size);
-					for (size_t i = 0; i < Size; i++)
-						Data.push_back(Buffer[i]);
+					data.reserve(data.size() + size);
+					for (size_t i = 0; i < size; i++)
+						data.push_back(buffer[i]);
 				});
 
-				Assimp::Importer Importer;
-				auto* Scene = Importer.ReadFileFromMemory(Data.data(), Data.size(), (uint32_t)Opts, Core::OS::Path::GetExtension(Stream->VirtualName()).data());
-				if (!Scene)
-					return ContentException(Core::Stringify::Text("import model: %s", Importer.GetErrorString()));
+				Assimp::Importer importer;
+				auto* scene = importer.ReadFileFromMemory(data.data(), data.size(), (uint32_t)opts, core::os::path::get_extension(stream->virtual_name()).data());
+				if (!scene)
+					return content_exception(core::stringify::text("import model: %s", importer.GetErrorString()));
 
-				ModelInfo Info;
-				FillSceneGeometries(&Info, Scene, Scene->mRootNode, Scene->mRootNode->mTransformation);
-				FillSceneSkeletons(&Info, Scene);
-				return Info;
+				model_info info;
+				fill_scene_geometries(&info, scene, scene->mRootNode, scene->mRootNode->mTransformation);
+				fill_scene_skeletons(&info, scene);
+				return info;
 #else
-				return ContentException("import model: unsupported");
+				return content_exception("import model: unsupported");
 #endif
 			}
-			void ModelProcessor::Free(AssetCache* Asset)
+			void model_processor::free(asset_cache* asset)
 			{
-				VI_ASSERT(Asset != nullptr, "asset should be set");
-				auto* Value = (Model*)Asset->Resource;
-				Asset->Resource = nullptr;
-				Core::Memory::Release(Value);
+				VI_ASSERT(asset != nullptr, "asset should be set");
+				auto* value = (model*)asset->resource;
+				asset->resource = nullptr;
+				core::memory::release(value);
 			}
-			
-			SkinModelProcessor::SkinModelProcessor(ContentManager* Manager) : Processor(Manager)
-			{
-			}
-			SkinModelProcessor::~SkinModelProcessor()
-			{
-			}
-			ExpectsContent<void*> SkinModelProcessor::Duplicate(AssetCache* Asset, const Core::VariantArgs& Args)
-			{
-				VI_ASSERT(Asset != nullptr, "asset should be set");
-				VI_ASSERT(Asset->Resource != nullptr, "instance should be set");
 
-				((SkinModel*)Asset->Resource)->AddRef();
-				return Asset->Resource;
-			}
-			ExpectsContent<void*> SkinModelProcessor::Deserialize(Core::Stream* Stream, size_t Offset, const Core::VariantArgs& Args)
+			skin_model_processor::skin_model_processor(content_manager* manager) : processor(manager)
 			{
-				VI_ASSERT(Stream != nullptr, "stream should be set");
-				Core::UPtr<SkinModel> Object = new SkinModel();
-				auto Path = Stream->VirtualName();
-				if (Core::Stringify::EndsWith(Path, ".xml") || Core::Stringify::EndsWith(Path, ".json") || Core::Stringify::EndsWith(Path, ".jsonb") || Core::Stringify::EndsWith(Path, ".xml.gz") || Core::Stringify::EndsWith(Path, ".json.gz") || Core::Stringify::EndsWith(Path, ".jsonb.gz"))
+			}
+			skin_model_processor::~skin_model_processor()
+			{
+			}
+			expects_content<void*> skin_model_processor::duplicate(asset_cache* asset, const core::variant_args& args)
+			{
+				VI_ASSERT(asset != nullptr, "asset should be set");
+				VI_ASSERT(asset->resource != nullptr, "instance should be set");
+
+				((skin_model*)asset->resource)->add_ref();
+				return asset->resource;
+			}
+			expects_content<void*> skin_model_processor::deserialize(core::stream* stream, size_t offset, const core::variant_args& args)
+			{
+				VI_ASSERT(stream != nullptr, "stream should be set");
+				core::uptr<skin_model> object = new skin_model();
+				auto path = stream->virtual_name();
+				if (core::stringify::ends_with(path, ".xml") || core::stringify::ends_with(path, ".json") || core::stringify::ends_with(path, ".jsonb") || core::stringify::ends_with(path, ".xml.gz") || core::stringify::ends_with(path, ".json.gz") || core::stringify::ends_with(path, ".jsonb.gz"))
 				{
-					auto DataStatus = Content->Load<Core::Schema>(Path);
-					if (!DataStatus)
-						return DataStatus.Error();
+					auto data_status = content->load<core::schema>(path);
+					if (!data_status)
+						return data_status.error();
 
-					Core::UPtr<Core::Schema> Data = *DataStatus;
-					HeavySeries::Unpack(Data->Get("inv-transform"), &Object->InvTransform);
-					HeavySeries::Unpack(Data->Get("min"), &Object->Min);
-					HeavySeries::Unpack(Data->Get("max"), &Object->Max);
-					HeavySeries::Unpack(Data->Get("skeleton"), &Object->Skeleton);
-					Object->Transform = Object->InvTransform.Inv();
+					core::uptr<core::schema> data = *data_status;
+					heavy_series::unpack(data->get("inv-transform"), &object->inv_transform);
+					heavy_series::unpack(data->get("min"), &object->min);
+					heavy_series::unpack(data->get("max"), &object->max);
+					heavy_series::unpack(data->get("skeleton"), &object->skeleton);
+					object->transform = object->inv_transform.inv();
 
-					auto* Meshes = Data->Get("meshes");
-					if (Meshes != nullptr)
+					auto* meshes = data->get("meshes");
+					if (meshes != nullptr)
 					{
-						Object->Meshes.reserve(Meshes->Size());
-						for (auto& Mesh : Meshes->GetChilds())
+						object->meshes.reserve(meshes->size());
+						for (auto& mesh : meshes->get_childs())
 						{
-							Graphics::SkinMeshBuffer::Desc I;
-							I.AccessFlags = Options.AccessFlags;
-							I.Usage = Options.Usage;
+							graphics::skin_mesh_buffer::desc i;
+							i.access_flags = options.access_flags;
+							i.usage = options.usage;
 
-							if (!Series::Unpack(Mesh->Get("indices"), &I.Indices))
-								return ContentException("import model: invalid indices");
+							if (!series::unpack(mesh->get("indices"), &i.indices))
+								return content_exception("import model: invalid indices");
 
-							if (!HeavySeries::Unpack(Mesh->Get("vertices"), &I.Elements))
-								return ContentException("import model: invalid vertices");
+							if (!heavy_series::unpack(mesh->get("vertices"), &i.elements))
+								return content_exception("import model: invalid vertices");
 
-							auto* HeavyContent = (HeavyContentManager*)Content;
-							auto* Device = HeavyContent->GetDevice();
-							auto NewBuffer = ProcessRendererJob<Graphics::ExpectsGraphics<Graphics::SkinMeshBuffer*>>(Device, [&I](Graphics::GraphicsDevice* Device) { return Device->CreateSkinMeshBuffer(I); });
-							if (!NewBuffer)
-								return ContentException(std::move(NewBuffer.Error().message()));
+							auto* heavy_content = (heavy_content_manager*)content;
+							auto* device = heavy_content->get_device();
+							auto new_buffer = process_renderer_job<graphics::expects_graphics<graphics::skin_mesh_buffer*>>(device, [&i](graphics::graphics_device* device) { return device->create_skin_mesh_buffer(i); });
+							if (!new_buffer)
+								return content_exception(std::move(new_buffer.error().message()));
 
-							Object->Meshes.emplace_back(*NewBuffer);
-							Series::Unpack(Mesh->Get("name"), &NewBuffer->Name);
-							HeavySeries::Unpack(Mesh->Get("transform"), &NewBuffer->Transform);
-							Series::Unpack(Mesh->Get("joints"), &NewBuffer->Joints);
+							object->meshes.emplace_back(*new_buffer);
+							series::unpack(mesh->get("name"), &new_buffer->name);
+							heavy_series::unpack(mesh->get("transform"), &new_buffer->transform);
+							series::unpack(mesh->get("joints"), &new_buffer->joints);
 						}
 					}
 				}
 				else
 				{
-					auto Data = ModelProcessor::ImportForImmediateUse(Stream);
-					if (!Data)
-						return Data.Error();
+					auto data = model_processor::import_for_immediate_use(stream);
+					if (!data)
+						return data.error();
 
-					Object = new SkinModel();
-					Object->Meshes.reserve(Data->Meshes.size());
-					Object->InvTransform = Data->Transform;
-					Object->Min = Data->Min;
-					Object->Max = Data->Max;
-					Object->Skeleton = std::move(Data->Skeleton);
+					object = new skin_model();
+					object->meshes.reserve(data->meshes.size());
+					object->inv_transform = data->transform;
+					object->min = data->min;
+					object->max = data->max;
+					object->skeleton = std::move(data->skeleton);
 
-					for (auto& Mesh : Data->Meshes)
+					for (auto& mesh : data->meshes)
 					{
-						Graphics::SkinMeshBuffer::Desc I;
-						I.AccessFlags = Options.AccessFlags;
-						I.Usage = Options.Usage;
-						I.Indices = std::move(Mesh.Indices);
-						I.Elements = std::move(Mesh.Vertices);
+						graphics::skin_mesh_buffer::desc i;
+						i.access_flags = options.access_flags;
+						i.usage = options.usage;
+						i.indices = std::move(mesh.indices);
+						i.elements = std::move(mesh.vertices);
 
-						auto* HeavyContent = (HeavyContentManager*)Content;
-						auto* Device = HeavyContent->GetDevice();
-						auto NewBuffer = ProcessRendererJob<Graphics::ExpectsGraphics<Graphics::SkinMeshBuffer*>>(Device, [&I](Graphics::GraphicsDevice* Device) { return Device->CreateSkinMeshBuffer(I); });
-						if (!NewBuffer)
-							return ContentException(std::move(NewBuffer.Error().message()));
+						auto* heavy_content = (heavy_content_manager*)content;
+						auto* device = heavy_content->get_device();
+						auto new_buffer = process_renderer_job<graphics::expects_graphics<graphics::skin_mesh_buffer*>>(device, [&i](graphics::graphics_device* device) { return device->create_skin_mesh_buffer(i); });
+						if (!new_buffer)
+							return content_exception(std::move(new_buffer.error().message()));
 
-						Object->Meshes.emplace_back(*NewBuffer);
-						NewBuffer->Name = Mesh.Name;
-						NewBuffer->Transform = Mesh.Transform;
-						NewBuffer->Joints = std::move(Mesh.JointIndices);
+						object->meshes.emplace_back(*new_buffer);
+						new_buffer->name = mesh.name;
+						new_buffer->transform = mesh.transform;
+						new_buffer->joints = std::move(mesh.joint_indices);
 					}
 				}
 
-				auto* Existing = (SkinModel*)Content->TryToCache(this, Stream->VirtualName(), *Object);
-				if (Existing != nullptr)
-					Object = Existing;
+				auto* existing = (skin_model*)content->try_to_cache(this, stream->virtual_name(), *object);
+				if (existing != nullptr)
+					object = existing;
 
-				Object->AddRef();
-				return Object.Reset();
+				object->add_ref();
+				return object.reset();
 			}
-			void SkinModelProcessor::Free(AssetCache* Asset)
+			void skin_model_processor::free(asset_cache* asset)
 			{
-				VI_ASSERT(Asset != nullptr, "asset should be set");
-				auto* Value = (SkinModel*)Asset->Resource;
-				Asset->Resource = nullptr;
-				Core::Memory::Release(Value);
+				VI_ASSERT(asset != nullptr, "asset should be set");
+				auto* value = (skin_model*)asset->resource;
+				asset->resource = nullptr;
+				core::memory::release(value);
 			}
 
-			SkinAnimationProcessor::SkinAnimationProcessor(ContentManager* Manager) : Processor(Manager)
+			skin_animation_processor::skin_animation_processor(content_manager* manager) : processor(manager)
 			{
 			}
-			SkinAnimationProcessor::~SkinAnimationProcessor()
+			skin_animation_processor::~skin_animation_processor()
 			{
 			}
-			ExpectsContent<void*> SkinAnimationProcessor::Duplicate(AssetCache* Asset, const Core::VariantArgs& Args)
+			expects_content<void*> skin_animation_processor::duplicate(asset_cache* asset, const core::variant_args& args)
 			{
-				VI_ASSERT(Asset != nullptr, "asset should be set");
-				VI_ASSERT(Asset->Resource != nullptr, "instance should be set");
+				VI_ASSERT(asset != nullptr, "asset should be set");
+				VI_ASSERT(asset->resource != nullptr, "instance should be set");
 
-				((Layer::SkinAnimation*)Asset->Resource)->AddRef();
-				return Asset->Resource;
+				((layer::skin_animation*)asset->resource)->add_ref();
+				return asset->resource;
 			}
-			ExpectsContent<void*> SkinAnimationProcessor::Deserialize(Core::Stream* Stream, size_t Offset, const Core::VariantArgs& Args)
+			expects_content<void*> skin_animation_processor::deserialize(core::stream* stream, size_t offset, const core::variant_args& args)
 			{
-				VI_ASSERT(Stream != nullptr, "stream should be set");
-				Core::Vector<Trigonometry::SkinAnimatorClip> Clips;
-				auto Path = Stream->VirtualName();
-				if (Core::Stringify::EndsWith(Path, ".xml") || Core::Stringify::EndsWith(Path, ".json") || Core::Stringify::EndsWith(Path, ".jsonb") || Core::Stringify::EndsWith(Path, ".xml.gz") || Core::Stringify::EndsWith(Path, ".json.gz") || Core::Stringify::EndsWith(Path, ".jsonb.gz"))
+				VI_ASSERT(stream != nullptr, "stream should be set");
+				core::vector<trigonometry::skin_animator_clip> clips;
+				auto path = stream->virtual_name();
+				if (core::stringify::ends_with(path, ".xml") || core::stringify::ends_with(path, ".json") || core::stringify::ends_with(path, ".jsonb") || core::stringify::ends_with(path, ".xml.gz") || core::stringify::ends_with(path, ".json.gz") || core::stringify::ends_with(path, ".jsonb.gz"))
 				{
-					auto DataStatus = Content->Load<Core::Schema>(Path);
-					if (!DataStatus)
-						return DataStatus.Error();
+					auto data_status = content->load<core::schema>(path);
+					if (!data_status)
+						return data_status.error();
 
-					Core::UPtr<Core::Schema> Data = *DataStatus;
-					Clips.reserve(Data->Size());
-					for (auto& Item : Data->GetChilds())
+					core::uptr<core::schema> data = *data_status;
+					clips.reserve(data->size());
+					for (auto& item : data->get_childs())
 					{
-						Clips.emplace_back();
-						auto& Clip = Clips.back();
-						Series::Unpack(Item->Get("name"), &Clip.Name);
-						Series::Unpack(Item->Get("duration"), &Clip.Duration);
-						Series::Unpack(Item->Get("rate"), &Clip.Rate);
+						clips.emplace_back();
+						auto& clip = clips.back();
+						series::unpack(item->get("name"), &clip.name);
+						series::unpack(item->get("duration"), &clip.duration);
+						series::unpack(item->get("rate"), &clip.rate);
 
-						auto* Keys = Item->Get("keys");
-						if (Keys != nullptr)
+						auto* keys = item->get("keys");
+						if (keys != nullptr)
 						{
-							Clip.Keys.reserve(Keys->Size());
-							for (auto& Key : Keys->GetChilds())
+							clip.keys.reserve(keys->size());
+							for (auto& key : keys->get_childs())
 							{
-								Clip.Keys.emplace_back();
-								auto& Pose = Clip.Keys.back();
-								Series::Unpack(Key, &Pose.Time);
+								clip.keys.emplace_back();
+								auto& pose = clip.keys.back();
+								series::unpack(key, &pose.time);
 
-								size_t ArrayOffset = 0;
-								for (auto& Orientation : Key->GetChilds())
+								size_t array_offset = 0;
+								for (auto& orientation : key->get_childs())
 								{
-									if (!ArrayOffset++)
+									if (!array_offset++)
 										continue;
 
-									Pose.Pose.emplace_back();
-									auto& Value = Pose.Pose.back();
-									HeavySeries::Unpack(Orientation->Get("position"), &Value.Position);
-									HeavySeries::Unpack(Orientation->Get("scale"), &Value.Scale);
-									HeavySeries::Unpack(Orientation->Get("rotation"), &Value.Rotation);
-									Series::Unpack(Orientation->Get("time"), &Value.Time);
+									pose.pose.emplace_back();
+									auto& value = pose.pose.back();
+									heavy_series::unpack(orientation->get("position"), &value.position);
+									heavy_series::unpack(orientation->get("scale"), &value.scale);
+									heavy_series::unpack(orientation->get("rotation"), &value.rotation);
+									series::unpack(orientation->get("time"), &value.time);
 								}
 							}
 						}
@@ -1670,145 +1666,145 @@ namespace Vitex
 				}
 				else
 				{
-					auto NewClips = ImportForImmediateUse(Stream);
-					if (!NewClips)
-						return NewClips.Error();
+					auto new_clips = import_for_immediate_use(stream);
+					if (!new_clips)
+						return new_clips.error();
 
-					Clips = std::move(*NewClips);
+					clips = std::move(*new_clips);
 				}
 
-				if (Clips.empty())
-					return ContentException("load animation: no clips");
+				if (clips.empty())
+					return content_exception("load animation: no clips");
 
-				Core::UPtr<Layer::SkinAnimation> Object = new Layer::SkinAnimation(std::move(Clips));
-				auto* Existing = (Layer::SkinAnimation*)Content->TryToCache(this, Stream->VirtualName(), *Object);
-				if (Existing != nullptr)
-					Object = Existing;
+				core::uptr<layer::skin_animation> object = new layer::skin_animation(std::move(clips));
+				auto* existing = (layer::skin_animation*)content->try_to_cache(this, stream->virtual_name(), *object);
+				if (existing != nullptr)
+					object = existing;
 
-				Object->AddRef();
-				return Object.Reset();
+				object->add_ref();
+				return object.reset();
 			}
-			ExpectsContent<Core::Schema*> SkinAnimationProcessor::Import(Core::Stream* Stream, uint64_t Opts)
+			expects_content<core::schema*> skin_animation_processor::import(core::stream * stream, uint64_t opts)
 			{
-				auto Info = ImportForImmediateUse(Stream, Opts);
-				if (!Info)
-					return Info.Error();
+				auto info = import_for_immediate_use(stream, opts);
+				if (!info)
+					return info.error();
 
-				auto* Blob = Core::Var::Set::Array();
-				Blob->Key = "animation";
+				auto* blob = core::var::set::array();
+				blob->key = "animation";
 
-				for (auto& Clip : *Info)
+				for (auto& clip : *info)
 				{
-					auto* Item = Blob->Push(Core::Var::Set::Object());
-					Series::Pack(Item->Set("name"), Clip.Name);
-					Series::Pack(Item->Set("duration"), Clip.Duration);
-					Series::Pack(Item->Set("rate"), Clip.Rate);
+					auto* item = blob->push(core::var::set::object());
+					series::pack(item->set("name"), clip.name);
+					series::pack(item->set("duration"), clip.duration);
+					series::pack(item->set("rate"), clip.rate);
 
-					auto* Keys = Item->Set("keys", Core::Var::Set::Array());
-					Keys->Reserve(Clip.Keys.size());
+					auto* keys = item->set("keys", core::var::set::array());
+					keys->reserve(clip.keys.size());
 
-					for (auto& Key : Clip.Keys)
+					for (auto& key : clip.keys)
 					{
-						auto* Pose = Keys->Set("pose", Core::Var::Set::Array());
-						Pose->Reserve(Key.Pose.size() + 1);
-						Series::Pack(Pose, Key.Time);
+						auto* pose = keys->set("pose", core::var::set::array());
+						pose->reserve(key.pose.size() + 1);
+						series::pack(pose, key.time);
 
-						for (auto& Orientation : Key.Pose)
+						for (auto& orientation : key.pose)
 						{
-							auto* Value = Pose->Set("key", Core::Var::Set::Object());
-							HeavySeries::Pack(Value->Set("position"), Orientation.Position);
-							HeavySeries::Pack(Value->Set("scale"), Orientation.Scale);
-							HeavySeries::Pack(Value->Set("rotation"), Orientation.Rotation);
-							Series::Pack(Value->Set("time"), Orientation.Time);
+							auto* value = pose->set("key", core::var::set::object());
+							heavy_series::pack(value->set("position"), orientation.position);
+							heavy_series::pack(value->set("scale"), orientation.scale);
+							heavy_series::pack(value->set("rotation"), orientation.rotation);
+							series::pack(value->set("time"), orientation.time);
 						}
 					}
 				}
 
-				return Blob;
+				return blob;
 			}
-			ExpectsContent<Core::Vector<Trigonometry::SkinAnimatorClip>> SkinAnimationProcessor::ImportForImmediateUse(Core::Stream* Stream, uint64_t Opts)
+			expects_content<core::vector<trigonometry::skin_animator_clip>> skin_animation_processor::import_for_immediate_use(core::stream* stream, uint64_t opts)
 			{
 #ifdef VI_ASSIMP
-				Core::Vector<char> Data;
-				Stream->ReadAll([&Data](uint8_t* Buffer, size_t Size)
+				core::vector<char> data;
+				stream->read_all([&data](uint8_t* buffer, size_t size)
 				{
-					Data.reserve(Data.size() + Size);
-					for (size_t i = 0; i < Size; i++)
-						Data.push_back(Buffer[i]);
+					data.reserve(data.size() + size);
+					for (size_t i = 0; i < size; i++)
+						data.push_back(buffer[i]);
 				});
 
-				Assimp::Importer Importer;
-				auto* Scene = Importer.ReadFileFromMemory(Data.data(), Data.size(), (uint32_t)Opts, Core::OS::Path::GetExtension(Stream->VirtualName()).data());
-				if (!Scene)
-					return ContentException(Core::Stringify::Text("import animation: %s", Importer.GetErrorString()));
+				Assimp::Importer importer;
+				auto* scene = importer.ReadFileFromMemory(data.data(), data.size(), (uint32_t)opts, core::os::path::get_extension(stream->virtual_name()).data());
+				if (!scene)
+					return content_exception(core::stringify::text("import animation: %s", importer.GetErrorString()));
 
-				Core::Vector<Trigonometry::SkinAnimatorClip> Info;
-				FillSceneAnimations(&Info, Scene);
-				return Info;
+				core::vector<trigonometry::skin_animator_clip> info;
+				fill_scene_animations(&info, scene);
+				return info;
 #else
-				return ContentException("import animation: unsupported");
+				return content_exception("import animation: unsupported");
 #endif
 			}
-			void SkinAnimationProcessor::Free(AssetCache* Asset)
+			void skin_animation_processor::free(asset_cache* asset)
 			{
-				VI_ASSERT(Asset != nullptr, "asset should be set");
-				auto* Value = (Layer::SkinAnimation*)Asset->Resource;
-				Asset->Resource = nullptr;
-				Core::Memory::Release(Value);
+				VI_ASSERT(asset != nullptr, "asset should be set");
+				auto* value = (layer::skin_animation*)asset->resource;
+				asset->resource = nullptr;
+				core::memory::release(value);
 			}
 
-			HullShapeProcessor::HullShapeProcessor(ContentManager* Manager) : Processor(Manager)
+			hull_shape_processor::hull_shape_processor(content_manager* manager) : processor(manager)
 			{
 			}
-			HullShapeProcessor::~HullShapeProcessor()
+			hull_shape_processor::~hull_shape_processor()
 			{
 			}
-			ExpectsContent<void*> HullShapeProcessor::Duplicate(AssetCache* Asset, const Core::VariantArgs& Args)
+			expects_content<void*> hull_shape_processor::duplicate(asset_cache* asset, const core::variant_args& args)
 			{
-				VI_ASSERT(Asset != nullptr, "asset should be set");
-				VI_ASSERT(Asset->Resource != nullptr, "instance should be set");
+				VI_ASSERT(asset != nullptr, "asset should be set");
+				VI_ASSERT(asset->resource != nullptr, "instance should be set");
 
-				((Physics::HullShape*)Asset->Resource)->AddRef();
-				return Asset->Resource;
+				((physics::hull_shape*)asset->resource)->add_ref();
+				return asset->resource;
 			}
-			ExpectsContent<void*> HullShapeProcessor::Deserialize(Core::Stream* Stream, size_t Offset, const Core::VariantArgs& Args)
+			expects_content<void*> hull_shape_processor::deserialize(core::stream* stream, size_t offset, const core::variant_args& args)
 			{
-				VI_ASSERT(Stream != nullptr, "stream should be set");
-				auto DataStatus = Content->Load<Core::Schema>(Stream->VirtualName());
-				if (!DataStatus)
-					return DataStatus.Error();
+				VI_ASSERT(stream != nullptr, "stream should be set");
+				auto data_status = content->load<core::schema>(stream->virtual_name());
+				if (!data_status)
+					return data_status.error();
 
-				Core::UPtr<Core::Schema> Data = *DataStatus;
-				Core::Vector<Core::Schema*> Meshes = Data->FetchCollection("meshes.mesh");
-				Core::Vector<Trigonometry::Vertex> Vertices;
-				Core::Vector<int> Indices;
+				core::uptr<core::schema> data = *data_status;
+				core::vector<core::schema*> meshes = data->fetch_collection("meshes.mesh");
+				core::vector<trigonometry::vertex> vertices;
+				core::vector<int> indices;
 
-				for (auto&& Mesh : Meshes)
+				for (auto&& mesh : meshes)
 				{
-					if (!Series::Unpack(Mesh->Find("indices"), &Indices))
-						return ContentException("import shape: invalid indices");
+					if (!series::unpack(mesh->find("indices"), &indices))
+						return content_exception("import shape: invalid indices");
 
-					if (!HeavySeries::Unpack(Mesh->Find("vertices"), &Vertices))
-						return ContentException("import shape: invalid vertices");
+					if (!heavy_series::unpack(mesh->find("vertices"), &vertices))
+						return content_exception("import shape: invalid vertices");
 				}
 
-				Core::UPtr<Physics::HullShape> Object = new Physics::HullShape(std::move(Vertices), std::move(Indices));
-				if (!Object->GetShape())
-					return ContentException("import shape: invalid shape");
+				core::uptr<physics::hull_shape> object = new physics::hull_shape(std::move(vertices), std::move(indices));
+				if (!object->get_shape())
+					return content_exception("import shape: invalid shape");
 
-				auto* Existing = (Physics::HullShape*)Content->TryToCache(this, Stream->VirtualName(), *Object);
-				if (Existing != nullptr)
-					Object = Existing;
+				auto* existing = (physics::hull_shape*)content->try_to_cache(this, stream->virtual_name(), *object);
+				if (existing != nullptr)
+					object = existing;
 
-				Object->AddRef();
-				return Object.Reset();
+				object->add_ref();
+				return object.reset();
 			}
-			void HullShapeProcessor::Free(AssetCache* Asset)
+			void hull_shape_processor::free(asset_cache* asset)
 			{
-				VI_ASSERT(Asset != nullptr, "asset should be set");
-				auto* Value = (Physics::HullShape*)Asset->Resource;
-				Asset->Resource = nullptr;
-				Core::Memory::Release(Value);
+				VI_ASSERT(asset != nullptr, "asset should be set");
+				auto* value = (physics::hull_shape*)asset->resource;
+				asset->resource = nullptr;
+				core::memory::release(value);
 			}
 		}
 	}

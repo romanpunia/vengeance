@@ -1,805 +1,805 @@
 #include "effects.h"
 #include "filters.h"
 #include "../layer.h"
-#define ReturnErrorIf do { auto __error = AudioException(); if (__error.has_error()) return __error; else return Core::Expectation::Met; } while (0)
+#define return_error_if do { auto __error = audio_exception(); if (__error.has_error()) return __error; else return core::expectation::met; } while (0)
 
-namespace Vitex
+namespace vitex
 {
-	namespace Audio
+	namespace audio
 	{
-		namespace Effects
+		namespace effects
 		{
-			AudioFilter* GetFilterDeserialized(Core::Schema* Node)
+			audio_filter* get_filter_deserialized(core::schema* node)
 			{
-				Core::Schema* Filter = Node->Find("filter");
-				if (!Filter)
+				core::schema* filter = node->find("filter");
+				if (!filter)
 					return nullptr;
 
-				uint64_t Id;
-				if (!Layer::Series::Unpack(Filter->Find("id"), &Id))
+				uint64_t id;
+				if (!layer::series::unpack(filter->find("id"), &id))
 					return nullptr;
 
-				AudioFilter* Target = Core::Composer::Create<AudioFilter>(Id);
-				if (!Target)
+				audio_filter* target = core::composer::create<audio_filter>(id);
+				if (!target)
 					return nullptr;
 
-				Core::Schema* Meta = Filter->Find("metadata");
-				if (!Meta)
-					Meta = Filter->Set("metadata");
+				core::schema* meta = filter->find("metadata");
+				if (!meta)
+					meta = filter->set("metadata");
 
-				Target->Deserialize(Meta);
-				return Target;
+				target->deserialize(meta);
+				return target;
 			}
 
-			Reverb::Reverb()
+			reverb::reverb()
 			{
-				Initialize([this]()
+				initialize([this]()
 				{
-					EAX = (AudioContext::GetEnumValue("AL_EFFECT_EAXREVERB") != 0);
+					EAX = (audio_context::get_enum_value("AL_EFFECT_EAXREVERB") != 0);
 					if (EAX)
-						AudioContext::SetEffect1I(Effect, EffectEx::Effect_Type, (int)EffectEx::Effect_EAXReverb);
+						audio_context::set_effect1i(effect, effect_ex::effect_type, (int)effect_ex::effect_eax_reverb);
 					else
-						AudioContext::SetEffect1I(Effect, EffectEx::Effect_Type, (int)EffectEx::Effect_Reverb);
+						audio_context::set_effect1i(effect, effect_ex::effect_type, (int)effect_ex::effect_reverb);
 					return true;
 				});
 			}
-			Reverb::~Reverb()
+			reverb::~reverb()
 			{
 			}
-			ExpectsAudio<void> Reverb::Synchronize()
+			expects_audio<void> reverb::synchronize()
 			{
 				if (EAX)
 				{
-					float ReflectionsPan3[3];
-					ReflectionsPan.Get3(ReflectionsPan3);
+					float reflections_pan3[3];
+					reflections_pan.get3(reflections_pan3);
 
-					float LateReverbPan3[3];
-					LateReverbPan.Get3(LateReverbPan3);
+					float late_reverb_pan3[3];
+					late_reverb_pan.get3(late_reverb_pan3);
 
-					AudioContext::SetEffectVF(Effect, EffectEx::EAXReverb_Reflections_Pan, ReflectionsPan3);
-					AudioContext::SetEffectVF(Effect, EffectEx::EAXReverb_Late_Reverb_Pan, LateReverbPan3);
-					AudioContext::SetEffect1F(Effect, EffectEx::EAXReverb_Density, Density);
-					AudioContext::SetEffect1F(Effect, EffectEx::EAXReverb_Diffusion, Diffusion);
-					AudioContext::SetEffect1F(Effect, EffectEx::EAXReverb_Gain, Gain);
-					AudioContext::SetEffect1F(Effect, EffectEx::EAXReverb_Gain_HF, GainHF);
-					AudioContext::SetEffect1F(Effect, EffectEx::EAXReverb_Gain_LF, GainLF);
-					AudioContext::SetEffect1F(Effect, EffectEx::EAXReverb_Decay_Time, DecayTime);
-					AudioContext::SetEffect1F(Effect, EffectEx::EAXReverb_Decay_HF_Ratio, DecayHFRatio);
-					AudioContext::SetEffect1F(Effect, EffectEx::EAXReverb_Decay_LF_Ratio, DecayLFRatio);
-					AudioContext::SetEffect1F(Effect, EffectEx::EAXReverb_Reflections_Gain, ReflectionsGain);
-					AudioContext::SetEffect1F(Effect, EffectEx::EAXReverb_Reflections_Delay, ReflectionsDelay);
-					AudioContext::SetEffect1F(Effect, EffectEx::EAXReverb_Late_Reverb_Gain, LateReverbGain);
-					AudioContext::SetEffect1F(Effect, EffectEx::EAXReverb_Late_Reverb_Delay, LateReverbDelay);
-					AudioContext::SetEffect1F(Effect, EffectEx::EAXReverb_Echo_Time, EchoTime);
-					AudioContext::SetEffect1F(Effect, EffectEx::EAXReverb_Echo_Depth, EchoDepth);
-					AudioContext::SetEffect1F(Effect, EffectEx::EAXReverb_Modulation_Time, ModulationTime);
-					AudioContext::SetEffect1F(Effect, EffectEx::EAXReverb_Modulation_Depth, ModulationDepth);
-					AudioContext::SetEffect1F(Effect, EffectEx::EAXReverb_Air_Absorption_Gain_HF, AirAbsorptionGainHF);
-					AudioContext::SetEffect1F(Effect, EffectEx::EAXReverb_HF_Reference, HFReference);
-					AudioContext::SetEffect1F(Effect, EffectEx::EAXReverb_LF_Reference, LFReference);
-					AudioContext::SetEffect1F(Effect, EffectEx::EAXReverb_Room_Rolloff_Factor, RoomRolloffFactor);
-					AudioContext::SetEffect1I(Effect, EffectEx::EAXReverb_Decay_HF_Limit, IsDecayHFLimited ? 1 : 0);
+					audio_context::set_effectvf(effect, effect_ex::eax_reverb_reflections_pan, reflections_pan3);
+					audio_context::set_effectvf(effect, effect_ex::eax_reverb_late_reverb_pan, late_reverb_pan3);
+					audio_context::set_effect1f(effect, effect_ex::eax_reverb_density, density);
+					audio_context::set_effect1f(effect, effect_ex::eax_reverb_diffusion, diffusion);
+					audio_context::set_effect1f(effect, effect_ex::eax_reverb_gain, gain);
+					audio_context::set_effect1f(effect, effect_ex::eax_reverb_gain_hf, gain_hf);
+					audio_context::set_effect1f(effect, effect_ex::eax_reverb_gain_lf, gain_lf);
+					audio_context::set_effect1f(effect, effect_ex::eax_reverb_decay_time, decay_time);
+					audio_context::set_effect1f(effect, effect_ex::eax_reverb_decay_hf_ratio, decay_hf_ratio);
+					audio_context::set_effect1f(effect, effect_ex::eax_reverb_decay_lf_ratio, decay_lf_ratio);
+					audio_context::set_effect1f(effect, effect_ex::eax_reverb_reflections_gain, reflections_gain);
+					audio_context::set_effect1f(effect, effect_ex::eax_reverb_reflections_delay, reflections_delay);
+					audio_context::set_effect1f(effect, effect_ex::eax_reverb_late_reverb_gain, late_reverb_gain);
+					audio_context::set_effect1f(effect, effect_ex::eax_reverb_late_reverb_delay, late_reverb_delay);
+					audio_context::set_effect1f(effect, effect_ex::eax_reverb_echo_time, echo_time);
+					audio_context::set_effect1f(effect, effect_ex::eax_reverb_echo_depth, echo_depth);
+					audio_context::set_effect1f(effect, effect_ex::eax_reverb_modulation_time, modulation_time);
+					audio_context::set_effect1f(effect, effect_ex::eax_reverb_modulation_depth, modulation_depth);
+					audio_context::set_effect1f(effect, effect_ex::eax_reverb_air_absorption_gain_hf, air_absorption_gain_hf);
+					audio_context::set_effect1f(effect, effect_ex::eax_reverb_hf_reference, hf_reference);
+					audio_context::set_effect1f(effect, effect_ex::eax_reverb_lf_reference, lf_reference);
+					audio_context::set_effect1f(effect, effect_ex::eax_reverb_room_rolloff_factor, room_rolloff_factor);
+					audio_context::set_effect1i(effect, effect_ex::eax_reverb_decay_hf_limit, is_decay_hf_limited ? 1 : 0);
 				}
 				else
 				{
-					AudioContext::SetEffect1F(Effect, EffectEx::Reverb_Density, Density);
-					AudioContext::SetEffect1F(Effect, EffectEx::Reverb_Diffusion, Diffusion);
-					AudioContext::SetEffect1F(Effect, EffectEx::Reverb_Gain, Gain);
-					AudioContext::SetEffect1F(Effect, EffectEx::Reverb_Gain_HF, GainHF);
-					AudioContext::SetEffect1F(Effect, EffectEx::Reverb_Decay_Time, DecayTime);
-					AudioContext::SetEffect1F(Effect, EffectEx::Reverb_Decay_HF_Ratio, DecayHFRatio);
-					AudioContext::SetEffect1F(Effect, EffectEx::Reverb_Reflections_Gain, ReflectionsGain);
-					AudioContext::SetEffect1F(Effect, EffectEx::Reverb_Reflections_Delay, ReflectionsDelay);
-					AudioContext::SetEffect1F(Effect, EffectEx::Reverb_Late_Reverb_Gain, LateReverbGain);
-					AudioContext::SetEffect1F(Effect, EffectEx::Reverb_Late_Reverb_Delay, LateReverbDelay);
-					AudioContext::SetEffect1F(Effect, EffectEx::Reverb_Air_Absorption_Gain_HF, AirAbsorptionGainHF);
-					AudioContext::SetEffect1F(Effect, EffectEx::Reverb_Room_Rolloff_Factor, RoomRolloffFactor);
-					AudioContext::SetEffect1I(Effect, EffectEx::Reverb_Decay_HF_Limit, IsDecayHFLimited ? 1 : 0);
+					audio_context::set_effect1f(effect, effect_ex::reverb_density, density);
+					audio_context::set_effect1f(effect, effect_ex::reverb_diffusion, diffusion);
+					audio_context::set_effect1f(effect, effect_ex::reverb_gain, gain);
+					audio_context::set_effect1f(effect, effect_ex::reverb_gain_hf, gain_hf);
+					audio_context::set_effect1f(effect, effect_ex::reverb_decay_time, decay_time);
+					audio_context::set_effect1f(effect, effect_ex::reverb_decay_hf_ratio, decay_hf_ratio);
+					audio_context::set_effect1f(effect, effect_ex::reverb_reflections_gain, reflections_gain);
+					audio_context::set_effect1f(effect, effect_ex::reverb_reflections_delay, reflections_delay);
+					audio_context::set_effect1f(effect, effect_ex::reverb_late_reverb_gain, late_reverb_gain);
+					audio_context::set_effect1f(effect, effect_ex::reverb_late_reverb_delay, late_reverb_delay);
+					audio_context::set_effect1f(effect, effect_ex::reverb_air_absorption_gain_hf, air_absorption_gain_hf);
+					audio_context::set_effect1f(effect, effect_ex::reverb_room_rolloff_factor, room_rolloff_factor);
+					audio_context::set_effect1i(effect, effect_ex::reverb_decay_hf_limit, is_decay_hf_limited ? 1 : 0);
 				}
-				ReturnErrorIf;
+				return_error_if;
 			}
-			void Reverb::Deserialize(Core::Schema* Node)
+			void reverb::deserialize(core::schema* node)
 			{
-				VI_ASSERT(Node != nullptr, "schema should be set");
-				AudioFilter* NewFilter = GetFilterDeserialized(Node);
-				if (NewFilter != nullptr)
-					SetFilter(&Filter);
+				VI_ASSERT(node != nullptr, "schema should be set");
+				audio_filter* new_filter = get_filter_deserialized(node);
+				if (new_filter != nullptr)
+					set_filter(&filter);
 
-				Layer::HeavySeries::Unpack(Node->Find("late-reverb-pan"), &LateReverbPan);
-				Layer::HeavySeries::Unpack(Node->Find("reflections-pan"), &ReflectionsPan);
-				Layer::Series::Unpack(Node->Find("density"), &Density);
-				Layer::Series::Unpack(Node->Find("diffusion"), &Diffusion);
-				Layer::Series::Unpack(Node->Find("gain"), &Gain);
-				Layer::Series::Unpack(Node->Find("gain-hf"), &GainHF);
-				Layer::Series::Unpack(Node->Find("gain-lf"), &GainLF);
-				Layer::Series::Unpack(Node->Find("decay-time"), &DecayTime);
-				Layer::Series::Unpack(Node->Find("decay-hg-ratio"), &DecayHFRatio);
-				Layer::Series::Unpack(Node->Find("decay-lf-ratio"), &DecayLFRatio);
-				Layer::Series::Unpack(Node->Find("reflections-gain"), &ReflectionsGain);
-				Layer::Series::Unpack(Node->Find("reflections-delay"), &ReflectionsDelay);
-				Layer::Series::Unpack(Node->Find("late-reverb-gain"), &LateReverbGain);
-				Layer::Series::Unpack(Node->Find("late-reverb-delay"), &LateReverbDelay);
-				Layer::Series::Unpack(Node->Find("echo-time"), &EchoTime);
-				Layer::Series::Unpack(Node->Find("echo-depth"), &EchoDepth);
-				Layer::Series::Unpack(Node->Find("modulation-time"), &ModulationTime);
-				Layer::Series::Unpack(Node->Find("modulation-depth"), &ModulationDepth);
-				Layer::Series::Unpack(Node->Find("air-absorption-gain-hf"), &AirAbsorptionGainHF);
-				Layer::Series::Unpack(Node->Find("hf-reference"), &HFReference);
-				Layer::Series::Unpack(Node->Find("lf-reference"), &LFReference);
-				Layer::Series::Unpack(Node->Find("room-rolloff-factor"), &RoomRolloffFactor);
-				Layer::Series::Unpack(Node->Find("decay-hf-limited"), &IsDecayHFLimited);
+				layer::heavy_series::unpack(node->find("late-reverb-pan"), &late_reverb_pan);
+				layer::heavy_series::unpack(node->find("reflections-pan"), &reflections_pan);
+				layer::series::unpack(node->find("density"), &density);
+				layer::series::unpack(node->find("diffusion"), &diffusion);
+				layer::series::unpack(node->find("gain"), &gain);
+				layer::series::unpack(node->find("gain-hf"), &gain_hf);
+				layer::series::unpack(node->find("gain-lf"), &gain_lf);
+				layer::series::unpack(node->find("decay-time"), &decay_time);
+				layer::series::unpack(node->find("decay-hg-ratio"), &decay_hf_ratio);
+				layer::series::unpack(node->find("decay-lf-ratio"), &decay_lf_ratio);
+				layer::series::unpack(node->find("reflections-gain"), &reflections_gain);
+				layer::series::unpack(node->find("reflections-delay"), &reflections_delay);
+				layer::series::unpack(node->find("late-reverb-gain"), &late_reverb_gain);
+				layer::series::unpack(node->find("late-reverb-delay"), &late_reverb_delay);
+				layer::series::unpack(node->find("echo-time"), &echo_time);
+				layer::series::unpack(node->find("echo-depth"), &echo_depth);
+				layer::series::unpack(node->find("modulation-time"), &modulation_time);
+				layer::series::unpack(node->find("modulation-depth"), &modulation_depth);
+				layer::series::unpack(node->find("air-absorption-gain-hf"), &air_absorption_gain_hf);
+				layer::series::unpack(node->find("hf-reference"), &hf_reference);
+				layer::series::unpack(node->find("lf-reference"), &lf_reference);
+				layer::series::unpack(node->find("room-rolloff-factor"), &room_rolloff_factor);
+				layer::series::unpack(node->find("decay-hf-limited"), &is_decay_hf_limited);
 			}
-			void Reverb::Serialize(Core::Schema* Node) const
+			void reverb::serialize(core::schema* node) const
 			{
-				VI_ASSERT(Node != nullptr, "schema should be set");
-				if (Filter != nullptr)
-					Filter->Serialize(Node->Set("filter"));
+				VI_ASSERT(node != nullptr, "schema should be set");
+				if (filter != nullptr)
+					filter->serialize(node->set("filter"));
 
-				Layer::HeavySeries::Pack(Node->Set("late-reverb-pan"), LateReverbPan);
-				Layer::HeavySeries::Pack(Node->Set("reflections-pan"), ReflectionsPan);
-				Layer::Series::Pack(Node->Set("density"), Density);
-				Layer::Series::Pack(Node->Set("diffusion"), Diffusion);
-				Layer::Series::Pack(Node->Set("gain"), Gain);
-				Layer::Series::Pack(Node->Set("gain-hf"), GainHF);
-				Layer::Series::Pack(Node->Set("gain-lf"), GainLF);
-				Layer::Series::Pack(Node->Set("decay-time"), DecayTime);
-				Layer::Series::Pack(Node->Set("decay-hg-ratio"), DecayHFRatio);
-				Layer::Series::Pack(Node->Set("decay-lf-ratio"), DecayLFRatio);
-				Layer::Series::Pack(Node->Set("reflections-gain"), ReflectionsGain);
-				Layer::Series::Pack(Node->Set("reflections-delay"), ReflectionsDelay);
-				Layer::Series::Pack(Node->Set("late-reverb-gain"), LateReverbGain);
-				Layer::Series::Pack(Node->Set("late-reverb-delay"), LateReverbDelay);
-				Layer::Series::Pack(Node->Set("echo-time"), EchoTime);
-				Layer::Series::Pack(Node->Set("echo-depth"), EchoDepth);
-				Layer::Series::Pack(Node->Set("modulation-time"), ModulationTime);
-				Layer::Series::Pack(Node->Set("modulation-depth"), ModulationDepth);
-				Layer::Series::Pack(Node->Set("air-absorption-gain-hf"), AirAbsorptionGainHF);
-				Layer::Series::Pack(Node->Set("hf-reference"), HFReference);
-				Layer::Series::Pack(Node->Set("lf-reference"), LFReference);
-				Layer::Series::Pack(Node->Set("room-rolloff-factor"), RoomRolloffFactor);
-				Layer::Series::Pack(Node->Set("decay-hf-limited"), IsDecayHFLimited);
+				layer::heavy_series::pack(node->set("late-reverb-pan"), late_reverb_pan);
+				layer::heavy_series::pack(node->set("reflections-pan"), reflections_pan);
+				layer::series::pack(node->set("density"), density);
+				layer::series::pack(node->set("diffusion"), diffusion);
+				layer::series::pack(node->set("gain"), gain);
+				layer::series::pack(node->set("gain-hf"), gain_hf);
+				layer::series::pack(node->set("gain-lf"), gain_lf);
+				layer::series::pack(node->set("decay-time"), decay_time);
+				layer::series::pack(node->set("decay-hg-ratio"), decay_hf_ratio);
+				layer::series::pack(node->set("decay-lf-ratio"), decay_lf_ratio);
+				layer::series::pack(node->set("reflections-gain"), reflections_gain);
+				layer::series::pack(node->set("reflections-delay"), reflections_delay);
+				layer::series::pack(node->set("late-reverb-gain"), late_reverb_gain);
+				layer::series::pack(node->set("late-reverb-delay"), late_reverb_delay);
+				layer::series::pack(node->set("echo-time"), echo_time);
+				layer::series::pack(node->set("echo-depth"), echo_depth);
+				layer::series::pack(node->set("modulation-time"), modulation_time);
+				layer::series::pack(node->set("modulation-depth"), modulation_depth);
+				layer::series::pack(node->set("air-absorption-gain-hf"), air_absorption_gain_hf);
+				layer::series::pack(node->set("hf-reference"), hf_reference);
+				layer::series::pack(node->set("lf-reference"), lf_reference);
+				layer::series::pack(node->set("room-rolloff-factor"), room_rolloff_factor);
+				layer::series::pack(node->set("decay-hf-limited"), is_decay_hf_limited);
 			}
-			AudioEffect* Reverb::Copy() const
+			audio_effect* reverb::copy() const
 			{
-				Reverb* Target = new Reverb();
-				Target->LateReverbPan = LateReverbPan;
-				Target->ReflectionsPan = ReflectionsPan;
-				Target->Density = Density;
-				Target->Diffusion = Diffusion;
-				Target->Gain = Gain;
-				Target->GainHF = GainHF;
-				Target->GainLF = GainLF;
-				Target->DecayTime = DecayTime;
-				Target->DecayHFRatio = DecayHFRatio;
-				Target->DecayLFRatio = DecayLFRatio;
-				Target->ReflectionsGain = ReflectionsGain;
-				Target->ReflectionsDelay = ReflectionsDelay;
-				Target->LateReverbGain = LateReverbGain;
-				Target->LateReverbDelay = LateReverbDelay;
-				Target->EchoTime = EchoTime;
-				Target->EchoDepth = EchoDepth;
-				Target->ModulationTime = ModulationTime;
-				Target->ModulationDepth = ModulationDepth;
-				Target->AirAbsorptionGainHF = AirAbsorptionGainHF;
-				Target->HFReference = HFReference;
-				Target->LFReference = LFReference;
-				Target->RoomRolloffFactor = RoomRolloffFactor;
-				Target->IsDecayHFLimited = IsDecayHFLimited;
+				reverb* target = new reverb();
+				target->late_reverb_pan = late_reverb_pan;
+				target->reflections_pan = reflections_pan;
+				target->density = density;
+				target->diffusion = diffusion;
+				target->gain = gain;
+				target->gain_hf = gain_hf;
+				target->gain_lf = gain_lf;
+				target->decay_time = decay_time;
+				target->decay_hf_ratio = decay_hf_ratio;
+				target->decay_lf_ratio = decay_lf_ratio;
+				target->reflections_gain = reflections_gain;
+				target->reflections_delay = reflections_delay;
+				target->late_reverb_gain = late_reverb_gain;
+				target->late_reverb_delay = late_reverb_delay;
+				target->echo_time = echo_time;
+				target->echo_depth = echo_depth;
+				target->modulation_time = modulation_time;
+				target->modulation_depth = modulation_depth;
+				target->air_absorption_gain_hf = air_absorption_gain_hf;
+				target->hf_reference = hf_reference;
+				target->lf_reference = lf_reference;
+				target->room_rolloff_factor = room_rolloff_factor;
+				target->is_decay_hf_limited = is_decay_hf_limited;
 
-				return Target;
+				return target;
 			}
 
-			Chorus::Chorus()
+			chorus::chorus()
 			{
-				Initialize([this]()
+				initialize([this]()
 				{
-					AudioContext::SetEffect1I(Effect, EffectEx::Effect_Type, (int)EffectEx::Effect_Chorus);
+					audio_context::set_effect1i(effect, effect_ex::effect_type, (int)effect_ex::effect_chorus);
 					return true;
 				});
 			}
-			Chorus::~Chorus()
+			chorus::~chorus()
 			{
 
 			}
-			ExpectsAudio<void> Chorus::Synchronize()
+			expects_audio<void> chorus::synchronize()
 			{
-				AudioContext::SetEffect1F(Effect, EffectEx::Chorus_Rate, Rate);
-				AudioContext::SetEffect1F(Effect, EffectEx::Chorus_Depth, Depth);
-				AudioContext::SetEffect1F(Effect, EffectEx::Chorus_Feedback, Feedback);
-				AudioContext::SetEffect1F(Effect, EffectEx::Chorus_Delay, Delay);
-				AudioContext::SetEffect1I(Effect, EffectEx::Chorus_Waveform, Waveform);
-				AudioContext::SetEffect1I(Effect, EffectEx::Chorus_Phase, Phase);
-				ReturnErrorIf;
+				audio_context::set_effect1f(effect, effect_ex::chorus_rate, rate);
+				audio_context::set_effect1f(effect, effect_ex::chorus_depth, depth);
+				audio_context::set_effect1f(effect, effect_ex::chorus_feedback, feedback);
+				audio_context::set_effect1f(effect, effect_ex::chorus_delay, delay);
+				audio_context::set_effect1i(effect, effect_ex::chorus_waveform, waveform);
+				audio_context::set_effect1i(effect, effect_ex::chorus_phase, phase);
+				return_error_if;
 			}
-			void Chorus::Deserialize(Core::Schema* Node)
+			void chorus::deserialize(core::schema* node)
 			{
-				VI_ASSERT(Node != nullptr, "schema should be set");
-				AudioFilter* NewFilter = GetFilterDeserialized(Node);
-				if (NewFilter != nullptr)
-					SetFilter(&Filter);
+				VI_ASSERT(node != nullptr, "schema should be set");
+				audio_filter* new_filter = get_filter_deserialized(node);
+				if (new_filter != nullptr)
+					set_filter(&filter);
 
-				Layer::Series::Unpack(Node->Find("rate"), &Rate);
-				Layer::Series::Unpack(Node->Find("depth"), &Depth);
-				Layer::Series::Unpack(Node->Find("feedback"), &Feedback);
-				Layer::Series::Unpack(Node->Find("delay"), &Delay);
-				Layer::Series::Unpack(Node->Find("waveform"), &Waveform);
-				Layer::Series::Unpack(Node->Find("phase"), &Phase);
+				layer::series::unpack(node->find("rate"), &rate);
+				layer::series::unpack(node->find("depth"), &depth);
+				layer::series::unpack(node->find("feedback"), &feedback);
+				layer::series::unpack(node->find("delay"), &delay);
+				layer::series::unpack(node->find("waveform"), &waveform);
+				layer::series::unpack(node->find("phase"), &phase);
 			}
-			void Chorus::Serialize(Core::Schema* Node) const
+			void chorus::serialize(core::schema* node) const
 			{
-				VI_ASSERT(Node != nullptr, "schema should be set");
-				if (Filter != nullptr)
-					Filter->Serialize(Node->Set("filter"));
+				VI_ASSERT(node != nullptr, "schema should be set");
+				if (filter != nullptr)
+					filter->serialize(node->set("filter"));
 
-				Layer::Series::Pack(Node->Set("rate"), Rate);
-				Layer::Series::Pack(Node->Set("depth"), Depth);
-				Layer::Series::Pack(Node->Set("feedback"), Feedback);
-				Layer::Series::Pack(Node->Set("delay"), Delay);
-				Layer::Series::Pack(Node->Set("waveform"), Waveform);
-				Layer::Series::Pack(Node->Set("phase"), Phase);
+				layer::series::pack(node->set("rate"), rate);
+				layer::series::pack(node->set("depth"), depth);
+				layer::series::pack(node->set("feedback"), feedback);
+				layer::series::pack(node->set("delay"), delay);
+				layer::series::pack(node->set("waveform"), waveform);
+				layer::series::pack(node->set("phase"), phase);
 			}
-			AudioEffect* Chorus::Copy() const
+			audio_effect* chorus::copy() const
 			{
-				Chorus* Target = new Chorus();
-				Target->Rate = 1.1f;
-				Target->Depth = 0.1f;
-				Target->Feedback = 0.25f;
-				Target->Delay = 0.016f;
-				Target->Waveform = 1;
-				Target->Phase = 90;
+				chorus* target = new chorus();
+				target->rate = 1.1f;
+				target->depth = 0.1f;
+				target->feedback = 0.25f;
+				target->delay = 0.016f;
+				target->waveform = 1;
+				target->phase = 90;
 
-				return Target;
+				return target;
 			}
 
-			Distortion::Distortion()
+			distortion::distortion()
 			{
-				Initialize([this]()
+				initialize([this]()
 				{
-					AudioContext::SetEffect1I(Effect, EffectEx::Effect_Type, (int)EffectEx::Effect_Distortion);
+					audio_context::set_effect1i(effect, effect_ex::effect_type, (int)effect_ex::effect_distortion);
 					return true;
 				});
 			}
-			Distortion::~Distortion()
+			distortion::~distortion()
 			{
 
 			}
-			ExpectsAudio<void> Distortion::Synchronize()
+			expects_audio<void> distortion::synchronize()
 			{
-				AudioContext::SetEffect1F(Effect, EffectEx::Distortion_Edge, Edge);
-				AudioContext::SetEffect1F(Effect, EffectEx::Distortion_Gain, Gain);
-				AudioContext::SetEffect1F(Effect, EffectEx::Distortion_Lowpass_Cutoff, LowpassCutOff);
-				AudioContext::SetEffect1F(Effect, EffectEx::Distortion_EQ_Center, EQCenter);
-				AudioContext::SetEffect1F(Effect, EffectEx::Distortion_EQ_Bandwidth, EQBandwidth);
-				ReturnErrorIf;
+				audio_context::set_effect1f(effect, effect_ex::distortion_edge, edge);
+				audio_context::set_effect1f(effect, effect_ex::distortion_gain, gain);
+				audio_context::set_effect1f(effect, effect_ex::distortion_lowpass_cutoff, lowpass_cut_off);
+				audio_context::set_effect1f(effect, effect_ex::distortion_eq_center, eq_center);
+				audio_context::set_effect1f(effect, effect_ex::distortion_eq_bandwidth, eq_bandwidth);
+				return_error_if;
 			}
-			void Distortion::Deserialize(Core::Schema* Node)
+			void distortion::deserialize(core::schema* node)
 			{
-				VI_ASSERT(Node != nullptr, "schema should be set");
-				AudioFilter* NewFilter = GetFilterDeserialized(Node);
-				if (NewFilter != nullptr)
-					SetFilter(&Filter);
+				VI_ASSERT(node != nullptr, "schema should be set");
+				audio_filter* new_filter = get_filter_deserialized(node);
+				if (new_filter != nullptr)
+					set_filter(&filter);
 
-				Layer::Series::Unpack(Node->Find("edge"), &Edge);
-				Layer::Series::Unpack(Node->Find("gain"), &Gain);
-				Layer::Series::Unpack(Node->Find("lowpass-cut-off"), &LowpassCutOff);
-				Layer::Series::Unpack(Node->Find("eq-center"), &EQCenter);
-				Layer::Series::Unpack(Node->Find("eq-bandwidth"), &EQBandwidth);
+				layer::series::unpack(node->find("edge"), &edge);
+				layer::series::unpack(node->find("gain"), &gain);
+				layer::series::unpack(node->find("lowpass-cut-off"), &lowpass_cut_off);
+				layer::series::unpack(node->find("eq-center"), &eq_center);
+				layer::series::unpack(node->find("eq-bandwidth"), &eq_bandwidth);
 			}
-			void Distortion::Serialize(Core::Schema* Node) const
+			void distortion::serialize(core::schema* node) const
 			{
-				VI_ASSERT(Node != nullptr, "schema should be set");
-				if (Filter != nullptr)
-					Filter->Serialize(Node->Set("filter"));
+				VI_ASSERT(node != nullptr, "schema should be set");
+				if (filter != nullptr)
+					filter->serialize(node->set("filter"));
 
-				Layer::Series::Pack(Node->Set("edge"), Edge);
-				Layer::Series::Pack(Node->Set("gain"), Gain);
-				Layer::Series::Pack(Node->Set("lowpass-cut-off"), LowpassCutOff);
-				Layer::Series::Pack(Node->Set("eq-center"), EQCenter);
-				Layer::Series::Pack(Node->Set("eq-bandwidth"), EQBandwidth);
+				layer::series::pack(node->set("edge"), edge);
+				layer::series::pack(node->set("gain"), gain);
+				layer::series::pack(node->set("lowpass-cut-off"), lowpass_cut_off);
+				layer::series::pack(node->set("eq-center"), eq_center);
+				layer::series::pack(node->set("eq-bandwidth"), eq_bandwidth);
 			}
-			AudioEffect* Distortion::Copy() const
+			audio_effect* distortion::copy() const
 			{
-				Distortion* Target = new Distortion();
-				Target->Edge = 0.2f;
-				Target->Gain = 0.05f;
-				Target->LowpassCutOff = 8000.0f;
-				Target->EQCenter = 3600.0f;
-				Target->EQBandwidth = 3600.0f;
+				distortion* target = new distortion();
+				target->edge = 0.2f;
+				target->gain = 0.05f;
+				target->lowpass_cut_off = 8000.0f;
+				target->eq_center = 3600.0f;
+				target->eq_bandwidth = 3600.0f;
 
-				return Target;
+				return target;
 			}
 
-			Echo::Echo()
+			echo::echo()
 			{
-				Initialize([this]()
+				initialize([this]()
 				{
-					AudioContext::SetEffect1I(Effect, EffectEx::Effect_Type, (int)EffectEx::Effect_Echo);
+					audio_context::set_effect1i(effect, effect_ex::effect_type, (int)effect_ex::effect_echo);
 					return true;
 				});
 			}
-			Echo::~Echo()
+			echo::~echo()
 			{
 
 			}
-			ExpectsAudio<void> Echo::Synchronize()
+			expects_audio<void> echo::synchronize()
 			{
-				AudioContext::SetEffect1F(Effect, EffectEx::Echo_Delay, Delay);
-				AudioContext::SetEffect1F(Effect, EffectEx::Echo_LR_Delay, LRDelay);
-				AudioContext::SetEffect1F(Effect, EffectEx::Echo_Damping, Damping);
-				AudioContext::SetEffect1F(Effect, EffectEx::Echo_Feedback, Feedback);
-				AudioContext::SetEffect1F(Effect, EffectEx::Echo_Spread, Spread);
-				ReturnErrorIf;
+				audio_context::set_effect1f(effect, effect_ex::echo_delay, delay);
+				audio_context::set_effect1f(effect, effect_ex::echo_lr_delay, lr_delay);
+				audio_context::set_effect1f(effect, effect_ex::echo_damping, damping);
+				audio_context::set_effect1f(effect, effect_ex::echo_feedback, feedback);
+				audio_context::set_effect1f(effect, effect_ex::echo_spread, spread);
+				return_error_if;
 			}
-			void Echo::Deserialize(Core::Schema* Node)
+			void echo::deserialize(core::schema* node)
 			{
-				VI_ASSERT(Node != nullptr, "schema should be set");
-				AudioFilter* NewFilter = GetFilterDeserialized(Node);
-				if (NewFilter != nullptr)
-					SetFilter(&Filter);
+				VI_ASSERT(node != nullptr, "schema should be set");
+				audio_filter* new_filter = get_filter_deserialized(node);
+				if (new_filter != nullptr)
+					set_filter(&filter);
 
-				Layer::Series::Unpack(Node->Find("delay"), &Delay);
-				Layer::Series::Unpack(Node->Find("lr-delay"), &LRDelay);
-				Layer::Series::Unpack(Node->Find("damping"), &Damping);
-				Layer::Series::Unpack(Node->Find("feedback"), &Feedback);
-				Layer::Series::Unpack(Node->Find("spread"), &Spread);
+				layer::series::unpack(node->find("delay"), &delay);
+				layer::series::unpack(node->find("lr-delay"), &lr_delay);
+				layer::series::unpack(node->find("damping"), &damping);
+				layer::series::unpack(node->find("feedback"), &feedback);
+				layer::series::unpack(node->find("spread"), &spread);
 			}
-			void Echo::Serialize(Core::Schema* Node) const
+			void echo::serialize(core::schema* node) const
 			{
-				VI_ASSERT(Node != nullptr, "schema should be set");
-				if (Filter != nullptr)
-					Filter->Serialize(Node->Set("filter"));
+				VI_ASSERT(node != nullptr, "schema should be set");
+				if (filter != nullptr)
+					filter->serialize(node->set("filter"));
 
-				Layer::Series::Pack(Node->Set("delay"), Delay);
-				Layer::Series::Pack(Node->Set("lr-delay"), LRDelay);
-				Layer::Series::Pack(Node->Set("damping"), Damping);
-				Layer::Series::Pack(Node->Set("feedback"), Feedback);
-				Layer::Series::Pack(Node->Set("spread"), Spread);
+				layer::series::pack(node->set("delay"), delay);
+				layer::series::pack(node->set("lr-delay"), lr_delay);
+				layer::series::pack(node->set("damping"), damping);
+				layer::series::pack(node->set("feedback"), feedback);
+				layer::series::pack(node->set("spread"), spread);
 			}
-			AudioEffect* Echo::Copy() const
+			audio_effect* echo::copy() const
 			{
-				Echo* Target = new Echo();
-				Target->Delay = 0.1f;
-				Target->LRDelay = 0.1f;
-				Target->Damping = 0.5f;
-				Target->Feedback = 0.5f;
-				Target->Spread = -1.0f;
+				echo* target = new echo();
+				target->delay = 0.1f;
+				target->lr_delay = 0.1f;
+				target->damping = 0.5f;
+				target->feedback = 0.5f;
+				target->spread = -1.0f;
 
-				return Target;
+				return target;
 			}
 
-			Flanger::Flanger()
+			flanger::flanger()
 			{
-				Initialize([this]()
+				initialize([this]()
 				{
-					AudioContext::SetEffect1I(Effect, EffectEx::Effect_Type, (int)EffectEx::Effect_Flanger);
+					audio_context::set_effect1i(effect, effect_ex::effect_type, (int)effect_ex::effect_flanger);
 					return true;
 				});
 			}
-			Flanger::~Flanger()
+			flanger::~flanger()
 			{
 
 			}
-			ExpectsAudio<void> Flanger::Synchronize()
+			expects_audio<void> flanger::synchronize()
 			{
-				AudioContext::SetEffect1F(Effect, EffectEx::Flanger_Rate, Rate);
-				AudioContext::SetEffect1F(Effect, EffectEx::Flanger_Depth, Depth);
-				AudioContext::SetEffect1F(Effect, EffectEx::Flanger_Feedback, Feedback);
-				AudioContext::SetEffect1F(Effect, EffectEx::Flanger_Delay, Delay);
-				AudioContext::SetEffect1I(Effect, EffectEx::Flanger_Waveform, Waveform);
-				AudioContext::SetEffect1I(Effect, EffectEx::Flanger_Phase, Phase);
-				ReturnErrorIf;
+				audio_context::set_effect1f(effect, effect_ex::flanger_rate, rate);
+				audio_context::set_effect1f(effect, effect_ex::flanger_depth, depth);
+				audio_context::set_effect1f(effect, effect_ex::flanger_feedback, feedback);
+				audio_context::set_effect1f(effect, effect_ex::flanger_delay, delay);
+				audio_context::set_effect1i(effect, effect_ex::flanger_waveform, waveform);
+				audio_context::set_effect1i(effect, effect_ex::flanger_phase, phase);
+				return_error_if;
 			}
-			void Flanger::Deserialize(Core::Schema* Node)
+			void flanger::deserialize(core::schema* node)
 			{
-				VI_ASSERT(Node != nullptr, "schema should be set");
-				AudioFilter* NewFilter = GetFilterDeserialized(Node);
-				if (NewFilter != nullptr)
-					SetFilter(&Filter);
+				VI_ASSERT(node != nullptr, "schema should be set");
+				audio_filter* new_filter = get_filter_deserialized(node);
+				if (new_filter != nullptr)
+					set_filter(&filter);
 
-				Layer::Series::Unpack(Node->Find("rate"), &Rate);
-				Layer::Series::Unpack(Node->Find("depth"), &Depth);
-				Layer::Series::Unpack(Node->Find("feedback"), &Feedback);
-				Layer::Series::Unpack(Node->Find("delay"), &Delay);
-				Layer::Series::Unpack(Node->Find("waveform"), &Waveform);
-				Layer::Series::Unpack(Node->Find("phase"), &Phase);
+				layer::series::unpack(node->find("rate"), &rate);
+				layer::series::unpack(node->find("depth"), &depth);
+				layer::series::unpack(node->find("feedback"), &feedback);
+				layer::series::unpack(node->find("delay"), &delay);
+				layer::series::unpack(node->find("waveform"), &waveform);
+				layer::series::unpack(node->find("phase"), &phase);
 			}
-			void Flanger::Serialize(Core::Schema* Node) const
+			void flanger::serialize(core::schema* node) const
 			{
-				VI_ASSERT(Node != nullptr, "schema should be set");
-				if (Filter != nullptr)
-					Filter->Serialize(Node->Set("filter"));
+				VI_ASSERT(node != nullptr, "schema should be set");
+				if (filter != nullptr)
+					filter->serialize(node->set("filter"));
 
-				Layer::Series::Pack(Node->Set("rate"), Rate);
-				Layer::Series::Pack(Node->Set("depth"), Depth);
-				Layer::Series::Pack(Node->Set("feedback"), Feedback);
-				Layer::Series::Pack(Node->Set("delay"), Delay);
-				Layer::Series::Pack(Node->Set("waveform"), Waveform);
-				Layer::Series::Pack(Node->Set("phase"), Phase);
+				layer::series::pack(node->set("rate"), rate);
+				layer::series::pack(node->set("depth"), depth);
+				layer::series::pack(node->set("feedback"), feedback);
+				layer::series::pack(node->set("delay"), delay);
+				layer::series::pack(node->set("waveform"), waveform);
+				layer::series::pack(node->set("phase"), phase);
 			}
-			AudioEffect* Flanger::Copy() const
+			audio_effect* flanger::copy() const
 			{
-				Flanger* Target = new Flanger();
-				Target->Rate = 0.27f;
-				Target->Depth = 1.0f;
-				Target->Feedback = -0.5f;
-				Target->Delay = 0.002f;
-				Target->Waveform = 1;
-				Target->Phase = 0;
+				flanger* target = new flanger();
+				target->rate = 0.27f;
+				target->depth = 1.0f;
+				target->feedback = -0.5f;
+				target->delay = 0.002f;
+				target->waveform = 1;
+				target->phase = 0;
 
-				return Target;
+				return target;
 			}
 
-			FrequencyShifter::FrequencyShifter()
+			frequency_shifter::frequency_shifter()
 			{
-				Initialize([this]()
+				initialize([this]()
 				{
-					AudioContext::SetEffect1I(Effect, EffectEx::Effect_Type, (int)EffectEx::Effect_Frequency_Shifter);
+					audio_context::set_effect1i(effect, effect_ex::effect_type, (int)effect_ex::effect_frequency_shifter);
 					return true;
 				});
 			}
-			FrequencyShifter::~FrequencyShifter()
+			frequency_shifter::~frequency_shifter()
 			{
 
 			}
-			ExpectsAudio<void> FrequencyShifter::Synchronize()
+			expects_audio<void> frequency_shifter::synchronize()
 			{
-				AudioContext::SetEffect1F(Effect, EffectEx::Frequency_Shifter_Frequency, Frequency);
-				AudioContext::SetEffect1I(Effect, EffectEx::Frequency_Shifter_Left_Direction, LeftDirection);
-				AudioContext::SetEffect1I(Effect, EffectEx::Frequency_Shifter_Right_Direction, RightDirection);
-				ReturnErrorIf;
+				audio_context::set_effect1f(effect, effect_ex::frequency_shifter_frequency, frequency);
+				audio_context::set_effect1i(effect, effect_ex::frequency_shifter_left_direction, left_direction);
+				audio_context::set_effect1i(effect, effect_ex::frequency_shifter_right_direction, right_direction);
+				return_error_if;
 			}
-			void FrequencyShifter::Deserialize(Core::Schema* Node)
+			void frequency_shifter::deserialize(core::schema* node)
 			{
-				VI_ASSERT(Node != nullptr, "schema should be set");
-				AudioFilter* NewFilter = GetFilterDeserialized(Node);
-				if (NewFilter != nullptr)
-					SetFilter(&Filter);
+				VI_ASSERT(node != nullptr, "schema should be set");
+				audio_filter* new_filter = get_filter_deserialized(node);
+				if (new_filter != nullptr)
+					set_filter(&filter);
 
-				Layer::Series::Unpack(Node->Find("frequency"), &Frequency);
-				Layer::Series::Unpack(Node->Find("left-direction"), &LeftDirection);
-				Layer::Series::Unpack(Node->Find("right-direction"), &RightDirection);
+				layer::series::unpack(node->find("frequency"), &frequency);
+				layer::series::unpack(node->find("left-direction"), &left_direction);
+				layer::series::unpack(node->find("right-direction"), &right_direction);
 			}
-			void FrequencyShifter::Serialize(Core::Schema* Node) const
+			void frequency_shifter::serialize(core::schema* node) const
 			{
-				VI_ASSERT(Node != nullptr, "schema should be set");
-				if (Filter != nullptr)
-					Filter->Serialize(Node->Set("filter"));
+				VI_ASSERT(node != nullptr, "schema should be set");
+				if (filter != nullptr)
+					filter->serialize(node->set("filter"));
 
-				Layer::Series::Pack(Node->Set("frequency"), Frequency);
-				Layer::Series::Pack(Node->Set("left-direction"), LeftDirection);
-				Layer::Series::Pack(Node->Set("right-direction"), RightDirection);
+				layer::series::pack(node->set("frequency"), frequency);
+				layer::series::pack(node->set("left-direction"), left_direction);
+				layer::series::pack(node->set("right-direction"), right_direction);
 			}
-			AudioEffect* FrequencyShifter::Copy() const
+			audio_effect* frequency_shifter::copy() const
 			{
-				FrequencyShifter* Target = new FrequencyShifter();
-				Target->Frequency = 0.0f;
-				Target->LeftDirection = 0;
-				Target->RightDirection = 0;
+				frequency_shifter* target = new frequency_shifter();
+				target->frequency = 0.0f;
+				target->left_direction = 0;
+				target->right_direction = 0;
 
-				return Target;
+				return target;
 			}
 
-			VocalMorpher::VocalMorpher()
+			vocal_morpher::vocal_morpher()
 			{
-				Initialize([this]()
+				initialize([this]()
 				{
-					AudioContext::SetEffect1I(Effect, EffectEx::Effect_Type, (int)EffectEx::Effect_Vocmorpher);
+					audio_context::set_effect1i(effect, effect_ex::effect_type, (int)effect_ex::effect_vocmorpher);
 					return true;
 				});
 			}
-			VocalMorpher::~VocalMorpher()
+			vocal_morpher::~vocal_morpher()
 			{
 
 			}
-			ExpectsAudio<void> VocalMorpher::Synchronize()
+			expects_audio<void> vocal_morpher::synchronize()
 			{
-				AudioContext::SetEffect1F(Effect, EffectEx::Vocmorpher_Rate, Rate);
-				AudioContext::SetEffect1I(Effect, EffectEx::Vocmorpher_Phoneme_A, Phonemea);
-				AudioContext::SetEffect1I(Effect, EffectEx::Vocmorpher_Phoneme_A_Coarse_Tuning, PhonemeaCoarseTuning);
-				AudioContext::SetEffect1I(Effect, EffectEx::Vocmorpher_Phoneme_B, Phonemeb);
-				AudioContext::SetEffect1I(Effect, EffectEx::Vocmorpher_Phoneme_B_Coarse_Tuning, PhonemebCoarseTuning);
-				AudioContext::SetEffect1I(Effect, EffectEx::Vocmorpher_Waveform, Waveform);
-				ReturnErrorIf;
+				audio_context::set_effect1f(effect, effect_ex::vocmorpher_rate, rate);
+				audio_context::set_effect1i(effect, effect_ex::vocmorpher_phoneme_a, phonemea);
+				audio_context::set_effect1i(effect, effect_ex::vocmorpher_phoneme_acoarse_tuning, phonemea_coarse_tuning);
+				audio_context::set_effect1i(effect, effect_ex::vocmorpher_phoneme_b, phonemeb);
+				audio_context::set_effect1i(effect, effect_ex::vocmorpher_phoneme_bcoarse_tuning, phonemeb_coarse_tuning);
+				audio_context::set_effect1i(effect, effect_ex::vocmorpher_waveform, waveform);
+				return_error_if;
 			}
-			void VocalMorpher::Deserialize(Core::Schema* Node)
+			void vocal_morpher::deserialize(core::schema* node)
 			{
-				VI_ASSERT(Node != nullptr, "schema should be set");
-				AudioFilter* NewFilter = GetFilterDeserialized(Node);
-				if (NewFilter != nullptr)
-					SetFilter(&Filter);
+				VI_ASSERT(node != nullptr, "schema should be set");
+				audio_filter* new_filter = get_filter_deserialized(node);
+				if (new_filter != nullptr)
+					set_filter(&filter);
 
-				Layer::Series::Unpack(Node->Find("rate"), &Rate);
-				Layer::Series::Unpack(Node->Find("phonemea"), &Phonemea);
-				Layer::Series::Unpack(Node->Find("phonemea-coarse-tuning"), &PhonemeaCoarseTuning);
-				Layer::Series::Unpack(Node->Find("phonemeb"), &Phonemeb);
-				Layer::Series::Unpack(Node->Find("phonemeb-coarse-tuning"), &PhonemebCoarseTuning);
-				Layer::Series::Unpack(Node->Find("waveform"), &Waveform);
+				layer::series::unpack(node->find("rate"), &rate);
+				layer::series::unpack(node->find("phonemea"), &phonemea);
+				layer::series::unpack(node->find("phonemea-coarse-tuning"), &phonemea_coarse_tuning);
+				layer::series::unpack(node->find("phonemeb"), &phonemeb);
+				layer::series::unpack(node->find("phonemeb-coarse-tuning"), &phonemeb_coarse_tuning);
+				layer::series::unpack(node->find("waveform"), &waveform);
 			}
-			void VocalMorpher::Serialize(Core::Schema* Node) const
+			void vocal_morpher::serialize(core::schema* node) const
 			{
-				VI_ASSERT(Node != nullptr, "schema should be set");
-				if (Filter != nullptr)
-					Filter->Serialize(Node->Set("filter"));
+				VI_ASSERT(node != nullptr, "schema should be set");
+				if (filter != nullptr)
+					filter->serialize(node->set("filter"));
 
-				Layer::Series::Pack(Node->Set("rate"), Rate);
-				Layer::Series::Pack(Node->Set("phonemea"), Phonemea);
-				Layer::Series::Pack(Node->Set("phonemea-coarse-tuning"), PhonemeaCoarseTuning);
-				Layer::Series::Pack(Node->Set("phonemeb"), Phonemeb);
-				Layer::Series::Pack(Node->Set("phonemeb-coarse-tuning"), PhonemebCoarseTuning);
-				Layer::Series::Pack(Node->Set("waveform"), Waveform);
+				layer::series::pack(node->set("rate"), rate);
+				layer::series::pack(node->set("phonemea"), phonemea);
+				layer::series::pack(node->set("phonemea-coarse-tuning"), phonemea_coarse_tuning);
+				layer::series::pack(node->set("phonemeb"), phonemeb);
+				layer::series::pack(node->set("phonemeb-coarse-tuning"), phonemeb_coarse_tuning);
+				layer::series::pack(node->set("waveform"), waveform);
 			}
-			AudioEffect* VocalMorpher::Copy() const
+			audio_effect* vocal_morpher::copy() const
 			{
-				VocalMorpher* Target = new VocalMorpher();
-				Target->Rate = 1.41f;
-				Target->Phonemea = 0;
-				Target->PhonemeaCoarseTuning = 0;
-				Target->Phonemeb = 10;
-				Target->PhonemebCoarseTuning = 0;
-				Target->Waveform = 0;
+				vocal_morpher* target = new vocal_morpher();
+				target->rate = 1.41f;
+				target->phonemea = 0;
+				target->phonemea_coarse_tuning = 0;
+				target->phonemeb = 10;
+				target->phonemeb_coarse_tuning = 0;
+				target->waveform = 0;
 
-				return Target;
+				return target;
 			}
 
-			PitchShifter::PitchShifter()
+			pitch_shifter::pitch_shifter()
 			{
-				Initialize([this]()
+				initialize([this]()
 				{
-					AudioContext::SetEffect1I(Effect, EffectEx::Effect_Type, (int)EffectEx::Effect_Pitch_Shifter);
+					audio_context::set_effect1i(effect, effect_ex::effect_type, (int)effect_ex::effect_pitch_shifter);
 					return true;
 				});
 			}
-			PitchShifter::~PitchShifter()
+			pitch_shifter::~pitch_shifter()
 			{
 
 			}
-			ExpectsAudio<void> PitchShifter::Synchronize()
+			expects_audio<void> pitch_shifter::synchronize()
 			{
-				AudioContext::SetEffect1I(Effect, EffectEx::Pitch_Shifter_Coarse_Tune, CoarseTune);
-				AudioContext::SetEffect1I(Effect, EffectEx::Pitch_Shifter_Fine_Tune, FineTune);
-				ReturnErrorIf;
+				audio_context::set_effect1i(effect, effect_ex::pitch_shifter_coarse_tune, coarse_tune);
+				audio_context::set_effect1i(effect, effect_ex::pitch_shifter_fine_tune, fine_tune);
+				return_error_if;
 			}
-			void PitchShifter::Deserialize(Core::Schema* Node)
+			void pitch_shifter::deserialize(core::schema* node)
 			{
-				VI_ASSERT(Node != nullptr, "schema should be set");
-				AudioFilter* NewFilter = GetFilterDeserialized(Node);
-				if (NewFilter != nullptr)
-					SetFilter(&Filter);
+				VI_ASSERT(node != nullptr, "schema should be set");
+				audio_filter* new_filter = get_filter_deserialized(node);
+				if (new_filter != nullptr)
+					set_filter(&filter);
 
-				Layer::Series::Unpack(Node->Find("coarse-tune"), &CoarseTune);
-				Layer::Series::Unpack(Node->Find("fine-tune"), &FineTune);
+				layer::series::unpack(node->find("coarse-tune"), &coarse_tune);
+				layer::series::unpack(node->find("fine-tune"), &fine_tune);
 			}
-			void PitchShifter::Serialize(Core::Schema* Node) const
+			void pitch_shifter::serialize(core::schema* node) const
 			{
-				VI_ASSERT(Node != nullptr, "schema should be set");
-				if (Filter != nullptr)
-					Filter->Serialize(Node->Set("filter"));
+				VI_ASSERT(node != nullptr, "schema should be set");
+				if (filter != nullptr)
+					filter->serialize(node->set("filter"));
 
-				Layer::Series::Pack(Node->Set("coarse-tune"), CoarseTune);
-				Layer::Series::Pack(Node->Set("fine-tune"), FineTune);
+				layer::series::pack(node->set("coarse-tune"), coarse_tune);
+				layer::series::pack(node->set("fine-tune"), fine_tune);
 			}
-			AudioEffect* PitchShifter::Copy() const
+			audio_effect* pitch_shifter::copy() const
 			{
-				PitchShifter* Target = new PitchShifter();
-				Target->CoarseTune = 12;
-				Target->FineTune = 0;
+				pitch_shifter* target = new pitch_shifter();
+				target->coarse_tune = 12;
+				target->fine_tune = 0;
 
-				return Target;
+				return target;
 			}
 
-			RingModulator::RingModulator()
+			ring_modulator::ring_modulator()
 			{
-				Initialize([this]()
+				initialize([this]()
 				{
-					AudioContext::SetEffect1I(Effect, EffectEx::Effect_Type, (int)EffectEx::Effect_Ring_Modulator);
+					audio_context::set_effect1i(effect, effect_ex::effect_type, (int)effect_ex::effect_ring_modulator);
 					return true;
 				});
 			}
-			RingModulator::~RingModulator()
+			ring_modulator::~ring_modulator()
 			{
 
 			}
-			ExpectsAudio<void> RingModulator::Synchronize()
+			expects_audio<void> ring_modulator::synchronize()
 			{
-				AudioContext::SetEffect1F(Effect, EffectEx::Ring_Modulator_Frequency, Frequency);
-				AudioContext::SetEffect1F(Effect, EffectEx::Ring_Modulator_Highpass_Cutoff, HighpassCutOff);
-				AudioContext::SetEffect1I(Effect, EffectEx::Ring_Modulator_Waveform, Waveform);
-				ReturnErrorIf;
+				audio_context::set_effect1f(effect, effect_ex::ring_modulator_frequency, frequency);
+				audio_context::set_effect1f(effect, effect_ex::ring_modulator_highpass_cutoff, highpass_cut_off);
+				audio_context::set_effect1i(effect, effect_ex::ring_modulator_waveform, waveform);
+				return_error_if;
 			}
-			void RingModulator::Deserialize(Core::Schema* Node)
+			void ring_modulator::deserialize(core::schema* node)
 			{
-				VI_ASSERT(Node != nullptr, "schema should be set");
-				AudioFilter* NewFilter = GetFilterDeserialized(Node);
-				if (NewFilter != nullptr)
-					SetFilter(&Filter);
+				VI_ASSERT(node != nullptr, "schema should be set");
+				audio_filter* new_filter = get_filter_deserialized(node);
+				if (new_filter != nullptr)
+					set_filter(&filter);
 
-				Layer::Series::Unpack(Node->Find("frequency"), &Frequency);
-				Layer::Series::Unpack(Node->Find("highpass-cut-off"), &HighpassCutOff);
-				Layer::Series::Unpack(Node->Find("waveform"), &Waveform);
+				layer::series::unpack(node->find("frequency"), &frequency);
+				layer::series::unpack(node->find("highpass-cut-off"), &highpass_cut_off);
+				layer::series::unpack(node->find("waveform"), &waveform);
 			}
-			void RingModulator::Serialize(Core::Schema* Node) const
+			void ring_modulator::serialize(core::schema* node) const
 			{
-				VI_ASSERT(Node != nullptr, "schema should be set");
-				if (Filter != nullptr)
-					Filter->Serialize(Node->Set("filter"));
+				VI_ASSERT(node != nullptr, "schema should be set");
+				if (filter != nullptr)
+					filter->serialize(node->set("filter"));
 
-				Layer::Series::Pack(Node->Set("frequency"), Frequency);
-				Layer::Series::Pack(Node->Set("highpass-cut-off"), HighpassCutOff);
-				Layer::Series::Pack(Node->Set("waveform"), Waveform);
+				layer::series::pack(node->set("frequency"), frequency);
+				layer::series::pack(node->set("highpass-cut-off"), highpass_cut_off);
+				layer::series::pack(node->set("waveform"), waveform);
 			}
-			AudioEffect* RingModulator::Copy() const
+			audio_effect* ring_modulator::copy() const
 			{
-				RingModulator* Target = new RingModulator();
-				Target->Frequency = 440.0f;
-				Target->HighpassCutOff = 800.0f;
-				Target->Waveform = 0;
+				ring_modulator* target = new ring_modulator();
+				target->frequency = 440.0f;
+				target->highpass_cut_off = 800.0f;
+				target->waveform = 0;
 
-				return Target;
+				return target;
 			}
 
-			Autowah::Autowah()
+			autowah::autowah()
 			{
-				Initialize([this]()
+				initialize([this]()
 				{
-					AudioContext::SetEffect1I(Effect, EffectEx::Effect_Type, (int)EffectEx::Effect_Autowah);
+					audio_context::set_effect1i(effect, effect_ex::effect_type, (int)effect_ex::effect_autowah);
 					return true;
 				});
 			}
-			Autowah::~Autowah()
+			autowah::~autowah()
 			{
 
 			}
-			ExpectsAudio<void> Autowah::Synchronize()
+			expects_audio<void> autowah::synchronize()
 			{
-				AudioContext::SetEffect1F(Effect, EffectEx::Autowah_Attack_Time, AttackTime);
-				AudioContext::SetEffect1F(Effect, EffectEx::Autowah_Release_Time, ReleaseTime);
-				AudioContext::SetEffect1F(Effect, EffectEx::Autowah_Resonance, Resonance);
-				AudioContext::SetEffect1F(Effect, EffectEx::Autowah_Peak_Gain, PeakGain);
-				ReturnErrorIf;
+				audio_context::set_effect1f(effect, effect_ex::autowah_attack_time, attack_time);
+				audio_context::set_effect1f(effect, effect_ex::autowah_release_time, release_time);
+				audio_context::set_effect1f(effect, effect_ex::autowah_resonance, resonance);
+				audio_context::set_effect1f(effect, effect_ex::autowah_peak_gain, peak_gain);
+				return_error_if;
 			}
-			void Autowah::Deserialize(Core::Schema* Node)
+			void autowah::deserialize(core::schema* node)
 			{
-				VI_ASSERT(Node != nullptr, "schema should be set");
-				AudioFilter* NewFilter = GetFilterDeserialized(Node);
-				if (NewFilter != nullptr)
-					SetFilter(&Filter);
+				VI_ASSERT(node != nullptr, "schema should be set");
+				audio_filter* new_filter = get_filter_deserialized(node);
+				if (new_filter != nullptr)
+					set_filter(&filter);
 
-				Layer::Series::Unpack(Node->Find("attack-time"), &AttackTime);
-				Layer::Series::Unpack(Node->Find("release-time"), &ReleaseTime);
-				Layer::Series::Unpack(Node->Find("resonance"), &Resonance);
-				Layer::Series::Unpack(Node->Find("peak-gain"), &PeakGain);
+				layer::series::unpack(node->find("attack-time"), &attack_time);
+				layer::series::unpack(node->find("release-time"), &release_time);
+				layer::series::unpack(node->find("resonance"), &resonance);
+				layer::series::unpack(node->find("peak-gain"), &peak_gain);
 			}
-			void Autowah::Serialize(Core::Schema* Node) const
+			void autowah::serialize(core::schema* node) const
 			{
-				VI_ASSERT(Node != nullptr, "schema should be set");
-				if (Filter != nullptr)
-					Filter->Serialize(Node->Set("filter"));
+				VI_ASSERT(node != nullptr, "schema should be set");
+				if (filter != nullptr)
+					filter->serialize(node->set("filter"));
 
-				Layer::Series::Pack(Node->Set("attack-time"), AttackTime);
-				Layer::Series::Pack(Node->Set("release-time"), ReleaseTime);
-				Layer::Series::Pack(Node->Set("resonance"), Resonance);
-				Layer::Series::Pack(Node->Set("peak-gain"), PeakGain);
+				layer::series::pack(node->set("attack-time"), attack_time);
+				layer::series::pack(node->set("release-time"), release_time);
+				layer::series::pack(node->set("resonance"), resonance);
+				layer::series::pack(node->set("peak-gain"), peak_gain);
 			}
-			AudioEffect* Autowah::Copy() const
+			audio_effect* autowah::copy() const
 			{
-				Autowah* Target = new Autowah();
-				Target->AttackTime = 0.06f;
-				Target->ReleaseTime = 0.06f;
-				Target->Resonance = 1000.0f;
-				Target->PeakGain = 11.22f;
+				autowah* target = new autowah();
+				target->attack_time = 0.06f;
+				target->release_time = 0.06f;
+				target->resonance = 1000.0f;
+				target->peak_gain = 11.22f;
 
-				return Target;
+				return target;
 			}
 
-			Compressor::Compressor()
+			compressor::compressor()
 			{
-				Initialize([this]()
+				initialize([this]()
 				{
-					AudioContext::SetEffect1I(Effect, EffectEx::Effect_Type, (int)EffectEx::Effect_Compressor);
-					AudioContext::SetEffect1I(Effect, EffectEx::Compressor_ON_OFF, 1);
+					audio_context::set_effect1i(effect, effect_ex::effect_type, (int)effect_ex::effect_compressor);
+					audio_context::set_effect1i(effect, effect_ex::compressor_onoff, 1);
 					return true;
 				});
 			}
-			Compressor::~Compressor()
+			compressor::~compressor()
 			{
 			}
-			ExpectsAudio<void> Compressor::Synchronize()
+			expects_audio<void> compressor::synchronize()
 			{
-				return Core::Expectation::Met;
+				return core::expectation::met;
 			}
-			void Compressor::Deserialize(Core::Schema* Node)
+			void compressor::deserialize(core::schema* node)
 			{
-				VI_ASSERT(Node != nullptr, "schema should be set");
-				AudioFilter* NewFilter = GetFilterDeserialized(Node);
-				if (NewFilter != nullptr)
-					SetFilter(&Filter);
+				VI_ASSERT(node != nullptr, "schema should be set");
+				audio_filter* new_filter = get_filter_deserialized(node);
+				if (new_filter != nullptr)
+					set_filter(&filter);
 			}
-			void Compressor::Serialize(Core::Schema* Node) const
+			void compressor::serialize(core::schema* node) const
 			{
-				VI_ASSERT(Node != nullptr, "schema should be set");
-				if (Filter != nullptr)
-					Filter->Serialize(Node->Set("filter"));
+				VI_ASSERT(node != nullptr, "schema should be set");
+				if (filter != nullptr)
+					filter->serialize(node->set("filter"));
 			}
-			AudioEffect* Compressor::Copy() const
+			audio_effect* compressor::copy() const
 			{
-				return new Compressor();
+				return new compressor();
 			}
 
-			Equalizer::Equalizer()
+			equalizer::equalizer()
 			{
-				Initialize([this]()
+				initialize([this]()
 				{
-					AudioContext::SetEffect1I(Effect, EffectEx::Effect_Type, (int)EffectEx::Effect_Equalizer);
+					audio_context::set_effect1i(effect, effect_ex::effect_type, (int)effect_ex::effect_equalizer);
 					return true;
 				});
 			}
-			Equalizer::~Equalizer()
+			equalizer::~equalizer()
 			{
 
 			}
-			ExpectsAudio<void> Equalizer::Synchronize()
+			expects_audio<void> equalizer::synchronize()
 			{
-				AudioContext::SetEffect1F(Effect, EffectEx::Equalizer_LOW_Gain, LowGain);
-				AudioContext::SetEffect1F(Effect, EffectEx::Equalizer_LOW_Cutoff, LowCutOff);
-				AudioContext::SetEffect1F(Effect, EffectEx::Equalizer_MID1_Center, Mid1Center);
-				AudioContext::SetEffect1F(Effect, EffectEx::Equalizer_MID1_Width, Mid1Width);
-				AudioContext::SetEffect1F(Effect, EffectEx::Equalizer_MID2_Gain, Mid2Gain);
-				AudioContext::SetEffect1F(Effect, EffectEx::Equalizer_MID2_Center, Mid2Center);
-				AudioContext::SetEffect1F(Effect, EffectEx::Equalizer_MID2_Width, Mid2Width);
-				AudioContext::SetEffect1F(Effect, EffectEx::Equalizer_HIGH_Gain, HighGain);
-				AudioContext::SetEffect1F(Effect, EffectEx::Equalizer_HIGH_Cutoff, HighCutOff);
-				ReturnErrorIf;
+				audio_context::set_effect1f(effect, effect_ex::equalizer_low_gain, low_gain);
+				audio_context::set_effect1f(effect, effect_ex::equalizer_low_cutoff, low_cut_off);
+				audio_context::set_effect1f(effect, effect_ex::equalizer_mid1_center, mid1_center);
+				audio_context::set_effect1f(effect, effect_ex::equalizer_mid1_width, mid1_width);
+				audio_context::set_effect1f(effect, effect_ex::equalizer_mid2_gain, mid2_gain);
+				audio_context::set_effect1f(effect, effect_ex::equalizer_mid2_center, mid2_center);
+				audio_context::set_effect1f(effect, effect_ex::equalizer_mid2_width, mid2_width);
+				audio_context::set_effect1f(effect, effect_ex::equalizer_high_gain, high_gain);
+				audio_context::set_effect1f(effect, effect_ex::equalizer_high_cutoff, high_cut_off);
+				return_error_if;
 			}
-			void Equalizer::Deserialize(Core::Schema* Node)
+			void equalizer::deserialize(core::schema* node)
 			{
-				VI_ASSERT(Node != nullptr, "schema should be set");
-				AudioFilter* NewFilter = GetFilterDeserialized(Node);
-				if (NewFilter != nullptr)
-					SetFilter(&Filter);
+				VI_ASSERT(node != nullptr, "schema should be set");
+				audio_filter* new_filter = get_filter_deserialized(node);
+				if (new_filter != nullptr)
+					set_filter(&filter);
 
-				Layer::Series::Unpack(Node->Find("low-gain"), &LowGain);
-				Layer::Series::Unpack(Node->Find("low-cut-off"), &LowCutOff);
-				Layer::Series::Unpack(Node->Find("mid1-gain"), &Mid1Gain);
-				Layer::Series::Unpack(Node->Find("mid1-center"), &Mid1Center);
-				Layer::Series::Unpack(Node->Find("mid1-width"), &Mid1Width);
-				Layer::Series::Unpack(Node->Find("mid2-gain"), &Mid2Gain);
-				Layer::Series::Unpack(Node->Find("mid2-center"), &Mid2Center);
-				Layer::Series::Unpack(Node->Find("mid2-width"), &Mid2Width);
-				Layer::Series::Unpack(Node->Find("high-gain"), &HighGain);
-				Layer::Series::Unpack(Node->Find("high-cut-off"), &HighCutOff);
+				layer::series::unpack(node->find("low-gain"), &low_gain);
+				layer::series::unpack(node->find("low-cut-off"), &low_cut_off);
+				layer::series::unpack(node->find("mid1-gain"), &mid1_gain);
+				layer::series::unpack(node->find("mid1-center"), &mid1_center);
+				layer::series::unpack(node->find("mid1-width"), &mid1_width);
+				layer::series::unpack(node->find("mid2-gain"), &mid2_gain);
+				layer::series::unpack(node->find("mid2-center"), &mid2_center);
+				layer::series::unpack(node->find("mid2-width"), &mid2_width);
+				layer::series::unpack(node->find("high-gain"), &high_gain);
+				layer::series::unpack(node->find("high-cut-off"), &high_cut_off);
 			}
-			void Equalizer::Serialize(Core::Schema* Node) const
+			void equalizer::serialize(core::schema* node) const
 			{
-				VI_ASSERT(Node != nullptr, "schema should be set");
-				if (Filter != nullptr)
-					Filter->Serialize(Node->Set("filter"));
+				VI_ASSERT(node != nullptr, "schema should be set");
+				if (filter != nullptr)
+					filter->serialize(node->set("filter"));
 
-				Layer::Series::Pack(Node->Find("low-gain"), LowGain);
-				Layer::Series::Pack(Node->Find("low-cut-off"), LowCutOff);
-				Layer::Series::Pack(Node->Find("mid1-gain"), Mid1Gain);
-				Layer::Series::Pack(Node->Find("mid1-center"), Mid1Center);
-				Layer::Series::Pack(Node->Find("mid1-width"), Mid1Width);
-				Layer::Series::Pack(Node->Find("mid2-gain"), Mid2Gain);
-				Layer::Series::Pack(Node->Find("mid2-center"), Mid2Center);
-				Layer::Series::Pack(Node->Find("mid2-width"), Mid2Width);
-				Layer::Series::Pack(Node->Find("high-gain"), HighGain);
-				Layer::Series::Pack(Node->Find("high-cut-off"), HighCutOff);
+				layer::series::pack(node->find("low-gain"), low_gain);
+				layer::series::pack(node->find("low-cut-off"), low_cut_off);
+				layer::series::pack(node->find("mid1-gain"), mid1_gain);
+				layer::series::pack(node->find("mid1-center"), mid1_center);
+				layer::series::pack(node->find("mid1-width"), mid1_width);
+				layer::series::pack(node->find("mid2-gain"), mid2_gain);
+				layer::series::pack(node->find("mid2-center"), mid2_center);
+				layer::series::pack(node->find("mid2-width"), mid2_width);
+				layer::series::pack(node->find("high-gain"), high_gain);
+				layer::series::pack(node->find("high-cut-off"), high_cut_off);
 			}
-			AudioEffect* Equalizer::Copy() const
+			audio_effect* equalizer::copy() const
 			{
-				Equalizer* Target = new Equalizer();
-				Target->LowGain = 1.0f;
-				Target->LowCutOff = 200.0f;
-				Target->Mid1Gain = 1.0f;
-				Target->Mid1Center = 500.0f;
-				Target->Mid1Width = 1.0f;
-				Target->Mid2Gain = 1.0f;
-				Target->Mid2Center = 3000.0f;
-				Target->Mid2Width = 1.0f;
-				Target->HighGain = 1.0f;
-				Target->HighCutOff = 6000.0f;
+				equalizer* target = new equalizer();
+				target->low_gain = 1.0f;
+				target->low_cut_off = 200.0f;
+				target->mid1_gain = 1.0f;
+				target->mid1_center = 500.0f;
+				target->mid1_width = 1.0f;
+				target->mid2_gain = 1.0f;
+				target->mid2_center = 3000.0f;
+				target->mid2_width = 1.0f;
+				target->high_gain = 1.0f;
+				target->high_cut_off = 6000.0f;
 
-				return Target;
+				return target;
 			}
 		}
 	}

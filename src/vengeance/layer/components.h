@@ -2,846 +2,846 @@
 #define VI_LAYER_COMPONENTS_H
 #include "../layer.h"
 
-namespace Vitex
+namespace vitex
 {
-	namespace Layer
+	namespace layer
 	{
-		namespace Components
+		namespace components
 		{
-			class VI_OUT SoftBody final : public Drawable
+			class soft_body final : public drawable
 			{
 			protected:
-				Physics::HullShape* Hull = nullptr;
-				Physics::SoftBody* Instance = nullptr;
-				Core::Vector<Trigonometry::Vertex> Vertices;
-				Core::Vector<int> Indices;
+				physics::hull_shape* hull = nullptr;
+				physics::soft_body* instance = nullptr;
+				core::vector<trigonometry::vertex> vertices;
+				core::vector<int> indices;
 
 			public:
-				Trigonometry::Vector2 TexCoord = 1.0f;
-				bool Kinematic = false;
-				bool Manage = true;
+				trigonometry::vector2 texcoord = 1.0f;
+				bool kinematic = false;
+				bool manage = true;
 
 			public:
-				SoftBody(Entity* Ref);
-				~SoftBody() override;
-				void Deserialize(Core::Schema* Node) override;
-				void Serialize(Core::Schema* Node) override;
-				void Synchronize(Core::Timer* Time) override;
-				void Deactivate() override;
-				float GetVisibility(const Viewer& View, float Distance) const override;
-				size_t GetUnitBounds(Trigonometry::Vector3& Min, Trigonometry::Vector3& Max) const override;
-				Core::Unique<Component> Copy(Entity* New) const override;
-				void Load(Physics::HullShape* Shape, float Anticipation = 0.0f);
-				void Load(const std::string_view& Path, float Anticipation = 0.0f, std::function<void()>&& Callback = nullptr);
-				void LoadEllipsoid(const Physics::SoftBody::Desc::CV::SEllipsoid& Shape, float Anticipation = 0.0f);
-				void LoadPatch(const Physics::SoftBody::Desc::CV::SPatch& Shape, float Anticipation = 0.0f);
-				void LoadRope(const Physics::SoftBody::Desc::CV::SRope& Shape, float Anticipation = 0.0f);
-				void Fill(Graphics::GraphicsDevice* Device, Graphics::ElementBuffer* IndexBuffer, Graphics::ElementBuffer* VertexBuffer);
-				void Regenerate();
-				void Clear();
-				void SetTransform(const Trigonometry::Vector3& Position, const Trigonometry::Vector3& Scale, const Trigonometry::Vector3& Rotation);
-				void SetTransform(bool Kinematic);
-				Physics::SoftBody* GetBody();
-				Core::Vector<Trigonometry::Vertex>& GetVertices();
-				Core::Vector<int>& GetIndices();
+				soft_body(entity* ref);
+				~soft_body() override;
+				void deserialize(core::schema* node) override;
+				void serialize(core::schema* node) override;
+				void synchronize(core::timer* time) override;
+				void deactivate() override;
+				float get_visibility(const viewer& view, float distance) const override;
+				size_t get_unit_bounds(trigonometry::vector3& min, trigonometry::vector3& max) const override;
+				core::unique<component> copy(entity* init) const override;
+				void load(physics::hull_shape* shape, float anticipation = 0.0f);
+				void load(const std::string_view& path, float anticipation = 0.0f, std::function<void()>&& callback = nullptr);
+				void load_ellipsoid(const physics::soft_body::desc::cv::sellipsoid& shape, float anticipation = 0.0f);
+				void load_patch(const physics::soft_body::desc::cv::spatch& shape, float anticipation = 0.0f);
+				void load_rope(const physics::soft_body::desc::cv::srope& shape, float anticipation = 0.0f);
+				void fill(graphics::graphics_device* device, graphics::element_buffer* index_buffer, graphics::element_buffer* vertex_buffer);
+				void regenerate();
+				void clear();
+				void set_transform(const trigonometry::vector3& position, const trigonometry::vector3& scale, const trigonometry::vector3& rotation);
+				void set_transform(bool kinematic);
+				physics::soft_body* get_body();
+				core::vector<trigonometry::vertex>& get_vertices();
+				core::vector<int>& get_indices();
 
 			private:
-				void DeserializeBody(Core::Schema* Node);
+				void deserialize_body(core::schema* node);
 
 			public:
 				VI_COMPONENT("soft_body_component");
 			};
 
-			class VI_OUT RigidBody final : public Component
+			class rigid_body final : public component
 			{
 			private:
-				Physics::HullShape* Hull = nullptr;
-				Physics::RigidBody* Instance = nullptr;
+				physics::hull_shape* hull = nullptr;
+				physics::rigid_body* instance = nullptr;
 
 			public:
-				bool Kinematic = false;
-				bool Manage = true;
+				bool kinematic = false;
+				bool manage = true;
 
 			public:
-				RigidBody(Entity* Ref);
-				~RigidBody() override;
-				void Deserialize(Core::Schema* Node) override;
-				void Serialize(Core::Schema* Node) override;
-				void Synchronize(Core::Timer* Time) override;
-				void Deactivate() override;
-				Core::Unique<Component> Copy(Entity* New) const override;
-				void Load(btCollisionShape* Shape, float Mass, float Anticipation = 0.0f);
-				void Load(const std::string_view& Path, float Mass, float Anticipation = 0.0f, std::function<void()>&& Callback = nullptr);
-				void Clear();
-				void SetTransform(const Trigonometry::Vector3& Position, const Trigonometry::Vector3& Scale, const Trigonometry::Vector3& Rotation);
-				void SetTransform(bool Kinematic);
-				void SetMass(float Mass);
-				Physics::RigidBody* GetBody() const;
+				rigid_body(entity* ref);
+				~rigid_body() override;
+				void deserialize(core::schema* node) override;
+				void serialize(core::schema* node) override;
+				void synchronize(core::timer* time) override;
+				void deactivate() override;
+				core::unique<component> copy(entity* init) const override;
+				void load(btCollisionShape* shape, float mass, float anticipation = 0.0f);
+				void load(const std::string_view& path, float mass, float anticipation = 0.0f, std::function<void()>&& callback = nullptr);
+				void clear();
+				void set_transform(const trigonometry::vector3& position, const trigonometry::vector3& scale, const trigonometry::vector3& rotation);
+				void set_transform(bool kinematic);
+				void set_mass(float mass);
+				physics::rigid_body* get_body() const;
 
 			private:
-				void DeserializeBody(Core::Schema* Node);
+				void deserialize_body(core::schema* node);
 
 			public:
 				VI_COMPONENT("rigid_body_component");
 			};
 
-			class VI_OUT SliderConstraint final : public Component
+			class slider_constraint final : public component
 			{
 			private:
-				Physics::SConstraint* Instance;
-				Entity* Connection;
+				physics::sconstraint* instance;
+				entity* connection;
 
 			public:
-				SliderConstraint(Entity* Ref);
-				~SliderConstraint() override;
-				void Deserialize(Core::Schema* Node) override;
-				void Serialize(Core::Schema* Node) override;
-				Core::Unique<Component> Copy(Entity* New) const override;
-				void Load(Entity* Other, bool IsGhosted, bool IsLinear);
-				void Clear();
-				Physics::SConstraint* GetConstraint() const;
-				Entity* GetConnection() const;
+				slider_constraint(entity* ref);
+				~slider_constraint() override;
+				void deserialize(core::schema* node) override;
+				void serialize(core::schema* node) override;
+				core::unique<component> copy(entity* init) const override;
+				void load(entity* other, bool is_ghosted, bool is_linear);
+				void clear();
+				physics::sconstraint* get_constraint() const;
+				entity* get_connection() const;
 
 			public:
 				VI_COMPONENT("slider_constraint_component");
 			};
 
-			class VI_OUT Acceleration final : public Component
+			class acceleration final : public component
 			{
 			private:
-				Physics::RigidBody* RigidBody = nullptr;
+				physics::rigid_body* rigid_body = nullptr;
 
 			public:
-				Trigonometry::Vector3 AmplitudeVelocity;
-				Trigonometry::Vector3 AmplitudeTorque;
-				Trigonometry::Vector3 ConstantVelocity;
-				Trigonometry::Vector3 ConstantTorque;
-				Trigonometry::Vector3 ConstantCenter;
-				bool Kinematic = true;
+				trigonometry::vector3 amplitude_velocity;
+				trigonometry::vector3 amplitude_torque;
+				trigonometry::vector3 constant_velocity;
+				trigonometry::vector3 constant_torque;
+				trigonometry::vector3 constant_center;
+				bool kinematic = true;
 
 			public:
-				Acceleration(Entity* Ref);
-				void Deserialize(Core::Schema * Node) override;
-				void Serialize(Core::Schema * Node) override;
-				void Activate(Component * New) override;
-				void Update(Core::Timer * Time) override;
-				Core::Unique<Component> Copy(Entity * New) const override;
-				Physics::RigidBody* GetBody() const;
+				acceleration(entity* ref);
+				void deserialize(core::schema* node) override;
+				void serialize(core::schema* node) override;
+				void activate(component* init) override;
+				void update(core::timer* time) override;
+				core::unique<component> copy(entity* init) const override;
+				physics::rigid_body* get_body() const;
 
 			public:
 				VI_COMPONENT("acceleration_component");
 			};
 
-			class VI_OUT Model final : public Drawable
+			class model final : public drawable
 			{
 			protected:
-				Layer::Model* Instance = nullptr;
+				layer::model* instance = nullptr;
 
 			public:
-				Trigonometry::Vector2 TexCoord = 1.0f;
+				trigonometry::vector2 texcoord = 1.0f;
 
 			public:
-				Model(Entity* Ref);
-				~Model() override;
-				void Deserialize(Core::Schema* Node) override;
-				void Serialize(Core::Schema* Node) override;
-				float GetVisibility(const Viewer& View, float Distance) const override;
-				size_t GetUnitBounds(Trigonometry::Vector3& Min, Trigonometry::Vector3& Max) const override;
-				Core::Unique<Component> Copy(Entity* New) const override;
-				void SetDrawable(Core::Unique<Layer::Model> Drawable);
-				void SetMaterialFor(const std::string_view& Name, Material* Value);
-				Layer::Model* GetDrawable();
-				Material* GetMaterialFor(const std::string_view& Name);
+				model(entity* ref);
+				~model() override;
+				void deserialize(core::schema* node) override;
+				void serialize(core::schema* node) override;
+				float get_visibility(const viewer& view, float distance) const override;
+				size_t get_unit_bounds(trigonometry::vector3& min, trigonometry::vector3& max) const override;
+				core::unique<component> copy(entity* init) const override;
+				void set_drawable(core::unique<layer::model> drawable);
+				void set_material_for(const std::string_view& name, material* value);
+				layer::model* get_drawable();
+				material* get_material_for(const std::string_view& name);
 
 			public:
 				VI_COMPONENT("model_component");
 			};
 
-			class VI_OUT Skin final : public Drawable
+			class skin final : public drawable
 			{
 			protected:
-				Layer::SkinModel* Instance = nullptr;
+				layer::skin_model* instance = nullptr;
 
 			public:
-				Trigonometry::Vector2 TexCoord = 1.0f;
-				PoseBuffer Skeleton;
+				trigonometry::vector2 texcoord = 1.0f;
+				pose_buffer skeleton;
 
 			public:
-				Skin(Entity* Ref);
-				~Skin() override;
-				void Deserialize(Core::Schema* Node) override;
-				void Serialize(Core::Schema* Node) override;
-				void Synchronize(Core::Timer* Time) override;
-				float GetVisibility(const Viewer& View, float Distance) const override;
-				size_t GetUnitBounds(Trigonometry::Vector3& Min, Trigonometry::Vector3& Max) const override;
-				Core::Unique<Component> Copy(Entity* New) const override;
-				void SetDrawable(Core::Unique<Layer::SkinModel> Drawable);
-				void SetMaterialFor(const std::string_view& Name, Material* Value);
-				Layer::SkinModel* GetDrawable();
-				Material* GetMaterialFor(const std::string_view& Name);
+				skin(entity* ref);
+				~skin() override;
+				void deserialize(core::schema* node) override;
+				void serialize(core::schema* node) override;
+				void synchronize(core::timer* time) override;
+				float get_visibility(const viewer& view, float distance) const override;
+				size_t get_unit_bounds(trigonometry::vector3& min, trigonometry::vector3& max) const override;
+				core::unique<component> copy(entity* init) const override;
+				void set_drawable(core::unique<layer::skin_model> drawable);
+				void set_material_for(const std::string_view& name, material* value);
+				layer::skin_model* get_drawable();
+				material* get_material_for(const std::string_view& name);
 
 			public:
 				VI_COMPONENT("skin_component");
 			};
 
-			class VI_OUT Emitter final : public Drawable
+			class emitter final : public drawable
 			{
 			protected:
-				Graphics::InstanceBuffer * Instance = nullptr;
+				graphics::instance_buffer* instance = nullptr;
 
 			public:
-				Trigonometry::Vector3 Min = 0.0f;
-				Trigonometry::Vector3 Max = 1.0f;
-				bool Connected = false;
-				bool QuadBased = false;
+				trigonometry::vector3 min = 0.0f;
+				trigonometry::vector3 max = 1.0f;
+				bool connected = false;
+				bool quad_based = false;
 
 			public:
-				Emitter(Entity* Ref);
-				~Emitter() override;
-				void Deserialize(Core::Schema* Node) override;
-				void Serialize(Core::Schema* Node) override;
-				void Activate(Component* New) override;
-				size_t GetUnitBounds(Trigonometry::Vector3& Min, Trigonometry::Vector3& Max) const override;
-				Core::Unique<Component> Copy(Entity* New) const override;
-				Graphics::InstanceBuffer* GetBuffer();
+				emitter(entity* ref);
+				~emitter() override;
+				void deserialize(core::schema* node) override;
+				void serialize(core::schema* node) override;
+				void activate(component* init) override;
+				size_t get_unit_bounds(trigonometry::vector3& min, trigonometry::vector3& max) const override;
+				core::unique<component> copy(entity* init) const override;
+				graphics::instance_buffer* get_buffer();
 
 			public:
 				VI_COMPONENT("emitter_component");
 			};
 
-			class VI_OUT Decal final : public Drawable
+			class decal final : public drawable
 			{
 			public:
-				Trigonometry::Vector2 TexCoord = 1.0f;
+				trigonometry::vector2 texcoord = 1.0f;
 
 			public:
-				Decal(Entity* Ref);
-				void Deserialize(Core::Schema * Node) override;
-				void Serialize(Core::Schema * Node) override;
-				float GetVisibility(const Viewer& View, float Distance) const override;
-				Core::Unique<Component> Copy(Entity * New) const override;
+				decal(entity* ref);
+				void deserialize(core::schema* node) override;
+				void serialize(core::schema* node) override;
+				float get_visibility(const viewer& view, float distance) const override;
+				core::unique<component> copy(entity* init) const override;
 
 			public:
 				VI_COMPONENT("decal_component");
 			};
 
-			class VI_OUT SkinAnimator final : public Component
+			class skin_animator final : public component
 			{
 			private:
-				Skin* Instance = nullptr;
-				SkinAnimation* Animation = nullptr;
+				skin* instance = nullptr;
+				skin_animation* animation = nullptr;
 
 			public:
-				AnimatorState State;
+				animator_state state;
 
 			public:
-				SkinAnimator(Entity* Ref);
-				~SkinAnimator() noexcept override;
-				void Deserialize(Core::Schema* Node) override;
-				void Serialize(Core::Schema* Node) override;
-				void Activate(Component* New) override;
-				void Animate(Core::Timer* Time) override;
-				Core::Unique<Component> Copy(Entity* New) const override;
-				void SetAnimation(SkinAnimation* New);
-				void Play(int64_t Clip = -1, int64_t Frame = -1);
-				void Pause();
-				void Stop();
-				bool IsExists(int64_t Clip);
-				bool IsExists(int64_t Clip, int64_t Frame);
-				const Trigonometry::SkinAnimatorKey* GetFrame(int64_t Clip, int64_t Frame);
-				const Core::Vector<Trigonometry::SkinAnimatorKey>* GetClip(int64_t Clip);
-				int64_t GetClipByName(const std::string_view& Name) const;
-				size_t GetClipsCount() const;
-				Skin* GetSkin() const;
-				SkinAnimation* GetAnimation() const;
-				Core::String GetPath() const;
+				skin_animator(entity* ref);
+				~skin_animator() noexcept override;
+				void deserialize(core::schema* node) override;
+				void serialize(core::schema* node) override;
+				void activate(component* init) override;
+				void animate(core::timer* time) override;
+				core::unique<component> copy(entity* init) const override;
+				void set_animation(skin_animation* init);
+				void play(int64_t clip = -1, int64_t frame = -1);
+				void pause();
+				void stop();
+				bool is_exists(int64_t clip);
+				bool is_exists(int64_t clip, int64_t frame);
+				const trigonometry::skin_animator_key* get_frame(int64_t clip, int64_t frame);
+				const core::vector<trigonometry::skin_animator_key>* get_clip(int64_t clip);
+				int64_t get_clip_by_name(const std::string_view& name) const;
+				size_t get_clips_count() const;
+				skin* get_skin() const;
+				skin_animation* get_animation() const;
+				core::string get_path() const;
 
 			private:
-				void BlendAnimation(int64_t Clip, int64_t Frame);
-				void SaveBindingState();
+				void blend_animation(int64_t clip, int64_t frame);
+				void save_binding_state();
 
 			public:
 				VI_COMPONENT("skin_animator_component");
 			};
 
-			class VI_OUT KeyAnimator final : public Component
+			class key_animator final : public component
 			{
 			private:
-				Core::String Reference;
+				core::string reference;
 
 			public:
-				Core::Vector<Trigonometry::KeyAnimatorClip> Clips;
-				Trigonometry::AnimatorKey Offset;
-				Trigonometry::AnimatorKey Default;
-				AnimatorState State;
+				core::vector<trigonometry::key_animator_clip> clips;
+				trigonometry::animator_key offset;
+				trigonometry::animator_key defaults;
+				animator_state state;
 
 			public:
-				KeyAnimator(Entity* Ref);
-				~KeyAnimator() override;
-				void Deserialize(Core::Schema* Node) override;
-				void Serialize(Core::Schema* Node) override;
-				void Animate(Core::Timer* Time) override;
-				Core::Unique<Component> Copy(Entity* New) const override;
-				void LoadAnimation(const std::string_view& Path, std::function<void(bool)>&& Callback = nullptr);
-				void ClearAnimation();
-				void Play(int64_t Clip = -1, int64_t Frame = -1);
-				void Pause();
-				void Stop();
-				bool IsExists(int64_t Clip);
-				bool IsExists(int64_t Clip, int64_t Frame);
-				Trigonometry::AnimatorKey* GetFrame(int64_t Clip, int64_t Frame);
-				Core::Vector<Trigonometry::AnimatorKey>* GetClip(int64_t Clip);
-				Core::String GetPath();
+				key_animator(entity* ref);
+				~key_animator() override;
+				void deserialize(core::schema* node) override;
+				void serialize(core::schema* node) override;
+				void animate(core::timer* time) override;
+				core::unique<component> copy(entity* init) const override;
+				void load_animation(const std::string_view& path, std::function<void(bool)>&& callback = nullptr);
+				void clear_animation();
+				void play(int64_t clip = -1, int64_t frame = -1);
+				void pause();
+				void stop();
+				bool is_exists(int64_t clip);
+				bool is_exists(int64_t clip, int64_t frame);
+				trigonometry::animator_key* get_frame(int64_t clip, int64_t frame);
+				core::vector<trigonometry::animator_key>* get_clip(int64_t clip);
+				core::string get_path();
 
 			private:
-				void BlendAnimation(int64_t Clip, int64_t Frame);
-				void SaveBindingState();
+				void blend_animation(int64_t clip, int64_t frame);
+				void save_binding_state();
 
 			public:
 				VI_COMPONENT("key_animator_component");
 			};
 
-			class VI_OUT EmitterAnimator final : public Component
+			class emitter_animator final : public component
 			{
 			private:
-				Emitter * Base = nullptr;
+				emitter* base = nullptr;
 
 			public:
-				Trigonometry::Vector4 Diffuse;
-				Trigonometry::Vector3 Position;
-				Trigonometry::Vector3 Velocity = 1.0f;
-				SpawnerProperties Spawner;
-				float RotationSpeed = 0.0f;
-				float ScaleSpeed = 0.0f;
-				float Noise = 0.0f;
-				bool Simulate = false;
+				trigonometry::vector4 diffuse;
+				trigonometry::vector3 position;
+				trigonometry::vector3 velocity = 1.0f;
+				spawner_properties spawner;
+				float rotation_speed = 0.0f;
+				float scale_speed = 0.0f;
+				float noise = 0.0f;
+				bool simulate = false;
 
 			public:
-				EmitterAnimator(Entity* Ref);
-				void Deserialize(Core::Schema * Node) override;
-				void Serialize(Core::Schema * Node) override;
-				void Activate(Component * New) override;
-				void Animate(Core::Timer * Time) override;
-				Core::Unique<Component> Copy(Entity * New) const override;
-				Emitter* GetEmitter() const;
+				emitter_animator(entity* ref);
+				void deserialize(core::schema* node) override;
+				void serialize(core::schema* node) override;
+				void activate(component* init) override;
+				void animate(core::timer* time) override;
+				core::unique<component> copy(entity* init) const override;
+				emitter* get_emitter() const;
 
 			protected:
-				void AccurateSynchronization(float Step);
-				void FastSynchronization(float Step);
+				void accurate_synchronization(float step);
+				void fast_synchronization(float step);
 
 			public:
 				VI_COMPONENT("emitter_animator_component");
 			};
 
-			class VI_OUT FreeLook final : public Component
+			class free_look final : public component
 			{
 			private:
-				Trigonometry::Vector2 Position;
+				trigonometry::vector2 position;
 
 			public:
-				Trigonometry::Vector2 Direction = Trigonometry::Vector2(1.0f, 1.0f);
-				Graphics::KeyMap Rotate;
-				float Sensivity;
+				trigonometry::vector2 direction = trigonometry::vector2(1.0f, 1.0f);
+				graphics::key_map rotate;
+				float sensivity;
 
 			public:
-				FreeLook(Entity* Ref);
-				void Update(Core::Timer * Time) override;
-				Core::Unique<Component> Copy(Entity * New) const override;
+				free_look(entity* ref);
+				void update(core::timer* time) override;
+				core::unique<component> copy(entity* init) const override;
 
 			public:
 				VI_COMPONENT("free_look_component");
 			};
 
-			class VI_OUT Fly final : public Component
+			class fly final : public component
 			{
 			private:
-				Trigonometry::Vector3 Velocity;
+				trigonometry::vector3 velocity;
 
 			public:
-				struct MoveInfo
+				struct move_info
 				{
-					Trigonometry::Vector3 Axis = Trigonometry::Vector3(1.0f, 1.0f, -1.0f);
-					float Faster = 320.3f;
-					float Normal = 185.4f;
-					float Slower = 32.6f;
-					float Fading = 5.4f;
-				} Moving;
+					trigonometry::vector3 axis = trigonometry::vector3(1.0f, 1.0f, -1.0f);
+					float faster = 320.3f;
+					float normal = 185.4f;
+					float slower = 32.6f;
+					float fading = 5.4f;
+				} moving;
 
 			public:
-				Graphics::KeyMap Forward = Graphics::KeyCode::W;
-				Graphics::KeyMap Backward = Graphics::KeyCode::S;
-				Graphics::KeyMap Right = Graphics::KeyCode::D;
-				Graphics::KeyMap Left = Graphics::KeyCode::A;
-				Graphics::KeyMap Up = Graphics::KeyCode::Space;
-				Graphics::KeyMap Down = Graphics::KeyCode::Z;
-				Graphics::KeyMap Fast = Graphics::KeyCode::LeftShift;
-				Graphics::KeyMap Slow = Graphics::KeyCode::LeftControl;
+				graphics::key_map forward = graphics::key_code::w;
+				graphics::key_map backward = graphics::key_code::s;
+				graphics::key_map right = graphics::key_code::d;
+				graphics::key_map left = graphics::key_code::a;
+				graphics::key_map up = graphics::key_code::space;
+				graphics::key_map down = graphics::key_code::z;
+				graphics::key_map fast = graphics::key_code::left_shift;
+				graphics::key_map slow = graphics::key_code::left_control;
 
 			public:
-				Fly(Entity* Ref);
-				void Update(Core::Timer * Time) override;
-				Core::Unique<Component> Copy(Entity * New) const override;
+				fly(entity* ref);
+				void update(core::timer* time) override;
+				core::unique<component> copy(entity* init) const override;
 
 			private:
-				Trigonometry::Vector3 GetSpeed(Graphics::Activity* Activity);
+				trigonometry::vector3 get_speed(graphics::activity* activity);
 
 			public:
 				VI_COMPONENT("fly_component");
 			};
 
-			class VI_OUT AudioSource final : public Component
+			class audio_source final : public component
 			{
 			private:
-				Trigonometry::Vector3 LastPosition;
-				Audio::AudioSource* Source;
-				Audio::AudioSync Sync;
+				trigonometry::vector3 last_position;
+				audio::audio_source* source;
+				audio::audio_sync sync;
 
 			public:
-				AudioSource(Entity* Ref);
-				~AudioSource() override;
-				void Deserialize(Core::Schema* Node) override;
-				void Serialize(Core::Schema* Node) override;
-				void Synchronize(Core::Timer* Time) override;
-				Core::Unique<Component> Copy(Entity* New) const override;
-				void ApplyPlayingPosition();
-				Audio::AudioSource* GetSource() const;
-				Audio::AudioSync& GetSync();
+				audio_source(entity* ref);
+				~audio_source() override;
+				void deserialize(core::schema* node) override;
+				void serialize(core::schema* node) override;
+				void synchronize(core::timer* time) override;
+				core::unique<component> copy(entity* init) const override;
+				void apply_playing_position();
+				audio::audio_source* get_source() const;
+				audio::audio_sync& get_sync();
 
 			public:
 				VI_COMPONENT("audio_source_component");
 			};
 
-			class VI_OUT AudioListener final : public Component
+			class audio_listener final : public component
 			{
 			private:
-				Trigonometry::Vector3 LastPosition;
+				trigonometry::vector3 last_position;
 
 			public:
-				float Gain = 1.0f;
+				float gain = 1.0f;
 
 			public:
-				AudioListener(Entity* Ref);
-				~AudioListener() override;
-				void Deserialize(Core::Schema* Node) override;
-				void Serialize(Core::Schema* Node) override;
-				void Synchronize(Core::Timer* Time) override;
-				void Deactivate() override;
-				Core::Unique<Component> Copy(Entity* New) const override;
+				audio_listener(entity* ref);
+				~audio_listener() override;
+				void deserialize(core::schema* node) override;
+				void serialize(core::schema* node) override;
+				void synchronize(core::timer* time) override;
+				void deactivate() override;
+				core::unique<component> copy(entity* init) const override;
 
 			public:
 				VI_COMPONENT("audio_listener_component");
 			};
 
-			class VI_OUT PointLight final : public Component
+			class point_light final : public component
 			{
 			public:
-				struct ShadowInfo
+				struct shadow_info
 				{
-					float Softness = 1.0f;
-					float Distance = 100.0f;
-					float Bias = 0.0f;
-					uint32_t Iterations = 2;
-					bool Enabled = false;
-				} Shadow;
+					float softness = 1.0f;
+					float distance = 100.0f;
+					float bias = 0.0f;
+					uint32_t iterations = 2;
+					bool enabled = false;
+				} shadow;
 
 			private:
-				Attenuation Size;
+				attenuation size;
 
 			public:
-				CubicDepthMap* DepthMap = nullptr;
-				Trigonometry::Matrix4x4 View;
-				Trigonometry::Matrix4x4 Projection;
-				Trigonometry::Vector3 Diffuse = 1.0f;
-				float Emission = 1.0f;
-				float Disperse = 0.0f;
+				depth_cube_map* depth_map = nullptr;
+				trigonometry::matrix4x4 view;
+				trigonometry::matrix4x4 projection;
+				trigonometry::vector3 diffuse = 1.0f;
+				float emission = 1.0f;
+				float disperse = 0.0f;
 
 			public:
-				PointLight(Entity* Ref);
-				void Deserialize(Core::Schema * Node) override;
-				void Serialize(Core::Schema * Node) override;
-				void Message(const std::string_view& Name, Core::VariantArgs& Args) override;
-				size_t GetUnitBounds(Trigonometry::Vector3& Min, Trigonometry::Vector3& Max) const override;
-				float GetVisibility(const Viewer& View, float Distance) const override;
-				Core::Unique<Component> Copy(Entity * New) const override;
-				void GenerateOrigin();
-				void SetSize(const Attenuation& Value);
-				const Attenuation& GetSize();
+				point_light(entity* ref);
+				void deserialize(core::schema* node) override;
+				void serialize(core::schema* node) override;
+				void message(const std::string_view& name, core::variant_args& args) override;
+				size_t get_unit_bounds(trigonometry::vector3& min, trigonometry::vector3& max) const override;
+				float get_visibility(const viewer& view, float distance) const override;
+				core::unique<component> copy(entity* init) const override;
+				void generate_origin();
+				void set_size(const attenuation& value);
+				const attenuation& get_size();
 
 			public:
 				VI_COMPONENT("point_light_component");
 			};
 
-			class VI_OUT SpotLight final : public Component
+			class spot_light final : public component
 			{
 			public:
-				struct ShadowInfo
+				struct shadow_info
 				{
-					float Softness = 1.0f;
-					float Distance = 100.0f;
-					float Bias = 0.0f;
-					uint32_t Iterations = 2;
-					bool Enabled = false;
-				} Shadow;
+					float softness = 1.0f;
+					float distance = 100.0f;
+					float bias = 0.0f;
+					uint32_t iterations = 2;
+					bool enabled = false;
+				} shadow;
 
 			private:
-				Attenuation Size;
+				attenuation size;
 
 			public:
-				LinearDepthMap* DepthMap = nullptr;
-				Trigonometry::Matrix4x4 Projection;
-				Trigonometry::Matrix4x4 View;
-				Trigonometry::Vector3 Diffuse = 1.0f;
-				float Emission = 1.0f;
-				float Cutoff = 60.0f;
-				float Disperse = 0.0f;
+				depth_map* depth_map = nullptr;
+				trigonometry::matrix4x4 projection;
+				trigonometry::matrix4x4 view;
+				trigonometry::vector3 diffuse = 1.0f;
+				float emission = 1.0f;
+				float cutoff = 60.0f;
+				float disperse = 0.0f;
 
 			public:
-				SpotLight(Entity* Ref);
-				void Deserialize(Core::Schema * Node) override;
-				void Serialize(Core::Schema * Node) override;
-				void Message(const std::string_view& Name, Core::VariantArgs& Args) override;
-				void Synchronize(Core::Timer * Time) override;
-				size_t GetUnitBounds(Trigonometry::Vector3& Min, Trigonometry::Vector3& Max) const override;
-				float GetVisibility(const Viewer& View, float Distance) const override;
-				Core::Unique<Component> Copy(Entity * New) const override;
-				void GenerateOrigin();
-				void SetSize(const Attenuation& Value);
-				const Attenuation& GetSize();
+				spot_light(entity* ref);
+				void deserialize(core::schema* node) override;
+				void serialize(core::schema* node) override;
+				void message(const std::string_view& name, core::variant_args& args) override;
+				void synchronize(core::timer* time) override;
+				size_t get_unit_bounds(trigonometry::vector3& min, trigonometry::vector3& max) const override;
+				float get_visibility(const viewer& view, float distance) const override;
+				core::unique<component> copy(entity* init) const override;
+				void generate_origin();
+				void set_size(const attenuation& value);
+				const attenuation& get_size();
 
 			public:
 				VI_COMPONENT("spot_light_component");
 			};
 
-			class VI_OUT LineLight final : public Component
+			class line_light final : public component
 			{
 			public:
-				struct SkyInfo
+				struct sky_info
 				{
-					Trigonometry::Vector3 RlhEmission = Trigonometry::Vector3(0.0000055f, 0.000013f, 0.0000224f);
-					Trigonometry::Vector3 MieEmission = 0.000021f;
-					float RlhHeight = 8000.0f;
-					float MieHeight = 1200.0f;
-					float MieDirection = 0.94f;
-					float InnerRadius = 6371000.0f;
-					float OuterRadius = 6471000.0f;
-					float Intensity = 7.0f;
-				} Sky;
+					trigonometry::vector3 rlh_emission = trigonometry::vector3(0.0000055f, 0.000013f, 0.0000224f);
+					trigonometry::vector3 mie_emission = 0.000021f;
+					float rlh_height = 8000.0f;
+					float mie_height = 1200.0f;
+					float mie_direction = 0.94f;
+					float inner_radius = 6371000.0f;
+					float outer_radius = 6471000.0f;
+					float intensity = 7.0f;
+				} sky;
 
-				struct ShadowInfo
+				struct shadow_info
 				{
-					float Distance[6] = { 25.0f, 50.0f, 100.0f, 175.0f, 250.0f, 325.0f };
-					float Softness = 1.0f;
-					float Bias = 0.0f;
-					float Near = 6.0f;
-					float Far = 9.0f;
-					uint32_t Iterations = 2;
-					uint32_t Cascades = 3;
-					bool Enabled = false;
-				} Shadow;
+					float distance[6] = { 25.0f, 50.0f, 100.0f, 175.0f, 250.0f, 325.0f };
+					float softness = 1.0f;
+					float bias = 0.0f;
+					float near = 6.0f;
+					float far = 9.0f;
+					uint32_t iterations = 2;
+					uint32_t cascades = 3;
+					bool enabled = false;
+				} shadow;
 
 			public:
-				CascadedDepthMap* DepthMap = nullptr;
-				Trigonometry::Matrix4x4 Projection[6];
-				Trigonometry::Matrix4x4 View[6];
-				Trigonometry::Vector3 Diffuse = 1.0f;
-				float Emission = 1.0f;
-				float Disperse = 0.0f;
+				depth_cascade_map* depth_map = nullptr;
+				trigonometry::matrix4x4 projection[6];
+				trigonometry::matrix4x4 view[6];
+				trigonometry::vector3 diffuse = 1.0f;
+				float emission = 1.0f;
+				float disperse = 0.0f;
 
 			public:
-				LineLight(Entity* Ref);
-				void Deserialize(Core::Schema * Node) override;
-				void Serialize(Core::Schema * Node) override;
-				void Message(const std::string_view& Name, Core::VariantArgs& Args) override;
-				Core::Unique<Component> Copy(Entity * New) const override;
-				void GenerateOrigin();
+				line_light(entity* ref);
+				void deserialize(core::schema* node) override;
+				void serialize(core::schema* node) override;
+				void message(const std::string_view& name, core::variant_args& args) override;
+				core::unique<component> copy(entity* init) const override;
+				void generate_origin();
 
 			public:
 				VI_COMPONENT("line_light_component");
 			};
 
-			class VI_OUT SurfaceLight final : public Component
+			class surface_light final : public component
 			{
 			private:
-				Graphics::Texture2D * DiffuseMapX[2] = { nullptr };
-				Graphics::Texture2D* DiffuseMapY[2] = { nullptr };
-				Graphics::Texture2D* DiffuseMapZ[2] = { nullptr };
-				Graphics::Texture2D* DiffuseMap = nullptr;
-				Graphics::TextureCube* Probe = nullptr;
+				graphics::texture_2d* diffuse_map_x[2] = { nullptr };
+				graphics::texture_2d* diffuse_map_y[2] = { nullptr };
+				graphics::texture_2d* diffuse_map_z[2] = { nullptr };
+				graphics::texture_2d* diffuse_map = nullptr;
+				graphics::texture_cube* probe = nullptr;
 
 			private:
-				Attenuation Size;
+				attenuation size;
 
 			public:
-				Trigonometry::Matrix4x4 View[6];
-				Trigonometry::Matrix4x4 Projection;
-				Trigonometry::Vector3 Offset = Trigonometry::Vector3(1.0f, 1.0f, 1.0f);
-				Trigonometry::Vector3 Diffuse = 1.0f;
-				Ticker Tick;
-				float Emission = 1.0f;
-				float Infinity = 0.0f;
-				bool Parallax = false;
-				bool Locked = false;
-				bool StaticMask = false;
+				trigonometry::matrix4x4 view[6];
+				trigonometry::matrix4x4 projection;
+				trigonometry::vector3 offset = trigonometry::vector3(1.0f, 1.0f, 1.0f);
+				trigonometry::vector3 diffuse = 1.0f;
+				ticker tick;
+				float emission = 1.0f;
+				float infinity = 0.0f;
+				bool parallax = false;
+				bool locked = false;
+				bool static_mask = false;
 
 			public:
-				SurfaceLight(Entity* Ref);
-				~SurfaceLight() override;
-				void Deserialize(Core::Schema* Node) override;
-				void Serialize(Core::Schema* Node) override;
-				size_t GetUnitBounds(Trigonometry::Vector3& Min, Trigonometry::Vector3& Max) const override;
-				float GetVisibility(const Viewer& View, float Distance) const override;
-				Core::Unique<Component> Copy(Entity* New) const override;
-				void SetProbeCache(Core::Unique<Graphics::TextureCube> NewCache);
-				void SetSize(const Attenuation& Value);
-				bool SetDiffuseMap(Graphics::Texture2D* Map);
-				bool SetDiffuseMap(Graphics::Texture2D* const MapX[2], Graphics::Texture2D* const MapY[2], Graphics::Texture2D* const MapZ[2]);
-				bool IsImageBased() const;
-				const Attenuation& GetSize();
-				Graphics::TextureCube* GetProbeCache() const;
-				Graphics::Texture2D* GetDiffuseMapXP();
-				Graphics::Texture2D* GetDiffuseMapXN();
-				Graphics::Texture2D* GetDiffuseMapYP();
-				Graphics::Texture2D* GetDiffuseMapYN();
-				Graphics::Texture2D* GetDiffuseMapZP();
-				Graphics::Texture2D* GetDiffuseMapZN();
-				Graphics::Texture2D* GetDiffuseMap();
+				surface_light(entity* ref);
+				~surface_light() override;
+				void deserialize(core::schema* node) override;
+				void serialize(core::schema* node) override;
+				size_t get_unit_bounds(trigonometry::vector3& min, trigonometry::vector3& max) const override;
+				float get_visibility(const viewer& view, float distance) const override;
+				core::unique<component> copy(entity* init) const override;
+				void set_probe_cache(core::unique<graphics::texture_cube> new_cache);
+				void set_size(const attenuation& value);
+				bool set_diffuse_map(graphics::texture_2d* map);
+				bool set_diffuse_map(graphics::texture_2d* const map_x[2], graphics::texture_2d* const map_y[2], graphics::texture_2d* const map_z[2]);
+				bool is_image_based() const;
+				const attenuation& get_size();
+				graphics::texture_cube* get_probe_cache() const;
+				graphics::texture_2d* get_diffuse_map_xp();
+				graphics::texture_2d* get_diffuse_map_xn();
+				graphics::texture_2d* get_diffuse_map_yp();
+				graphics::texture_2d* get_diffuse_map_yn();
+				graphics::texture_2d* get_diffuse_map_zp();
+				graphics::texture_2d* get_diffuse_map_zn();
+				graphics::texture_2d* get_diffuse_map();
 
 			public:
 				VI_COMPONENT("surface_light_component");
 			};
 
-			class VI_OUT Illuminator final : public Component
+			class illuminator final : public component
 			{
 			public:
-				Graphics::Texture3D* VoxelMap;
-				Ticker Inside;
-				Ticker Outside;
-				float RayStep;
-				float MaxSteps;
-				float Distance;
-				float Radiance;
-				float Length;
-				float Margin;
-				float Offset;
-				float Angle;
-				float Occlusion;
-				float Specular;
-				float Bleeding;
-				bool Regenerate;
+				graphics::texture_3d* voxel_map;
+				ticker inside;
+				ticker outside;
+				float ray_step;
+				float max_steps;
+				float distance;
+				float radiance;
+				float length;
+				float margin;
+				float offset;
+				float angle;
+				float occlusion;
+				float specular;
+				float bleeding;
+				bool regenerate;
 
 			public:
-				Illuminator(Entity* Ref);
-				void Deserialize(Core::Schema* Node) override;
-				void Serialize(Core::Schema* Node) override;
-				void Message(const std::string_view& Name, Core::VariantArgs& Args) override;
-				Core::Unique<Component> Copy(Entity* New) const override;
+				illuminator(entity* ref);
+				void deserialize(core::schema* node) override;
+				void serialize(core::schema* node) override;
+				void message(const std::string_view& name, core::variant_args& args) override;
+				core::unique<component> copy(entity* init) const override;
 
 			public:
 				VI_COMPONENT("illuminator_component");
 			};
 
-			class VI_OUT Camera final : public Component
+			class camera final : public component
 			{
 			public:
-				enum class ProjectionMode
+				enum class projection_mode
 				{
-					Perspective,
-					Orthographic
-				} Mode;
+					perspective,
+					orthographic
+				} mode;
 
 			protected:
-				RenderSystem* Renderer = nullptr;
-				Trigonometry::Matrix4x4 Projection;
-				Graphics::Viewport Viewport;
-				Viewer View;
+				render_system* renderer = nullptr;
+				trigonometry::matrix4x4 projection;
+				graphics::viewport viewport;
+				viewer view;
 
 			public:
-				float NearPlane = 0.1f;
-				float FarPlane = 250.0f;
-				float Width = -1;
-				float Height = -1;
-				float FieldOfView = 75.0f;
+				float near_plane = 0.1f;
+				float far_plane = 250.0f;
+				float width = -1;
+				float height = -1;
+				float field_of_view = 75.0f;
 
 			public:
-				Camera(Entity* Ref);
-				~Camera() override;
-				void Deserialize(Core::Schema* Node) override;
-				void Serialize(Core::Schema* Node) override;
-				void Activate(Component* New) override;
-				void Synchronize(Core::Timer* Time) override;
-				Core::Unique<Component> Copy(Entity* New) const override;
-				void GetViewer(Viewer* View);
-				void ResizeBuffers();
-				Viewer& GetViewer();
-				RenderSystem* GetRenderer();
-				Trigonometry::Matrix4x4 GetProjection();
-				Trigonometry::Matrix4x4 GetViewProjection();
-				Trigonometry::Matrix4x4 GetView();
-				Trigonometry::Vector3 GetViewPosition();
-				Trigonometry::Frustum8C GetFrustum8C();
-				Trigonometry::Frustum6P GetFrustum6P();
-				Trigonometry::Ray GetScreenRay(const Trigonometry::Vector2& Position);
-				Trigonometry::Ray GetCursorRay();
-				float GetDistance(Entity* Other);
-				float GetWidth();
-				float GetHeight();
-				float GetAspect();
-				bool RayTest(const Trigonometry::Ray& Ray, Entity* Other, Trigonometry::Vector3* Hit = nullptr);
-				bool RayTest(const Trigonometry::Ray& Ray, const Trigonometry::Matrix4x4& World, Trigonometry::Vector3* Hit = nullptr);
+				camera(entity* ref);
+				~camera() override;
+				void deserialize(core::schema* node) override;
+				void serialize(core::schema* node) override;
+				void activate(component* init) override;
+				void synchronize(core::timer* time) override;
+				core::unique<component> copy(entity* init) const override;
+				void get_viewer(viewer* view);
+				void resize_buffers();
+				viewer& get_viewer();
+				render_system* get_renderer();
+				trigonometry::matrix4x4 get_projection();
+				trigonometry::matrix4x4 get_view_projection();
+				trigonometry::matrix4x4 get_view();
+				trigonometry::vector3 get_view_position();
+				trigonometry::frustum8c get_frustum8c();
+				trigonometry::frustum6p get_frustum6p();
+				trigonometry::ray get_screen_ray(const trigonometry::vector2& position);
+				trigonometry::ray get_cursor_ray();
+				float get_distance(entity* other);
+				float get_width();
+				float get_height();
+				float get_aspect();
+				bool ray_test(const trigonometry::ray& ray, entity* other, trigonometry::vector3* hit = nullptr);
+				bool ray_test(const trigonometry::ray& ray, const trigonometry::matrix4x4& world, trigonometry::vector3* hit = nullptr);
 
 			public:
 				VI_COMPONENT("camera_component");
 			};
 
-			class VI_OUT Scriptable final : public Component
+			class scriptable final : public component
 			{
 			public:
-				enum class SourceType
+				enum class source_type
 				{
-					Resource,
-					Memory
+					resource,
+					memory
 				};
 
-				enum class InvokeType
+				enum class invoke_type
 				{
-					Typeless,
-					Normal
+					typeless,
+					normal
 				};
 
 			protected:
 				struct
 				{
-					asIScriptFunction* Serialize = nullptr;
-					asIScriptFunction* Deserialize = nullptr;
-					asIScriptFunction* Awake = nullptr;
-					asIScriptFunction* Asleep = nullptr;
-					asIScriptFunction* Synchronize = nullptr;
-					asIScriptFunction* Animate = nullptr;
-					asIScriptFunction* Update = nullptr;
-					asIScriptFunction* Message = nullptr;
-				} Entry;
+					asIScriptFunction* serialize = nullptr;
+					asIScriptFunction* deserialize = nullptr;
+					asIScriptFunction* awake = nullptr;
+					asIScriptFunction* asleep = nullptr;
+					asIScriptFunction* synchronize = nullptr;
+					asIScriptFunction* animate = nullptr;
+					asIScriptFunction* update = nullptr;
+					asIScriptFunction* message = nullptr;
+				} entry;
 
 			protected:
-				Scripting::Compiler* Compiler;
-				Core::String Resource;
-				Core::String Module;
-				SourceType Source;
-				InvokeType Invoke;
+				scripting::compiler* compiler;
+				core::string resource;
+				core::string library;
+				source_type source;
+				invoke_type invoke;
 
 			public:
-				Scriptable(Entity* Ref);
-				~Scriptable() override;
-				void Deserialize(Core::Schema* Node) override;
-				void Serialize(Core::Schema* Node) override;
-				void Activate(Component* New) override;
-				void Deactivate() override;
-				void Update(Core::Timer* Time) override;
-				void Message(const std::string_view& Name, Core::VariantArgs& Args) override;
-				Core::Unique<Component> Copy(Entity* New) const override;
-				Scripting::ExpectsPromiseVM<Scripting::Execution> Call(const std::string_view& Name, size_t Args, Scripting::ArgsCallback&& OnArgs);
-				Scripting::ExpectsPromiseVM<Scripting::Execution> Call(asIScriptFunction* Entry, Scripting::ArgsCallback&& OnArgs);
-				Scripting::ExpectsPromiseVM<Scripting::Execution> CallEntry(const std::string_view& Name);
-				Scripting::ExpectsPromiseVM<void> LoadSource();
-				Scripting::ExpectsPromiseVM<void> LoadSource(SourceType Type, const std::string_view& Source);
-				Scripting::ExpectsVM<size_t> GetPropertiesCount();
-				Scripting::ExpectsVM<size_t> GetFunctionsCount();
-				void SetInvocation(InvokeType Type);
-				void UnloadSource();
-				bool GetPropertyByName(const std::string_view& Name, Scripting::PropertyInfo* Result);
-				bool GetPropertyByIndex(size_t Index, Scripting::PropertyInfo* Result);
-				Scripting::Function GetFunctionByName(const std::string_view& Name, size_t Args);
-				Scripting::Function GetFunctionByIndex(size_t Index, size_t Args);
-				Scripting::Compiler* GetCompiler();
-				SourceType GetSourceType();
-				InvokeType GetInvokeType();
-				const Core::String& GetSource();
-				const Core::String& GetModuleName();
+				scriptable(entity* ref);
+				~scriptable() override;
+				void deserialize(core::schema* node) override;
+				void serialize(core::schema* node) override;
+				void activate(component* init) override;
+				void deactivate() override;
+				void update(core::timer* time) override;
+				void message(const std::string_view& name, core::variant_args& args) override;
+				core::unique<component> copy(entity* init) const override;
+				scripting::expects_promise_vm<scripting::execution> call(const std::string_view& name, size_t args, scripting::args_callback&& on_args);
+				scripting::expects_promise_vm<scripting::execution> call(asIScriptFunction* entry, scripting::args_callback&& on_args);
+				scripting::expects_promise_vm<scripting::execution> call_entry(const std::string_view& name);
+				scripting::expects_promise_vm<void> load_source();
+				scripting::expects_promise_vm<void> load_source(source_type type, const std::string_view& source);
+				scripting::expects_vm<size_t> get_properties_count();
+				scripting::expects_vm<size_t> get_functions_count();
+				void set_invocation(invoke_type type);
+				void unload_source();
+				bool get_property_by_name(const std::string_view& name, scripting::property_info* result);
+				bool get_property_by_index(size_t index, scripting::property_info* result);
+				scripting::function get_function_by_name(const std::string_view& name, size_t args);
+				scripting::function get_function_by_index(size_t index, size_t args);
+				scripting::compiler* get_compiler();
+				source_type get_source_type();
+				invoke_type get_invoke_type();
+				const core::string& get_source();
+				const core::string& get_module_name();
 
 			public:
-				template <typename T>
-				Scripting::ExpectsVM<void> SetTypePropertyByName(const std::string_view& Name, const T& Value)
+				template <typename t>
+				scripting::expects_vm<void> set_type_property_by_name(const std::string_view& name, const t& value)
 				{
-					VI_ASSERT(Compiler != nullptr, "compiler should be set");
-					Scripting::Module Base = Compiler->GetModule();
-					if (!Base.IsValid())
-						return Scripting::VirtualException(Scripting::VirtualError::NO_MODULE);
+					VI_ASSERT(compiler != nullptr, "compiler should be set");
+					scripting::library base = compiler->get_module();
+					if (!base.is_valid())
+						return scripting::virtual_exception(scripting::virtual_error::no_module);
 
-					auto Index = Base.GetPropertyIndexByName(Name);
-					if (!Index)
-						return Index.Error();
+					auto index = base.get_property_index_by_name(name);
+					if (!index)
+						return index.error();
 
-					T* Address = (T*)Base.GetAddressOfProperty(*Index);
-					if (!Address)
-						return Scripting::VirtualException(Scripting::VirtualError::INVALID_OBJECT);
+					t* address = (t*)base.get_address_of_property(*index);
+					if (!address)
+						return scripting::virtual_exception(scripting::virtual_error::invalid_object);
 
-					*Address = Value;
-					return Core::Expectation::Met;
+					*address = value;
+					return core::expectation::met;
 				}
-				template <typename T>
-				Scripting::ExpectsVM<void> SetRefPropertyByName(const std::string_view& Name, T* Value)
+				template <typename t>
+				scripting::expects_vm<void> set_ref_property_by_name(const std::string_view& name, t* value)
 				{
-					VI_ASSERT(Compiler != nullptr, "compiler should be set");
-					Scripting::Module Base = Compiler->GetModule();
-					if (!Base.IsValid())
-						return Scripting::VirtualException(Scripting::VirtualError::NO_MODULE);
+					VI_ASSERT(compiler != nullptr, "compiler should be set");
+					scripting::library base = compiler->get_module();
+					if (!base.is_valid())
+						return scripting::virtual_exception(scripting::virtual_error::no_module);
 
-					auto Index = Base.GetPropertyIndexByName(Name);
-					if (!Index)
-						return Index.Error();
+					auto index = base.get_property_index_by_name(name);
+					if (!index)
+						return index.error();
 
-					T** Address = (T**)Base.GetAddressOfProperty(*Index);
-					if (!Address)
-						return Scripting::VirtualException(Scripting::VirtualError::INVALID_OBJECT);
+					t** address = (t**)base.get_address_of_property(*index);
+					if (!address)
+						return scripting::virtual_exception(scripting::virtual_error::invalid_object);
 
-					Core::Memory::Release(*Address);
-					*Address = Value;
-					if (*Address != nullptr)
-						(*Address)->AddRef();
-					return Core::Expectation::Met;
+					core::memory::release(*address);
+					*address = value;
+					if (*address != nullptr)
+						(*address)->add_ref();
+					return core::expectation::met;
 				}
-				template <typename T>
-				Scripting::ExpectsVM<void> SetTypePropertyByIndex(size_t Index, const T& Value)
+				template <typename t>
+				scripting::expects_vm<void> set_type_property_by_index(size_t index, const t& value)
 				{
-					VI_ASSERT(Index >= 0, "index should be greater or equal to zero");
-					VI_ASSERT(Compiler != nullptr, "compiler should be set");
+					VI_ASSERT(index >= 0, "index should be greater or equal to zero");
+					VI_ASSERT(compiler != nullptr, "compiler should be set");
 
-					Scripting::Module Base = Compiler->GetModule();
-					if (!Base.IsValid())
-						return Scripting::VirtualException(Scripting::VirtualError::NO_MODULE);
+					scripting::library base = compiler->get_module();
+					if (!base.is_valid())
+						return scripting::virtual_exception(scripting::virtual_error::no_module);
 
-					T* Address = (T*)Base.GetAddressOfProperty(Index);
-					if (!Address)
-						return Scripting::VirtualException(Scripting::VirtualError::INVALID_OBJECT);
+					t* address = (t*)base.get_address_of_property(index);
+					if (!address)
+						return scripting::virtual_exception(scripting::virtual_error::invalid_object);
 
-					*Address = Value;
-					return Core::Expectation::Met;
+					*address = value;
+					return core::expectation::met;
 				}
-				template <typename T>
-				Scripting::ExpectsVM<void> SetRefPropertyByIndex(size_t Index, T* Value)
+				template <typename t>
+				scripting::expects_vm<void> set_ref_property_by_index(size_t index, t* value)
 				{
-					VI_ASSERT(Index >= 0, "index should be greater or equal to zero");
-					VI_ASSERT(Compiler != nullptr, "compiler should be set");
+					VI_ASSERT(index >= 0, "index should be greater or equal to zero");
+					VI_ASSERT(compiler != nullptr, "compiler should be set");
 
-					Scripting::Module Base = Compiler->GetModule();
-					if (!Base.IsValid())
-						return Scripting::VirtualException(Scripting::VirtualError::INVALID_CONFIGURATION);
+					scripting::library base = compiler->get_module();
+					if (!base.is_valid())
+						return scripting::virtual_exception(scripting::virtual_error::invalid_configuration);
 
-					T** Address = (T**)Base.GetAddressOfProperty(Index);
-					if (!Address)
-						return Scripting::VirtualException(Scripting::VirtualError::INVALID_OBJECT);
+					t** address = (t**)base.get_address_of_property(index);
+					if (!address)
+						return scripting::virtual_exception(scripting::virtual_error::invalid_object);
 
-					Core::Memory::Release(*Address);
-					*Address = Value;
-					if (*Address != nullptr)
-						(*Address)->AddRef();
-					return Core::Expectation::Met;
+					core::memory::release(*address);
+					*address = value;
+					if (*address != nullptr)
+						(*address)->add_ref();
+					return core::expectation::met;
 				}
 
 			private:
-				Scripting::ExpectsPromiseVM<Scripting::Execution> DeserializeCall(Core::Schema* Node);
-				Scripting::ExpectsPromiseVM<Scripting::Execution> SerializeCall(Core::Schema* Node);
-				void Protect();
-				void Unprotect();
+				scripting::expects_promise_vm<scripting::execution> deserialize_call(core::schema* node);
+				scripting::expects_promise_vm<scripting::execution> serialize_call(core::schema* node);
+				void protect();
+				void unprotect();
 
 			public:
 				VI_COMPONENT("scriptable_component");

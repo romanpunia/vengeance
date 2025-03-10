@@ -1,20 +1,20 @@
 struct VInput
 {
 	float3 Position : POSITION;
-	float2 TexCoord : TEXCOORD0;
+	float2 Texcoord : TEXCOORD0;
 	float3 Normal : NORMAL0;
 	float3 Tangent : TANGENT0;
 	float3 Bitangent : BINORMAL0;
     matrix OB_Transform : OB_TRANSFORM;
     matrix OB_World : OB_WORLD;
-    float2 OB_TexCoord : OB_TEXCOORD;
+    float2 OB_Texcoord : OB_TEXCOORD;
 	float4 OB_Material : OB_MATERIAL;
 };
 
 struct VOutput
 {
 	float4 Position : SV_POSITION;
-	float2 TexCoord : TEXCOORD0;
+	float2 Texcoord : TEXCOORD0;
 	float3 Normal : NORMAL0;
 	float3 Tangent : TANGENT0;
 	float3 Bitangent : BINORMAL0;
@@ -26,10 +26,10 @@ struct VOutput
     uint OB_MaterialId : TEXCOORD6;
 };
 
-struct VOutputCubic
+struct VOutputCube
 {
 	float4 Position : SV_POSITION;
-	float2 TexCoord : TEXCOORD0;
+	float2 Texcoord : TEXCOORD0;
 	float4 UV : TEXCOORD1;
     float OB_Diffuse : TEXCOORD2;
     uint OB_MaterialId : TEXCOORD3;
@@ -39,7 +39,7 @@ struct VOutputCubic
 struct VOutputLinear
 {
 	float4 Position : SV_POSITION;
-	float2 TexCoord : TEXCOORD0;
+	float2 Texcoord : TEXCOORD0;
 	float4 UV : TEXCOORD1;
     float OB_Diffuse : TEXCOORD2;
     uint OB_MaterialId : TEXCOORD3;
