@@ -776,7 +776,7 @@ namespace vitex
 					if (delegatef.is_valid())
 						return true;
 
-					auto hash = compute::crypto::hash_hex(compute::digests::MD5(), memory);
+					auto hash = compute::crypto::hash_hex(compute::digests::md5(), memory);
 					if (!hash)
 						return false;
 

@@ -2490,10 +2490,11 @@ namespace vitex
 					source->set_clip(new_clip.or_else(nullptr));
 					for (auto& effect : node->fetch_collection("effects.effect"))
 					{
-						uint64_t id;
-						if (!series::unpack(effect->find("id"), &id))
+						core::string type;
+						if (!series::unpack(effect->find("typename"), &type))
 							continue;
 
+						auto id = VI_HASH(type);
 						audio::audio_effect* target = core::composer::create<audio::audio_effect>(id);
 						if (!target)
 							continue;
@@ -2523,7 +2524,7 @@ namespace vitex
 				for (auto* effect : source->get_effects())
 				{
 					core::schema* element = effects->set("effect");
-					series::pack(element->set("id"), effect->get_id());
+					series::pack(element->set("typename"), std::string_view(effect->get_name()));
 					effect->serialize(element->set("metadata"));
 				}
 
@@ -3314,10 +3315,11 @@ namespace vitex
 				core::vector<core::schema*> renderers = node->fetch_collection("renderers.renderer");
 				for (auto& render : renderers)
 				{
-					uint64_t id;
-					if (!series::unpack(render->find("id"), &id))
+					core::string type;
+					if (!series::unpack(render->find("typename"), &type))
 						continue;
 
+					auto id = VI_HASH(type);
 					layer::renderer* target = core::composer::create<layer::renderer>(id, renderer);
 					if (!renderer->add_renderer(target))
 						continue;
@@ -3354,7 +3356,7 @@ namespace vitex
 				for (auto* next : renderer->get_renderers())
 				{
 					core::schema* render = renderers->set("renderer");
-					series::pack(render->set("id"), next->get_id());
+					series::pack(render->set("typename"), std::string_view(next->get_name()));
 					series::pack(render->set("active"), next->active);
 					next->serialize(render->set("metadata"));
 				}

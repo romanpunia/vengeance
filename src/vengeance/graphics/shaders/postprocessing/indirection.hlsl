@@ -94,5 +94,6 @@ float4 ps_main(VOutput V) : SV_TARGET0
     if (Weight > 0.0)
         Accumulation /= Weight;
     
-    return float4(Metallic * Accumulation, 1.0);
+	float3 Blending = EmissionBuffer.SampleLevel(Sampler, UV, 0).xyz;
+    return float4(Blending * Initial + Metallic * Accumulation, 1.0);
 };

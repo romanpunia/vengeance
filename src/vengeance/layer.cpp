@@ -5341,7 +5341,7 @@ namespace vitex
 		effect_renderer::~effect_renderer() noexcept
 		{
 			for (auto it = effects.begin(); it != effects.end(); ++it)
-				system->free_shader(it->second.filename, it->second.effect);
+				system->free_shader(it->second.effect);
 		}
 		void effect_renderer::resize_buffers()
 		{

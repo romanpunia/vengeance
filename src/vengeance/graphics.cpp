@@ -1665,7 +1665,7 @@ namespace vitex
 					break;
 			}
 
-			auto hash = compute::crypto::hash_hex(compute::digests::MD5(), result);
+			auto hash = compute::crypto::hash_hex(compute::digests::md5(), result);
 			if (!hash)
 				return core::optional::none;
 

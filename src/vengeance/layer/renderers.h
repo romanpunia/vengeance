@@ -21,7 +21,6 @@ namespace vitex
 						material::slots slotdata;
 						uint32_t sampler = (uint32_t)-1;
 						uint32_t materials = (uint32_t)-1;
-						uint32_t object_buffer = (uint32_t)-1;
 					} depth;
 					struct
 					{
@@ -29,7 +28,6 @@ namespace vitex
 						material::slots slotdata;
 						uint32_t sampler = (uint32_t)-1;
 						uint32_t materials = (uint32_t)-1;
-						uint32_t object_buffer = (uint32_t)-1;
 						uint32_t viewer_buffer = (uint32_t)-1;
 						uint32_t cube_buffer = (uint32_t)-1;
 					} depth_cube;
@@ -44,7 +42,6 @@ namespace vitex
 						material::slots slotdata;
 						uint32_t sampler = (uint32_t)-1;
 						uint32_t materials = (uint32_t)-1;
-						uint32_t object_buffer = (uint32_t)-1;
 						uint32_t viewer_buffer = (uint32_t)-1;
 					} geometry;
 				} pipelines;
@@ -241,7 +238,6 @@ namespace vitex
 						uint32_t sampler = (uint32_t)-1;
 						uint32_t materials = (uint32_t)-1;
 						uint32_t object_buffer = (uint32_t)-1;
-						uint32_t viewer_buffer = (uint32_t)-1;
 						uint32_t elements = (uint32_t)-1;
 					} geometry_opaque;
 					struct
@@ -251,7 +247,6 @@ namespace vitex
 						uint32_t sampler = (uint32_t)-1;
 						uint32_t materials = (uint32_t)-1;
 						uint32_t object_buffer = (uint32_t)-1;
-						uint32_t viewer_buffer = (uint32_t)-1;
 						uint32_t elements = (uint32_t)-1;
 					} geometry_transparent;
 				} pipelines;

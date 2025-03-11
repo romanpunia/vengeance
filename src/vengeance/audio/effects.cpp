@@ -15,10 +15,11 @@ namespace vitex
 				if (!filter)
 					return nullptr;
 
-				uint64_t id;
-				if (!layer::series::unpack(filter->find("id"), &id))
+				core::string type;
+				if (!layer::series::unpack(filter->find("typename"), &type))
 					return nullptr;
 
+				auto id = VI_HASH(type);
 				audio_filter* target = core::composer::create<audio_filter>(id);
 				if (!target)
 					return nullptr;
@@ -133,7 +134,11 @@ namespace vitex
 			{
 				VI_ASSERT(node != nullptr, "schema should be set");
 				if (filter != nullptr)
-					filter->serialize(node->set("filter"));
+				{
+					auto* filter_node = node->set("filter");
+					layer::series::pack(node->set("typename"), std::string_view(filter->get_name()));
+					filter->serialize(filter_node);
+				}
 
 				layer::heavy_series::pack(node->set("late-reverb-pan"), late_reverb_pan);
 				layer::heavy_series::pack(node->set("reflections-pan"), reflections_pan);

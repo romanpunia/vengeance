@@ -1689,48 +1689,57 @@ namespace vitex
 				immediate_context->IAGetPrimitiveTopology(&last_topology);
 				immediate_context->IASetPrimitiveTopology((D3D11_PRIMITIVE_TOPOLOGY)primitives);
 
-				core::uptr<ID3D11InputLayout> last_layout;
-				immediate_context->IAGetInputLayout(last_layout.out());
+				ID3D11InputLayout* last_layout;
+				immediate_context->IAGetInputLayout(&last_layout);
 				immediate_context->IASetInputLayout(immediate.vertex_layout);
 
-				core::uptr<ID3D11VertexShader> last_vertex_shader;
-				immediate_context->VSGetShader(last_vertex_shader.out(), nullptr, nullptr);
+				ID3D11VertexShader* last_vertex_shader;
+				immediate_context->VSGetShader(&last_vertex_shader, nullptr, nullptr);
 				immediate_context->VSSetShader(immediate.vertex_shader, nullptr, 0);
 
-				core::uptr<ID3D11PixelShader> last_pixel_shader;
-				immediate_context->PSGetShader(last_pixel_shader.out(), nullptr, nullptr);
+				ID3D11PixelShader* last_pixel_shader;
+				immediate_context->PSGetShader(&last_pixel_shader, nullptr, nullptr);
 				immediate_context->PSSetShader(immediate.pixel_shader, nullptr, 0);
 
-				core::uptr<ID3D11Buffer> last_vertex_buffer;
-				immediate_context->IAGetVertexBuffers(0, 1, last_vertex_buffer.out(), &last_stride, &last_offset);
+				ID3D11Buffer* last_vertex_buffer;
+				immediate_context->IAGetVertexBuffers(0, 1, &last_vertex_buffer, &last_stride, &last_offset);
 				immediate_context->IASetVertexBuffers(0, 1, &immediate.vertex_buffer, &stride, &offset);
 
-				core::uptr<ID3D11Buffer> last_buffer1, last_buffer2;
-				immediate_context->VSGetConstantBuffers(0, 1, last_buffer1.out());
+				ID3D11Buffer* last_buffer1;
+				ID3D11Buffer* last_buffer2;
+				immediate_context->VSGetConstantBuffers(0, 1, &last_buffer1);
 				immediate_context->VSSetConstantBuffers(0, 1, &immediate.constant_buffer);
-				immediate_context->PSGetConstantBuffers(0, 1, last_buffer2.out());
+				immediate_context->PSGetConstantBuffers(0, 1, &last_buffer2);
 				immediate_context->PSSetConstantBuffers(0, 1, &immediate.constant_buffer);
 
-				core::uptr<ID3D11SamplerState> last_sampler;
-				immediate_context->PSGetSamplers(1, 1, last_sampler.out());
+				ID3D11SamplerState* last_sampler;
+				immediate_context->PSGetSamplers(1, 1, &last_sampler);
 				immediate_context->PSSetSamplers(1, 1, &immediate.sampler);
 
 				ID3D11ShaderResourceView* null_texture = nullptr;
-				core::uptr<ID3D11ShaderResourceView> last_texture;
-				immediate_context->PSGetShaderResources(1, 1, last_texture.out());
+				ID3D11ShaderResourceView* last_texture;
+				immediate_context->PSGetShaderResources(1, 1, &last_texture);
 				immediate_context->PSSetShaderResources(1, 1, view_resource ? &((d3d11_texture_2d*)view_resource)->resource : &null_texture);
 
 				immediate_context->UpdateSubresource(immediate.constant_buffer, 0, nullptr, &direct, 0, 0);
 				immediate_context->Draw((uint32_t)elements.size(), 0);
 				immediate_context->IASetPrimitiveTopology(last_topology);
-				immediate_context->IASetInputLayout(*last_layout);
-				immediate_context->VSSetShader(*last_vertex_shader, nullptr, 0);
-				immediate_context->VSSetConstantBuffers(0, 1, last_buffer1.in());
-				immediate_context->PSSetShader(*last_pixel_shader, nullptr, 0);
-				immediate_context->PSSetConstantBuffers(0, 1, last_buffer2.in());
-				immediate_context->PSSetSamplers(1, 1, last_sampler.in());
-				immediate_context->PSSetShaderResources(1, 1, last_texture.in());
-				immediate_context->IASetVertexBuffers(0, 1, last_vertex_buffer.in(), &last_stride, &last_offset);
+				immediate_context->IASetInputLayout(last_layout);
+				immediate_context->VSSetShader(last_vertex_shader, nullptr, 0);
+				immediate_context->VSSetConstantBuffers(0, 1, &last_buffer1);
+				immediate_context->PSSetShader(last_pixel_shader, nullptr, 0);
+				immediate_context->PSSetConstantBuffers(0, 1, &last_buffer2);
+				immediate_context->PSSetSamplers(1, 1, &last_sampler);
+				immediate_context->PSSetShaderResources(1, 1, &last_texture);
+				immediate_context->IASetVertexBuffers(0, 1, &last_vertex_buffer, &last_stride, &last_offset);
+				d3d11_release(last_texture);
+				d3d11_release(last_sampler);
+				d3d11_release(last_buffer1);
+				d3d11_release(last_buffer2);
+				d3d11_release(last_vertex_buffer);
+				d3d11_release(last_pixel_shader);
+				d3d11_release(last_vertex_shader);
+				d3d11_release(last_layout);
 				return true;
 			}
 			bool d3d11_device::has_explicit_slots() const

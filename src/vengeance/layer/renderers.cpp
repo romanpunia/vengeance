@@ -19,19 +19,17 @@ namespace vitex
 				sampler = device->get_sampler_state("a16_fa_wrap");
 				layout[0] = device->get_input_layout("vx_base");
 				layout[1] = device->get_input_layout("vxi_base");
-
+				
 				pipelines.culling.shader = *system->compile_shader("materials/material_model_culling", { });
 				pipelines.culling.object_buffer = *device->get_shader_slot(pipelines.culling.shader, "ObjectBuffer");
 				pipelines.depth.shader = *system->compile_shader("materials/material_model_depth", { });
 				pipelines.depth.slotdata.diffuse_map = *device->get_shader_slot(pipelines.depth.shader, "DiffuseMap");
 				pipelines.depth.sampler = *device->get_shader_sampler_slot(pipelines.depth.shader, "DiffuseMap", "Sampler");
 				pipelines.depth.materials = *device->get_shader_slot(pipelines.depth.shader, "Materials");
-				pipelines.depth.object_buffer = *device->get_shader_slot(pipelines.depth.shader, "ObjectBuffer");
 				pipelines.depth_cube.shader = *system->compile_shader("materials/material_model_depth_cube", { }, sizeof(trigonometry::matrix4x4) * 6);
 				pipelines.depth_cube.slotdata.diffuse_map = *device->get_shader_slot(pipelines.depth_cube.shader, "DiffuseMap");
 				pipelines.depth_cube.sampler = *device->get_shader_sampler_slot(pipelines.depth_cube.shader, "DiffuseMap", "Sampler");
 				pipelines.depth_cube.materials = *device->get_shader_slot(pipelines.depth_cube.shader, "Materials");
-				pipelines.depth_cube.object_buffer = *device->get_shader_slot(pipelines.depth_cube.shader, "ObjectBuffer");
 				pipelines.depth_cube.viewer_buffer = *device->get_shader_slot(pipelines.depth_cube.shader, "ViewerBuffer");
 				pipelines.depth_cube.cube_buffer = *device->get_shader_slot(pipelines.depth_cube.shader, "CubeBuffer");
 				pipelines.geometry.shader = *system->compile_shader("materials/material_model_geometry", { });
@@ -44,7 +42,6 @@ namespace vitex
 				pipelines.geometry.slotdata.emission_map = *device->get_shader_slot(pipelines.geometry.shader, "EmissionMap");
 				pipelines.geometry.sampler = *device->get_shader_sampler_slot(pipelines.geometry.shader, "DiffuseMap", "Sampler");
 				pipelines.geometry.materials = *device->get_shader_slot(pipelines.geometry.shader, "Materials");
-				pipelines.geometry.object_buffer = *device->get_shader_slot(pipelines.geometry.shader, "ObjectBuffer");
 				pipelines.geometry.viewer_buffer = *device->get_shader_slot(pipelines.geometry.shader, "ViewerBuffer");
 
 				graphics::element_buffer* buffers[2];
@@ -137,7 +134,6 @@ namespace vitex
 				graphics::graphics_device* device = system->get_device();
 				bool constant = system->state.is_set(render_opt::constant);
 
-				system->set_constant_buffer(render_buffer_type::render, pipelines.geometry.object_buffer, VI_VS | VI_PS);
 				system->set_constant_buffer(render_buffer_type::view, pipelines.geometry.viewer_buffer, VI_VS | VI_PS);
 				device->set_structure_buffer(system->get_material_buffer(), pipelines.geometry.materials, VI_PS);
 				device->set_depth_stencil_state(depth_stencil);
@@ -179,7 +175,6 @@ namespace vitex
 			{
 				VI_ASSERT(system->get_scene() != nullptr, "scene should be set");
 				graphics::graphics_device* device = system->get_device();
-				system->set_constant_buffer(render_buffer_type::render, pipelines.depth.object_buffer, VI_VS | VI_PS | VI_GS);
 				device->set_structure_buffer(system->get_material_buffer(), pipelines.depth.materials, VI_PS);
 				device->set_depth_stencil_state(depth_stencil);
 				device->set_blend_state(blend);
@@ -221,7 +216,6 @@ namespace vitex
 			{
 				VI_ASSERT(system->get_scene() != nullptr, "scene should be set");
 				graphics::graphics_device* device = system->get_device();
-				system->set_constant_buffer(render_buffer_type::render, pipelines.depth_cube.object_buffer, VI_VS | VI_PS | VI_GS);
 				system->set_constant_buffer(render_buffer_type::view, pipelines.depth_cube.viewer_buffer, VI_VS | VI_PS | VI_GS);
 				device->set_structure_buffer(system->get_material_buffer(), pipelines.depth_cube.materials, VI_PS);
 				device->set_depth_stencil_state(depth_stencil);
@@ -759,14 +753,11 @@ namespace vitex
 				pipelines.geometry_opaque.slotdata.normal_map = *device->get_shader_slot(pipelines.geometry_opaque.shader, "NormalMap");
 				pipelines.geometry_opaque.materials = *device->get_shader_slot(pipelines.geometry_opaque.shader, "Materials");
 				pipelines.geometry_opaque.object_buffer = *device->get_shader_slot(pipelines.geometry_opaque.shader, "ObjectBuffer");
-				pipelines.geometry_opaque.viewer_buffer = *device->get_shader_slot(pipelines.geometry_opaque.shader, "ViewerBuffer");
 				pipelines.geometry_opaque.elements = *device->get_shader_slot(pipelines.geometry_opaque.shader, "Elements");
 				pipelines.geometry_transparent.shader = *system->compile_shader("materials/material_emitter_geometry_transparent", { });
 				pipelines.geometry_transparent.slotdata.diffuse_map = *device->get_shader_slot(pipelines.geometry_transparent.shader, "DiffuseMap");
-				pipelines.geometry_transparent.slotdata.normal_map = *device->get_shader_slot(pipelines.geometry_transparent.shader, "NormalMap");
 				pipelines.geometry_transparent.materials = *device->get_shader_slot(pipelines.geometry_transparent.shader, "Materials");
 				pipelines.geometry_transparent.object_buffer = *device->get_shader_slot(pipelines.geometry_transparent.shader, "ObjectBuffer");
-				pipelines.geometry_transparent.viewer_buffer = *device->get_shader_slot(pipelines.geometry_transparent.shader, "ViewerBuffer");
 				pipelines.geometry_transparent.elements = *device->get_shader_slot(pipelines.geometry_transparent.shader, "Elements");
 			}
 			emitter::~emitter()
@@ -794,7 +785,6 @@ namespace vitex
 					shader = pipelines.geometry_transparent.shader;
 					slotdata = &pipelines.geometry_transparent.slotdata;
 					system->set_constant_buffer(render_buffer_type::render, pipelines.geometry_transparent.object_buffer, VI_VS | VI_PS | VI_GS);
-					system->set_constant_buffer(render_buffer_type::view, pipelines.geometry_transparent.viewer_buffer, VI_VS | VI_PS | VI_GS);
 					device->set_depth_stencil_state(depth_stencil_additive);
 					device->set_blend_state(additive_blend);
 					device->set_sampler_state(sampler, pipelines.geometry_transparent.sampler, 2, VI_PS);
@@ -805,7 +795,6 @@ namespace vitex
 					shader = pipelines.geometry_opaque.shader;
 					slotdata = &pipelines.geometry_opaque.slotdata;
 					system->set_constant_buffer(render_buffer_type::render, pipelines.geometry_opaque.object_buffer, VI_VS | VI_PS | VI_GS);
-					system->set_constant_buffer(render_buffer_type::view, pipelines.geometry_opaque.viewer_buffer, VI_VS | VI_PS | VI_GS);
 					device->set_depth_stencil_state(depth_stencil_opaque);
 					device->set_blend_state(overwrite_blend);
 					device->set_sampler_state(sampler, pipelines.geometry_opaque.sampler, 2, VI_PS);
@@ -1942,7 +1931,7 @@ namespace vitex
 					indirection.distance = distance * bounce;
 					indirection.swing = swing / bounce;
 					indirection.bias = bias * bounce;
-					indirection.initial = i > 0 ? 0.0f : 1.0f;
+					indirection.initial = i > 0 ? 1.0f : 0.0f;
 					render_merge(pipelines.indirection, sampler_wrap, &indirection);
 					if (i + 1 < bounces)
 						render_copy_from_last(emission_map);

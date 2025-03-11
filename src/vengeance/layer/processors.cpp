@@ -51,7 +51,7 @@ namespace vitex
 					if (!random)
 						return "NULL";
 
-					auto hash = compute::crypto::hash_hex(compute::digests::MD5(), *random);
+					auto hash = compute::crypto::hash_hex(compute::digests::md5(), *random);
 					if (!hash)
 						return "NULL";
 
@@ -939,12 +939,13 @@ namespace vitex
 							core::vector<core::schema*> elements = components->find_collection("component");
 							for (auto& element : elements)
 							{
-								uint64_t id;
-								if (!series::unpack(element->find("id"), &id))
+								core::string type;
+								if (!series::unpack(element->find("typename"), &type))
 									continue;
 
+								auto id = VI_HASH(type);
 								component* target = core::composer::create<component>(id, entity);
-								if (!entity->add_component(target))
+								if (!target || !entity->add_component(target))
 									continue;
 
 								bool active = true;
@@ -1087,7 +1088,7 @@ namespace vitex
 					for (auto& item : *ref)
 					{
 						core::schema* component = components->set("component");
-						series::pack(component->set("id"), item.second->get_id());
+						series::pack(component->set("typename"), std::string_view(item.second->get_name()));
 						series::pack(component->set("active"), item.second->is_active());
 						item.second->serialize(component->set("metadata"));
 					}
