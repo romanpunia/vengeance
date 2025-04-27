@@ -5578,7 +5578,7 @@ namespace vitex
 				data.regs.insert(data.slots.surface_buffer);
 			if (data.slots.image_buffer != (uint32_t)-1)
 				data.regs.insert(data.slots.image_buffer);
-			return data.regs.size();
+			return (uint32_t)data.regs.size();
 		}
 		size_t effect_renderer::render_pass(core::timer* time)
 		{
