@@ -1041,11 +1041,11 @@ namespace vitex
 		void graphics_device::create_sections()
 		{
 #ifdef HAS_SHADER_BUNDLE
-			shader_bundle::foreach(this, [](void* context, const char* name, const uint8_t* buffer, unsigned size)
+			shader_bundle::foreach(this, [](void* context, const char* name, const char* buffer, size_t buffer_size)
 			{
 				graphics_device* base = (graphics_device*)context;
 				if (base != nullptr && base->get_backend() != render_backend::none)
-					base->add_section(name, core::string((const char*)buffer, size - 1));
+					base->add_section(name, std::string_view(buffer, buffer_size));
 			});
 #endif
 		}
