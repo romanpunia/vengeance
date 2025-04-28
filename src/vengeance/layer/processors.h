@@ -99,8 +99,8 @@ namespace vitex
 			{
 			public:
 				material_processor(content_manager* manager);
-				expects_content<core::unique<void>> duplicate(asset_cache* asset, const core::variant_args& args) override;
-				expects_content<core::unique<void>> deserialize(core::stream* stream, size_t offset, const core::variant_args& args) override;
+				expects_content<void*> duplicate(asset_cache* asset, const core::variant_args& args) override;
+				expects_content<void*> deserialize(core::stream* stream, size_t offset, const core::variant_args& args) override;
 				expects_content<void> serialize(core::stream* stream, void* object, const core::variant_args& args) override;
 				void free(asset_cache* asset) override;
 			};
@@ -112,7 +112,7 @@ namespace vitex
 
 			public:
 				scene_graph_processor(content_manager* manager);
-				expects_content<core::unique<void>> deserialize(core::stream* stream, size_t offset, const core::variant_args& args) override;
+				expects_content<void*> deserialize(core::stream* stream, size_t offset, const core::variant_args& args) override;
 				expects_content<void> serialize(core::stream* stream, void* object, const core::variant_args& args) override;
 			};
 
@@ -121,10 +121,10 @@ namespace vitex
 			public:
 				audio_clip_processor(content_manager* manager);
 				~audio_clip_processor() override;
-				expects_content<core::unique<void>> duplicate(asset_cache* asset, const core::variant_args& args) override;
-				expects_content<core::unique<void>> deserialize(core::stream* stream, size_t offset, const core::variant_args& args) override;
-				expects_content<core::unique<void>> deserialize_wave(core::stream* stream, size_t offset, const core::variant_args& args);
-				expects_content<core::unique<void>> deserialize_ogg(core::stream* stream, size_t offset, const core::variant_args& args);
+				expects_content<void*> duplicate(asset_cache* asset, const core::variant_args& args) override;
+				expects_content<void*> deserialize(core::stream* stream, size_t offset, const core::variant_args& args) override;
+				expects_content<void*> deserialize_wave(core::stream* stream, size_t offset, const core::variant_args& args);
+				expects_content<void*> deserialize_ogg(core::stream* stream, size_t offset, const core::variant_args& args);
 				void free(asset_cache* asset) override;
 			};
 
@@ -133,8 +133,8 @@ namespace vitex
 			public:
 				texture_2d_processor(content_manager* manager);
 				~texture_2d_processor() override;
-				expects_content<core::unique<void>> duplicate(asset_cache* asset, const core::variant_args& args) override;
-				expects_content<core::unique<void>> deserialize(core::stream* stream, size_t offset, const core::variant_args& args) override;
+				expects_content<void*> duplicate(asset_cache* asset, const core::variant_args& args) override;
+				expects_content<void*> deserialize(core::stream* stream, size_t offset, const core::variant_args& args) override;
 				void free(asset_cache* asset) override;
 			};
 
@@ -143,8 +143,8 @@ namespace vitex
 			public:
 				shader_processor(content_manager* manager);
 				~shader_processor() override;
-				expects_content<core::unique<void>> duplicate(asset_cache* asset, const core::variant_args& args) override;
-				expects_content<core::unique<void>> deserialize(core::stream* stream, size_t offset, const core::variant_args& args) override;
+				expects_content<void*> duplicate(asset_cache* asset, const core::variant_args& args) override;
+				expects_content<void*> deserialize(core::stream* stream, size_t offset, const core::variant_args& args) override;
 				void free(asset_cache* asset) override;
 			};
 
@@ -156,12 +156,12 @@ namespace vitex
 			public:
 				model_processor(content_manager* manager);
 				~model_processor() override;
-				expects_content<core::unique<void>> duplicate(asset_cache* asset, const core::variant_args& args) override;
-				expects_content<core::unique<void>> deserialize(core::stream* stream, size_t offset, const core::variant_args& args) override;
+				expects_content<void*> duplicate(asset_cache* asset, const core::variant_args& args) override;
+				expects_content<void*> deserialize(core::stream* stream, size_t offset, const core::variant_args& args) override;
 				void free(asset_cache* asset) override;
 
 			public:
-				static expects_content<core::unique<core::schema>> import(core::stream * stream, uint64_t opts = (uint64_t)mesh_preset::defaults);
+				static expects_content<core::schema*> import(core::stream * stream, uint64_t opts = (uint64_t)mesh_preset::defaults);
 				static expects_content<model_info> import_for_immediate_use(core::stream* stream, uint64_t opts = (uint64_t)mesh_preset::defaults);
 			};
 
@@ -173,8 +173,8 @@ namespace vitex
 			public:
 				skin_model_processor(content_manager* manager);
 				~skin_model_processor() override;
-				expects_content<core::unique<void>> duplicate(asset_cache* asset, const core::variant_args& args) override;
-				expects_content<core::unique<void>> deserialize(core::stream* stream, size_t offset, const core::variant_args& args) override;
+				expects_content<void*> duplicate(asset_cache* asset, const core::variant_args& args) override;
+				expects_content<void*> deserialize(core::stream* stream, size_t offset, const core::variant_args& args) override;
 				void free(asset_cache* asset) override;
 			};
 
@@ -183,8 +183,8 @@ namespace vitex
 			public:
 				skin_animation_processor(content_manager* manager);
 				~skin_animation_processor() override;
-				expects_content<core::unique<void>> duplicate(asset_cache* asset, const core::variant_args& args) override;
-				expects_content<core::unique<void>> deserialize(core::stream* stream, size_t offset, const core::variant_args& args) override;
+				expects_content<void*> duplicate(asset_cache* asset, const core::variant_args& args) override;
+				expects_content<void*> deserialize(core::stream* stream, size_t offset, const core::variant_args& args) override;
 				void free(asset_cache* asset) override;
 
 			public:
@@ -197,8 +197,8 @@ namespace vitex
 			public:
 				hull_shape_processor(content_manager* manager);
 				~hull_shape_processor() override;
-				expects_content<core::unique<void>> duplicate(asset_cache* asset, const core::variant_args& args) override;
-				expects_content<core::unique<void>> deserialize(core::stream* stream, size_t offset, const core::variant_args& args) override;
+				expects_content<void*> duplicate(asset_cache* asset, const core::variant_args& args) override;
+				expects_content<void*> deserialize(core::stream* stream, size_t offset, const core::variant_args& args) override;
 				void free(asset_cache* asset) override;
 			};
 		}

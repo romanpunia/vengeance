@@ -553,7 +553,7 @@ namespace vitex
 			virtual void movement();
 			virtual size_t get_unit_bounds(trigonometry::vector3& min, trigonometry::vector3& max) const;
 			virtual float get_visibility(const viewer& view, float distance) const;
-			virtual core::unique<component> copy(entity* init) const = 0;
+			virtual component* copy(entity* init) const = 0;
 			entity* get_entity() const;
 			void set_active(bool enabled);
 			bool is_drawable() const;
@@ -601,7 +601,7 @@ namespace vitex
 			void update_bounds();
 			void remove_component(uint64_t id);
 			void remove_childs();
-			component* add_component(core::unique<component> in);
+			component* add_component(component* in);
 			component* get_component(uint64_t id);
 			size_t get_components_count() const;
 			scene_graph* get_scene() const;
@@ -677,7 +677,7 @@ namespace vitex
 			virtual ~drawable() noexcept;
 			virtual void message(const std::string_view& name, core::variant_args& args) override;
 			virtual void movement() override;
-			virtual core::unique<component> copy(entity* init) const override = 0;
+			virtual component* copy(entity* init) const override = 0;
 			void clear_materials();
 			bool set_category(geo_category new_category);
 			bool set_material(void* instance, material* value);
@@ -853,7 +853,7 @@ namespace vitex
 			graphics::expects_graphics<graphics::shader*> compile_shader(graphics::shader::desc& desc, size_t buffer_size = 0);
 			graphics::expects_graphics<graphics::shader*> compile_shader(const std::string_view& section_name, core::vector<core::string>&& features, size_t buffer_size = 0);
 			graphics::expects_graphics<void> compile_buffers(graphics::element_buffer** result, const std::string_view& name, size_t element_size, size_t elements_count);
-			renderer* add_renderer(core::unique<renderer> in);
+			renderer* add_renderer(renderer* in);
 			renderer* get_renderer(uint64_t id);
 			bool get_offset(uint64_t id, size_t& offset) const;
 			core::vector<renderer*>& get_renderers();
@@ -1247,9 +1247,9 @@ namespace vitex
 			void dispatch(core::timer* time);
 			void publish(core::timer* time);
 			void publish_and_submit(core::timer* time, float r, float g, float b, bool is_parallel);
-			void delete_material(core::unique<material> value);
-			void remove_entity(core::unique<entity> entity);
-			void delete_entity(core::unique<entity> entity);
+			void delete_material(material* value);
+			void remove_entity(entity* entity);
+			void delete_entity(entity* entity);
 			void set_camera(entity* camera);
 			void ray_test(uint64_t section, const trigonometry::ray& origin, const ray_callback& callback);
 			void script_hook(const std::string_view& name = "main");
@@ -1273,13 +1273,13 @@ namespace vitex
 			void reserve_materials(size_t size);
 			void reserve_entities(size_t size);
 			void reserve_components(uint64_t section, size_t size);
-			void generate_depth_cascades(core::unique<depth_cascade_map>* result, uint32_t size) const;
+			void generate_depth_cascades(depth_cascade_map** result, uint32_t size) const;
 			bool push_event(const std::string_view& event_name, core::variant_args&& args, bool propagate);
 			bool push_event(const std::string_view& event_name, core::variant_args&& args, component* target);
 			bool push_event(const std::string_view& event_name, core::variant_args&& args, entity* target);
 			message_callback* set_listener(const std::string_view& event, message_callback&& callback);
 			bool clear_listener(const std::string_view& event, message_callback* id);
-			bool add_material(core::unique<material> base);
+			bool add_material(material* base);
 			void load_resource(uint64_t id, component* context, const std::string_view& path, const core::variant_args& keys, std::function<void(expects_content<void*>&&)>&& callback);
 			core::string find_resource_id(uint64_t id, void* resource);
 			material* get_invalid_material();
@@ -1314,7 +1314,7 @@ namespace vitex
 			core::string as_resource_path(const std::string_view& path);
 			entity* add_entity();
 			entity* clone_entity(entity* value);
-			bool add_entity(core::unique<entity> entity);
+			bool add_entity(entity* entity);
 			bool is_active() const;
 			bool is_left_handed() const;
 			bool is_indexed() const;

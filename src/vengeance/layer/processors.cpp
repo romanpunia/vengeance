@@ -337,21 +337,21 @@ namespace vitex
 				for (uint32_t k = 0; k < channel->mNumPositionKeys; k++)
 				{
 					aiVectorKey& key = channel->mPositionKeys[k];
-					target.positions[key.mTime] = trigonometry::vector3(key.mValue.x, key.mValue.y, key.mValue.z);
+					target.positions[(float)key.mTime] = trigonometry::vector3(key.mValue.x, key.mValue.y, key.mValue.z);
 				}
 
 				target.scales.reserve((size_t)channel->mNumScalingKeys);
 				for (uint32_t k = 0; k < channel->mNumScalingKeys; k++)
 				{
 					aiVectorKey& key = channel->mScalingKeys[k];
-					target.scales[key.mTime] = trigonometry::vector3(key.mValue.x, key.mValue.y, key.mValue.z);
+					target.scales[(float)key.mTime] = trigonometry::vector3(key.mValue.x, key.mValue.y, key.mValue.z);
 				}
 
 				target.rotations.reserve((size_t)channel->mNumRotationKeys);
 				for (uint32_t k = 0; k < channel->mNumRotationKeys; k++)
 				{
 					aiQuatKey& key = channel->mRotationKeys[k];
-					target.rotations[key.mTime] = trigonometry::quaternion(key.mValue.x, key.mValue.y, key.mValue.z, key.mValue.w);
+					target.rotations[(float)key.mTime] = trigonometry::quaternion(key.mValue.x, key.mValue.y, key.mValue.z, key.mValue.w);
 				}
 			}
 			void fill_scene_timeline(const core::unordered_set<float>& timings, core::vector<float>& timeline)
@@ -1473,7 +1473,7 @@ namespace vitex
 				});
 
 				Assimp::Importer importer;
-				auto* scene = importer.ReadFileFromMemory(data.data(), data.size(), (uint32_t)opts, core::os::path::get_extension(stream->virtual_name()).data());
+				auto* scene = importer.ReadFileFromMemory(data.data(), data.size(), (uint32_t)opts | aiPostProcessSteps::aiProcess_PopulateArmatureData, core::os::path::get_extension(stream->virtual_name()).data());
 				if (!scene)
 					return content_exception(core::stringify::text("import model: %s", importer.GetErrorString()));
 
@@ -1735,7 +1735,7 @@ namespace vitex
 				});
 
 				Assimp::Importer importer;
-				auto* scene = importer.ReadFileFromMemory(data.data(), data.size(), (uint32_t)opts, core::os::path::get_extension(stream->virtual_name()).data());
+				auto* scene = importer.ReadFileFromMemory(data.data(), data.size(), (uint32_t)opts | aiPostProcessSteps::aiProcess_PopulateArmatureData, core::os::path::get_extension(stream->virtual_name()).data());
 				if (!scene)
 					return content_exception(core::stringify::text("import animation: %s", importer.GetErrorString()));
 

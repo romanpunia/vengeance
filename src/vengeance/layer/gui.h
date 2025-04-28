@@ -572,7 +572,7 @@ namespace vitex
 				data_node& insert(size_t where, core::variant* reference, std::pair<void*, size_t>* top = nullptr);
 				data_node& add(const core::variant_list& initial, std::pair<void*, size_t>* top = nullptr);
 				data_node& add(const core::variant& initial, std::pair<void*, size_t>* top = nullptr);
-				data_node& add(core::unique<core::variant> reference, std::pair<void*, size_t>* top = nullptr);
+				data_node& add(core::variant* reference, std::pair<void*, size_t>* top = nullptr);
 				data_node& at(size_t index);
 				bool remove(size_t index);
 				bool clear();

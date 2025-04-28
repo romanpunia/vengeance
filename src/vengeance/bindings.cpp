@@ -27,7 +27,7 @@ namespace vitex
 			template <typename t>
 			void populate_component(ref_class& data_class)
 			{
-				data_class.set_method_ex("string get_name() const", &get_component_name<t>);
+				data_class.set_method_extern("string get_name() const", &get_component_name<t>);
 				data_class.set_method("uint64 get_id() const", &t::get_id);
 			}
 			core::variant_args to_variant_keys(core::schema* args);
@@ -35,16 +35,16 @@ namespace vitex
 			heavy_application::heavy_application(desc& i, void* new_object, int new_type_id) noexcept : layer::heavy_application(&i), processed_events(0), initiator_type(nullptr), initiator_object(new_object)
 			{
 				virtual_machine* current_vm = virtual_machine::get();
-				if (current_vm != nullptr && initiator_object != nullptr && ((new_type_id & (int)type_id::objhandle) || (new_type_id & (int)type_id::mask_object)))
+				if (current_vm != nullptr && initiator_object != nullptr && ((new_type_id & (int)type_id::handle_t) || (new_type_id & (int)type_id::mask_object_t)))
 				{
 					initiator_type = current_vm->get_type_info_by_id(new_type_id).get_type_info();
-					if (new_type_id & (int)type_id::objhandle)
+					if (new_type_id & (int)type_id::handle_t)
 						initiator_object = *(void**)initiator_object;
 					current_vm->add_ref_object(initiator_object, initiator_type);
 				}
 				else if (current_vm != nullptr && initiator_object != nullptr)
 				{
-					if (new_type_id != (int)type_id::voidf)
+					if (new_type_id != (int)type_id::void_t)
 						exception::throw_ptr(exception::pointer(EXCEPTION_INVALIDINITIATOR));
 					initiator_object = nullptr;
 				}
@@ -286,7 +286,7 @@ namespace vitex
 				if (!initiator_object || !initiator_type || !ref_pointer || !current_vm)
 					return false;
 
-				if (ref_type_id & (size_t)type_id::objhandle)
+				if (ref_type_id & (size_t)type_id::handle_t)
 				{
 					current_vm->ref_cast_object(initiator_object, initiator_type, current_vm->get_type_info_by_id(ref_type_id), reinterpret_cast<void**>(ref_pointer));
 #ifdef VI_ANGELSCRIPT
@@ -295,7 +295,7 @@ namespace vitex
 #endif
 					return true;
 				}
-				else if (ref_type_id & (size_t)type_id::mask_object)
+				else if (ref_type_id & (size_t)type_id::mask_object_t)
 				{
 					auto ref_type_info = current_vm->get_type_info_by_id(ref_type_id);
 					if (initiator_type == ref_type_info.get_type_info())
@@ -689,12 +689,12 @@ namespace vitex
 
 			array* hull_shape_get_vertices(physics::hull_shape* base)
 			{
-				typeinfo type = virtual_machine::get()->get_type_info_by_decl(TYPENAME_ARRAY "<" TYPENAME_VERTEX ">@");
+				type_info type = virtual_machine::get()->get_type_info_by_decl(TYPENAME_ARRAY "<" TYPENAME_VERTEX ">@");
 				return array::compose(type.get_type_info(), base->get_vertices());
 			}
 			array* hull_shape_get_indices(physics::hull_shape* base)
 			{
-				typeinfo type = virtual_machine::get()->get_type_info_by_decl(TYPENAME_ARRAY "<int>@");
+				type_info type = virtual_machine::get()->get_type_info_by_decl(TYPENAME_ARRAY "<int>@");
 				return array::compose(type.get_type_info(), base->get_indices());
 			}
 
@@ -720,7 +720,7 @@ namespace vitex
 				core::vector<int> result;
 				base->get_indices(&result);
 
-				typeinfo type = virtual_machine::get()->get_type_info_by_decl(TYPENAME_ARRAY "<int>@");
+				type_info type = virtual_machine::get()->get_type_info_by_decl(TYPENAME_ARRAY "<int>@");
 				return array::compose(type.get_type_info(), result);
 			}
 			array* soft_body_get_vertices(physics::soft_body* base)
@@ -728,7 +728,7 @@ namespace vitex
 				core::vector<trigonometry::vertex> result;
 				base->get_vertices(&result);
 
-				typeinfo type = virtual_machine::get()->get_type_info_by_decl(TYPENAME_ARRAY "<" TYPENAME_VERTEX ">@");
+				type_info type = virtual_machine::get()->get_type_info_by_decl(TYPENAME_ARRAY "<" TYPENAME_VERTEX ">@");
 				return array::compose(type.get_type_info(), result);
 			}
 
@@ -759,7 +759,7 @@ namespace vitex
 			}
 			array* simulator_get_shape_vertices(physics::simulator* base, btCollisionShape* shape)
 			{
-				typeinfo type = virtual_machine::get()->get_type_info_by_decl(TYPENAME_ARRAY "<" TYPENAME_VECTOR3 ">@");
+				type_info type = virtual_machine::get()->get_type_info_by_decl(TYPENAME_ARRAY "<" TYPENAME_VECTOR3 ">@");
 				return array::compose(type.get_type_info(), base->get_shape_vertices(shape));
 			}
 
@@ -772,13 +772,13 @@ namespace vitex
 			void alert_result(graphics::alert& base, asIScriptFunction* callback)
 			{
 				immediate_context* context = immediate_context::get();
-				function_delegate delegatef(callback);
-				if (!context || !delegatef.is_valid())
+				function_delegate delegation(callback);
+				if (!context || !delegation.is_valid())
 					return base.result(nullptr);
 
-				base.result([context, delegatef](int id)
+				base.result([context, delegation](int id)
 				{
-					context->execute_subcall(delegatef.callable(), [id](immediate_context* context)
+					context->execute_subcall(delegation.callable(), [id](immediate_context* context)
 					{
 						context->set_arg32(0, id);
 					});
@@ -790,10 +790,10 @@ namespace vitex
 				immediate_context* context = immediate_context::get();
 				if (context != nullptr && callback != nullptr)
 				{
-					function_delegate delegatef(callback);
-					base->callbacks.app_state_change = [context, delegatef](graphics::app_state type)
+					function_delegate delegation(callback);
+					base->callbacks.app_state_change = [context, delegation](graphics::app_state type)
 					{
-						context->execute_subcall(delegatef.callable(), [type](immediate_context* context)
+						context->execute_subcall(delegation.callable(), [type](immediate_context* context)
 						{
 							context->set_arg32(0, (int)type);
 						});
@@ -807,10 +807,10 @@ namespace vitex
 				immediate_context* context = immediate_context::get();
 				if (context != nullptr && callback != nullptr)
 				{
-					function_delegate delegatef(callback);
-					base->callbacks.window_state_change = [context, delegatef](graphics::window_state state, int x, int y)
+					function_delegate delegation(callback);
+					base->callbacks.window_state_change = [context, delegation](graphics::window_state state, int x, int y)
 					{
-						context->execute_subcall(delegatef.callable(), [state, x, y](immediate_context* context)
+						context->execute_subcall(delegation.callable(), [state, x, y](immediate_context* context)
 						{
 							context->set_arg32(0, (int)state);
 							context->set_arg32(1, x);
@@ -826,10 +826,10 @@ namespace vitex
 				immediate_context* context = immediate_context::get();
 				if (context != nullptr && callback != nullptr)
 				{
-					function_delegate delegatef(callback);
-					base->callbacks.key_state = [context, delegatef](graphics::key_code code, graphics::key_mod mod, int x, int y, bool value)
+					function_delegate delegation(callback);
+					base->callbacks.key_state = [context, delegation](graphics::key_code code, graphics::key_mod mod, int x, int y, bool value)
 					{
-						context->execute_subcall(delegatef.callable(), [code, mod, x, y, value](immediate_context* context)
+						context->execute_subcall(delegation.callable(), [code, mod, x, y, value](immediate_context* context)
 						{
 							context->set_arg32(0, (int)code);
 							context->set_arg32(1, (int)mod);
@@ -847,11 +847,11 @@ namespace vitex
 				immediate_context* context = immediate_context::get();
 				if (context != nullptr && callback != nullptr)
 				{
-					function_delegate delegatef(callback);
-					base->callbacks.input_edit = [context, delegatef](char* buffer, int x, int y)
+					function_delegate delegation(callback);
+					base->callbacks.input_edit = [context, delegation](char* buffer, int x, int y)
 					{
 						std::string_view text = (buffer ? buffer : std::string_view());
-						context->execute_subcall(delegatef.callable(), [text, x, y](immediate_context* context)
+						context->execute_subcall(delegation.callable(), [text, x, y](immediate_context* context)
 						{
 							context->set_arg_object(0, (void*)&text);
 							context->set_arg32(1, x);
@@ -867,11 +867,11 @@ namespace vitex
 				immediate_context* context = immediate_context::get();
 				if (context != nullptr && callback != nullptr)
 				{
-					function_delegate delegatef(callback);
-					base->callbacks.input = [context, delegatef](char* buffer, int x)
+					function_delegate delegation(callback);
+					base->callbacks.input = [context, delegation](char* buffer, int x)
 					{
 						std::string_view text = (buffer ? buffer : std::string_view());
-						context->execute_subcall(delegatef.callable(), [text, x](immediate_context* context)
+						context->execute_subcall(delegation.callable(), [text, x](immediate_context* context)
 						{
 							context->set_arg_object(0, (void*)&text);
 							context->set_arg32(1, x);
@@ -886,10 +886,10 @@ namespace vitex
 				immediate_context* context = immediate_context::get();
 				if (context != nullptr && callback != nullptr)
 				{
-					function_delegate delegatef(callback);
-					base->callbacks.cursor_move = [context, delegatef](int x, int y, int z, int w)
+					function_delegate delegation(callback);
+					base->callbacks.cursor_move = [context, delegation](int x, int y, int z, int w)
 					{
-						context->execute_subcall(delegatef.callable(), [x, y, z, w](immediate_context* context)
+						context->execute_subcall(delegation.callable(), [x, y, z, w](immediate_context* context)
 						{
 							context->set_arg32(0, x);
 							context->set_arg32(1, y);
@@ -906,10 +906,10 @@ namespace vitex
 				immediate_context* context = immediate_context::get();
 				if (context != nullptr && callback != nullptr)
 				{
-					function_delegate delegatef(callback);
-					base->callbacks.cursor_wheel_state = [context, delegatef](int x, int y, bool z)
+					function_delegate delegation(callback);
+					base->callbacks.cursor_wheel_state = [context, delegation](int x, int y, bool z)
 					{
-						context->execute_subcall(delegatef.callable(), [x, y, z](immediate_context* context)
+						context->execute_subcall(delegation.callable(), [x, y, z](immediate_context* context)
 						{
 							context->set_arg32(0, x);
 							context->set_arg32(1, y);
@@ -925,10 +925,10 @@ namespace vitex
 				immediate_context* context = immediate_context::get();
 				if (context != nullptr && callback != nullptr)
 				{
-					function_delegate delegatef(callback);
-					base->callbacks.joy_stick_axis_move = [context, delegatef](int x, int y, int z)
+					function_delegate delegation(callback);
+					base->callbacks.joy_stick_axis_move = [context, delegation](int x, int y, int z)
 					{
-						context->execute_subcall(delegatef.callable(), [x, y, z](immediate_context* context)
+						context->execute_subcall(delegation.callable(), [x, y, z](immediate_context* context)
 						{
 							context->set_arg32(0, x);
 							context->set_arg32(1, y);
@@ -944,10 +944,10 @@ namespace vitex
 				immediate_context* context = immediate_context::get();
 				if (context != nullptr && callback != nullptr)
 				{
-					function_delegate delegatef(callback);
-					base->callbacks.joy_stick_ball_move = [context, delegatef](int x, int y, int z, int w)
+					function_delegate delegation(callback);
+					base->callbacks.joy_stick_ball_move = [context, delegation](int x, int y, int z, int w)
 					{
-						context->execute_subcall(delegatef.callable(), [x, y, z, w](immediate_context* context)
+						context->execute_subcall(delegation.callable(), [x, y, z, w](immediate_context* context)
 						{
 							context->set_arg32(0, x);
 							context->set_arg32(1, y);
@@ -964,10 +964,10 @@ namespace vitex
 				immediate_context* context = immediate_context::get();
 				if (context != nullptr && callback != nullptr)
 				{
-					function_delegate delegatef(callback);
-					base->callbacks.joy_stick_hat_move = [context, delegatef](graphics::joy_stick_hat type, int x, int y)
+					function_delegate delegation(callback);
+					base->callbacks.joy_stick_hat_move = [context, delegation](graphics::joy_stick_hat type, int x, int y)
 					{
-						context->execute_subcall(delegatef.callable(), [type, x, y](immediate_context* context)
+						context->execute_subcall(delegation.callable(), [type, x, y](immediate_context* context)
 						{
 							context->set_arg32(0, (int)type);
 							context->set_arg32(1, x);
@@ -983,10 +983,10 @@ namespace vitex
 				immediate_context* context = immediate_context::get();
 				if (context != nullptr && callback != nullptr)
 				{
-					function_delegate delegatef(callback);
-					base->callbacks.joy_stick_key_state = [context, delegatef](int x, int y, bool z)
+					function_delegate delegation(callback);
+					base->callbacks.joy_stick_key_state = [context, delegation](int x, int y, bool z)
 					{
-						context->execute_subcall(delegatef.callable(), [x, y, z](immediate_context* context)
+						context->execute_subcall(delegation.callable(), [x, y, z](immediate_context* context)
 						{
 							context->set_arg32(0, x);
 							context->set_arg32(1, y);
@@ -1002,10 +1002,10 @@ namespace vitex
 				immediate_context* context = immediate_context::get();
 				if (context != nullptr && callback != nullptr)
 				{
-					function_delegate delegatef(callback);
-					base->callbacks.joy_stick_state = [context, delegatef](int x, bool y)
+					function_delegate delegation(callback);
+					base->callbacks.joy_stick_state = [context, delegation](int x, bool y)
 					{
-						context->execute_subcall(delegatef.callable(), [x, y](immediate_context* context)
+						context->execute_subcall(delegation.callable(), [x, y](immediate_context* context)
 						{
 							context->set_arg32(0, x);
 							context->set_arg8(1, y);
@@ -1020,10 +1020,10 @@ namespace vitex
 				immediate_context* context = immediate_context::get();
 				if (context != nullptr && callback != nullptr)
 				{
-					function_delegate delegatef(callback);
-					base->callbacks.controller_axis_move = [context, delegatef](int x, int y, int z)
+					function_delegate delegation(callback);
+					base->callbacks.controller_axis_move = [context, delegation](int x, int y, int z)
 					{
-						context->execute_subcall(delegatef.callable(), [x, y, z](immediate_context* context)
+						context->execute_subcall(delegation.callable(), [x, y, z](immediate_context* context)
 						{
 							context->set_arg32(0, x);
 							context->set_arg32(1, y);
@@ -1039,10 +1039,10 @@ namespace vitex
 				immediate_context* context = immediate_context::get();
 				if (context != nullptr && callback != nullptr)
 				{
-					function_delegate delegatef(callback);
-					base->callbacks.controller_key_state = [context, delegatef](int x, int y, bool z)
+					function_delegate delegation(callback);
+					base->callbacks.controller_key_state = [context, delegation](int x, int y, bool z)
 					{
-						context->execute_subcall(delegatef.callable(), [x, y, z](immediate_context* context)
+						context->execute_subcall(delegation.callable(), [x, y, z](immediate_context* context)
 						{
 							context->set_arg32(0, x);
 							context->set_arg32(1, y);
@@ -1058,10 +1058,10 @@ namespace vitex
 				immediate_context* context = immediate_context::get();
 				if (context != nullptr && callback != nullptr)
 				{
-					function_delegate delegatef(callback);
-					base->callbacks.controller_state = [context, delegatef](int x, int y)
+					function_delegate delegation(callback);
+					base->callbacks.controller_state = [context, delegation](int x, int y)
 					{
-						context->execute_subcall(delegatef.callable(), [x, y](immediate_context* context)
+						context->execute_subcall(delegation.callable(), [x, y](immediate_context* context)
 						{
 							context->set_arg32(0, x);
 							context->set_arg32(1, y);
@@ -1076,10 +1076,10 @@ namespace vitex
 				immediate_context* context = immediate_context::get();
 				if (context != nullptr && callback != nullptr)
 				{
-					function_delegate delegatef(callback);
-					base->callbacks.touch_move = [context, delegatef](int x, int y, float z, float w, float X1, float Y1, float Z1)
+					function_delegate delegation(callback);
+					base->callbacks.touch_move = [context, delegation](int x, int y, float z, float w, float X1, float Y1, float Z1)
 					{
-						context->execute_subcall(delegatef.callable(), [x, y, z, w, X1, Y1, Z1](immediate_context* context)
+						context->execute_subcall(delegation.callable(), [x, y, z, w, X1, Y1, Z1](immediate_context* context)
 						{
 							context->set_arg32(0, x);
 							context->set_arg32(1, y);
@@ -1099,10 +1099,10 @@ namespace vitex
 				immediate_context* context = immediate_context::get();
 				if (context != nullptr && callback != nullptr)
 				{
-					function_delegate delegatef(callback);
-					base->callbacks.touch_state = [context, delegatef](int x, int y, float z, float w, float X1, float Y1, float Z1, bool W1)
+					function_delegate delegation(callback);
+					base->callbacks.touch_state = [context, delegation](int x, int y, float z, float w, float X1, float Y1, float Z1, bool W1)
 					{
-						context->execute_subcall(delegatef.callable(), [x, y, z, w, X1, Y1, Z1, W1](immediate_context* context)
+						context->execute_subcall(delegation.callable(), [x, y, z, w, X1, Y1, Z1, W1](immediate_context* context)
 						{
 							context->set_arg32(0, x);
 							context->set_arg32(1, y);
@@ -1123,10 +1123,10 @@ namespace vitex
 				immediate_context* context = immediate_context::get();
 				if (context != nullptr && callback != nullptr)
 				{
-					function_delegate delegatef(callback);
-					base->callbacks.gesture_state = [context, delegatef](int x, int y, int z, float w, float X1, float Y1, bool Z1)
+					function_delegate delegation(callback);
+					base->callbacks.gesture_state = [context, delegation](int x, int y, int z, float w, float X1, float Y1, bool Z1)
 					{
-						context->execute_subcall(delegatef.callable(), [x, y, z, w, X1, Y1, Z1](immediate_context* context)
+						context->execute_subcall(delegation.callable(), [x, y, z, w, X1, Y1, Z1](immediate_context* context)
 						{
 							context->set_arg32(0, x);
 							context->set_arg32(1, y);
@@ -1146,10 +1146,10 @@ namespace vitex
 				immediate_context* context = immediate_context::get();
 				if (context != nullptr && callback != nullptr)
 				{
-					function_delegate delegatef(callback);
-					base->callbacks.multi_gesture_state = [context, delegatef](int x, int y, float z, float w, float X1, float Y1)
+					function_delegate delegation(callback);
+					base->callbacks.multi_gesture_state = [context, delegation](int x, int y, float z, float w, float X1, float Y1)
 					{
-						context->execute_subcall(delegatef.callable(), [x, y, z, w, X1, Y1](immediate_context* context)
+						context->execute_subcall(delegation.callable(), [x, y, z, w, X1, Y1](immediate_context* context)
 						{
 							context->set_arg32(0, x);
 							context->set_arg32(1, y);
@@ -1168,10 +1168,10 @@ namespace vitex
 				immediate_context* context = immediate_context::get();
 				if (context != nullptr && callback != nullptr)
 				{
-					function_delegate delegatef(callback);
-					base->callbacks.drop_file = [context, delegatef](const std::string_view& text)
+					function_delegate delegation(callback);
+					base->callbacks.drop_file = [context, delegation](const std::string_view& text)
 					{
-						context->execute_subcall(delegatef.callable(), [text](immediate_context* context)
+						context->execute_subcall(delegation.callable(), [text](immediate_context* context)
 						{
 							context->set_arg_object(0, (void*)&text);
 						});
@@ -1185,10 +1185,10 @@ namespace vitex
 				immediate_context* context = immediate_context::get();
 				if (context != nullptr && callback != nullptr)
 				{
-					function_delegate delegatef(callback);
-					base->callbacks.drop_text = [context, delegatef](const std::string_view& text)
+					function_delegate delegation(callback);
+					base->callbacks.drop_text = [context, delegation](const std::string_view& text)
 					{
-						context->execute_subcall(delegatef.callable(), [text](immediate_context* context)
+						context->execute_subcall(delegation.callable(), [text](immediate_context* context)
 						{
 							context->set_arg_object(0, (void*)&text);
 						});
@@ -1231,7 +1231,7 @@ namespace vitex
 
 			array* input_layout_get_attributes(graphics::input_layout* base)
 			{
-				typeinfo type = virtual_machine::get()->get_type_info_by_decl(TYPENAME_ARRAY "<" TYPENAME_INPUTLAYOUTATTRIBUTE ">@");
+				type_info type = virtual_machine::get()->get_type_info_by_decl(TYPENAME_ARRAY "<" TYPENAME_INPUTLAYOUTATTRIBUTE ">@");
 				return array::compose(type.get_type_info(), base->get_attributes());
 			}
 
@@ -1282,7 +1282,7 @@ namespace vitex
 			}
 			array* instance_buffer_get_array(graphics::instance_buffer* base)
 			{
-				typeinfo type = virtual_machine::get()->get_type_info_by_decl(TYPENAME_ARRAY "<" TYPENAME_ELEMENTVERTEX ">@");
+				type_info type = virtual_machine::get()->get_type_info_by_decl(TYPENAME_ARRAY "<" TYPENAME_ELEMENTVERTEX ">@");
 				return array::compose(type.get_type_info(), base->get_array());
 			}
 
@@ -1450,7 +1450,7 @@ namespace vitex
 				base->get_viewports(&count, viewports.data());
 				viewports.resize((size_t)count);
 
-				typeinfo type = virtual_machine::get()->get_type_info_by_decl(TYPENAME_ARRAY "<" TYPENAME_VIEWPORT ">@");
+				type_info type = virtual_machine::get()->get_type_info_by_decl(TYPENAME_ARRAY "<" TYPENAME_VIEWPORT ">@");
 				return array::compose(type.get_type_info(), viewports);
 			}
 			array* graphics_device_get_scissor_rects(graphics::graphics_device* base)
@@ -1462,7 +1462,7 @@ namespace vitex
 				base->get_scissor_rects(&count, rects.data());
 				rects.resize((size_t)count);
 
-				typeinfo type = virtual_machine::get()->get_type_info_by_decl(TYPENAME_ARRAY "<" TYPENAME_RECTANGLE ">@");
+				type_info type = virtual_machine::get()->get_type_info_by_decl(TYPENAME_ARRAY "<" TYPENAME_RECTANGLE ">@");
 				return array::compose(type.get_type_info(), rects);
 			}
 			bool graphics_device_generate_texture1(graphics::graphics_device* base, graphics::texture_2d* resource)
@@ -1661,7 +1661,7 @@ namespace vitex
 
 			array* model_get_meshes(layer::model* base)
 			{
-				typeinfo type = virtual_machine::get()->get_type_info_by_decl(TYPENAME_ARRAY "<" TYPENAME_MESHBUFFER "@>@");
+				type_info type = virtual_machine::get()->get_type_info_by_decl(TYPENAME_ARRAY "<" TYPENAME_MESHBUFFER "@>@");
 				return array::compose(type.get_type_info(), base->meshes);
 			}
 			void model_set_meshes(layer::model* base, array* data)
@@ -1670,7 +1670,7 @@ namespace vitex
 			}
 			array* skin_model_get_meshes(layer::skin_model* base)
 			{
-				typeinfo type = virtual_machine::get()->get_type_info_by_decl(TYPENAME_ARRAY "<" TYPENAME_SKINMESHBUFFER "@>@");
+				type_info type = virtual_machine::get()->get_type_info_by_decl(TYPENAME_ARRAY "<" TYPENAME_SKINMESHBUFFER "@>@");
 				return array::compose(type.get_type_info(), base->meshes);
 			}
 			void skin_model_set_meshes(layer::skin_model* base, array* data)
@@ -1682,9 +1682,9 @@ namespace vitex
 			void populate_audio_filter_base(ref_class& data_class, bool base_cast = true)
 			{
 				if (base_cast)
-					data_class.set_operator_ex(operators::cast, 0, "void", "?&out", &handle_to_handle_cast);
+					data_class.set_operator_extern(operators::cast_t, 0, "void", "?&out", &handle_to_handle_cast);
 
-				data_class.set_method_ex("bool synchronize()", &VI_EXPECTIFY_VOID(t::synchronize));
+				data_class.set_method_extern("bool synchronize()", &VI_EXPECTIFY_VOID(t::synchronize));
 				data_class.set_method("void deserialize(schema@+)", &t::deserialize);
 				data_class.set_method("void serialize(schema@+)", &t::serialize);
 				data_class.set_method("base_audio_filter@ copy()", &t::copy);
@@ -1703,12 +1703,12 @@ namespace vitex
 			void populate_audio_effect_base(ref_class& data_class, bool base_cast = true)
 			{
 				if (base_cast)
-					data_class.set_operator_ex(operators::cast, 0, "void", "?&out", &handle_to_handle_cast);
+					data_class.set_operator_extern(operators::cast_t, 0, "void", "?&out", &handle_to_handle_cast);
 
-				data_class.set_method_ex("bool synchronize()", &VI_EXPECTIFY_VOID(t::synchronize));
+				data_class.set_method_extern("bool synchronize()", &VI_EXPECTIFY_VOID(t::synchronize));
 				data_class.set_method("void deserialize(schema@+)", &t::deserialize);
 				data_class.set_method("void serialize(schema@+)", &t::serialize);
-				data_class.set_method_ex("void set_filter(base_audio_filter@+)", &audio_effect_set_filter);
+				data_class.set_method_extern("void set_filter(base_audio_filter@+)", &audio_effect_set_filter);
 				data_class.set_method("base_audio_effect@ copy()", &t::copy);
 				data_class.set_method("audio_source@+ get_filter()", &t::get_filter);
 				data_class.set_method("audio_source@+ get_source()", &t::get_source);
@@ -1724,12 +1724,12 @@ namespace vitex
 
 			void event_set_args(layer::event& base, dictionary* data)
 			{
-				typeinfo type = virtual_machine::get()->get_type_info_by_decl(TYPENAME_DICTIONARY "@");
+				type_info type = virtual_machine::get()->get_type_info_by_decl(TYPENAME_DICTIONARY "@");
 				base.args = dictionary::decompose<core::variant>(type.get_type_id(), data);
 			}
 			dictionary* event_get_args(layer::event& base)
 			{
-				typeinfo type = virtual_machine::get()->get_type_info_by_decl(TYPENAME_DICTIONARY "@");
+				type_info type = virtual_machine::get()->get_type_info_by_decl(TYPENAME_DICTIONARY "@");
 				return dictionary::compose<core::variant>(type.get_type_id(), base.args);
 			}
 
@@ -1752,7 +1752,7 @@ namespace vitex
 
 			array* skin_animation_get_clips(layer::skin_animation* base)
 			{
-				typeinfo type = virtual_machine::get()->get_type_info_by_decl(TYPENAME_ARRAY "<" TYPENAME_SKINANIMATORCLIP ">@");
+				type_info type = virtual_machine::get()->get_type_info_by_decl(TYPENAME_ARRAY "<" TYPENAME_SKINANIMATORCLIP ">@");
 				return array::compose<trigonometry::skin_animator_clip>(type.get_type_info(), base->get_clips());
 			}
 
@@ -1778,7 +1778,7 @@ namespace vitex
 			void populate_component_base(ref_class& data_class, bool base_cast = true)
 			{
 				if (base_cast)
-					data_class.set_operator_ex(operators::cast, 0, "void", "?&out", &handle_to_handle_cast);
+					data_class.set_operator_extern(operators::cast_t, 0, "void", "?&out", &handle_to_handle_cast);
 
 				data_class.set_method("void serialize(schema@+)", &layer::component::serialize);
 				data_class.set_method("void deserialize(schema@+)", &layer::component::deserialize);
@@ -1787,7 +1787,7 @@ namespace vitex
 				data_class.set_method("void synchronize(clock_timer@+)", &layer::component::synchronize);
 				data_class.set_method("void animate(clock_timer@+)", &layer::component::animate);
 				data_class.set_method("void update(clock_timer@+)", &layer::component::update);
-				data_class.set_method_ex("void message(const string_view&in, schema@+)", &component_message<t>);
+				data_class.set_method_extern("void message(const string_view&in, schema@+)", &component_message<t>);
 				data_class.set_method("void movement()", &layer::component::movement);
 				data_class.set_method("usize get_unit_bounds(vector3 &out, vector3 &out) const", &layer::component::get_unit_bounds);
 				data_class.set_method("float get_visibility(const viewer_t &in, float) const", &layer::component::get_visibility);
@@ -1835,7 +1835,7 @@ namespace vitex
 				for (auto& item : *base)
 					components.push_back(item.second);
 
-				typeinfo type = virtual_machine::get()->get_type_info_by_decl(TYPENAME_ARRAY "<" TYPENAME_COMPONENT "@>@");
+				type_info type = virtual_machine::get()->get_type_info_by_decl(TYPENAME_ARRAY "<" TYPENAME_COMPONENT "@>@");
 				return array::compose<layer::component*>(type.get_type_info(), components);
 			}
 
@@ -1867,7 +1867,7 @@ namespace vitex
 			void populate_renderer_base(ref_class& data_class, bool base_cast = true)
 			{
 				if (base_cast)
-					data_class.set_operator_ex(operators::cast, 0, "void", "?&out", &handle_to_handle_cast);
+					data_class.set_operator_extern(operators::cast_t, 0, "void", "?&out", &handle_to_handle_cast);
 
 				data_class.set_property<layer::renderer>("bool active", &layer::renderer::active);
 				data_class.set_method("void serialize(schema@+)", &layer::renderer::serialize);
@@ -1937,7 +1937,7 @@ namespace vitex
 				if (!expects_wrapper::unwrap_void(base->compile_buffers(buffers.data(), name, element_size, elements_count)))
 					return nullptr;
 
-				typeinfo type = virtual_machine::get()->get_type_info_by_decl(TYPENAME_ARRAY "<" TYPENAME_ELEMENTBUFFER "@>@");
+				type_info type = virtual_machine::get()->get_type_info_by_decl(TYPENAME_ARRAY "<" TYPENAME_ELEMENTBUFFER "@>@");
 				return array::compose(type.get_type_info(), buffers);
 			}
 			bool render_system_add_renderer(layer::render_system* base, layer::renderer* source)
@@ -1966,13 +1966,13 @@ namespace vitex
 			void render_system_query_group(layer::render_system* base, uint64_t id, asIScriptFunction* callback)
 			{
 				immediate_context* context = immediate_context::get();
-				function_delegate delegatef(callback);
-				if (!context || !delegatef.is_valid())
+				function_delegate delegation(callback);
+				if (!context || !delegation.is_valid())
 					return;
 
-				base->query_group(id, [context, delegatef](layer::component* item)
+				base->query_group(id, [context, delegation](layer::component* item)
 				{
-					context->execute_subcall(delegatef.callable(), [item](immediate_context* context)
+					context->execute_subcall(delegation.callable(), [item](immediate_context* context)
 					{
 						context->set_arg_object(0, (void*)item);
 					});
@@ -1988,7 +1988,7 @@ namespace vitex
 				if (!expects_wrapper::unwrap_void(base->compile(buffers.data(), name, element_size, elements_count)))
 					return nullptr;
 
-				typeinfo type = virtual_machine::get()->get_type_info_by_decl(TYPENAME_ARRAY "<" TYPENAME_ELEMENTBUFFER "@>@");
+				type_info type = virtual_machine::get()->get_type_info_by_decl(TYPENAME_ARRAY "<" TYPENAME_ELEMENTBUFFER "@>@");
 				return array::compose(type.get_type_info(), buffers);
 			}
 			array* primitive_cache_get(layer::primitive_cache* base, const std::string_view& name)
@@ -2000,7 +2000,7 @@ namespace vitex
 				if (!base->get(buffers.data(), name))
 					return nullptr;
 
-				typeinfo type = virtual_machine::get()->get_type_info_by_decl(TYPENAME_ARRAY "<" TYPENAME_ELEMENTBUFFER "@>@");
+				type_info type = virtual_machine::get()->get_type_info_by_decl(TYPENAME_ARRAY "<" TYPENAME_ELEMENTBUFFER "@>@");
 				return array::compose(type.get_type_info(), buffers);
 			}
 			bool primitive_cache_free(layer::primitive_cache* base, const std::string_view& name, graphics::element_buffer* buffer1, graphics::element_buffer* buffer2)
@@ -2024,7 +2024,7 @@ namespace vitex
 				buffers.push_back(nullptr);
 				base->get_sphere_buffers(buffers.data());
 
-				typeinfo type = virtual_machine::get()->get_type_info_by_decl(TYPENAME_ARRAY "<" TYPENAME_ELEMENTBUFFER "@>@");
+				type_info type = virtual_machine::get()->get_type_info_by_decl(TYPENAME_ARRAY "<" TYPENAME_ELEMENTBUFFER "@>@");
 				return array::compose(type.get_type_info(), buffers);
 			}
 			array* primitive_cache_get_cube_buffers(layer::primitive_cache* base)
@@ -2034,7 +2034,7 @@ namespace vitex
 				buffers.push_back(nullptr);
 				base->get_cube_buffers(buffers.data());
 
-				typeinfo type = virtual_machine::get()->get_type_info_by_decl(TYPENAME_ARRAY "<" TYPENAME_ELEMENTBUFFER "@>@");
+				type_info type = virtual_machine::get()->get_type_info_by_decl(TYPENAME_ARRAY "<" TYPENAME_ELEMENTBUFFER "@>@");
 				return array::compose(type.get_type_info(), buffers);
 			}
 			array* primitive_cache_get_box_buffers(layer::primitive_cache* base)
@@ -2044,7 +2044,7 @@ namespace vitex
 				buffers.push_back(nullptr);
 				base->get_box_buffers(buffers.data());
 
-				typeinfo type = virtual_machine::get()->get_type_info_by_decl(TYPENAME_ARRAY "<" TYPENAME_ELEMENTBUFFER "@>@");
+				type_info type = virtual_machine::get()->get_type_info_by_decl(TYPENAME_ARRAY "<" TYPENAME_ELEMENTBUFFER "@>@");
 				return array::compose(type.get_type_info(), buffers);
 			}
 			array* primitive_cache_get_skin_box_buffers(layer::primitive_cache* base)
@@ -2054,7 +2054,7 @@ namespace vitex
 				buffers.push_back(nullptr);
 				base->get_skin_box_buffers(buffers.data());
 
-				typeinfo type = virtual_machine::get()->get_type_info_by_decl(TYPENAME_ARRAY "<" TYPENAME_ELEMENTBUFFER "@>@");
+				type_info type = virtual_machine::get()->get_type_info_by_decl(TYPENAME_ARRAY "<" TYPENAME_ELEMENTBUFFER "@>@");
 				return array::compose(type.get_type_info(), buffers);
 			}
 
@@ -2098,14 +2098,14 @@ namespace vitex
 			void scene_graph_ray_test(layer::scene_graph* base, uint64_t id, const trigonometry::ray& ray, asIScriptFunction* callback)
 			{
 				immediate_context* context = immediate_context::get();
-				function_delegate delegatef(callback);
-				if (!context || !delegatef.is_valid())
+				function_delegate delegation(callback);
+				if (!context || !delegation.is_valid())
 					return;
 
-				base->ray_test(id, ray, [context, delegatef](layer::component* source, const trigonometry::vector3& where)
+				base->ray_test(id, ray, [context, delegation](layer::component* source, const trigonometry::vector3& where)
 				{
 					bool result = false;
-					context->execute_subcall(delegatef.callable(), [&source, &where](immediate_context* context)
+					context->execute_subcall(delegation.callable(), [&source, &where](immediate_context* context)
 					{
 						context->set_arg_object(0, (void*)source);
 						context->set_arg_object(1, (void*)&where);
@@ -2134,13 +2134,13 @@ namespace vitex
 			}
 			void scene_graph_transaction(layer::scene_graph* base, asIScriptFunction* callback)
 			{
-				function_delegate delegatef(callback);
-				if (!delegatef.is_valid())
+				function_delegate delegation(callback);
+				if (!delegation.is_valid())
 					return;
 
-				base->transaction([delegatef]() mutable
+				base->transaction([delegation]() mutable
 				{
-					delegatef(nullptr).wait();
+					delegation(nullptr).wait();
 				});
 			}
 			void scene_graph_push_event1(layer::scene_graph* base, const std::string_view& name, core::schema* args, bool propagate)
@@ -2157,11 +2157,11 @@ namespace vitex
 			}
 			void* scene_graph_set_listener(layer::scene_graph* base, const std::string_view& name, asIScriptFunction* callback)
 			{
-				function_delegate delegatef(callback);
-				if (!delegatef.is_valid())
+				function_delegate delegation(callback);
+				if (!delegation.is_valid())
 					return nullptr;
 
-				return base->set_listener(name, [delegatef](const std::string_view& name, core::variant_args& base_args) mutable
+				return base->set_listener(name, [delegation](const std::string_view& name, core::variant_args& base_args) mutable
 				{
 					core::schema* args = core::var::set::object();
 					args->reserve(base_args.size());
@@ -2169,7 +2169,7 @@ namespace vitex
 						args->set(item.first, item.second);
 
 					core::string copy = core::string(name);
-					delegatef([copy, args](immediate_context* context)
+					delegation([copy, args](immediate_context* context)
 					{
 						context->set_arg_object(0, (void*)&copy);
 						context->set_arg_object(1, (void*)args);
@@ -2178,14 +2178,14 @@ namespace vitex
 			}
 			void scene_graph_load_resource(layer::scene_graph* base, uint64_t id, layer::component* source, const std::string_view& path, core::schema* args, asIScriptFunction* callback)
 			{
-				function_delegate delegatef(callback);
-				if (!delegatef.is_valid())
+				function_delegate delegation(callback);
+				if (!delegation.is_valid())
 					return;
 
-				base->load_resource(id, source, path, to_variant_keys(args), [delegatef](layer::expects_content<void*>&& resource) mutable
+				base->load_resource(id, source, path, to_variant_keys(args), [delegation](layer::expects_content<void*>&& resource) mutable
 				{
 					void* address = resource.or_else(nullptr);
-					delegatef([address](immediate_context* context)
+					delegation([address](immediate_context* context)
 					{
 						context->set_arg_address(0, address);
 					});
@@ -2200,7 +2200,7 @@ namespace vitex
 				for (auto* next : data)
 					output.push_back(next);
 
-				typeinfo type = virtual_machine::get()->get_type_info_by_decl(TYPENAME_ARRAY "<" TYPENAME_COMPONENT "@>@");
+				type_info type = virtual_machine::get()->get_type_info_by_decl(TYPENAME_ARRAY "<" TYPENAME_COMPONENT "@>@");
 				return array::compose(type.get_type_info(), output);
 			}
 			array* scene_graph_get_actors(layer::scene_graph* base, layer::actor_type source)
@@ -2212,51 +2212,51 @@ namespace vitex
 				for (auto* next : data)
 					output.push_back(next);
 
-				typeinfo type = virtual_machine::get()->get_type_info_by_decl(TYPENAME_ARRAY "<" TYPENAME_COMPONENT "@>@");
+				type_info type = virtual_machine::get()->get_type_info_by_decl(TYPENAME_ARRAY "<" TYPENAME_COMPONENT "@>@");
 				return array::compose(type.get_type_info(), output);
 			}
 			array* scene_graph_clone_entity_as_array(layer::scene_graph* base, layer::entity* source)
 			{
-				typeinfo type = virtual_machine::get()->get_type_info_by_decl(TYPENAME_ARRAY "<" TYPENAME_ENTITY "@>@");
+				type_info type = virtual_machine::get()->get_type_info_by_decl(TYPENAME_ARRAY "<" TYPENAME_ENTITY "@>@");
 				return array::compose(type.get_type_info(), base->clone_entity_as_array(source));
 			}
 			array* scene_graph_query_by_parent(layer::scene_graph* base, layer::entity* source)
 			{
-				typeinfo type = virtual_machine::get()->get_type_info_by_decl(TYPENAME_ARRAY "<" TYPENAME_ENTITY "@>@");
+				type_info type = virtual_machine::get()->get_type_info_by_decl(TYPENAME_ARRAY "<" TYPENAME_ENTITY "@>@");
 				return array::compose(type.get_type_info(), base->query_by_parent(source));
 			}
 			array* scene_graph_query_by_name(layer::scene_graph* base, const std::string_view& source)
 			{
-				typeinfo type = virtual_machine::get()->get_type_info_by_decl(TYPENAME_ARRAY "<" TYPENAME_ENTITY "@>@");
+				type_info type = virtual_machine::get()->get_type_info_by_decl(TYPENAME_ARRAY "<" TYPENAME_ENTITY "@>@");
 				return array::compose(type.get_type_info(), base->query_by_name(source));
 			}
 			array* scene_graph_query_by_position(layer::scene_graph* base, uint64_t id, const trigonometry::vector3& position, float radius)
 			{
-				typeinfo type = virtual_machine::get()->get_type_info_by_decl(TYPENAME_ARRAY "<" TYPENAME_COMPONENT "@>@");
+				type_info type = virtual_machine::get()->get_type_info_by_decl(TYPENAME_ARRAY "<" TYPENAME_COMPONENT "@>@");
 				return array::compose(type.get_type_info(), base->query_by_position(id, position, radius));
 			}
 			array* scene_graph_query_by_area(layer::scene_graph* base, uint64_t id, const trigonometry::vector3& min, const trigonometry::vector3& max)
 			{
-				typeinfo type = virtual_machine::get()->get_type_info_by_decl(TYPENAME_ARRAY "<" TYPENAME_COMPONENT "@>@");
+				type_info type = virtual_machine::get()->get_type_info_by_decl(TYPENAME_ARRAY "<" TYPENAME_COMPONENT "@>@");
 				return array::compose(type.get_type_info(), base->query_by_area(id, min, max));
 			}
 			array* scene_graph_query_by_ray(layer::scene_graph* base, uint64_t id, const trigonometry::ray& ray)
 			{
-				typeinfo type = virtual_machine::get()->get_type_info_by_decl(TYPENAME_ARRAY "<" TYPENAME_COMPONENT "@>@");
+				type_info type = virtual_machine::get()->get_type_info_by_decl(TYPENAME_ARRAY "<" TYPENAME_COMPONENT "@>@");
 				return array::compose(type.get_type_info(), base->query_by_ray(id, ray));
 			}
 			array* scene_graph_query_by_match(layer::scene_graph* base, uint64_t id, asIScriptFunction* callback)
 			{
 				immediate_context* context = immediate_context::get();
-				function_delegate delegatef(callback);
-				if (!context || !delegatef.is_valid())
+				function_delegate delegation(callback);
+				if (!context || !delegation.is_valid())
 					return nullptr;
 
-				typeinfo type = virtual_machine::get()->get_type_info_by_decl(TYPENAME_ARRAY "<" TYPENAME_COMPONENT "@>@");
-				return array::compose(type.get_type_info(), base->query_by_match(id, [context, delegatef](const trigonometry::bounding& source)
+				type_info type = virtual_machine::get()->get_type_info_by_decl(TYPENAME_ARRAY "<" TYPENAME_COMPONENT "@>@");
+				return array::compose(type.get_type_info(), base->query_by_match(id, [context, delegation](const trigonometry::bounding& source)
 				{
 					bool result = false;
-					context->execute_subcall(delegatef.callable(), [&source](immediate_context* context)
+					context->execute_subcall(delegation.callable(), [&source](immediate_context* context)
 					{
 						context->set_arg_object(0, (void*)&source);
 					}, [&result](immediate_context* context)
@@ -2302,7 +2302,7 @@ namespace vitex
 			}
 			array* ielement_query_selector_all(layer::gui::ielement& base, const std::string_view& value)
 			{
-				typeinfo type = virtual_machine::get()->get_type_info_by_decl(TYPENAME_ARRAY "<" TYPENAME_ELEMENTNODE ">@");
+				type_info type = virtual_machine::get()->get_type_info_by_decl(TYPENAME_ARRAY "<" TYPENAME_ELEMENTNODE ">@");
 				return array::compose(type.get_type_info(), base.query_selector_all(value));
 			}
 
@@ -2320,7 +2320,7 @@ namespace vitex
 			}
 			array* ielement_document_query_selector_all(layer::gui::ielement_document& base, const std::string_view& value)
 			{
-				typeinfo type = virtual_machine::get()->get_type_info_by_decl(TYPENAME_ARRAY "<" TYPENAME_ELEMENTNODE ">@");
+				type_info type = virtual_machine::get()->get_type_info_by_decl(TYPENAME_ARRAY "<" TYPENAME_ELEMENTNODE ">@");
 				return array::compose(type.get_type_info(), base.query_selector_all(value));
 			}
 
@@ -2390,16 +2390,16 @@ namespace vitex
 			}
 			bool data_model_set_callback(layer::gui::data_model* base, const std::string_view& name, asIScriptFunction* callback)
 			{
-				function_delegate delegatef(callback);
-				if (!delegatef.is_valid())
+				function_delegate delegation(callback);
+				if (!delegation.is_valid())
 					return false;
 
-				typeinfo type = virtual_machine::get()->get_type_info_by_decl(TYPENAME_ARRAY "<" TYPENAME_VARIANT ">@");
-				return base->set_callback(name, [type, delegatef](layer::gui::ievent& wrapper, const core::variant_list& args) mutable
+				type_info type = virtual_machine::get()->get_type_info_by_decl(TYPENAME_ARRAY "<" TYPENAME_VARIANT ">@");
+				return base->set_callback(name, [type, delegation](layer::gui::ievent& wrapper, const core::variant_list& args) mutable
 				{
 					layer::gui::ievent event = wrapper.copy();
 					array* data = array::compose(type.get_type_info(), args);
-					delegatef([event, &data](immediate_context* context) mutable
+					delegation([event, &data](immediate_context* context) mutable
 					{
 						context->set_arg_object(0, &event);
 						context->set_arg_object(1, &data);
@@ -2431,10 +2431,10 @@ namespace vitex
 				base->emit_input(data.data(), (int)data.size());
 			}
 
-			model_listener::model_listener(asIScriptFunction* new_callback) noexcept : delegatef(), base(new layer::gui::listener(bind(new_callback)))
+			model_listener::model_listener(asIScriptFunction* new_callback) noexcept : delegation(), base(new layer::gui::listener(bind(new_callback)))
 			{
 			}
-			model_listener::model_listener(const std::string_view& function_name) noexcept : delegatef(), base(new layer::gui::listener(function_name))
+			model_listener::model_listener(const std::string_view& function_name) noexcept : delegation(), base(new layer::gui::listener(function_name))
 			{
 			}
 			model_listener::~model_listener() noexcept
@@ -2443,19 +2443,19 @@ namespace vitex
 			}
 			function_delegate& model_listener::get_delegate()
 			{
-				return delegatef;
+				return delegation;
 			}
 			layer::gui::event_callback model_listener::bind(asIScriptFunction* callback)
 			{
-				delegatef = function_delegate(callback);
-				if (!delegatef.is_valid())
+				delegation = function_delegate(callback);
+				if (!delegation.is_valid())
 					return nullptr;
 
 				model_listener* listener = this;
 				return [listener](layer::gui::ievent& wrapper)
 				{
 					layer::gui::ievent event = wrapper.copy();
-					listener->delegatef([event](immediate_context* context) mutable
+					listener->delegation([event](immediate_context* context) mutable
 					{
 						context->set_arg_object(0, &event);
 					}).when([event](expects_vm<execution>&&) mutable
@@ -2467,37 +2467,37 @@ namespace vitex
 
 			void components_soft_body_load(layer::components::soft_body* base, const std::string_view& path, float ant, asIScriptFunction* callback)
 			{
-				function_delegate delegatef(callback);
-				if (!delegatef.is_valid())
+				function_delegate delegation(callback);
+				if (!delegation.is_valid())
 					return base->load(path, ant);
 
-				base->load(path, ant, [delegatef]() mutable
+				base->load(path, ant, [delegation]() mutable
 				{
-					delegatef(nullptr);
+					delegation(nullptr);
 				});
 			}
 
 			void components_rigid_body_load(layer::components::rigid_body* base, const std::string_view& path, float mass, float ant, asIScriptFunction* callback)
 			{
-				function_delegate delegatef(callback);
-				if (!delegatef.is_valid())
+				function_delegate delegation(callback);
+				if (!delegation.is_valid())
 					return base->load(path, mass, ant);
 
-				base->load(path, mass, ant, [delegatef]() mutable
+				base->load(path, mass, ant, [delegation]() mutable
 				{
-					delegatef(nullptr);
+					delegation(nullptr);
 				});
 			}
 
 			void components_key_animator_load_animation(layer::components::key_animator* base, const std::string_view& path, asIScriptFunction* callback)
 			{
-				function_delegate delegatef(callback);
-				if (!delegatef.is_valid())
+				function_delegate delegation(callback);
+				if (!delegation.is_valid())
 					return base->load_animation(path);
 
-				base->load_animation(path, [delegatef](bool) mutable
+				base->load_animation(path, [delegation](bool) mutable
 				{
-					delegatef(nullptr);
+					delegation(nullptr);
 				});
 			}
 #endif
@@ -2633,25 +2633,25 @@ namespace vitex
 				vvector2->set_method("vector2 set_x(float) const", &trigonometry::vector2::set_x);
 				vvector2->set_method("vector2 set_y(float) const", &trigonometry::vector2::set_y);
 				vvector2->set_method("void set(const vector2 &in) const", &trigonometry::vector2::set);
-				vvector2->set_operator_ex(operators::mul_assign, (uint32_t)position::left, "vector2&", "const vector2 &in", &vector2_mul_eq1);
-				vvector2->set_operator_ex(operators::mul_assign, (uint32_t)position::left, "vector2&", "float", &vector2_mul_eq2);
-				vvector2->set_operator_ex(operators::div_assign, (uint32_t)position::left, "vector2&", "const vector2 &in", &vector_2div_eq1);
-				vvector2->set_operator_ex(operators::div_assign, (uint32_t)position::left, "vector2&", "float", &vector_2div_eq2);
-				vvector2->set_operator_ex(operators::add_assign, (uint32_t)position::left, "vector2&", "const vector2 &in", &vector2_add_eq1);
-				vvector2->set_operator_ex(operators::add_assign, (uint32_t)position::left, "vector2&", "float", &vector2_add_eq2);
-				vvector2->set_operator_ex(operators::sub_assign, (uint32_t)position::left, "vector2&", "const vector2 &in", &vector2_sub_eq1);
-				vvector2->set_operator_ex(operators::sub_assign, (uint32_t)position::left, "vector2&", "float", &vector2_sub_eq2);
-				vvector2->set_operator_ex(operators::mul, (uint32_t)position::constant, "vector2", "const vector2 &in", &vector2_mul1);
-				vvector2->set_operator_ex(operators::mul, (uint32_t)position::constant, "vector2", "float", &vector2_mul2);
-				vvector2->set_operator_ex(operators::div, (uint32_t)position::constant, "vector2", "const vector2 &in", &vector_2div1);
-				vvector2->set_operator_ex(operators::div, (uint32_t)position::constant, "vector2", "float", &vector_2div2);
-				vvector2->set_operator_ex(operators::add, (uint32_t)position::constant, "vector2", "const vector2 &in", &vector2_add1);
-				vvector2->set_operator_ex(operators::add, (uint32_t)position::constant, "vector2", "float", &vector2_add2);
-				vvector2->set_operator_ex(operators::sub, (uint32_t)position::constant, "vector2", "const vector2 &in", &vector2_sub1);
-				vvector2->set_operator_ex(operators::sub, (uint32_t)position::constant, "vector2", "float", &vector2_sub2);
-				vvector2->set_operator_ex(operators::neg, (uint32_t)position::constant, "vector2", "", &vector2_neg);
-				vvector2->set_operator_ex(operators::equals, (uint32_t)position::constant, "bool", "const vector2 &in", &vector2_eq);
-				vvector2->set_operator_ex(operators::cmp, (uint32_t)position::constant, "int", "const vector2 &in", &vector2_cmp);
+				vvector2->set_operator_extern(operators::mul_assign_t, (uint32_t)position::left, "vector2&", "const vector2 &in", &vector2_mul_eq1);
+				vvector2->set_operator_extern(operators::mul_assign_t, (uint32_t)position::left, "vector2&", "float", &vector2_mul_eq2);
+				vvector2->set_operator_extern(operators::div_assign_t, (uint32_t)position::left, "vector2&", "const vector2 &in", &vector_2div_eq1);
+				vvector2->set_operator_extern(operators::div_assign_t, (uint32_t)position::left, "vector2&", "float", &vector_2div_eq2);
+				vvector2->set_operator_extern(operators::add_assign_t, (uint32_t)position::left, "vector2&", "const vector2 &in", &vector2_add_eq1);
+				vvector2->set_operator_extern(operators::add_assign_t, (uint32_t)position::left, "vector2&", "float", &vector2_add_eq2);
+				vvector2->set_operator_extern(operators::sub_assign_t, (uint32_t)position::left, "vector2&", "const vector2 &in", &vector2_sub_eq1);
+				vvector2->set_operator_extern(operators::sub_assign_t, (uint32_t)position::left, "vector2&", "float", &vector2_sub_eq2);
+				vvector2->set_operator_extern(operators::mul_t, (uint32_t)position::constant, "vector2", "const vector2 &in", &vector2_mul1);
+				vvector2->set_operator_extern(operators::mul_t, (uint32_t)position::constant, "vector2", "float", &vector2_mul2);
+				vvector2->set_operator_extern(operators::div_t, (uint32_t)position::constant, "vector2", "const vector2 &in", &vector_2div1);
+				vvector2->set_operator_extern(operators::div_t, (uint32_t)position::constant, "vector2", "float", &vector_2div2);
+				vvector2->set_operator_extern(operators::add_t, (uint32_t)position::constant, "vector2", "const vector2 &in", &vector2_add1);
+				vvector2->set_operator_extern(operators::add_t, (uint32_t)position::constant, "vector2", "float", &vector2_add2);
+				vvector2->set_operator_extern(operators::sub_t, (uint32_t)position::constant, "vector2", "const vector2 &in", &vector2_sub1);
+				vvector2->set_operator_extern(operators::sub_t, (uint32_t)position::constant, "vector2", "float", &vector2_sub2);
+				vvector2->set_operator_extern(operators::neg_t, (uint32_t)position::constant, "vector2", "", &vector2_neg);
+				vvector2->set_operator_extern(operators::equals_t, (uint32_t)position::constant, "bool", "const vector2 &in", &vector2_eq);
+				vvector2->set_operator_extern(operators::cmp_t, (uint32_t)position::constant, "int", "const vector2 &in", &vector2_cmp);
 
 				vm->begin_namespace("vector2");
 				vm->set_function("vector2 random()", &trigonometry::vector2::random);
@@ -2706,25 +2706,25 @@ namespace vitex
 				vvector3->set_method("vector3 set_y(float) const", &trigonometry::vector3::set_y);
 				vvector3->set_method("vector3 set_z(float) const", &trigonometry::vector3::set_z);
 				vvector3->set_method("void set(const vector3 &in) const", &trigonometry::vector3::set);
-				vvector3->set_operator_ex(operators::mul_assign, (uint32_t)position::left, "vector3&", "const vector3 &in", &vector3_mul_eq1);
-				vvector3->set_operator_ex(operators::mul_assign, (uint32_t)position::left, "vector3&", "float", &vector3_mul_eq2);
-				vvector3->set_operator_ex(operators::div_assign, (uint32_t)position::left, "vector3&", "const vector3 &in", &vector_3div_eq1);
-				vvector3->set_operator_ex(operators::div_assign, (uint32_t)position::left, "vector3&", "float", &vector_3div_eq2);
-				vvector3->set_operator_ex(operators::add_assign, (uint32_t)position::left, "vector3&", "const vector3 &in", &vector3_add_eq1);
-				vvector3->set_operator_ex(operators::add_assign, (uint32_t)position::left, "vector3&", "float", &vector3_add_eq2);
-				vvector3->set_operator_ex(operators::sub_assign, (uint32_t)position::left, "vector3&", "const vector3 &in", &vector3_sub_eq1);
-				vvector3->set_operator_ex(operators::sub_assign, (uint32_t)position::left, "vector3&", "float", &vector3_sub_eq2);
-				vvector3->set_operator_ex(operators::mul, (uint32_t)position::constant, "vector3", "const vector3 &in", &vector3_mul1);
-				vvector3->set_operator_ex(operators::mul, (uint32_t)position::constant, "vector3", "float", &vector3_mul2);
-				vvector3->set_operator_ex(operators::div, (uint32_t)position::constant, "vector3", "const vector3 &in", &vector_3div1);
-				vvector3->set_operator_ex(operators::div, (uint32_t)position::constant, "vector3", "float", &vector_3div2);
-				vvector3->set_operator_ex(operators::add, (uint32_t)position::constant, "vector3", "const vector3 &in", &vector3_add1);
-				vvector3->set_operator_ex(operators::add, (uint32_t)position::constant, "vector3", "float", &vector3_add2);
-				vvector3->set_operator_ex(operators::sub, (uint32_t)position::constant, "vector3", "const vector3 &in", &vector3_sub1);
-				vvector3->set_operator_ex(operators::sub, (uint32_t)position::constant, "vector3", "float", &vector3_sub2);
-				vvector3->set_operator_ex(operators::neg, (uint32_t)position::constant, "vector3", "", &vector3_neg);
-				vvector3->set_operator_ex(operators::equals, (uint32_t)position::constant, "bool", "const vector3 &in", &vector3_eq);
-				vvector3->set_operator_ex(operators::cmp, (uint32_t)position::constant, "int", "const vector3 &in", &vector3_cmp);
+				vvector3->set_operator_extern(operators::mul_assign_t, (uint32_t)position::left, "vector3&", "const vector3 &in", &vector3_mul_eq1);
+				vvector3->set_operator_extern(operators::mul_assign_t, (uint32_t)position::left, "vector3&", "float", &vector3_mul_eq2);
+				vvector3->set_operator_extern(operators::div_assign_t, (uint32_t)position::left, "vector3&", "const vector3 &in", &vector_3div_eq1);
+				vvector3->set_operator_extern(operators::div_assign_t, (uint32_t)position::left, "vector3&", "float", &vector_3div_eq2);
+				vvector3->set_operator_extern(operators::add_assign_t, (uint32_t)position::left, "vector3&", "const vector3 &in", &vector3_add_eq1);
+				vvector3->set_operator_extern(operators::add_assign_t, (uint32_t)position::left, "vector3&", "float", &vector3_add_eq2);
+				vvector3->set_operator_extern(operators::sub_assign_t, (uint32_t)position::left, "vector3&", "const vector3 &in", &vector3_sub_eq1);
+				vvector3->set_operator_extern(operators::sub_assign_t, (uint32_t)position::left, "vector3&", "float", &vector3_sub_eq2);
+				vvector3->set_operator_extern(operators::mul_t, (uint32_t)position::constant, "vector3", "const vector3 &in", &vector3_mul1);
+				vvector3->set_operator_extern(operators::mul_t, (uint32_t)position::constant, "vector3", "float", &vector3_mul2);
+				vvector3->set_operator_extern(operators::div_t, (uint32_t)position::constant, "vector3", "const vector3 &in", &vector_3div1);
+				vvector3->set_operator_extern(operators::div_t, (uint32_t)position::constant, "vector3", "float", &vector_3div2);
+				vvector3->set_operator_extern(operators::add_t, (uint32_t)position::constant, "vector3", "const vector3 &in", &vector3_add1);
+				vvector3->set_operator_extern(operators::add_t, (uint32_t)position::constant, "vector3", "float", &vector3_add2);
+				vvector3->set_operator_extern(operators::sub_t, (uint32_t)position::constant, "vector3", "const vector3 &in", &vector3_sub1);
+				vvector3->set_operator_extern(operators::sub_t, (uint32_t)position::constant, "vector3", "float", &vector3_sub2);
+				vvector3->set_operator_extern(operators::neg_t, (uint32_t)position::constant, "vector3", "", &vector3_neg);
+				vvector3->set_operator_extern(operators::equals_t, (uint32_t)position::constant, "bool", "const vector3 &in", &vector3_eq);
+				vvector3->set_operator_extern(operators::cmp_t, (uint32_t)position::constant, "int", "const vector3 &in", &vector3_cmp);
 
 				vm->begin_namespace("vector3");
 				vm->set_function("vector3 random()", &trigonometry::vector3::random);
@@ -2784,25 +2784,25 @@ namespace vitex
 				vvector4->set_method("vector4 set_z(float) const", &trigonometry::vector4::set_z);
 				vvector4->set_method("vector4 set_w(float) const", &trigonometry::vector4::set_w);
 				vvector4->set_method("void set(const vector4 &in) const", &trigonometry::vector4::set);
-				vvector4->set_operator_ex(operators::mul_assign, (uint32_t)position::left, "vector4&", "const vector4 &in", &vector4_mul_eq1);
-				vvector4->set_operator_ex(operators::mul_assign, (uint32_t)position::left, "vector4&", "float", &vector4_mul_eq2);
-				vvector4->set_operator_ex(operators::div_assign, (uint32_t)position::left, "vector4&", "const vector4 &in", &vector4_div_eq1);
-				vvector4->set_operator_ex(operators::div_assign, (uint32_t)position::left, "vector4&", "float", &vector4_div_eq2);
-				vvector4->set_operator_ex(operators::add_assign, (uint32_t)position::left, "vector4&", "const vector4 &in", &vector4_add_eq1);
-				vvector4->set_operator_ex(operators::add_assign, (uint32_t)position::left, "vector4&", "float", &vector4_add_eq2);
-				vvector4->set_operator_ex(operators::sub_assign, (uint32_t)position::left, "vector4&", "const vector4 &in", &vector4_sub_eq1);
-				vvector4->set_operator_ex(operators::sub_assign, (uint32_t)position::left, "vector4&", "float", &vector4_sub_eq2);
-				vvector4->set_operator_ex(operators::mul, (uint32_t)position::constant, "vector4", "const vector4 &in", &vector4_mul1);
-				vvector4->set_operator_ex(operators::mul, (uint32_t)position::constant, "vector4", "float", &vector4_mul2);
-				vvector4->set_operator_ex(operators::div, (uint32_t)position::constant, "vector4", "const vector4 &in", &vector4_div1);
-				vvector4->set_operator_ex(operators::div, (uint32_t)position::constant, "vector4", "float", &vector4_div2);
-				vvector4->set_operator_ex(operators::add, (uint32_t)position::constant, "vector4", "const vector4 &in", &vector4_add1);
-				vvector4->set_operator_ex(operators::add, (uint32_t)position::constant, "vector4", "float", &vector4_add2);
-				vvector4->set_operator_ex(operators::sub, (uint32_t)position::constant, "vector4", "const vector4 &in", &vector4_sub1);
-				vvector4->set_operator_ex(operators::sub, (uint32_t)position::constant, "vector4", "float", &vector4_sub2);
-				vvector4->set_operator_ex(operators::neg, (uint32_t)position::constant, "vector4", "", &vector4_neg);
-				vvector4->set_operator_ex(operators::equals, (uint32_t)position::constant, "bool", "const vector4 &in", &vector4_eq);
-				vvector4->set_operator_ex(operators::cmp, (uint32_t)position::constant, "int", "const vector4 &in", &vector4_cmp);
+				vvector4->set_operator_extern(operators::mul_assign_t, (uint32_t)position::left, "vector4&", "const vector4 &in", &vector4_mul_eq1);
+				vvector4->set_operator_extern(operators::mul_assign_t, (uint32_t)position::left, "vector4&", "float", &vector4_mul_eq2);
+				vvector4->set_operator_extern(operators::div_assign_t, (uint32_t)position::left, "vector4&", "const vector4 &in", &vector4_div_eq1);
+				vvector4->set_operator_extern(operators::div_assign_t, (uint32_t)position::left, "vector4&", "float", &vector4_div_eq2);
+				vvector4->set_operator_extern(operators::add_assign_t, (uint32_t)position::left, "vector4&", "const vector4 &in", &vector4_add_eq1);
+				vvector4->set_operator_extern(operators::add_assign_t, (uint32_t)position::left, "vector4&", "float", &vector4_add_eq2);
+				vvector4->set_operator_extern(operators::sub_assign_t, (uint32_t)position::left, "vector4&", "const vector4 &in", &vector4_sub_eq1);
+				vvector4->set_operator_extern(operators::sub_assign_t, (uint32_t)position::left, "vector4&", "float", &vector4_sub_eq2);
+				vvector4->set_operator_extern(operators::mul_t, (uint32_t)position::constant, "vector4", "const vector4 &in", &vector4_mul1);
+				vvector4->set_operator_extern(operators::mul_t, (uint32_t)position::constant, "vector4", "float", &vector4_mul2);
+				vvector4->set_operator_extern(operators::div_t, (uint32_t)position::constant, "vector4", "const vector4 &in", &vector4_div1);
+				vvector4->set_operator_extern(operators::div_t, (uint32_t)position::constant, "vector4", "float", &vector4_div2);
+				vvector4->set_operator_extern(operators::add_t, (uint32_t)position::constant, "vector4", "const vector4 &in", &vector4_add1);
+				vvector4->set_operator_extern(operators::add_t, (uint32_t)position::constant, "vector4", "float", &vector4_add2);
+				vvector4->set_operator_extern(operators::sub_t, (uint32_t)position::constant, "vector4", "const vector4 &in", &vector4_sub1);
+				vvector4->set_operator_extern(operators::sub_t, (uint32_t)position::constant, "vector4", "float", &vector4_sub2);
+				vvector4->set_operator_extern(operators::neg_t, (uint32_t)position::constant, "vector4", "", &vector4_neg);
+				vvector4->set_operator_extern(operators::equals_t, (uint32_t)position::constant, "bool", "const vector4 &in", &vector4_eq);
+				vvector4->set_operator_extern(operators::cmp_t, (uint32_t)position::constant, "int", "const vector4 &in", &vector4_cmp);
 
 				vm->begin_namespace("vector4");
 				vm->set_function("vector4 random()", &trigonometry::vector4::random);
@@ -2843,11 +2843,11 @@ namespace vitex
 				vmatrix4x4->set_method("void set(const matrix4x4 &in)", &trigonometry::matrix4x4::set);
 				vmatrix4x4->set_method<trigonometry::matrix4x4, trigonometry::matrix4x4, const trigonometry::matrix4x4&>("matrix4x4 mul(const matrix4x4 &in) const", &trigonometry::matrix4x4::mul);
 				vmatrix4x4->set_method<trigonometry::matrix4x4, trigonometry::matrix4x4, const trigonometry::vector4&>("matrix4x4 mul(const vector4 &in) const", &trigonometry::matrix4x4::mul);
-				vmatrix4x4->set_operator_ex(operators::index, (uint32_t)position::left, "float&", "usize", &matrix4x4_get_row);
-				vmatrix4x4->set_operator_ex(operators::index, (uint32_t)position::constant, "const float&", "usize", &matrix4x4_get_row);
-				vmatrix4x4->set_operator_ex(operators::equals, (uint32_t)position::constant, "bool", "const matrix4x4 &in", &matrix4x4_eq);
-				vmatrix4x4->set_operator_ex(operators::mul, (uint32_t)position::constant, "matrix4x4", "const matrix4x4 &in", &matrix4x4_mul1);
-				vmatrix4x4->set_operator_ex(operators::mul, (uint32_t)position::constant, "vector4", "const vector4 &in", &matrix4x4_mul2);
+				vmatrix4x4->set_operator_extern(operators::index_t, (uint32_t)position::left, "float&", "usize", &matrix4x4_get_row);
+				vmatrix4x4->set_operator_extern(operators::index_t, (uint32_t)position::constant, "const float&", "usize", &matrix4x4_get_row);
+				vmatrix4x4->set_operator_extern(operators::equals_t, (uint32_t)position::constant, "bool", "const matrix4x4 &in", &matrix4x4_eq);
+				vmatrix4x4->set_operator_extern(operators::mul_t, (uint32_t)position::constant, "matrix4x4", "const matrix4x4 &in", &matrix4x4_mul1);
+				vmatrix4x4->set_operator_extern(operators::mul_t, (uint32_t)position::constant, "vector4", "const vector4 &in", &matrix4x4_mul2);
 
 				vm->begin_namespace("matrix4x4");
 				vm->set_function("matrix4x4 identity()", &trigonometry::matrix4x4::identity);
@@ -2901,11 +2901,11 @@ namespace vitex
 				vquaternion->set_method<trigonometry::quaternion, trigonometry::quaternion, float>("quaternion mul(float) const", &trigonometry::quaternion::mul);
 				vquaternion->set_method<trigonometry::quaternion, trigonometry::quaternion, const trigonometry::quaternion&>("quaternion mul(const quaternion &in) const", &trigonometry::quaternion::mul);
 				vquaternion->set_method<trigonometry::quaternion, trigonometry::vector3, const trigonometry::vector3&>("vector3 mul(const vector3 &in) const", &trigonometry::quaternion::mul);
-				vquaternion->set_operator_ex(operators::mul, (uint32_t)position::constant, "vector3", "const vector3 &in", &quaternion_mul1);
-				vquaternion->set_operator_ex(operators::mul, (uint32_t)position::constant, "quaternion", "const quaternion &in", &quaternion_mul2);
-				vquaternion->set_operator_ex(operators::mul, (uint32_t)position::constant, "quaternion", "float", &quaternion_mul3);
-				vquaternion->set_operator_ex(operators::add, (uint32_t)position::constant, "quaternion", "const quaternion &in", &quaternion_add);
-				vquaternion->set_operator_ex(operators::sub, (uint32_t)position::constant, "quaternion", "const quaternion &in", &quaternion_sub);
+				vquaternion->set_operator_extern(operators::mul_t, (uint32_t)position::constant, "vector3", "const vector3 &in", &quaternion_mul1);
+				vquaternion->set_operator_extern(operators::mul_t, (uint32_t)position::constant, "quaternion", "const quaternion &in", &quaternion_mul2);
+				vquaternion->set_operator_extern(operators::mul_t, (uint32_t)position::constant, "quaternion", "float", &quaternion_mul3);
+				vquaternion->set_operator_extern(operators::add_t, (uint32_t)position::constant, "quaternion", "const quaternion &in", &quaternion_add);
+				vquaternion->set_operator_extern(operators::sub_t, (uint32_t)position::constant, "quaternion", "const quaternion &in", &quaternion_sub);
 
 				vm->begin_namespace("quaternion");
 				vm->set_function("quaternion create_euler_rotation(const vector3 &in)", &trigonometry::quaternion::create_euler_rotation);
@@ -2948,16 +2948,16 @@ namespace vitex
 				vfrustum8c->set_constructor<trigonometry::frustum8c, float, float, float, float>("void f(float, float, float, float)");
 				vfrustum8c->set_method("void transform(const matrix4x4 &in) const", &trigonometry::frustum8c::transform);
 				vfrustum8c->set_method("void get_bounding_box(vector2 &out, vector2 &out, vector2 &out) const", &trigonometry::frustum8c::get_bounding_box);
-				vfrustum8c->set_operator_ex(operators::index, (uint32_t)position::left, "vector4&", "usize", &frustum8cget_corners);
-				vfrustum8c->set_operator_ex(operators::index, (uint32_t)position::constant, "const vector4&", "usize", &frustum8cget_corners);
+				vfrustum8c->set_operator_extern(operators::index_t, (uint32_t)position::left, "vector4&", "usize", &frustum8cget_corners);
+				vfrustum8c->set_operator_extern(operators::index_t, (uint32_t)position::constant, "const vector4&", "usize", &frustum8cget_corners);
 
 				auto vfrustum6p = vm->set_pod<trigonometry::frustum6p>("frustum_6p");
 				vfrustum6p->set_constructor<trigonometry::frustum6p>("void f()");
 				vfrustum6p->set_constructor<trigonometry::frustum6p, const trigonometry::matrix4x4&>("void f(const matrix4x4 &in)");
 				vfrustum6p->set_method("bool overlaps_aabb(const bounding &in) const", &trigonometry::frustum6p::overlaps_aabb);
 				vfrustum6p->set_method("bool overlaps_sphere(const vector3 &in, float) const", &trigonometry::frustum6p::overlaps_sphere);
-				vfrustum6p->set_operator_ex(operators::index, (uint32_t)position::left, "vector4&", "usize", &frustum6pget_corners);
-				vfrustum6p->set_operator_ex(operators::index, (uint32_t)position::constant, "const vector4&", "usize", &frustum6pget_corners);
+				vfrustum6p->set_operator_extern(operators::index_t, (uint32_t)position::left, "vector4&", "usize", &frustum6pget_corners);
+				vfrustum6p->set_operator_extern(operators::index_t, (uint32_t)position::constant, "const vector4&", "usize", &frustum6pget_corners);
 
 				auto vjoint = vm->set_struct_trivial<trigonometry::joint>("joint");
 				vjoint->set_property<trigonometry::joint>("string name", &trigonometry::joint::name);
@@ -2965,9 +2965,9 @@ namespace vitex
 				vjoint->set_property<trigonometry::joint>("matrix4x4 local", &trigonometry::joint::local);
 				vjoint->set_property<trigonometry::joint>("usize index", &trigonometry::joint::index);
 				vjoint->set_constructor<trigonometry::joint>("void f()");
-				vjoint->set_method_ex("usize size() const", &joint_size);
-				vjoint->set_operator_ex(operators::index, (uint32_t)position::left, "joint&", "usize", &joint_get_childs);
-				vjoint->set_operator_ex(operators::index, (uint32_t)position::constant, "const joint&", "usize", &joint_get_childs);
+				vjoint->set_method_extern("usize size() const", &joint_size);
+				vjoint->set_operator_extern(operators::index_t, (uint32_t)position::left, "joint&", "usize", &joint_get_childs);
+				vjoint->set_operator_extern(operators::index_t, (uint32_t)position::constant, "const joint&", "usize", &joint_get_childs);
 
 				auto vanimator_key = vm->set_pod<trigonometry::animator_key>("animator_key");
 				vanimator_key->set_property<trigonometry::animator_key>("vector3 position", &trigonometry::animator_key::position);
@@ -2979,27 +2979,27 @@ namespace vitex
 				auto vskin_animator_key = vm->set_struct_trivial<trigonometry::skin_animator_key>("skin_animator_key");
 				vskin_animator_key->set_property<trigonometry::skin_animator_key>("float time", &trigonometry::skin_animator_key::time);
 				vskin_animator_key->set_constructor<trigonometry::animator_key>("void f()");
-				vskin_animator_key->set_method_ex("usize size() const", &skin_animator_key_size);
-				vskin_animator_key->set_operator_ex(operators::index, (uint32_t)position::left, "animator_key&", "usize", &skin_animator_key_get_pose);
-				vskin_animator_key->set_operator_ex(operators::index, (uint32_t)position::constant, "const animator_key&", "usize", &skin_animator_key_get_pose);
+				vskin_animator_key->set_method_extern("usize size() const", &skin_animator_key_size);
+				vskin_animator_key->set_operator_extern(operators::index_t, (uint32_t)position::left, "animator_key&", "usize", &skin_animator_key_get_pose);
+				vskin_animator_key->set_operator_extern(operators::index_t, (uint32_t)position::constant, "const animator_key&", "usize", &skin_animator_key_get_pose);
 
 				auto vskin_animator_clip = vm->set_struct_trivial<trigonometry::skin_animator_clip>("skin_animator_clip");
 				vskin_animator_clip->set_property<trigonometry::skin_animator_clip>("string name", &trigonometry::skin_animator_clip::name);
 				vskin_animator_clip->set_property<trigonometry::skin_animator_clip>("float duration", &trigonometry::skin_animator_clip::duration);
 				vskin_animator_clip->set_property<trigonometry::skin_animator_clip>("float rate", &trigonometry::skin_animator_clip::rate);
 				vskin_animator_clip->set_constructor<trigonometry::skin_animator_clip>("void f()");
-				vskin_animator_clip->set_method_ex("usize size() const", &skin_animator_clip_size);
-				vskin_animator_clip->set_operator_ex(operators::index, (uint32_t)position::left, "skin_animator_key&", "usize", &skin_animator_clip_get_keys);
-				vskin_animator_clip->set_operator_ex(operators::index, (uint32_t)position::constant, "const skin_animator_key&", "usize", &skin_animator_clip_get_keys);
+				vskin_animator_clip->set_method_extern("usize size() const", &skin_animator_clip_size);
+				vskin_animator_clip->set_operator_extern(operators::index_t, (uint32_t)position::left, "skin_animator_key&", "usize", &skin_animator_clip_get_keys);
+				vskin_animator_clip->set_operator_extern(operators::index_t, (uint32_t)position::constant, "const skin_animator_key&", "usize", &skin_animator_clip_get_keys);
 
 				auto vkey_animator_clip = vm->set_struct_trivial<trigonometry::key_animator_clip>("key_animator_clip");
 				vkey_animator_clip->set_property<trigonometry::key_animator_clip>("string name", &trigonometry::key_animator_clip::name);
 				vkey_animator_clip->set_property<trigonometry::key_animator_clip>("float duration", &trigonometry::key_animator_clip::duration);
 				vkey_animator_clip->set_property<trigonometry::key_animator_clip>("float rate", &trigonometry::key_animator_clip::rate);
 				vkey_animator_clip->set_constructor<trigonometry::key_animator_clip>("void f()");
-				vkey_animator_clip->set_method_ex("usize size() const", &key_animator_clip_size);
-				vkey_animator_clip->set_operator_ex(operators::index, (uint32_t)position::left, "animator_key&", "usize", &key_animator_clip_get_keys);
-				vkey_animator_clip->set_operator_ex(operators::index, (uint32_t)position::constant, "const animator_key&", "usize", &key_animator_clip_get_keys);
+				vkey_animator_clip->set_method_extern("usize size() const", &key_animator_clip_size);
+				vkey_animator_clip->set_operator_extern(operators::index_t, (uint32_t)position::left, "animator_key&", "usize", &key_animator_clip_get_keys);
+				vkey_animator_clip->set_operator_extern(operators::index_t, (uint32_t)position::constant, "const animator_key&", "usize", &key_animator_clip_get_keys);
 
 				auto vrandom_vector2 = vm->set_pod<trigonometry::random_vector2>("random_vector2");
 				vrandom_vector2->set_property<trigonometry::random_vector2>("vector2 min", &trigonometry::random_vector2::min);
@@ -3120,7 +3120,7 @@ namespace vitex
 				vcosmos->set_method("float get_volume_ratio() const", &trigonometry::cosmos::get_volume_ratio);
 				vcosmos->set_method("bool is_null(usize) const", &trigonometry::cosmos::is_null);
 				vcosmos->set_method("bool is_empty() const", &trigonometry::cosmos::empty);
-				vcosmos->set_method_ex("void query_index(cosmos_query_overlaps_sync@, cosmos_query_match_sync@)", &cosmos_query_index);
+				vcosmos->set_method_extern("void query_index(cosmos_query_overlaps_sync@, cosmos_query_match_sync@)", &cosmos_query_index);
 
 				vm->begin_namespace("geometric");
 				vm->set_function("bool is_cube_in_frustum(const matrix4x4 &in, float)", &trigonometry::geometric::is_cube_in_frustum);
@@ -3540,7 +3540,7 @@ namespace vitex
 				valert->set_constructor<graphics::alert, graphics::activity*>("void f(activity@+)");
 				valert->set_method("void setup(alert_type, const string_view&in, const string_view&in)", &graphics::alert::setup);
 				valert->set_method("void button(alert_confirm, const string_view&in, int32)", &graphics::alert::button);
-				valert->set_method_ex("void result(alert_sync@)", &alert_result);
+				valert->set_method_extern("void result(alert_sync@)", &alert_result);
 
 				auto vevent_consumers = vm->set_struct_trivial<graphics::event_consumers>("activity_event_consumers");
 				vevent_consumers->set_constructor<graphics::event_consumers>("void f()");
@@ -3604,27 +3604,27 @@ namespace vitex
 				vactivity->set_function_def("void multi_gesture_state_sync(int, int, float, float, float, float)");
 				vactivity->set_function_def("void drop_file_sync(const string_view&in)");
 				vactivity->set_function_def("void drop_text_sync(const string_view&in)");
-				vactivity->set_method_ex("void set_app_state_change(app_state_change_sync@)", &activity_set_app_state_change);
-				vactivity->set_method_ex("void set_window_state_change(window_state_change_sync@)", &activity_set_window_state_change);
-				vactivity->set_method_ex("void set_key_state(key_state_sync@)", &activity_set_key_state);
-				vactivity->set_method_ex("void set_input_edit(input_edit_sync@)", &activity_set_input_edit);
-				vactivity->set_method_ex("void set_input(input_sync@)", &activity_set_input);
-				vactivity->set_method_ex("void set_cursor_move(cursor_move_sync@)", &activity_set_cursor_move);
-				vactivity->set_method_ex("void set_cursor_wheel_state(cursor_wheel_state_sync@)", &activity_set_cursor_wheel_state);
-				vactivity->set_method_ex("void set_joy_stick_axis_move(joy_stick_axis_move_sync@)", &activity_set_joy_stick_axis_move);
-				vactivity->set_method_ex("void set_joy_stick_ball_move(joy_stick_ball_move_sync@)", &activity_set_joy_stick_ball_move);
-				vactivity->set_method_ex("void set_joy_stick_hat_move(joy_stick_hat_move_sync@)", &activity_set_joy_stick_hat_move);
-				vactivity->set_method_ex("void set_joy_stickKeyState(joy_stick_key_state_sync@)", &activity_set_joy_stick_key_state);
-				vactivity->set_method_ex("void set_joy_stickState(joy_stick_state_sync@)", &activity_set_joy_stick_state);
-				vactivity->set_method_ex("void set_controller_axis_move(controller_axis_move_sync@)", &activity_set_controller_axis_move);
-				vactivity->set_method_ex("void set_controller_key_state(controller_key_state_sync@)", &activity_set_controller_key_state);
-				vactivity->set_method_ex("void set_controller_state(controller_state_sync@)", &activity_set_controller_state);
-				vactivity->set_method_ex("void set_touch_move(touch_move_sync@)", &activity_set_touch_move);
-				vactivity->set_method_ex("void set_touch_state(touch_state_sync@)", &activity_set_touch_state);
-				vactivity->set_method_ex("void set_gesture_state(gesture_state_sync@)", &activity_set_gesture_state);
-				vactivity->set_method_ex("void set_multi_gesture_state(multi_gesture_state_sync@)", &activity_set_multi_gesture_state);
-				vactivity->set_method_ex("void set_drop_file(drop_file_sync@)", &activity_set_drop_file);
-				vactivity->set_method_ex("void set_drop_text(drop_text_sync@)", &activity_set_drop_text);
+				vactivity->set_method_extern("void set_app_state_change(app_state_change_sync@)", &activity_set_app_state_change);
+				vactivity->set_method_extern("void set_window_state_change(window_state_change_sync@)", &activity_set_window_state_change);
+				vactivity->set_method_extern("void set_key_state(key_state_sync@)", &activity_set_key_state);
+				vactivity->set_method_extern("void set_input_edit(input_edit_sync@)", &activity_set_input_edit);
+				vactivity->set_method_extern("void set_input(input_sync@)", &activity_set_input);
+				vactivity->set_method_extern("void set_cursor_move(cursor_move_sync@)", &activity_set_cursor_move);
+				vactivity->set_method_extern("void set_cursor_wheel_state(cursor_wheel_state_sync@)", &activity_set_cursor_wheel_state);
+				vactivity->set_method_extern("void set_joy_stick_axis_move(joy_stick_axis_move_sync@)", &activity_set_joy_stick_axis_move);
+				vactivity->set_method_extern("void set_joy_stick_ball_move(joy_stick_ball_move_sync@)", &activity_set_joy_stick_ball_move);
+				vactivity->set_method_extern("void set_joy_stick_hat_move(joy_stick_hat_move_sync@)", &activity_set_joy_stick_hat_move);
+				vactivity->set_method_extern("void set_joy_stickKeyState(joy_stick_key_state_sync@)", &activity_set_joy_stick_key_state);
+				vactivity->set_method_extern("void set_joy_stickState(joy_stick_state_sync@)", &activity_set_joy_stick_state);
+				vactivity->set_method_extern("void set_controller_axis_move(controller_axis_move_sync@)", &activity_set_controller_axis_move);
+				vactivity->set_method_extern("void set_controller_key_state(controller_key_state_sync@)", &activity_set_controller_key_state);
+				vactivity->set_method_extern("void set_controller_state(controller_state_sync@)", &activity_set_controller_state);
+				vactivity->set_method_extern("void set_touch_move(touch_move_sync@)", &activity_set_touch_move);
+				vactivity->set_method_extern("void set_touch_state(touch_state_sync@)", &activity_set_touch_state);
+				vactivity->set_method_extern("void set_gesture_state(gesture_state_sync@)", &activity_set_gesture_state);
+				vactivity->set_method_extern("void set_multi_gesture_state(multi_gesture_state_sync@)", &activity_set_multi_gesture_state);
+				vactivity->set_method_extern("void set_drop_file(drop_file_sync@)", &activity_set_drop_file);
+				vactivity->set_method_extern("void set_drop_text(drop_text_sync@)", &activity_set_drop_text);
 				vactivity->set_method("void set_clipboard_text(const string_view&in)", &graphics::activity::set_clipboard_text);
 				vactivity->set_method<graphics::activity, void, const trigonometry::vector2&>("void set_cursor_position(const vector2 &in)", &graphics::activity::set_cursor_position);
 				vactivity->set_method<graphics::activity, void, float, float>("void set_cursor_position(float, float)", &graphics::activity::set_cursor_position);
@@ -3788,8 +3788,8 @@ namespace vitex
 
 				auto vhull_shape = vm->set_class<physics::hull_shape>("physics_hull_shape", false);
 				vhull_shape->set_method("uptr@ get_shape()", &physics::hull_shape::get_shape);
-				vhull_shape->set_method_ex("array<vertex>@ get_vertices()", &hull_shape_get_vertices);
-				vhull_shape->set_method_ex("array<int>@ get_indices()", &hull_shape_get_indices);
+				vhull_shape->set_method_extern("array<vertex>@ get_vertices()", &hull_shape_get_vertices);
+				vhull_shape->set_method_extern("array<int>@ get_indices()", &hull_shape_get_indices);
 
 				auto vrigid_body_desc = vm->set_pod<physics::rigid_body::desc>("physics_rigidbody_desc");
 				vrigid_body_desc->set_property<physics::rigid_body::desc>("uptr@ shape", &physics::rigid_body::desc::shape);
@@ -3881,7 +3881,7 @@ namespace vitex
 				vsoft_body_sconvex->set_property<physics::soft_body::desc::cv::sconvex>("bool enabled", &physics::soft_body::desc::cv::sconvex::enabled);
 				vsoft_body_sconvex->set_constructor<physics::soft_body::desc::cv::sconvex>("void f()");
 				vsoft_body_sconvex->set_operator_copy_static(&soft_body_sconvex_copy);
-				vsoft_body_sconvex->set_destructor_ex("void f()", &soft_body_sconvex_destructor);
+				vsoft_body_sconvex->set_destructor_extern("void f()", &soft_body_sconvex_destructor);
 
 				auto vsoft_body_srope = vm->set_pod<physics::soft_body::desc::cv::srope>("physics_softbody_desc_cv_srope");
 				vsoft_body_srope->set_property<physics::soft_body::desc::cv::srope>("bool start_fixed", &physics::soft_body::desc::cv::srope::start_fixed);
@@ -3974,8 +3974,8 @@ namespace vitex
 				vsoft_body->set_method("physics_softbody@ copy()", &physics::soft_body::copy);
 				vsoft_body->set_method("void activate(bool)", &physics::soft_body::activate);
 				vsoft_body->set_method("void synchronize(transform@+, bool)", &physics::soft_body::synchronize);
-				vsoft_body->set_method_ex("array<int32>@ get_indices() const", &soft_body_get_indices);
-				vsoft_body->set_method_ex("array<vertex>@ get_vertices() const", &soft_body_get_vertices);
+				vsoft_body->set_method_extern("array<int32>@ get_indices() const", &soft_body_get_indices);
+				vsoft_body->set_method_extern("array<vertex>@ get_vertices() const", &soft_body_get_vertices);
 				vsoft_body->set_method("void get_bounding_box(vector3 &out, vector3 &out) const", &physics::soft_body::get_bounding_box);
 				vsoft_body->set_method("void set_contact_stiffness_and_damping(float, float)", &physics::soft_body::set_contact_stiffness_and_damping);
 				vsoft_body->set_method<physics::soft_body, void, int, physics::rigid_body*, bool, float>("void add_anchor(int32, physics_rigidbody@+, bool = false, float = 1)", &physics::soft_body::add_anchor);
@@ -4372,16 +4372,16 @@ namespace vitex
 				vsimulator->set_method("uptr@ create_capsule(float = 1, float = 1)", &physics::simulator::create_capsule);
 				vsimulator->set_method("uptr@ create_cone(float = 1, float = 1)", &physics::simulator::create_cone);
 				vsimulator->set_method("uptr@ create_cylinder(const vector3 &in = vector3(1, 1, 1))", &physics::simulator::create_cylinder);
-				vsimulator->set_method_ex("uptr@ create_convex_hull(array<skin_vertex>@+)", &simulator_create_convex_hull_skin_vertex);
-				vsimulator->set_method_ex("uptr@ create_convex_hull(array<vertex>@+)", &simulator_create_convex_hull_vertex);
-				vsimulator->set_method_ex("uptr@ create_convex_hull(array<vector2>@+)", &simulator_create_convex_hull_vector2);
-				vsimulator->set_method_ex("uptr@ create_convex_hull(array<vector3>@+)", &simulator_create_convex_hull_vector3);
-				vsimulator->set_method_ex("uptr@ create_convex_hull(array<vector4>@+)", &simulator_create_convex_hull_vector4);
+				vsimulator->set_method_extern("uptr@ create_convex_hull(array<skin_vertex>@+)", &simulator_create_convex_hull_skin_vertex);
+				vsimulator->set_method_extern("uptr@ create_convex_hull(array<vertex>@+)", &simulator_create_convex_hull_vertex);
+				vsimulator->set_method_extern("uptr@ create_convex_hull(array<vector2>@+)", &simulator_create_convex_hull_vector2);
+				vsimulator->set_method_extern("uptr@ create_convex_hull(array<vector3>@+)", &simulator_create_convex_hull_vector3);
+				vsimulator->set_method_extern("uptr@ create_convex_hull(array<vector4>@+)", &simulator_create_convex_hull_vector4);
 				vsimulator->set_method<physics::simulator, btCollisionShape*, btCollisionShape*>("uptr@ create_convex_hull(uptr@)", &physics::simulator::create_convex_hull);
 				vsimulator->set_method("uptr@ try_clone_shape(uptr@)", &physics::simulator::try_clone_shape);
 				vsimulator->set_method("uptr@ reuse_shape(uptr@)", &physics::simulator::reuse_shape);
 				vsimulator->set_method("void free_shape(uptr@)", &physics::simulator::free_shape);
-				vsimulator->set_method_ex("array<vector3>@ get_shape_vertices(uptr@) const", &simulator_get_shape_vertices);
+				vsimulator->set_method_extern("array<vector3>@ get_shape_vertices(uptr@) const", &simulator_get_shape_vertices);
 				vsimulator->set_method("usize get_shape_vertices_count(uptr@) const", &physics::simulator::get_shape_vertices_count);
 				vsimulator->set_method("float get_max_displacement() const", &physics::simulator::get_max_displacement);
 				vsimulator->set_method("float get_air_density() const", &physics::simulator::get_air_density);
@@ -4779,8 +4779,8 @@ namespace vitex
 				vblend_state_desc->set_property<graphics::blend_state::desc>("bool alpha_to_coverage_enable", &graphics::blend_state::desc::alpha_to_coverage_enable);
 				vblend_state_desc->set_property<graphics::blend_state::desc>("bool independent_blend_enable", &graphics::blend_state::desc::independent_blend_enable);
 				vblend_state_desc->set_constructor<graphics::blend_state::desc>("void f()");
-				vblend_state_desc->set_operator_ex(operators::index, (uint32_t)position::left, "render_target_blend_state&", "usize", &blend_state_desc_get_render_target);
-				vblend_state_desc->set_operator_ex(operators::index, (uint32_t)position::constant, "const render_target_blend_state&", "usize", &blend_state_desc_get_render_target);
+				vblend_state_desc->set_operator_extern(operators::index_t, (uint32_t)position::left, "render_target_blend_state&", "usize", &blend_state_desc_get_render_target);
+				vblend_state_desc->set_operator_extern(operators::index_t, (uint32_t)position::constant, "const render_target_blend_state&", "usize", &blend_state_desc_get_render_target);
 
 				auto vblend_state = vm->set_class<graphics::blend_state>("blend_state", false);
 				vblend_state->set_method("uptr@ get_resource() const", &graphics::blend_state::get_resource);
@@ -4797,8 +4797,8 @@ namespace vitex
 				vsampler_state_desc->set_property<graphics::sampler_state::desc>("float min_lod", &graphics::sampler_state::desc::min_lod);
 				vsampler_state_desc->set_property<graphics::sampler_state::desc>("float max_lod", &graphics::sampler_state::desc::max_lod);
 				vsampler_state_desc->set_constructor<graphics::sampler_state::desc>("void f()");
-				vsampler_state_desc->set_operator_ex(operators::index, (uint32_t)position::left, "float&", "usize", &sampler_state_desc_get_border_color);
-				vsampler_state_desc->set_operator_ex(operators::index, (uint32_t)position::constant, "const float&", "usize", &sampler_state_desc_get_border_color);
+				vsampler_state_desc->set_operator_extern(operators::index_t, (uint32_t)position::left, "float&", "usize", &sampler_state_desc_get_border_color);
+				vsampler_state_desc->set_operator_extern(operators::index_t, (uint32_t)position::constant, "const float&", "usize", &sampler_state_desc_get_border_color);
 
 				auto vsampler_state = vm->set_class<graphics::sampler_state>("sampler_state", false);
 				vsampler_state->set_method("uptr@ get_resource() const", &graphics::sampler_state::get_resource);
@@ -4821,19 +4821,19 @@ namespace vitex
 				vinput_layout_desc->set_property<graphics::input_layout::desc>("shader@ source", &graphics::input_layout::desc::source);
 				vinput_layout_desc->set_constructor<graphics::input_layout::desc>("void f()");
 				vinput_layout_desc->set_operator_copy_static(&input_layout_desc_copy);
-				vinput_layout_desc->set_destructor_ex("void f()", &input_layout_desc_destructor);
-				vinput_layout_desc->set_method_ex("void set_attributes(array<input_layout_attribute>@+)", &input_layout_desc_set_attributes);
+				vinput_layout_desc->set_destructor_extern("void f()", &input_layout_desc_destructor);
+				vinput_layout_desc->set_method_extern("void set_attributes(array<input_layout_attribute>@+)", &input_layout_desc_set_attributes);
 
 				auto vinput_layout = vm->set_class<graphics::input_layout>("input_layout", false);
 				vinput_layout->set_method("uptr@ get_resource() const", &graphics::input_layout::get_resource);
-				vinput_layout->set_method_ex("array<input_layout_attribute>@ get_attributes() const", &input_layout_get_attributes);
+				vinput_layout->set_method_extern("array<input_layout_attribute>@ get_attributes() const", &input_layout_get_attributes);
 
 				auto vshader_desc = vm->set_struct_trivial<graphics::shader::desc>("shader_desc");
 				vshader_desc->set_property<graphics::shader::desc>("string filename", &graphics::shader::desc::filename);
 				vshader_desc->set_property<graphics::shader::desc>("string data", &graphics::shader::desc::data);
 				vshader_desc->set_property<graphics::shader::desc>("shader_type stage", &graphics::shader::desc::stage);
 				vshader_desc->set_constructor<graphics::shader::desc>("void f()");
-				vshader_desc->set_method_ex("void set_defines(array<input_layout_attribute>@+)", &shader_desc_set_defines);
+				vshader_desc->set_method_extern("void set_defines(array<input_layout_attribute>@+)", &shader_desc_set_defines);
 
 				auto velement_buffer_desc = vm->set_struct_trivial<graphics::element_buffer::desc>("element_buffer_desc");
 				velement_buffer_desc->set_property<graphics::element_buffer::desc>("uptr@ elements", &graphics::element_buffer::desc::elements);
@@ -4856,31 +4856,31 @@ namespace vitex
 				vmesh_buffer_desc->set_property<graphics::mesh_buffer::desc>("cpu_access access_flags", &graphics::mesh_buffer::desc::access_flags);
 				vmesh_buffer_desc->set_property<graphics::mesh_buffer::desc>("resource_usage usage", &graphics::mesh_buffer::desc::usage);
 				vmesh_buffer_desc->set_constructor<graphics::mesh_buffer::desc>("void f()");
-				vmesh_buffer_desc->set_method_ex("void set_elements(array<vertex>@+)", &mesh_buffer_desc_set_elements);
-				vmesh_buffer_desc->set_method_ex("void set_indices(array<int>@+)", &mesh_buffer_desc_set_indices);
+				vmesh_buffer_desc->set_method_extern("void set_elements(array<vertex>@+)", &mesh_buffer_desc_set_elements);
+				vmesh_buffer_desc->set_method_extern("void set_indices(array<int>@+)", &mesh_buffer_desc_set_indices);
 
 				auto vmesh_buffer = vm->set_class<graphics::mesh_buffer>("mesh_buffer", true);
 				vmesh_buffer->set_property<graphics::mesh_buffer>("matrix4x4 transform", &graphics::mesh_buffer::transform);
 				vmesh_buffer->set_property<graphics::mesh_buffer>("string name", &graphics::mesh_buffer::name);
 				vmesh_buffer->set_method("element_buffer@+ get_vertex_buffer() const", &graphics::mesh_buffer::get_vertex_buffer);
 				vmesh_buffer->set_method("element_buffer@+ get_index_buffer() const", &graphics::mesh_buffer::get_index_buffer);
-				vmesh_buffer->set_enum_refs_ex<graphics::mesh_buffer>([](graphics::mesh_buffer* base, asIScriptEngine* vm) { });
-				vmesh_buffer->set_release_refs_ex<graphics::mesh_buffer>([](graphics::mesh_buffer* base, asIScriptEngine*) { });
+				vmesh_buffer->set_enum_refs_extern<graphics::mesh_buffer>([](graphics::mesh_buffer* base, asIScriptEngine* vm) { });
+				vmesh_buffer->set_release_refs_extern<graphics::mesh_buffer>([](graphics::mesh_buffer* base, asIScriptEngine*) { });
 
 				auto vskin_mesh_buffer_desc = vm->set_struct_trivial<graphics::skin_mesh_buffer::desc>("skin_mesh_buffer_desc");
 				vskin_mesh_buffer_desc->set_property<graphics::skin_mesh_buffer::desc>("cpu_access access_flags", &graphics::skin_mesh_buffer::desc::access_flags);
 				vskin_mesh_buffer_desc->set_property<graphics::skin_mesh_buffer::desc>("resource_usage usage", &graphics::skin_mesh_buffer::desc::usage);
 				vskin_mesh_buffer_desc->set_constructor<graphics::skin_mesh_buffer::desc>("void f()");
-				vskin_mesh_buffer_desc->set_method_ex("void set_elements(array<vertex>@+)", &skin_mesh_buffer_desc_set_elements);
-				vskin_mesh_buffer_desc->set_method_ex("void set_indices(array<int>@+)", &skin_mesh_buffer_desc_set_indices);
+				vskin_mesh_buffer_desc->set_method_extern("void set_elements(array<vertex>@+)", &skin_mesh_buffer_desc_set_elements);
+				vskin_mesh_buffer_desc->set_method_extern("void set_indices(array<int>@+)", &skin_mesh_buffer_desc_set_indices);
 
 				auto vskin_mesh_buffer = vm->set_class<graphics::skin_mesh_buffer>("skin_mesh_buffer", true);
 				vskin_mesh_buffer->set_property<graphics::skin_mesh_buffer>("matrix4x4 transform", &graphics::skin_mesh_buffer::transform);
 				vskin_mesh_buffer->set_property<graphics::skin_mesh_buffer>("string name", &graphics::skin_mesh_buffer::name);
 				vskin_mesh_buffer->set_method("element_buffer@+ get_vertex_buffer() const", &graphics::skin_mesh_buffer::get_vertex_buffer);
 				vskin_mesh_buffer->set_method("element_buffer@+ get_index_buffer() const", &graphics::skin_mesh_buffer::get_index_buffer);
-				vskin_mesh_buffer->set_enum_refs_ex<graphics::skin_mesh_buffer>([](graphics::skin_mesh_buffer* base, asIScriptEngine* vm) { });
-				vskin_mesh_buffer->set_release_refs_ex<graphics::skin_mesh_buffer>([](graphics::skin_mesh_buffer* base, asIScriptEngine*) { });
+				vskin_mesh_buffer->set_enum_refs_extern<graphics::skin_mesh_buffer>([](graphics::skin_mesh_buffer* base, asIScriptEngine* vm) { });
+				vskin_mesh_buffer->set_release_refs_extern<graphics::skin_mesh_buffer>([](graphics::skin_mesh_buffer* base, asIScriptEngine*) { });
 
 				auto vgraphics_device = vm->set_class<graphics::graphics_device>("graphics_device", true);
 				auto vinstance_buffer_desc = vm->set_struct<graphics::instance_buffer::desc>("instance_buffer_desc");
@@ -4889,16 +4889,16 @@ namespace vitex
 				vinstance_buffer_desc->set_property<graphics::instance_buffer::desc>("uint32 element_limit", &graphics::instance_buffer::desc::element_limit);
 				vinstance_buffer_desc->set_constructor<graphics::instance_buffer::desc>("void f()");
 				vinstance_buffer_desc->set_operator_copy_static(&instance_buffer_desc_copy);
-				vinstance_buffer_desc->set_destructor_ex("void f()", &instance_buffer_desc_destructor);
+				vinstance_buffer_desc->set_destructor_extern("void f()", &instance_buffer_desc_destructor);
 
 				auto vinstance_buffer = vm->set_class<graphics::instance_buffer>("instance_buffer", true);
-				vinstance_buffer->set_method_ex("void set_array(array<element_vertex>@+)", &instance_buffer_set_array);
-				vinstance_buffer->set_method_ex("array<element_vertex>@ get_array() const", &instance_buffer_get_array);
+				vinstance_buffer->set_method_extern("void set_array(array<element_vertex>@+)", &instance_buffer_set_array);
+				vinstance_buffer->set_method_extern("array<element_vertex>@ get_array() const", &instance_buffer_get_array);
 				vinstance_buffer->set_method("element_buffer@+ get_elements() const", &graphics::instance_buffer::get_elements);
 				vinstance_buffer->set_method("graphics_device@+ get_device() const", &graphics::instance_buffer::get_device);
 				vinstance_buffer->set_method("usize get_element_limit() const", &graphics::instance_buffer::get_element_limit);
-				vinstance_buffer->set_enum_refs_ex<graphics::instance_buffer>([](graphics::instance_buffer* base, asIScriptEngine* vm) { });
-				vinstance_buffer->set_release_refs_ex<graphics::instance_buffer>([](graphics::instance_buffer* base, asIScriptEngine*) { });
+				vinstance_buffer->set_enum_refs_extern<graphics::instance_buffer>([](graphics::instance_buffer* base, asIScriptEngine* vm) { });
+				vinstance_buffer->set_release_refs_extern<graphics::instance_buffer>([](graphics::instance_buffer* base, asIScriptEngine*) { });
 
 				auto vtexture_2ddesc = vm->set_pod<graphics::texture_2d::desc>("texture_2d_desc");
 				vtexture_2ddesc->set_property<graphics::texture_2d::desc>("cpu_access access_flags", &graphics::texture_2d::desc::access_flags);
@@ -5047,7 +5047,7 @@ namespace vitex
 				vmulti_render_target_2ddesc->set_property<graphics::multi_render_target_2d::desc>("uint32 mip_levels", &graphics::multi_render_target_2d::desc::mip_levels);
 				vmulti_render_target_2ddesc->set_property<graphics::multi_render_target_2d::desc>("bool depth_stencil", &graphics::multi_render_target_2d::desc::depth_stencil);
 				vmulti_render_target_2ddesc->set_constructor<graphics::multi_render_target_2d::desc>("void f()");
-				vmulti_render_target_2ddesc->set_method_ex("void set_format_mode(usize, surface_format)", &multi_render_target_2ddesc_set_format_mode);
+				vmulti_render_target_2ddesc->set_method_extern("void set_format_mode(usize, surface_format)", &multi_render_target_2ddesc_set_format_mode);
 
 				auto vmulti_render_target_2d = vm->set_class<graphics::multi_render_target_2d>("multi_render_target_2d", false);
 				vmulti_render_target_2d->set_method("uptr@ get_target_buffer() const", &graphics::multi_render_target_2d::get_target_buffer);
@@ -5094,7 +5094,7 @@ namespace vitex
 				vmulti_render_target_cube_desc->set_property<graphics::multi_render_target_cube::desc>("uint32 mip_levels", &graphics::multi_render_target_cube::desc::mip_levels);
 				vmulti_render_target_cube_desc->set_property<graphics::multi_render_target_cube::desc>("bool depth_stencil", &graphics::multi_render_target_cube::desc::depth_stencil);
 				vmulti_render_target_cube_desc->set_constructor<graphics::multi_render_target_cube::desc>("void f()");
-				vmulti_render_target_cube_desc->set_method_ex("void set_format_mode(usize, surface_format)", &multi_render_target_cube_desc_set_format_mode);
+				vmulti_render_target_cube_desc->set_method_extern("void set_format_mode(usize, surface_format)", &multi_render_target_cube_desc_set_format_mode);
 
 				auto vmulti_render_target_cube = vm->set_class<graphics::multi_render_target_cube>("multi_render_target_cube", false);
 				vmulti_render_target_cube->set_method("uptr@ get_target_buffer() const", &graphics::multi_render_target_cube::get_target_buffer);
@@ -5115,7 +5115,7 @@ namespace vitex
 				vcubemap_desc->set_property<graphics::cubemap::desc>("uint32 mip_levels", &graphics::cubemap::desc::mip_levels);
 				vcubemap_desc->set_constructor<graphics::cubemap::desc>("void f()");
 				vcubemap_desc->set_operator_copy_static(&cubemap_desc_copy);
-				vcubemap_desc->set_destructor_ex("void f()", &cubemap_desc_destructor);
+				vcubemap_desc->set_destructor_extern("void f()", &cubemap_desc_destructor);
 
 				auto vcubemap = vm->set_class<graphics::cubemap>("cubemap", false);
 				vcubemap->set_method("bool is_valid() const", &graphics::cubemap::is_valid);
@@ -5146,7 +5146,7 @@ namespace vitex
 				vgraphics_device_desc->set_property<graphics::graphics_device::desc>("activity@ window", &graphics::graphics_device::desc::window);
 				vgraphics_device_desc->set_constructor<graphics::graphics_device::desc>("void f()");
 				vgraphics_device_desc->set_operator_copy_static(&graphics_device_desc_copy);
-				vgraphics_device_desc->set_destructor_ex("void f()", &graphics_device_desc_destructor);
+				vgraphics_device_desc->set_destructor_extern("void f()", &graphics_device_desc_destructor);
 
 				vgraphics_device->set_method("void set_as_current_device()", &graphics::graphics_device::set_as_current_device);
 				vgraphics_device->set_method("void set_shader_model(shader_model)", &graphics::graphics_device::set_shader_model);
@@ -5154,7 +5154,7 @@ namespace vitex
 				vgraphics_device->set_method("void set_rasterizer_state(rasterizer_state@+)", &graphics::graphics_device::set_rasterizer_state);
 				vgraphics_device->set_method("void set_depth_stencil_state(depth_stencil_state@+)", &graphics::graphics_device::set_depth_stencil_state);
 				vgraphics_device->set_method("void set_input_layout(input_layout@+)", &graphics::graphics_device::set_input_layout);
-				vgraphics_device->set_method_ex("bool set_shader(shader@+, uint32)", &VI_EXPECTIFY_VOID(graphics::graphics_device::set_shader));
+				vgraphics_device->set_method_extern("bool set_shader(shader@+, uint32)", &VI_EXPECTIFY_VOID(graphics::graphics_device::set_shader));
 				vgraphics_device->set_method("void set_sampler_state(sampler_state@+, uint32, uint32, uint32)", &graphics::graphics_device::set_sampler_state);
 				vgraphics_device->set_method<graphics::graphics_device, void, graphics::shader*, uint32_t, uint32_t>("void set_buffer(shader@+, uint32, uint32)", &graphics::graphics_device::set_buffer);
 				vgraphics_device->set_method<graphics::graphics_device, void, graphics::instance_buffer*, uint32_t, uint32_t>("void set_buffer(instance_buffer@+, uint32, uint32)", &graphics::graphics_device::set_buffer);
@@ -5164,11 +5164,11 @@ namespace vitex
 				vgraphics_device->set_method("void set_texture_3d(texture_3d@+, uint32, uint32)", &graphics::graphics_device::set_texture_3d);
 				vgraphics_device->set_method("void set_texture_cube(texture_cube@+, uint32, uint32)", &graphics::graphics_device::set_texture_cube);
 				vgraphics_device->set_method("void set_index_buffer(element_buffer@+, surface_format)", &graphics::graphics_device::set_index_buffer);
-				vgraphics_device->set_method_ex("void set_vertex_buffers(array<element_buffer@>@+, bool = false)", &graphics_device_set_vertex_buffers);
-				vgraphics_device->set_method_ex("void set_writeable(array<element_buffer@>@+, uint32, uint32, bool)", &graphics_device_set_writeable1);
-				vgraphics_device->set_method_ex("void set_writeable(array<texture_2d@>@+, uint32, uint32, bool)", &graphics_device_set_writeable2);
-				vgraphics_device->set_method_ex("void set_writeable(array<texture_3d@>@+, uint32, uint32, bool)", &graphics_device_set_writeable3);
-				vgraphics_device->set_method_ex("void set_writeable(array<texture_cube@>@+, uint32, uint32, bool)", &graphics_device_set_writeable4);
+				vgraphics_device->set_method_extern("void set_vertex_buffers(array<element_buffer@>@+, bool = false)", &graphics_device_set_vertex_buffers);
+				vgraphics_device->set_method_extern("void set_writeable(array<element_buffer@>@+, uint32, uint32, bool)", &graphics_device_set_writeable1);
+				vgraphics_device->set_method_extern("void set_writeable(array<texture_2d@>@+, uint32, uint32, bool)", &graphics_device_set_writeable2);
+				vgraphics_device->set_method_extern("void set_writeable(array<texture_3d@>@+, uint32, uint32, bool)", &graphics_device_set_writeable3);
+				vgraphics_device->set_method_extern("void set_writeable(array<texture_cube@>@+, uint32, uint32, bool)", &graphics_device_set_writeable4);
 				vgraphics_device->set_method<graphics::graphics_device, void, float, float, float>("void set_target(float, float, float)", &graphics::graphics_device::set_target);
 				vgraphics_device->set_method<graphics::graphics_device, void>("void set_target()", &graphics::graphics_device::set_target);
 				vgraphics_device->set_method<graphics::graphics_device, void, graphics::depth_target_2d*>("void set_target(depth_target_2d@+)", &graphics::graphics_device::set_target);
@@ -5177,29 +5177,29 @@ namespace vitex
 				vgraphics_device->set_method<graphics::graphics_device, void, graphics::render_target*, uint32_t>("void set_target(render_target@+, uint32)", &graphics::graphics_device::set_target);
 				vgraphics_device->set_method<graphics::graphics_device, void, graphics::render_target*, float, float, float>("void set_target(render_target@+, float, float, float)", &graphics::graphics_device::set_target);
 				vgraphics_device->set_method<graphics::graphics_device, void, graphics::render_target*>("void set_target(render_target@+)", &graphics::graphics_device::set_target);
-				vgraphics_device->set_method_ex("void set_target_map(render_target@+, array<bool>@+)", &graphics_device_set_target_map);
+				vgraphics_device->set_method_extern("void set_target_map(render_target@+, array<bool>@+)", &graphics_device_set_target_map);
 				vgraphics_device->set_method("void set_target_rect(uint32, uint32)", &graphics::graphics_device::set_target_rect);
-				vgraphics_device->set_method_ex("void set_viewports(array<viewport>@+)", &graphics_device_set_viewports);
-				vgraphics_device->set_method_ex("void set_scissor_rects(array<rectangle>@+)", &graphics_device_set_scissor_rects);
+				vgraphics_device->set_method_extern("void set_viewports(array<viewport>@+)", &graphics_device_set_viewports);
+				vgraphics_device->set_method_extern("void set_scissor_rects(array<rectangle>@+)", &graphics_device_set_scissor_rects);
 				vgraphics_device->set_method("void set_primitive_topology(primitive_topology)", &graphics::graphics_device::set_primitive_topology);
 				vgraphics_device->set_method("void flush_texture(uint32, uint32, uint32)", &graphics::graphics_device::flush_texture);
 				vgraphics_device->set_method("void flush_state()", &graphics::graphics_device::flush_state);
-				vgraphics_device->set_method_ex("bool map(element_buffer@+, resource_map, mapped_subresource &out)", &graphics_device_map1);
-				vgraphics_device->set_method_ex("bool map(texture_2d@+, resource_map, mapped_subresource &out)", &graphics_device_map2);
-				vgraphics_device->set_method_ex("bool map(texture_3d@+, resource_map, mapped_subresource &out)", &graphics_device_map3);
-				vgraphics_device->set_method_ex("bool map(texture_cube@+, resource_map, mapped_subresource &out)", &graphics_device_map4);
-				vgraphics_device->set_method_ex("bool unmap(texture_2d@+, mapped_subresource &in)", &graphics_device_unmap1);
-				vgraphics_device->set_method_ex("bool unmap(texture_3d@+, mapped_subresource &in)", &graphics_device_unmap2);
-				vgraphics_device->set_method_ex("bool unmap(texture_cube@+, mapped_subresource &in)", &graphics_device_unmap3);
-				vgraphics_device->set_method_ex("bool unmap(element_buffer@+, mapped_subresource &in)", &graphics_device_unmap4);
-				vgraphics_device->set_method_ex("bool update_constant_buffer(element_buffer@+, uptr@, usize)", &graphics_device_update_constant_buffer);
-				vgraphics_device->set_method_ex("bool update_buffer(element_buffer@+, uptr@, usize)", &graphics_device_update_buffer1);
-				vgraphics_device->set_method_ex("bool update_buffer(shader@+, uptr@)", &graphics_device_update_buffer2);
-				vgraphics_device->set_method_ex("bool update_buffer(mesh_buffer@+, uptr@)", &graphics_device_update_buffer3);
-				vgraphics_device->set_method_ex("bool update_buffer(skin_mesh_buffer@+, uptr@)", &graphics_device_update_buffer4);
-				vgraphics_device->set_method_ex("bool update_buffer(instance_buffer@+)", &graphics_device_update_buffer5);
-				vgraphics_device->set_method_ex("bool update_buffer_size(shader@+, usize)", &graphics_device_update_buffer_size1);
-				vgraphics_device->set_method_ex("bool update_buffer_size(instance_buffer@+, usize)", &graphics_device_update_buffer_size2);
+				vgraphics_device->set_method_extern("bool map(element_buffer@+, resource_map, mapped_subresource &out)", &graphics_device_map1);
+				vgraphics_device->set_method_extern("bool map(texture_2d@+, resource_map, mapped_subresource &out)", &graphics_device_map2);
+				vgraphics_device->set_method_extern("bool map(texture_3d@+, resource_map, mapped_subresource &out)", &graphics_device_map3);
+				vgraphics_device->set_method_extern("bool map(texture_cube@+, resource_map, mapped_subresource &out)", &graphics_device_map4);
+				vgraphics_device->set_method_extern("bool unmap(texture_2d@+, mapped_subresource &in)", &graphics_device_unmap1);
+				vgraphics_device->set_method_extern("bool unmap(texture_3d@+, mapped_subresource &in)", &graphics_device_unmap2);
+				vgraphics_device->set_method_extern("bool unmap(texture_cube@+, mapped_subresource &in)", &graphics_device_unmap3);
+				vgraphics_device->set_method_extern("bool unmap(element_buffer@+, mapped_subresource &in)", &graphics_device_unmap4);
+				vgraphics_device->set_method_extern("bool update_constant_buffer(element_buffer@+, uptr@, usize)", &graphics_device_update_constant_buffer);
+				vgraphics_device->set_method_extern("bool update_buffer(element_buffer@+, uptr@, usize)", &graphics_device_update_buffer1);
+				vgraphics_device->set_method_extern("bool update_buffer(shader@+, uptr@)", &graphics_device_update_buffer2);
+				vgraphics_device->set_method_extern("bool update_buffer(mesh_buffer@+, uptr@)", &graphics_device_update_buffer3);
+				vgraphics_device->set_method_extern("bool update_buffer(skin_mesh_buffer@+, uptr@)", &graphics_device_update_buffer4);
+				vgraphics_device->set_method_extern("bool update_buffer(instance_buffer@+)", &graphics_device_update_buffer5);
+				vgraphics_device->set_method_extern("bool update_buffer_size(shader@+, usize)", &graphics_device_update_buffer_size1);
+				vgraphics_device->set_method_extern("bool update_buffer_size(instance_buffer@+, usize)", &graphics_device_update_buffer_size2);
 				vgraphics_device->set_method("void clear_buffer(instance_buffer@+)", &graphics::graphics_device::clear_buffer);
 				vgraphics_device->set_method<graphics::graphics_device, void, graphics::texture_2d*>("void clear_writable(texture_2d@+)", &graphics::graphics_device::clear_writable);
 				vgraphics_device->set_method<graphics::graphics_device, void, graphics::texture_2d*, float, float, float>("void clear_writable(texture_2d@+, float, float, float)", &graphics::graphics_device::clear_writable);
@@ -5222,26 +5222,26 @@ namespace vitex
 				vgraphics_device->set_method("void draw(uint32, uint32)", &graphics::graphics_device::draw);
 				vgraphics_device->set_method("void draw_instanced(uint32, uint32, uint32, uint32)", &graphics::graphics_device::draw_instanced);
 				vgraphics_device->set_method("void dispatch(uint32, uint32, uint32)", &graphics::graphics_device::dispatch);
-				vgraphics_device->set_method_ex("texture_2d@ copy_texture_2d(texture_2d@+)", &graphics_device_copy_texture_2d1);
-				vgraphics_device->set_method_ex("texture_2d@ copy_texture_2d(render_target@+, uint32)", &graphics_device_copy_texture_2d2);
-				vgraphics_device->set_method_ex("texture_2d@ copy_texture_2d(render_target_cube@+, cube_face)", &graphics_device_copy_texture_2d3);
-				vgraphics_device->set_method_ex("texture_2d@ copy_texture_2d(multi_render_target_cube@+, uint32, cube_face)", &graphics_device_copy_texture_2d4);
-				vgraphics_device->set_method_ex("texture_cube@ copy_texture_cube(render_target_cube@+)", &graphics_device_copy_texture_cube1);
-				vgraphics_device->set_method_ex("texture_cube@ copy_texture_cube(multi_render_target_cube@+, uint32)", &graphics_device_copy_texture_cube2);
-				vgraphics_device->set_method_ex("bool copy_target(render_target@+, uint32, render_target@+, uint32)", &VI_EXPECTIFY_VOID(graphics::graphics_device::copy_target));
-				vgraphics_device->set_method_ex("texture_2d@ copy_back_buffer()", &graphics_device_copy_back_buffer);
-				vgraphics_device->set_method_ex("bool cubemap_push(cubemap@+, texture_cube@+)", &VI_EXPECTIFY_VOID(graphics::graphics_device::cubemap_push));
-				vgraphics_device->set_method_ex("bool cubemap_face(cubemap@+, cube_face)", &VI_EXPECTIFY_VOID(graphics::graphics_device::cubemap_face));
-				vgraphics_device->set_method_ex("bool cubemap_pop(cubemap@+)", &VI_EXPECTIFY_VOID(graphics::graphics_device::cubemap_pop));
-				vgraphics_device->set_method_ex("array<viewport>@ get_viewports()", &graphics_device_get_viewports);
-				vgraphics_device->set_method_ex("array<rectangle>@ get_scissor_rects()", &graphics_device_get_scissor_rects);
-				vgraphics_device->set_method_ex("bool rescale_buffers(uint32, uint32)", &VI_EXPECTIFY_VOID(graphics::graphics_device::rescale_buffers));
-				vgraphics_device->set_method_ex("bool resize_buffers(uint32, uint32)", &VI_EXPECTIFY_VOID(graphics::graphics_device::resize_buffers));
-				vgraphics_device->set_method_ex("bool generate_texture(texture_2d@+)", &graphics_device_generate_texture1);
-				vgraphics_device->set_method_ex("bool generate_texture(texture_3d@+)", &graphics_device_generate_texture2);
-				vgraphics_device->set_method_ex("bool generate_texture(texture_cube@+)", &graphics_device_generate_texture3);
-				vgraphics_device->set_method_ex("bool get_query_data(visibility_query@+, usize &out, bool = true)", &graphics_device_get_query_data1);
-				vgraphics_device->set_method_ex("bool get_query_data(visibility_query@+, bool &out, bool = true)", &graphics_device_get_query_data2);
+				vgraphics_device->set_method_extern("texture_2d@ copy_texture_2d(texture_2d@+)", &graphics_device_copy_texture_2d1);
+				vgraphics_device->set_method_extern("texture_2d@ copy_texture_2d(render_target@+, uint32)", &graphics_device_copy_texture_2d2);
+				vgraphics_device->set_method_extern("texture_2d@ copy_texture_2d(render_target_cube@+, cube_face)", &graphics_device_copy_texture_2d3);
+				vgraphics_device->set_method_extern("texture_2d@ copy_texture_2d(multi_render_target_cube@+, uint32, cube_face)", &graphics_device_copy_texture_2d4);
+				vgraphics_device->set_method_extern("texture_cube@ copy_texture_cube(render_target_cube@+)", &graphics_device_copy_texture_cube1);
+				vgraphics_device->set_method_extern("texture_cube@ copy_texture_cube(multi_render_target_cube@+, uint32)", &graphics_device_copy_texture_cube2);
+				vgraphics_device->set_method_extern("bool copy_target(render_target@+, uint32, render_target@+, uint32)", &VI_EXPECTIFY_VOID(graphics::graphics_device::copy_target));
+				vgraphics_device->set_method_extern("texture_2d@ copy_back_buffer()", &graphics_device_copy_back_buffer);
+				vgraphics_device->set_method_extern("bool cubemap_push(cubemap@+, texture_cube@+)", &VI_EXPECTIFY_VOID(graphics::graphics_device::cubemap_push));
+				vgraphics_device->set_method_extern("bool cubemap_face(cubemap@+, cube_face)", &VI_EXPECTIFY_VOID(graphics::graphics_device::cubemap_face));
+				vgraphics_device->set_method_extern("bool cubemap_pop(cubemap@+)", &VI_EXPECTIFY_VOID(graphics::graphics_device::cubemap_pop));
+				vgraphics_device->set_method_extern("array<viewport>@ get_viewports()", &graphics_device_get_viewports);
+				vgraphics_device->set_method_extern("array<rectangle>@ get_scissor_rects()", &graphics_device_get_scissor_rects);
+				vgraphics_device->set_method_extern("bool rescale_buffers(uint32, uint32)", &VI_EXPECTIFY_VOID(graphics::graphics_device::rescale_buffers));
+				vgraphics_device->set_method_extern("bool resize_buffers(uint32, uint32)", &VI_EXPECTIFY_VOID(graphics::graphics_device::resize_buffers));
+				vgraphics_device->set_method_extern("bool generate_texture(texture_2d@+)", &graphics_device_generate_texture1);
+				vgraphics_device->set_method_extern("bool generate_texture(texture_3d@+)", &graphics_device_generate_texture2);
+				vgraphics_device->set_method_extern("bool generate_texture(texture_cube@+)", &graphics_device_generate_texture3);
+				vgraphics_device->set_method_extern("bool get_query_data(visibility_query@+, usize &out, bool = true)", &graphics_device_get_query_data1);
+				vgraphics_device->set_method_extern("bool get_query_data(visibility_query@+, bool &out, bool = true)", &graphics_device_get_query_data2);
 				vgraphics_device->set_method("void get_shader_slot(shader@+, const string_view&in)", &graphics::graphics_device::get_shader_slot);
 				vgraphics_device->set_method("void get_shader_sampler_slot(shader@+, const string_view&in, const string_view&in)", &graphics::graphics_device::get_shader_sampler_slot);
 				vgraphics_device->set_method("void query_begin(visibility_query@+)", &graphics::graphics_device::query_begin);
@@ -5260,36 +5260,36 @@ namespace vitex
 				vgraphics_device->set_method("void im_texcoord_offset(float, float)", &graphics::graphics_device::im_texcoord_offset);
 				vgraphics_device->set_method("void im_position(float, float, float)", &graphics::graphics_device::im_position);
 				vgraphics_device->set_method("bool im_end()", &graphics::graphics_device::im_end);
-				vgraphics_device->set_method_ex("bool submit()", &VI_EXPECTIFY_VOID(graphics::graphics_device::submit));
-				vgraphics_device->set_method_ex("depth_stencil_state@ create_depth_stencil_state(const depth_stencil_state_desc &in)", &VI_EXPECTIFY(graphics::graphics_device::create_depth_stencil_state));
-				vgraphics_device->set_method_ex("blend_state@ create_blend_state(const blend_state_desc &in)", &VI_EXPECTIFY(graphics::graphics_device::create_blend_state));
-				vgraphics_device->set_method_ex("rasterizer_state@ create_rasterizer_state(const rasterizer_state_desc &in)", &VI_EXPECTIFY(graphics::graphics_device::create_rasterizer_state));
-				vgraphics_device->set_method_ex("sampler_state@ create_sampler_state(const sampler_state_desc &in)", &VI_EXPECTIFY(graphics::graphics_device::create_sampler_state));
-				vgraphics_device->set_method_ex("input_layout@ create_input_layout(const input_layout_desc &in)", &VI_EXPECTIFY(graphics::graphics_device::create_input_layout));
-				vgraphics_device->set_method_ex("shader@ create_shader(const shader_desc &in)", &VI_EXPECTIFY(graphics::graphics_device::create_shader));
-				vgraphics_device->set_method_ex("element_buffer@ create_element_buffer(const element_buffer_desc &in)", &VI_EXPECTIFY(graphics::graphics_device::create_element_buffer));
-				vgraphics_device->set_method_ex("mesh_buffer@ create_mesh_buffer(const mesh_buffer_desc &in)", &graphics_device_create_mesh_buffer1);
-				vgraphics_device->set_method_ex("mesh_buffer@ create_mesh_buffer(element_buffer@+, element_buffer@+)", &graphics_device_create_mesh_buffer2);
-				vgraphics_device->set_method_ex("skin_mesh_buffer@ create_skin_mesh_buffer(const skin_mesh_buffer_desc &in)", &graphics_device_create_skin_mesh_buffer1);
-				vgraphics_device->set_method_ex("skin_mesh_buffer@ create_skin_mesh_buffer(element_buffer@+, element_buffer@+)", &graphics_device_create_skin_mesh_buffer2);
-				vgraphics_device->set_method_ex("instance_buffer@ create_instance_buffer(const instance_buffer_desc &in)", &graphics_device_create_instance_buffer);
-				vgraphics_device->set_method_ex("texture_2d@ create_texture_2d()", &graphics_device_create_texture_2d1);
-				vgraphics_device->set_method_ex("texture_2d@ create_texture_2d(const texture_2d_desc &in)", &graphics_device_create_texture_2d2);
-				vgraphics_device->set_method_ex("texture_3d@ create_texture_3d()", &graphics_device_create_texture_3d1);
-				vgraphics_device->set_method_ex("texture_3d@ create_texture_3d(const texture_3d_desc &in)", &graphics_device_create_texture_3d2);
-				vgraphics_device->set_method_ex("texture_cube@ create_texture_cube()", &graphics_device_create_texture_cube1);
-				vgraphics_device->set_method_ex("texture_cube@ create_texture_cube(const texture_cube_desc &in)", &graphics_device_create_texture_cube2);
-				vgraphics_device->set_method_ex("texture_cube@ create_texture_cube(array<texture_2d@>@+)", &graphics_device_create_texture_cube3);
-				vgraphics_device->set_method_ex("texture_cube@ create_texture_cube(texture_2d@+)", &graphics_device_create_texture_cube4);
-				vgraphics_device->set_method_ex("depth_target_2d@ create_depth_target_2d(const depth_target_2d_desc &in)", &VI_EXPECTIFY(graphics::graphics_device::create_depth_target_2d));
-				vgraphics_device->set_method_ex("depth_target_cube@ create_depth_target_cube(const depth_target_cube_desc &in)", &VI_EXPECTIFY(graphics::graphics_device::create_depth_target_cube));
-				vgraphics_device->set_method_ex("render_target_2d@ create_render_target_2d(const render_target_2d_desc &in)", &VI_EXPECTIFY(graphics::graphics_device::create_render_target_2d));
-				vgraphics_device->set_method_ex("multi_render_target_2d@ create_multi_render_target_2d(const multi_render_target_2d_desc &in)", &VI_EXPECTIFY(graphics::graphics_device::create_multi_render_target_2d));
-				vgraphics_device->set_method_ex("render_target_cube@ create_render_target_cube(const render_target_cube_desc &in)", &VI_EXPECTIFY(graphics::graphics_device::create_render_target_cube));
-				vgraphics_device->set_method_ex("multi_render_target_cube@ create_multi_render_target_cube(const multi_render_target_cube_desc &in)", &VI_EXPECTIFY(graphics::graphics_device::create_multi_render_target_cube));
-				vgraphics_device->set_method_ex("cubemap@ create_cubemap(const cubemap_desc &in)", &VI_EXPECTIFY(graphics::graphics_device::create_cubemap));
-				vgraphics_device->set_method_ex("visibility_query@ create_query(const visibility_query_desc &in)", &VI_EXPECTIFY(graphics::graphics_device::create_query));
-				vgraphics_device->set_method_ex("activity_surface@ create_surface(texture_2d@+)", &VI_EXPECTIFY(graphics::graphics_device::create_surface));
+				vgraphics_device->set_method_extern("bool submit()", &VI_EXPECTIFY_VOID(graphics::graphics_device::submit));
+				vgraphics_device->set_method_extern("depth_stencil_state@ create_depth_stencil_state(const depth_stencil_state_desc &in)", &VI_EXPECTIFY(graphics::graphics_device::create_depth_stencil_state));
+				vgraphics_device->set_method_extern("blend_state@ create_blend_state(const blend_state_desc &in)", &VI_EXPECTIFY(graphics::graphics_device::create_blend_state));
+				vgraphics_device->set_method_extern("rasterizer_state@ create_rasterizer_state(const rasterizer_state_desc &in)", &VI_EXPECTIFY(graphics::graphics_device::create_rasterizer_state));
+				vgraphics_device->set_method_extern("sampler_state@ create_sampler_state(const sampler_state_desc &in)", &VI_EXPECTIFY(graphics::graphics_device::create_sampler_state));
+				vgraphics_device->set_method_extern("input_layout@ create_input_layout(const input_layout_desc &in)", &VI_EXPECTIFY(graphics::graphics_device::create_input_layout));
+				vgraphics_device->set_method_extern("shader@ create_shader(const shader_desc &in)", &VI_EXPECTIFY(graphics::graphics_device::create_shader));
+				vgraphics_device->set_method_extern("element_buffer@ create_element_buffer(const element_buffer_desc &in)", &VI_EXPECTIFY(graphics::graphics_device::create_element_buffer));
+				vgraphics_device->set_method_extern("mesh_buffer@ create_mesh_buffer(const mesh_buffer_desc &in)", &graphics_device_create_mesh_buffer1);
+				vgraphics_device->set_method_extern("mesh_buffer@ create_mesh_buffer(element_buffer@+, element_buffer@+)", &graphics_device_create_mesh_buffer2);
+				vgraphics_device->set_method_extern("skin_mesh_buffer@ create_skin_mesh_buffer(const skin_mesh_buffer_desc &in)", &graphics_device_create_skin_mesh_buffer1);
+				vgraphics_device->set_method_extern("skin_mesh_buffer@ create_skin_mesh_buffer(element_buffer@+, element_buffer@+)", &graphics_device_create_skin_mesh_buffer2);
+				vgraphics_device->set_method_extern("instance_buffer@ create_instance_buffer(const instance_buffer_desc &in)", &graphics_device_create_instance_buffer);
+				vgraphics_device->set_method_extern("texture_2d@ create_texture_2d()", &graphics_device_create_texture_2d1);
+				vgraphics_device->set_method_extern("texture_2d@ create_texture_2d(const texture_2d_desc &in)", &graphics_device_create_texture_2d2);
+				vgraphics_device->set_method_extern("texture_3d@ create_texture_3d()", &graphics_device_create_texture_3d1);
+				vgraphics_device->set_method_extern("texture_3d@ create_texture_3d(const texture_3d_desc &in)", &graphics_device_create_texture_3d2);
+				vgraphics_device->set_method_extern("texture_cube@ create_texture_cube()", &graphics_device_create_texture_cube1);
+				vgraphics_device->set_method_extern("texture_cube@ create_texture_cube(const texture_cube_desc &in)", &graphics_device_create_texture_cube2);
+				vgraphics_device->set_method_extern("texture_cube@ create_texture_cube(array<texture_2d@>@+)", &graphics_device_create_texture_cube3);
+				vgraphics_device->set_method_extern("texture_cube@ create_texture_cube(texture_2d@+)", &graphics_device_create_texture_cube4);
+				vgraphics_device->set_method_extern("depth_target_2d@ create_depth_target_2d(const depth_target_2d_desc &in)", &VI_EXPECTIFY(graphics::graphics_device::create_depth_target_2d));
+				vgraphics_device->set_method_extern("depth_target_cube@ create_depth_target_cube(const depth_target_cube_desc &in)", &VI_EXPECTIFY(graphics::graphics_device::create_depth_target_cube));
+				vgraphics_device->set_method_extern("render_target_2d@ create_render_target_2d(const render_target_2d_desc &in)", &VI_EXPECTIFY(graphics::graphics_device::create_render_target_2d));
+				vgraphics_device->set_method_extern("multi_render_target_2d@ create_multi_render_target_2d(const multi_render_target_2d_desc &in)", &VI_EXPECTIFY(graphics::graphics_device::create_multi_render_target_2d));
+				vgraphics_device->set_method_extern("render_target_cube@ create_render_target_cube(const render_target_cube_desc &in)", &VI_EXPECTIFY(graphics::graphics_device::create_render_target_cube));
+				vgraphics_device->set_method_extern("multi_render_target_cube@ create_multi_render_target_cube(const multi_render_target_cube_desc &in)", &VI_EXPECTIFY(graphics::graphics_device::create_multi_render_target_cube));
+				vgraphics_device->set_method_extern("cubemap@ create_cubemap(const cubemap_desc &in)", &VI_EXPECTIFY(graphics::graphics_device::create_cubemap));
+				vgraphics_device->set_method_extern("visibility_query@ create_query(const visibility_query_desc &in)", &VI_EXPECTIFY(graphics::graphics_device::create_query));
+				vgraphics_device->set_method_extern("activity_surface@ create_surface(texture_2d@+)", &VI_EXPECTIFY(graphics::graphics_device::create_surface));
 				vgraphics_device->set_method("primitive_topology get_primitive_topology() const", &graphics::graphics_device::get_primitive_topology);
 				vgraphics_device->set_method("shader_model get_supported_shader_model()  const", &graphics::graphics_device::get_supported_shader_model);
 				vgraphics_device->set_method("uptr@ get_device() const", &graphics::graphics_device::get_device);
@@ -5317,13 +5317,13 @@ namespace vitex
 				vgraphics_device->set_method("uint32 get_present_flags() const", &graphics::graphics_device::get_present_flags);
 				vgraphics_device->set_method("uint32 get_compile_flags() const", &graphics::graphics_device::get_compile_flags);
 				vgraphics_device->set_method("uint32 get_mip_level(uint32, uint32) const", &graphics::graphics_device::get_mip_level);
-				vgraphics_device->set_method_ex("string get_program_name(const shader_desc &in) const", &VI_OPTIONIFY(graphics::graphics_device::get_program_name));
+				vgraphics_device->set_method_extern("string get_program_name(const shader_desc &in) const", &VI_OPTIONIFY(graphics::graphics_device::get_program_name));
 				vgraphics_device->set_method("vsync get_vsync_mode() const", &graphics::graphics_device::get_vsync_mode);
 				vgraphics_device->set_method("bool is_debug() const", &graphics::graphics_device::is_debug);
 				vgraphics_device->set_method_static("graphics_device@ create(graphics_device_desc &in)", &graphics_device_create);
 				vgraphics_device->set_method_static("void compile_buildin_shaders(array<graphics_device@>@+)", &graphics_device_compile_builtin_shaders);
-				vgraphics_device->set_enum_refs_ex<graphics::graphics_device>([](graphics::graphics_device* base, asIScriptEngine* vm) { });
-				vgraphics_device->set_release_refs_ex<graphics::graphics_device>([](graphics::graphics_device* base, asIScriptEngine*) { });
+				vgraphics_device->set_enum_refs_extern<graphics::graphics_device>([](graphics::graphics_device* base, asIScriptEngine* vm) { });
+				vgraphics_device->set_release_refs_extern<graphics::graphics_device>([](graphics::graphics_device* base, asIScriptEngine*) { });
 
 				vrender_target->set_dynamic_cast<graphics::render_target, graphics::render_target_2d>("render_target_2d@+");
 				vrender_target->set_dynamic_cast<graphics::render_target, graphics::render_target_cube>("render_target_cube@+");
@@ -5469,45 +5469,45 @@ namespace vitex
 
 				vaudio_source->set_gc_constructor<audio::audio_source, audio_source>("audio_source@ f()");
 				vaudio_source->set_method("int64 add_effect(base_audio_effect@+)", &audio::audio_source::add_effect);
-				vaudio_source->set_method_ex("bool remove_effect(usize)", &VI_EXPECTIFY_VOID(audio::audio_source::remove_effect));
-				vaudio_source->set_method_ex("bool remove_effect_by_id(uint64)", &VI_EXPECTIFY_VOID(audio::audio_source::remove_effect_by_id));
-				vaudio_source->set_method_ex("bool set_clip(audio_clip@+)", &VI_EXPECTIFY_VOID(audio::audio_source::set_clip));
-				vaudio_source->set_method_ex("bool synchronize(audio_sync &in, const vector3 &in)", &VI_EXPECTIFY_VOID(audio::audio_source::synchronize));
-				vaudio_source->set_method_ex("bool reset()", &VI_EXPECTIFY_VOID(audio::audio_source::reset));
-				vaudio_source->set_method_ex("bool pause()", &VI_EXPECTIFY_VOID(audio::audio_source::pause));
-				vaudio_source->set_method_ex("bool play()", &VI_EXPECTIFY_VOID(audio::audio_source::play));
-				vaudio_source->set_method_ex("bool stop()", &VI_EXPECTIFY_VOID(audio::audio_source::stop));
+				vaudio_source->set_method_extern("bool remove_effect(usize)", &VI_EXPECTIFY_VOID(audio::audio_source::remove_effect));
+				vaudio_source->set_method_extern("bool remove_effect_by_id(uint64)", &VI_EXPECTIFY_VOID(audio::audio_source::remove_effect_by_id));
+				vaudio_source->set_method_extern("bool set_clip(audio_clip@+)", &VI_EXPECTIFY_VOID(audio::audio_source::set_clip));
+				vaudio_source->set_method_extern("bool synchronize(audio_sync &in, const vector3 &in)", &VI_EXPECTIFY_VOID(audio::audio_source::synchronize));
+				vaudio_source->set_method_extern("bool reset()", &VI_EXPECTIFY_VOID(audio::audio_source::reset));
+				vaudio_source->set_method_extern("bool pause()", &VI_EXPECTIFY_VOID(audio::audio_source::pause));
+				vaudio_source->set_method_extern("bool play()", &VI_EXPECTIFY_VOID(audio::audio_source::play));
+				vaudio_source->set_method_extern("bool stop()", &VI_EXPECTIFY_VOID(audio::audio_source::stop));
 				vaudio_source->set_method("bool is_playing() const", &audio::audio_source::is_playing);
 				vaudio_source->set_method("usize get_effects_count() const", &audio::audio_source::get_effects_count);
 				vaudio_source->set_method("uint32 get_instance() const", &audio::audio_source::get_instance);
 				vaudio_source->set_method("audio_clip@+ get_clip() const", &audio::audio_source::get_clip);
 				vaudio_source->set_method<audio::audio_source, audio::audio_effect*, uint64_t>("base_audio_effect@+ get_effect(uint64) const", &audio::audio_source::get_effect);
-				vaudio_source->set_enum_refs_ex<audio::audio_source>([](audio::audio_source* base, asIScriptEngine* vm)
+				vaudio_source->set_enum_refs_extern<audio::audio_source>([](audio::audio_source* base, asIScriptEngine* vm)
 				{
 					for (auto* item : base->get_effects())
 						function_factory::gc_enum_callback(vm, item);
 				});
-				vaudio_source->set_release_refs_ex<audio::audio_source>([](audio::audio_source* base, asIScriptEngine*)
+				vaudio_source->set_release_refs_extern<audio::audio_source>([](audio::audio_source* base, asIScriptEngine*)
 				{
 					base->remove_effects();
 				});
 
 				auto vaudio_device = vm->set_class<audio::audio_device>("audio_device", false);
 				vaudio_device->set_constructor<audio::audio_device>("audio_device@ f()");
-				vaudio_device->set_method_ex("bool offset(audio_source@+, float &out, bool)", &VI_EXPECTIFY_VOID(audio::audio_device::offset));
-				vaudio_device->set_method_ex("bool velocity(audio_source@+, vector3 &out, bool)", &VI_EXPECTIFY_VOID(audio::audio_device::velocity));
-				vaudio_device->set_method_ex("bool position(audio_source@+, vector3 &out, bool)", &VI_EXPECTIFY_VOID(audio::audio_device::position));
-				vaudio_device->set_method_ex("bool direction(audio_source@+, vector3 &out, bool)", &VI_EXPECTIFY_VOID(audio::audio_device::direction));
-				vaudio_device->set_method_ex("bool relative(audio_source@+, int &out, bool)", &VI_EXPECTIFY_VOID(audio::audio_device::relative));
-				vaudio_device->set_method_ex("bool pitch(audio_source@+, float &out, bool)", &VI_EXPECTIFY_VOID(audio::audio_device::pitch));
-				vaudio_device->set_method_ex("bool gain(audio_source@+, float &out, bool)", &VI_EXPECTIFY_VOID(audio::audio_device::gain));
-				vaudio_device->set_method_ex("bool loop(audio_source@+, int &out, bool)", &VI_EXPECTIFY_VOID(audio::audio_device::loop));
-				vaudio_device->set_method_ex("bool cone_inner_angle(audio_source@+, float &out, bool)", &VI_EXPECTIFY_VOID(audio::audio_device::cone_inner_angle));
-				vaudio_device->set_method_ex("bool cone_outer_angle(audio_source@+, float &out, bool)", &VI_EXPECTIFY_VOID(audio::audio_device::cone_outer_angle));
-				vaudio_device->set_method_ex("bool cone_outer_gain(audio_source@+, float &out, bool)", &VI_EXPECTIFY_VOID(audio::audio_device::cone_outer_gain));
-				vaudio_device->set_method_ex("bool distance(audio_source@+, float &out, bool)", &VI_EXPECTIFY_VOID(audio::audio_device::distance));
-				vaudio_device->set_method_ex("bool ref_distance(audio_source@+, float &out, bool)", &VI_EXPECTIFY_VOID(audio::audio_device::ref_distance));
-				vaudio_device->set_method_ex("bool set_distance_model(sound_distance_model)", &VI_EXPECTIFY_VOID(audio::audio_device::set_distance_model));
+				vaudio_device->set_method_extern("bool offset(audio_source@+, float &out, bool)", &VI_EXPECTIFY_VOID(audio::audio_device::offset));
+				vaudio_device->set_method_extern("bool velocity(audio_source@+, vector3 &out, bool)", &VI_EXPECTIFY_VOID(audio::audio_device::velocity));
+				vaudio_device->set_method_extern("bool position(audio_source@+, vector3 &out, bool)", &VI_EXPECTIFY_VOID(audio::audio_device::position));
+				vaudio_device->set_method_extern("bool direction(audio_source@+, vector3 &out, bool)", &VI_EXPECTIFY_VOID(audio::audio_device::direction));
+				vaudio_device->set_method_extern("bool relative(audio_source@+, int &out, bool)", &VI_EXPECTIFY_VOID(audio::audio_device::relative));
+				vaudio_device->set_method_extern("bool pitch(audio_source@+, float &out, bool)", &VI_EXPECTIFY_VOID(audio::audio_device::pitch));
+				vaudio_device->set_method_extern("bool gain(audio_source@+, float &out, bool)", &VI_EXPECTIFY_VOID(audio::audio_device::gain));
+				vaudio_device->set_method_extern("bool loop(audio_source@+, int &out, bool)", &VI_EXPECTIFY_VOID(audio::audio_device::loop));
+				vaudio_device->set_method_extern("bool cone_inner_angle(audio_source@+, float &out, bool)", &VI_EXPECTIFY_VOID(audio::audio_device::cone_inner_angle));
+				vaudio_device->set_method_extern("bool cone_outer_angle(audio_source@+, float &out, bool)", &VI_EXPECTIFY_VOID(audio::audio_device::cone_outer_angle));
+				vaudio_device->set_method_extern("bool cone_outer_gain(audio_source@+, float &out, bool)", &VI_EXPECTIFY_VOID(audio::audio_device::cone_outer_gain));
+				vaudio_device->set_method_extern("bool distance(audio_source@+, float &out, bool)", &VI_EXPECTIFY_VOID(audio::audio_device::distance));
+				vaudio_device->set_method_extern("bool ref_distance(audio_source@+, float &out, bool)", &VI_EXPECTIFY_VOID(audio::audio_device::ref_distance));
+				vaudio_device->set_method_extern("bool set_distance_model(sound_distance_model)", &VI_EXPECTIFY_VOID(audio::audio_device::set_distance_model));
 				vaudio_device->set_method("void display_audio_log() const", &audio::audio_device::display_audio_log);
 				vaudio_device->set_method("bool is_valid() const", &audio::audio_device::is_valid);
 
@@ -5766,8 +5766,8 @@ namespace vitex
 				vanimation_buffer->set_property<layer::animation_buffer>("vector3 padding", &layer::animation_buffer::padding);
 				vanimation_buffer->set_property<layer::animation_buffer>("float animated", &layer::animation_buffer::animated);
 				vanimation_buffer->set_constructor<layer::animation_buffer>("void f()");
-				vanimation_buffer->set_operator_ex(operators::index, (uint32_t)position::left, "matrix4x4&", "usize", &animation_buffer_get_offsets);
-				vanimation_buffer->set_operator_ex(operators::index, (uint32_t)position::constant, "const matrix4x4&", "usize", &animation_buffer_get_offsets);
+				vanimation_buffer->set_operator_extern(operators::index_t, (uint32_t)position::left, "matrix4x4&", "usize", &animation_buffer_get_offsets);
+				vanimation_buffer->set_operator_extern(operators::index_t, (uint32_t)position::constant, "const matrix4x4&", "usize", &animation_buffer_get_offsets);
 
 				auto vrender_buffer_instance = vm->set_pod<layer::render_buffer::instance>("render_buffer_instance");
 				vrender_buffer_instance->set_property<layer::render_buffer::instance>("matrix4x4 transform", &layer::render_buffer::instance::transform);
@@ -5802,12 +5802,12 @@ namespace vitex
 
 				auto vskin_model = vm->set_class<layer::skin_model>("skin_model", true);
 				auto vpose_buffer = vm->set_struct_trivial<layer::pose_buffer>("pose_buffer");
-				vpose_buffer->set_method_ex("void set_offset(int64, const pose_data &in)", &pose_buffer_set_offset);
-				vpose_buffer->set_method_ex("void set_matrix(skin_mesh_buffer@+, usize, const matrix4x4 &in)", &pose_buffer_set_matrix);
-				vpose_buffer->set_method_ex("pose_data& get_offset(int64)", &pose_buffer_get_offset);
-				vpose_buffer->set_method_ex("matrix4x4& get_matrix(skin_mesh_buffer@+, usize)", &pose_buffer_get_matrix);
-				vpose_buffer->set_method_ex("usize get_offsets_size()", &pose_buffer_get_offsets_size);
-				vpose_buffer->set_method_ex("usize get_matrices_size(skin_mesh_buffer@+)", &pose_buffer_get_matrices_size);
+				vpose_buffer->set_method_extern("void set_offset(int64, const pose_data &in)", &pose_buffer_set_offset);
+				vpose_buffer->set_method_extern("void set_matrix(skin_mesh_buffer@+, usize, const matrix4x4 &in)", &pose_buffer_set_matrix);
+				vpose_buffer->set_method_extern("pose_data& get_offset(int64)", &pose_buffer_get_offset);
+				vpose_buffer->set_method_extern("matrix4x4& get_matrix(skin_mesh_buffer@+, usize)", &pose_buffer_get_matrix);
+				vpose_buffer->set_method_extern("usize get_offsets_size()", &pose_buffer_get_offsets_size);
+				vpose_buffer->set_method_extern("usize get_matrices_size(skin_mesh_buffer@+)", &pose_buffer_get_matrices_size);
 				vpose_buffer->set_constructor<layer::pose_buffer>("void f()");
 
 				auto vticker = vm->set_struct_trivial<layer::ticker>("clock_ticker");
@@ -5819,8 +5819,8 @@ namespace vitex
 				auto vevent = vm->set_struct_trivial<layer::event>("scene_event");
 				vevent->set_property<layer::event>("string name", &layer::event::name);
 				vevent->set_constructor<layer::event, const std::string_view&>("void f(const string_view&in)");
-				vevent->set_method_ex("void set_args(dictionary@+)", &event_set_args);
-				vevent->set_method_ex("dictionary@ get_args() const", &event_get_args);
+				vevent->set_method_extern("void set_args(dictionary@+)", &event_set_args);
+				vevent->set_method_extern("dictionary@ get_args() const", &event_get_args);
 
 				auto vmaterial = vm->set_class<layer::material>("material", true);
 				auto vbatch_data = vm->set_struct_trivial<layer::batch_data>("batch_data");
@@ -5891,7 +5891,7 @@ namespace vitex
 				vviewer->set_property<layer::viewer>("float fov", &layer::viewer::fov);
 				vviewer->set_constructor<layer::viewer>("void f()");
 				vviewer->set_operator_copy_static(&viewer_copy);
-				vviewer->set_destructor_ex("void f()", &viewer_destructor);
+				vviewer->set_destructor_extern("void f()", &viewer_destructor);
 				vviewer->set_method<layer::viewer, void, const trigonometry::matrix4x4&, const trigonometry::matrix4x4&, const trigonometry::vector3&, float, float, float, float, layer::render_culling>("void set(const matrix4x4 &in, const matrix4x4 &in, const vector3 &in, float, float, float, float, render_culling)", &layer::viewer::set);
 				vviewer->set_method<layer::viewer, void, const trigonometry::matrix4x4&, const trigonometry::matrix4x4&, const trigonometry::vector3&, const trigonometry::vector3&, float, float, float, float, layer::render_culling>("void set(const matrix4x4 &in, const matrix4x4 &in, const vector3 &in, const vector3 &in, float, float, float, float, render_culling)", &layer::viewer::set);
 
@@ -5920,7 +5920,7 @@ namespace vitex
 				vsubsurface->set_constructor<layer::subsurface>("void f()");
 
 				auto vskin_animation = vm->set_class<layer::skin_animation>("skin_animation", false);
-				vskin_animation->set_method_ex("array<skin_animator_clip>@+ get_clips() const", &skin_animation_get_clips);
+				vskin_animation->set_method_extern("array<skin_animator_clip>@+ get_clips() const", &skin_animation_get_clips);
 				vskin_animation->set_method("bool is_valid() const", &layer::skin_animation::is_valid);
 
 				auto vscene_graph = vm->set_class<layer::scene_graph>("scene_graph", true);
@@ -5944,7 +5944,7 @@ namespace vitex
 				vmaterial->set_method("void set_emission_map(texture_2d@+)", &layer::material::set_emission_map);
 				vmaterial->set_method("texture_2d@+ get_emission_map() const", &layer::material::get_emission_map);
 				vmaterial->set_method("scene_graph@+ get_scene() const", &layer::material::get_scene);
-				vmaterial->set_enum_refs_ex<layer::material>([](layer::material* base, asIScriptEngine* vm)
+				vmaterial->set_enum_refs_extern<layer::material>([](layer::material* base, asIScriptEngine* vm)
 				{
 					function_factory::gc_enum_callback(vm, base->get_diffuse_map());
 					function_factory::gc_enum_callback(vm, base->get_normal_map());
@@ -5953,7 +5953,7 @@ namespace vitex
 					function_factory::gc_enum_callback(vm, base->get_height_map());
 					function_factory::gc_enum_callback(vm, base->get_emission_map());
 				});
-				vmaterial->set_release_refs_ex<layer::material>([](layer::material* base, asIScriptEngine*)
+				vmaterial->set_release_refs_extern<layer::material>([](layer::material* base, asIScriptEngine*)
 				{
 					base->~material();
 				});
@@ -5961,8 +5961,8 @@ namespace vitex
 				auto vcomponent = vm->set_class<layer::component>("base_component", false);
 				auto vsparse_index = vm->set_struct_trivial<layer::sparse_index>("sparse_index");
 				vsparse_index->set_property<layer::sparse_index>("cosmos index", &layer::sparse_index::index);
-				vsparse_index->set_method_ex("usize size() const", &sparse_index_get_size);
-				vsparse_index->set_operator_ex(operators::index, (uint32_t)position::left, "base_component@+", "usize", &sparse_index_get_data);
+				vsparse_index->set_method_extern("usize size() const", &sparse_index_get_size);
+				vsparse_index->set_operator_extern(operators::index_t, (uint32_t)position::left, "base_component@+", "usize", &sparse_index_get_data);
 				vsparse_index->set_constructor<layer::sparse_index>("void f()");
 
 				vm->begin_namespace("content_heavy_series");
@@ -6005,14 +6005,14 @@ namespace vitex
 				vmodel->set_property<layer::model>("vector4 min", &layer::model::min);
 				vmodel->set_gc_constructor<layer::model, model>("model@ f()");
 				vmodel->set_method("mesh_buffer@+ find_mesh(const string_view&in) const", &layer::model::find_mesh);
-				vmodel->set_method_ex("array<mesh_buffer@>@ get_meshes() const", &model_get_meshes);
-				vmodel->set_method_ex("void set_meshes(array<mesh_buffer@>@+)", &model_set_meshes);
-				vmodel->set_enum_refs_ex<layer::model>([](layer::model* base, asIScriptEngine* vm)
+				vmodel->set_method_extern("array<mesh_buffer@>@ get_meshes() const", &model_get_meshes);
+				vmodel->set_method_extern("void set_meshes(array<mesh_buffer@>@+)", &model_set_meshes);
+				vmodel->set_enum_refs_extern<layer::model>([](layer::model* base, asIScriptEngine* vm)
 				{
 					for (auto* item : base->meshes)
 						function_factory::gc_enum_callback(vm, item);
 				});
-				vmodel->set_release_refs_ex<layer::model>([](layer::model* base, asIScriptEngine*)
+				vmodel->set_release_refs_extern<layer::model>([](layer::model* base, asIScriptEngine*)
 				{
 					base->cleanup();
 				});
@@ -6026,14 +6026,14 @@ namespace vitex
 				vskin_model->set_method<layer::skin_model, bool, const std::string_view&, trigonometry::joint*>("bool find_joint(const string_view&in, joint &out) const", &layer::skin_model::find_joint);
 				vskin_model->set_method<layer::skin_model, bool, size_t, trigonometry::joint*>("bool find_joint(usize, joint &out) const", &layer::skin_model::find_joint);
 				vskin_model->set_method("skin_mesh_buffer@+ find_mesh(const string_view&in) const", &layer::skin_model::find_mesh);
-				vskin_model->set_method_ex("array<skin_mesh_buffer@>@ get_meshes() const", &skin_model_get_meshes);
-				vskin_model->set_method_ex("void set_meshes(array<skin_mesh_buffer@>@+)", &skin_model_set_meshes);
-				vskin_model->set_enum_refs_ex<layer::skin_model>([](layer::skin_model* base, asIScriptEngine* vm)
+				vskin_model->set_method_extern("array<skin_mesh_buffer@>@ get_meshes() const", &skin_model_get_meshes);
+				vskin_model->set_method_extern("void set_meshes(array<skin_mesh_buffer@>@+)", &skin_model_set_meshes);
+				vskin_model->set_enum_refs_extern<layer::skin_model>([](layer::skin_model* base, asIScriptEngine* vm)
 				{
 					for (auto* item : base->meshes)
 						function_factory::gc_enum_callback(vm, item);
 				});
-				vskin_model->set_release_refs_ex<layer::skin_model>([](layer::skin_model* base, asIScriptEngine*)
+				vskin_model->set_release_refs_extern<layer::skin_model>([](layer::skin_model* base, asIScriptEngine*)
 				{
 					base->cleanup();
 				});
@@ -6045,11 +6045,11 @@ namespace vitex
 				ventity->set_method("void set_root(scene_entity@+)", &layer::entity::set_root);
 				ventity->set_method("void update_bounds()", &layer::entity::update_bounds);
 				ventity->set_method("void remove_childs()", &layer::entity::remove_childs);
-				ventity->set_method_ex("void remove_component(base_component@+)", &entity_remove_component);
-				ventity->set_method_ex("void remove_component(uint64)", &entity_remove_component_by_id);
-				ventity->set_method_ex("base_component@+ add_component(base_component@+)", &entity_add_component);
-				ventity->set_method_ex("base_component@+ get_component(uint64) const", &entity_get_component_by_id);
-				ventity->set_method_ex("array<base_component@>@ get_components() const", &entity_get_components);
+				ventity->set_method_extern("void remove_component(base_component@+)", &entity_remove_component);
+				ventity->set_method_extern("void remove_component(uint64)", &entity_remove_component_by_id);
+				ventity->set_method_extern("base_component@+ add_component(base_component@+)", &entity_add_component);
+				ventity->set_method_extern("base_component@+ get_component(uint64) const", &entity_get_component_by_id);
+				ventity->set_method_extern("array<base_component@>@ get_components() const", &entity_get_components);
 				ventity->set_method("scene_graph@+ get_scene() const", &layer::entity::get_scene);
 				ventity->set_method("scene_entity@+ get_parent() const", &layer::entity::get_parent);
 				ventity->set_method("scene_entity@+ get_child(usize) const", &layer::entity::get_child);
@@ -6064,12 +6064,12 @@ namespace vitex
 				ventity->set_method("float is_active() const", &layer::entity::is_active);
 				ventity->set_method("vector3 get_radius3() const", &layer::entity::get_radius3);
 				ventity->set_method("float get_radius() const", &layer::entity::get_radius);
-				ventity->set_enum_refs_ex<layer::entity>([](layer::entity* base, asIScriptEngine* vm)
+				ventity->set_enum_refs_extern<layer::entity>([](layer::entity* base, asIScriptEngine* vm)
 				{
 					for (auto& item : *base)
 						function_factory::gc_enum_callback(vm, item.second);
 				});
-				ventity->set_release_refs_ex<layer::entity>([](layer::entity* base, asIScriptEngine*) { });
+				ventity->set_release_refs_extern<layer::entity>([](layer::entity* base, asIScriptEngine*) { });
 
 				auto vdrawable = vm->set_class<layer::drawable>("drawable_component", false);
 				populate_drawable_base<layer::drawable>(*vdrawable);
@@ -6102,7 +6102,7 @@ namespace vitex
 				vrender_system->set_gc_constructor<layer::render_system, render_system, layer::scene_graph*, layer::component*>("render_system@ f(scene_graph@+, base_component@+)");
 				vrender_system->set_method("void set_view(const matrix4x4 &in, const matrix4x4 &in, const vector3 &in, float, float, float, float, render_culling)", &layer::render_system::set_view);
 				vrender_system->set_method("void clear_culling()", &layer::render_system::clear_culling);
-				vrender_system->set_method_ex("void restore_view_buffer()", &render_system_restore_view_buffer);
+				vrender_system->set_method_extern("void restore_view_buffer()", &render_system_restore_view_buffer);
 				vrender_system->set_method("void restore_view_buffer(viewer_t &out)", &layer::render_system::restore_view_buffer);
 				vrender_system->set_method<layer::render_system, void, layer::renderer*>("void remount(base_renderer@+)", &layer::render_system::remount);
 				vrender_system->set_method<layer::render_system, void>("void remount()", &layer::render_system::remount);
@@ -6110,13 +6110,13 @@ namespace vitex
 				vrender_system->set_method("void unmount()", &layer::render_system::unmount);
 				vrender_system->set_method("void move_renderer(uint64, usize)", &layer::render_system::move_renderer);
 				vrender_system->set_method<layer::render_system, void, uint64_t>("void remove_renderer(uint64)", &layer::render_system::remove_renderer);
-				vrender_system->set_method_ex("void move_renderer(base_renderer@+, usize)", &render_system_move_renderer);
-				vrender_system->set_method_ex("void remove_renderer(base_renderer@+, usize)", &render_system_remove_renderer);
+				vrender_system->set_method_extern("void move_renderer(base_renderer@+, usize)", &render_system_move_renderer);
+				vrender_system->set_method_extern("void remove_renderer(base_renderer@+, usize)", &render_system_remove_renderer);
 				vrender_system->set_method("void restore_output()", &layer::render_system::restore_output);
 				vrender_system->set_method<layer::render_system, void, const std::string_view&, graphics::shader*>("void free_shader(const string_view&in, shader@+)", &layer::render_system::free_shader);
 				vrender_system->set_method<layer::render_system, void, graphics::shader*>("void free_shader(shader@+)", &layer::render_system::free_shader);
-				vrender_system->set_method_ex("void free_buffers(const string_view&in, element_buffer@+, element_buffer@+)", &render_system_free_buffers1);
-				vrender_system->set_method_ex("void free_buffers(element_buffer@+, element_buffer@+)", &render_system_free_buffers2);
+				vrender_system->set_method_extern("void free_buffers(const string_view&in, element_buffer@+, element_buffer@+)", &render_system_free_buffers1);
+				vrender_system->set_method_extern("void free_buffers(element_buffer@+, element_buffer@+)", &render_system_free_buffers2);
 				vrender_system->set_method("void update_constant_buffer(render_buffer_type)", &layer::render_system::update_constant_buffer);
 				vrender_system->set_method("void clear_materials()", &layer::render_system::clear_materials);
 				vrender_system->set_method("void fetch_visibility(base_component@+, scene_visibility_query &out)", &layer::render_system::fetch_visibility);
@@ -6124,13 +6124,13 @@ namespace vitex
 				vrender_system->set_method("bool try_instance(material@+, render_buffer_instance &out)", &layer::render_system::try_instance);
 				vrender_system->set_method("bool try_geometry(material@+, bool)", &layer::render_system::try_geometry);
 				vrender_system->set_method("bool has_category(geo_category)", &layer::render_system::has_category);
-				vrender_system->set_method_ex("shader@+ compile_shader(shader_desc &in, usize = 0)", &render_system_compile_shader1);
-				vrender_system->set_method_ex("shader@+ compile_shader(const string_view&in, array<string>@+, usize = 0)", &render_system_compile_shader2);
-				vrender_system->set_method_ex("array<element_buffer@>@ compile_buffers(const string_view&in, usize, usize)", &render_system_compile_buffers);
-				vrender_system->set_method_ex("bool add_renderer(base_renderer@+)", &render_system_add_renderer);
-				vrender_system->set_method_ex("base_renderer@+ get_renderer(uint64) const", &render_system_get_renderer);
-				vrender_system->set_method_ex("base_renderer@+ get_renderer_by_index(usize) const", &render_system_get_renderer_by_index);
-				vrender_system->set_method_ex("usize get_renderers_count() const", &render_system_get_renderers_count);
+				vrender_system->set_method_extern("shader@+ compile_shader(shader_desc &in, usize = 0)", &render_system_compile_shader1);
+				vrender_system->set_method_extern("shader@+ compile_shader(const string_view&in, array<string>@+, usize = 0)", &render_system_compile_shader2);
+				vrender_system->set_method_extern("array<element_buffer@>@ compile_buffers(const string_view&in, usize, usize)", &render_system_compile_buffers);
+				vrender_system->set_method_extern("bool add_renderer(base_renderer@+)", &render_system_add_renderer);
+				vrender_system->set_method_extern("base_renderer@+ get_renderer(uint64) const", &render_system_get_renderer);
+				vrender_system->set_method_extern("base_renderer@+ get_renderer_by_index(usize) const", &render_system_get_renderer_by_index);
+				vrender_system->set_method_extern("usize get_renderers_count() const", &render_system_get_renderers_count);
 				vrender_system->set_method<layer::render_system, bool, uint64_t, size_t&>("bool get_offset(uint64, usize &out) const", &layer::render_system::get_offset);
 				vrender_system->set_method("multi_render_target_2d@+ get_mrt(target_type)", &layer::render_system::get_mrt);
 				vrender_system->set_method("render_target_2d@+ get_rt(target_type)", &layer::render_system::get_rt);
@@ -6140,41 +6140,41 @@ namespace vitex
 				vrender_system->set_method("shader@+ get_basic_effect()", &layer::render_system::get_basic_effect);
 				vrender_system->set_method("scene_graph@+ get_scene()", &layer::render_system::get_scene);
 				vrender_system->set_method("base_component@+ get_component()", &layer::render_system::get_component);
-				vrender_system->set_method_ex("void query_group(uint64, overlapping_result_sync@)", &render_system_query_group);
-				vrender_system->set_enum_refs_ex<layer::render_system>([](layer::render_system* base, asIScriptEngine* vm)
+				vrender_system->set_method_extern("void query_group(uint64, overlapping_result_sync@)", &render_system_query_group);
+				vrender_system->set_enum_refs_extern<layer::render_system>([](layer::render_system* base, asIScriptEngine* vm)
 				{
 					for (auto* item : base->get_renderers())
 						function_factory::gc_enum_callback(vm, item);
 				});
-				vrender_system->set_release_refs_ex<layer::render_system>([](layer::render_system* base, asIScriptEngine*)
+				vrender_system->set_release_refs_extern<layer::render_system>([](layer::render_system* base, asIScriptEngine*)
 				{
 					base->remove_renderers();
 				});
 
 				auto vshader_cache = vm->set_class<layer::shader_cache>("shader_cache", true);
 				vshader_cache->set_gc_constructor<layer::shader_cache, shader_cache, graphics::graphics_device*>("shader_cache@ f()");
-				vshader_cache->set_method_ex("shader@+ compile(const string_view&in, const shader_desc &in, usize = 0)", &VI_EXPECTIFY(layer::shader_cache::compile));
+				vshader_cache->set_method_extern("shader@+ compile(const string_view&in, const shader_desc &in, usize = 0)", &VI_EXPECTIFY(layer::shader_cache::compile));
 				vshader_cache->set_method("shader@+ get(const string_view&in)", &layer::shader_cache::get);
 				vshader_cache->set_method("string find(shader@+)", &layer::shader_cache::find);
 				vshader_cache->set_method("bool has(const string_view&in)", &layer::shader_cache::has);
 				vshader_cache->set_method("bool free(const string_view&in, shader@+ = null)", &layer::shader_cache::free);
 				vshader_cache->set_method("void clear_cache()", &layer::shader_cache::clear_cache);
-				vshader_cache->set_enum_refs_ex<layer::shader_cache>([](layer::shader_cache* base, asIScriptEngine* vm)
+				vshader_cache->set_enum_refs_extern<layer::shader_cache>([](layer::shader_cache* base, asIScriptEngine* vm)
 				{
 					for (auto& item : base->get_caches())
 						function_factory::gc_enum_callback(vm, item.second.shader);
 				});
-				vshader_cache->set_release_refs_ex<layer::shader_cache>([](layer::shader_cache* base, asIScriptEngine*)
+				vshader_cache->set_release_refs_extern<layer::shader_cache>([](layer::shader_cache* base, asIScriptEngine*)
 				{
 					base->clear_cache();
 				});
 
 				vprimitive_cache->set_gc_constructor<layer::primitive_cache, primitive_cache, graphics::graphics_device*>("primitive_cache@ f()");
-				vprimitive_cache->set_method_ex("array<element_buffer@>@ compile(const string_view&in, usize, usize)", &primitive_cache_compile);
-				vprimitive_cache->set_method_ex("array<element_buffer@>@ get(const string_view&in) const", &primitive_cache_get);
+				vprimitive_cache->set_method_extern("array<element_buffer@>@ compile(const string_view&in, usize, usize)", &primitive_cache_compile);
+				vprimitive_cache->set_method_extern("array<element_buffer@>@ get(const string_view&in) const", &primitive_cache_get);
 				vprimitive_cache->set_method("bool has(const string_view&in) const", &layer::primitive_cache::has);
-				vprimitive_cache->set_method_ex("bool free(const string_view&in, element_buffer@+, element_buffer@+)", &primitive_cache_free);
-				vprimitive_cache->set_method_ex("string find(element_buffer@+, element_buffer@+) const", &primitive_cache_find);
+				vprimitive_cache->set_method_extern("bool free(const string_view&in, element_buffer@+, element_buffer@+)", &primitive_cache_free);
+				vprimitive_cache->set_method_extern("string find(element_buffer@+, element_buffer@+) const", &primitive_cache_find);
 				vprimitive_cache->set_method("model@+ get_box_model() const", &layer::primitive_cache::get_box_model);
 				vprimitive_cache->set_method("skin_model@+ get_skin_box_model() const", &layer::primitive_cache::get_skin_box_model);
 				vprimitive_cache->set_method("element_buffer@+ get_quad() const", &layer::primitive_cache::get_quad);
@@ -6182,12 +6182,12 @@ namespace vitex
 				vprimitive_cache->set_method("element_buffer@+ get_cube(buffer_type) const", &layer::primitive_cache::get_cube);
 				vprimitive_cache->set_method("element_buffer@+ get_box(buffer_type) const", &layer::primitive_cache::get_box);
 				vprimitive_cache->set_method("element_buffer@+ get_skin_box(buffer_type) const", &layer::primitive_cache::get_skin_box);
-				vprimitive_cache->set_method_ex("array<element_buffer@>@ get_sphere_buffers() const", &primitive_cache_get_sphere_buffers);
-				vprimitive_cache->set_method_ex("array<element_buffer@>@ get_cube_buffers() const", &primitive_cache_get_cube_buffers);
-				vprimitive_cache->set_method_ex("array<element_buffer@>@ get_box_buffers() const", &primitive_cache_get_box_buffers);
-				vprimitive_cache->set_method_ex("array<element_buffer@>@ get_skin_box_buffers() const", &primitive_cache_get_skin_box_buffers);
+				vprimitive_cache->set_method_extern("array<element_buffer@>@ get_sphere_buffers() const", &primitive_cache_get_sphere_buffers);
+				vprimitive_cache->set_method_extern("array<element_buffer@>@ get_cube_buffers() const", &primitive_cache_get_cube_buffers);
+				vprimitive_cache->set_method_extern("array<element_buffer@>@ get_box_buffers() const", &primitive_cache_get_box_buffers);
+				vprimitive_cache->set_method_extern("array<element_buffer@>@ get_skin_box_buffers() const", &primitive_cache_get_skin_box_buffers);
 				vprimitive_cache->set_method("void clear_cache()", &layer::primitive_cache::clear_cache);
-				vprimitive_cache->set_enum_refs_ex<layer::primitive_cache>([](layer::primitive_cache* base, asIScriptEngine* vm)
+				vprimitive_cache->set_enum_refs_extern<layer::primitive_cache>([](layer::primitive_cache* base, asIScriptEngine* vm)
 				{
 					function_factory::gc_enum_callback(vm, base->get_sphere(layer::buffer_type::vertex));
 					function_factory::gc_enum_callback(vm, base->get_sphere(layer::buffer_type::index));
@@ -6205,7 +6205,7 @@ namespace vitex
 						function_factory::gc_enum_callback(vm, item.second.buffers[1]);
 					}
 				});
-				vprimitive_cache->set_release_refs_ex<layer::primitive_cache>([](layer::primitive_cache* base, asIScriptEngine*)
+				vprimitive_cache->set_release_refs_extern<layer::primitive_cache>([](layer::primitive_cache* base, asIScriptEngine*)
 				{
 					base->clear_cache();
 				});
@@ -6218,7 +6218,7 @@ namespace vitex
 				vscene_graph_shared_desc->set_property<layer::scene_graph::desc::dependencies>("shader_cache@ shaders", &layer::scene_graph::desc::dependencies::shaders);
 				vscene_graph_shared_desc->set_constructor<layer::scene_graph::desc::dependencies>("void f()");
 				vscene_graph_shared_desc->set_operator_copy_static(&scene_graph_shared_desc_copy);
-				vscene_graph_shared_desc->set_destructor_ex("void f()", &scene_graph_shared_desc_destructor);
+				vscene_graph_shared_desc->set_destructor_extern("void f()", &scene_graph_shared_desc_destructor);
 
 				auto vheavy_application = vm->set_class<application>("heavy_application", true);
 				auto vscene_graph_desc = vm->set_struct_trivial<layer::scene_graph::desc>("scene_graph_desc");
@@ -6266,7 +6266,7 @@ namespace vitex
 				vscene_graph->set_method("void remove_entity(scene_entity@+)", &layer::scene_graph::remove_entity);
 				vscene_graph->set_method("void delete_entity(scene_entity@+)", &layer::scene_graph::delete_entity);
 				vscene_graph->set_method("void set_camera(scene_entity@+)", &layer::scene_graph::set_camera);
-				vscene_graph->set_method_ex("void ray_test(uint64, const ray &in, ray_test_sync@)", &scene_graph_ray_test);
+				vscene_graph->set_method_extern("void ray_test(uint64, const ray &in, ray_test_sync@)", &scene_graph_ray_test);
 				vscene_graph->set_method("void script_hook(const string_view&in = \"main\")", &layer::scene_graph::script_hook);
 				vscene_graph->set_method("void set_active(bool)", &layer::scene_graph::set_active);
 				vscene_graph->set_method("void set_mrt(target_type, bool)", &layer::scene_graph::set_mrt);
@@ -6275,24 +6275,24 @@ namespace vitex
 				vscene_graph->set_method("void swap_rt(target_type, render_target_2d@+)", &layer::scene_graph::swap_rt);
 				vscene_graph->set_method("void clear_mrt(target_type, bool, bool)", &layer::scene_graph::clear_mrt);
 				vscene_graph->set_method("void clear_rt(target_type, bool, bool)", &layer::scene_graph::clear_rt);
-				vscene_graph->set_method_ex("void mutate(scene_entity@+, scene_entity@+, const string_view&in)", &scene_graph_mutate1);
-				vscene_graph->set_method_ex("void mutate(scene_entity@+, const string_view&in)", &scene_graph_mutate2);
-				vscene_graph->set_method_ex("void mutate(base_component@+, const string_view&in)", &scene_graph_mutate3);
-				vscene_graph->set_method_ex("void mutate(material@+, const string_view&in)", &scene_graph_mutate4);
-				vscene_graph->set_method_ex("void transaction(transaction_sync@)", &scene_graph_transaction);
+				vscene_graph->set_method_extern("void mutate(scene_entity@+, scene_entity@+, const string_view&in)", &scene_graph_mutate1);
+				vscene_graph->set_method_extern("void mutate(scene_entity@+, const string_view&in)", &scene_graph_mutate2);
+				vscene_graph->set_method_extern("void mutate(base_component@+, const string_view&in)", &scene_graph_mutate3);
+				vscene_graph->set_method_extern("void mutate(material@+, const string_view&in)", &scene_graph_mutate4);
+				vscene_graph->set_method_extern("void transaction(transaction_sync@)", &scene_graph_transaction);
 				vscene_graph->set_method("void clear_culling()", &layer::scene_graph::clear_culling);
 				vscene_graph->set_method("void reserve_materials(usize)", &layer::scene_graph::reserve_materials);
 				vscene_graph->set_method("void reserve_entities(usize)", &layer::scene_graph::reserve_entities);
 				vscene_graph->set_method("void reserve_components(uint64, usize)", &layer::scene_graph::reserve_components);
-				vscene_graph->set_method_ex("bool push_event(const string_view&in, schema@+, bool)", &scene_graph_push_event1);
-				vscene_graph->set_method_ex("bool push_event(const string_view&in, schema@+, base_component@+)", &scene_graph_push_event2);
-				vscene_graph->set_method_ex("bool push_event(const string_view&in, schema@+, scene_entity@+)", &scene_graph_push_event3);
-				vscene_graph->set_method_ex("uptr@ set_listener(const string_view&in, event_async@)", &scene_graph_set_listener);
+				vscene_graph->set_method_extern("bool push_event(const string_view&in, schema@+, bool)", &scene_graph_push_event1);
+				vscene_graph->set_method_extern("bool push_event(const string_view&in, schema@+, base_component@+)", &scene_graph_push_event2);
+				vscene_graph->set_method_extern("bool push_event(const string_view&in, schema@+, scene_entity@+)", &scene_graph_push_event3);
+				vscene_graph->set_method_extern("uptr@ set_listener(const string_view&in, event_async@)", &scene_graph_set_listener);
 				vscene_graph->set_method("bool clear_listener(const string_view&in, uptr@)", &layer::scene_graph::clear_listener);
 				vscene_graph->set_method("material@+ get_invalid_material()", &layer::scene_graph::get_invalid_material);
 				vscene_graph->set_method<layer::scene_graph, bool, layer::material*>("bool add_material(material@+)", &layer::scene_graph::add_material);
 				vscene_graph->set_method<layer::scene_graph, layer::material*>("material@+ add_material()", &layer::scene_graph::add_material);
-				vscene_graph->set_method_ex("void load_resource(uint64, base_component@+, const string_view&in, schema@+, resource_async@)", &scene_graph_load_resource);
+				vscene_graph->set_method_extern("void load_resource(uint64, base_component@+, const string_view&in, schema@+, resource_async@)", &scene_graph_load_resource);
 				vscene_graph->set_method<layer::scene_graph, core::string, uint64_t, void*>("string find_resource_id(uint64, uptr@)", &layer::scene_graph::find_resource_id);
 				vscene_graph->set_method("material@+ clone_material(material@+)", &layer::scene_graph::clone_material);
 				vscene_graph->set_method("scene_entity@+ get_entity(usize) const", &layer::scene_graph::get_entity);
@@ -6305,18 +6305,18 @@ namespace vitex
 				vscene_graph->set_method<layer::scene_graph, layer::material*, const std::string_view&>("material@+ get_material(const string_view&in) const", &layer::scene_graph::get_material);
 				vscene_graph->set_method<layer::scene_graph, layer::material*, size_t>("material@+ get_material(usize) const", &layer::scene_graph::get_material);
 				vscene_graph->set_method<layer::scene_graph, layer::sparse_index&, uint64_t>("sparse_index& get_storage(uint64) const", &layer::scene_graph::get_storage);
-				vscene_graph->set_method_ex("array<base_component@>@ get_components(uint64) const", &scene_graph_get_components);
-				vscene_graph->set_method_ex("array<base_component@>@ get_actors(actor_type) const", &scene_graph_get_actors);
+				vscene_graph->set_method_extern("array<base_component@>@ get_components(uint64) const", &scene_graph_get_components);
+				vscene_graph->set_method_extern("array<base_component@>@ get_actors(actor_type) const", &scene_graph_get_actors);
 				vscene_graph->set_method("render_target_2d_desc get_desc_rt() const", &layer::scene_graph::get_desc_rt);
 				vscene_graph->set_method("multi_render_target_2d_desc get_desc_mrt() const", &layer::scene_graph::get_desc_mrt);
 				vscene_graph->set_method("surface_format get_format_mrt(uint32) const", &layer::scene_graph::get_format_mrt);
-				vscene_graph->set_method_ex("array<scene_entity@>@ clone_entity_as_array(scene_entity@+)", &scene_graph_clone_entity_as_array);
-				vscene_graph->set_method_ex("array<scene_entity@>@ query_by_parent(scene_entity@+) const", &scene_graph_query_by_parent);
-				vscene_graph->set_method_ex("array<scene_entity@>@ query_by_name(const string_view&in) const", &scene_graph_query_by_name);
-				vscene_graph->set_method_ex("array<base_component@>@ query_by_position(uint64, const vector3 &in, float) const", &scene_graph_query_by_position);
-				vscene_graph->set_method_ex("array<base_component@>@ query_by_area(uint64, const vector3 &in, const vector3 &in) const", &scene_graph_query_by_area);
-				vscene_graph->set_method_ex("array<base_component@>@ query_by_ray(uint64, const ray &in) const", &scene_graph_query_by_ray);
-				vscene_graph->set_method_ex("array<base_component@>@ query_by_match(uint64, match_sync@) const", &scene_graph_query_by_match);
+				vscene_graph->set_method_extern("array<scene_entity@>@ clone_entity_as_array(scene_entity@+)", &scene_graph_clone_entity_as_array);
+				vscene_graph->set_method_extern("array<scene_entity@>@ query_by_parent(scene_entity@+) const", &scene_graph_query_by_parent);
+				vscene_graph->set_method_extern("array<scene_entity@>@ query_by_name(const string_view&in) const", &scene_graph_query_by_name);
+				vscene_graph->set_method_extern("array<base_component@>@ query_by_position(uint64, const vector3 &in, float) const", &scene_graph_query_by_position);
+				vscene_graph->set_method_extern("array<base_component@>@ query_by_area(uint64, const vector3 &in, const vector3 &in) const", &scene_graph_query_by_area);
+				vscene_graph->set_method_extern("array<base_component@>@ query_by_ray(uint64, const ray &in) const", &scene_graph_query_by_ray);
+				vscene_graph->set_method_extern("array<base_component@>@ query_by_match(uint64, match_sync@) const", &scene_graph_query_by_match);
 				vscene_graph->set_method("string as_resource_path(const string_view&in) const", &layer::scene_graph::as_resource_path);
 				vscene_graph->set_method<layer::scene_graph, layer::entity*>("scene_entity@+ add_entity()", &layer::scene_graph::add_entity);
 				vscene_graph->set_method("scene_entity@+ clone_entity(scene_entity@+)", &layer::scene_graph::clone_entity);
@@ -6339,7 +6339,7 @@ namespace vitex
 				vscene_graph->set_method("shader_cache@+ get_shaders() const", &layer::scene_graph::get_shaders);
 				vscene_graph->set_method("primitive_cache@+ get_primitives() const", &layer::scene_graph::get_primitives);
 				vscene_graph->set_method("scene_graph_desc& get_conf()", &layer::scene_graph::get_conf);
-				vscene_graph->set_enum_refs_ex<layer::scene_graph>([](layer::scene_graph* base, asIScriptEngine* vm)
+				vscene_graph->set_enum_refs_extern<layer::scene_graph>([](layer::scene_graph* base, asIScriptEngine* vm)
 				{
 					auto& conf = base->get_conf();
 					function_factory::gc_enum_callback(vm, conf.shared.shaders);
@@ -6363,14 +6363,14 @@ namespace vitex
 							function_factory::gc_enum_callback(vm, next);
 					}
 				});
-				vscene_graph->set_release_refs_ex<layer::scene_graph>([](layer::scene_graph* base, asIScriptEngine*) { });
+				vscene_graph->set_release_refs_extern<layer::scene_graph>([](layer::scene_graph* base, asIScriptEngine*) { });
 
 				auto vheavy_application_cache_info = vm->set_struct<heavy_application::cache_info>("heavy_application_cache_info");
 				vheavy_application_cache_info->set_property<heavy_application::cache_info>("shader_cache@ shaders", &heavy_application::cache_info::shaders);
 				vheavy_application_cache_info->set_property<heavy_application::cache_info>("primitive_cache@ primitives", &heavy_application::cache_info::primitives);
 				vheavy_application_cache_info->set_constructor<heavy_application::cache_info>("void f()");
 				vheavy_application_cache_info->set_operator_copy_static(&application_cache_info_copy);
-				vheavy_application_cache_info->set_destructor_ex("void f()", &application_cache_info_destructor);
+				vheavy_application_cache_info->set_destructor_extern("void f()", &application_cache_info_destructor);
 
 				auto vheavy_application_desc = vm->set_struct_trivial<heavy_application::desc>("heavy_application_desc");
 				vheavy_application_desc->set_property<application::desc>("application_frame_info refreshrate", &application::desc::refreshrate);
@@ -6427,7 +6427,7 @@ namespace vitex
 				vheavy_application->set_method("ui_context@+ fetch_ui()", &heavy_application::fetch_ui);
 				vheavy_application->set_method_static("heavy_application@+ get()", &layer::heavy_application::get);
 				vheavy_application->set_method_static("bool wants_restart(int)", &heavy_application::wants_restart);
-				vheavy_application->set_enum_refs_ex<heavy_application>([](heavy_application* base, asIScriptEngine* vm)
+				vheavy_application->set_enum_refs_extern<heavy_application>([](heavy_application* base, asIScriptEngine* vm)
 				{
 					function_factory::gc_enum_callback(vm, base->audio);
 					function_factory::gc_enum_callback(vm, base->renderer);
@@ -6449,7 +6449,7 @@ namespace vitex
 					function_factory::gc_enum_callback(vm, &base->on_startup);
 					function_factory::gc_enum_callback(vm, &base->on_shutdown);
 				});
-				vheavy_application->set_release_refs_ex<heavy_application>([](heavy_application* base, asIScriptEngine*)
+				vheavy_application->set_release_refs_extern<heavy_application>([](heavy_application* base, asIScriptEngine*)
 				{
 					base->~heavy_application();
 				});
@@ -6470,7 +6470,7 @@ namespace vitex
 				vsoft_body->set_property<layer::components::soft_body>("vector2 texcoord", &layer::components::soft_body::texcoord);
 				vsoft_body->set_property<layer::components::soft_body>("bool kinematic", &layer::components::soft_body::kinematic);
 				vsoft_body->set_property<layer::components::soft_body>("bool manage", &layer::components::soft_body::manage);
-				vsoft_body->set_method_ex("void load(const string_view&in, float = 0.0f, component_resource_event@ = null)", &components_soft_body_load);
+				vsoft_body->set_method_extern("void load(const string_view&in, float = 0.0f, component_resource_event@ = null)", &components_soft_body_load);
 				vsoft_body->set_method<layer::components::soft_body, void, physics::hull_shape*, float>("void load(physics_hull_shape@+, float = 0.0f)", &layer::components::soft_body::load);
 				vsoft_body->set_method("void load_ellipsoid(const physics_softbody_desc_cv_sconvex &in, float)", &layer::components::soft_body::load_ellipsoid);
 				vsoft_body->set_method("void load_patch(const physics_softbody_desc_cv_spatch &in, float)", &layer::components::soft_body::load_patch);
@@ -6486,7 +6486,7 @@ namespace vitex
 				auto vrigid_body = vm->set_class<layer::components::rigid_body>("rigid_body_component", false);
 				vrigid_body->set_property<layer::components::rigid_body>("bool kinematic", &layer::components::rigid_body::kinematic);
 				vrigid_body->set_property<layer::components::rigid_body>("bool manage", &layer::components::rigid_body::manage);
-				vrigid_body->set_method_ex("void load(const string_view&in, float, float = 0.0f, component_resource_event@ = null)", &components_rigid_body_load);
+				vrigid_body->set_method_extern("void load(const string_view&in, float, float = 0.0f, component_resource_event@ = null)", &components_rigid_body_load);
 				vrigid_body->set_method<layer::components::rigid_body, void, btCollisionShape*, float, float>("void load(uptr@, float, float = 0.0f)", &layer::components::rigid_body::load);
 				vrigid_body->set_method("void clear()", &layer::components::rigid_body::clear);
 				vrigid_body->set_method("void set_mass(float)", &layer::components::rigid_body::set_mass);
@@ -6561,7 +6561,7 @@ namespace vitex
 				vkey_animator->set_property<layer::components::key_animator>("animator_key offset_pose", &layer::components::key_animator::offset);
 				vkey_animator->set_property<layer::components::key_animator>("animator_key default_pose", &layer::components::key_animator::defaults);
 				vkey_animator->set_property<layer::components::key_animator>("animator_state state", &layer::components::key_animator::state);
-				vkey_animator->set_method_ex("void load_animation(const string_view&in, component_resource_event@ = null)", &components_key_animator_load_animation);
+				vkey_animator->set_method_extern("void load_animation(const string_view&in, component_resource_event@ = null)", &components_key_animator_load_animation);
 				vkey_animator->set_method("void clear_animation()", &layer::components::key_animator::clear_animation);
 				vkey_animator->set_method("void play(int64 = -1, int64 = -1)", &layer::components::key_animator::play);
 				vkey_animator->set_method("void pause()", &layer::components::key_animator::pause);
@@ -7086,7 +7086,7 @@ namespace vitex
 				vcontext->set_constructor<layer::gui::context, const trigonometry::vector2&>("ui_context@ f(const vector2&in)");
 				vcontext->set_constructor<layer::gui::context, graphics::graphics_device*>("ui_context@ f(graphics_device@+)");
 				vcontext->set_method("void emit_key(key_code, key_mod, int, int, bool)", &layer::gui::context::emit_key);
-				vcontext->set_method_ex("void emit_input(const string_view&in)", &context_emit_input);
+				vcontext->set_method_extern("void emit_input(const string_view&in)", &context_emit_input);
 				vcontext->set_method("void emit_wheel(int32, int32, bool, key_mod)", &layer::gui::context::emit_wheel);
 				vcontext->set_method("void emit_resize(int32, int32)", &layer::gui::context::emit_resize);
 				vcontext->set_method("void set_documents_base_tag(const string_view&in)", &layer::gui::context::set_documents_base_tag);
@@ -7109,12 +7109,12 @@ namespace vitex
 				vcontext->set_method("void set_density_independent_pixel_ratio(float)", &layer::gui::context::get_density_independent_pixel_ratio);
 				vcontext->set_method("float get_density_independent_pixel_ratio() const", &layer::gui::context::get_density_independent_pixel_ratio);
 				vcontext->set_method("void enable_mouse_cursor(bool)", &layer::gui::context::enable_mouse_cursor);
-				vcontext->set_method_ex("ui_document eval_html(const string_view&in, int = 0)", &VI_EXPECTIFY(layer::gui::context::eval_html));
-				vcontext->set_method_ex("ui_document add_css(const string_view&in, int = 0)", &VI_EXPECTIFY(layer::gui::context::add_css));
-				vcontext->set_method_ex("ui_document load_css(const string_view&in, int = 0)", &VI_EXPECTIFY(layer::gui::context::load_css));
-				vcontext->set_method_ex("ui_document load_document(const string_view&in, bool = false)", &VI_EXPECTIFY(layer::gui::context::load_document));
-				vcontext->set_method_ex("ui_document add_document(const string_view&in)", &VI_EXPECTIFY(layer::gui::context::add_document));
-				vcontext->set_method_ex("ui_document add_document_empty(const string_view&in = \"body\")", &VI_EXPECTIFY(layer::gui::context::add_document_empty));
+				vcontext->set_method_extern("ui_document eval_html(const string_view&in, int = 0)", &VI_EXPECTIFY(layer::gui::context::eval_html));
+				vcontext->set_method_extern("ui_document add_css(const string_view&in, int = 0)", &VI_EXPECTIFY(layer::gui::context::add_css));
+				vcontext->set_method_extern("ui_document load_css(const string_view&in, int = 0)", &VI_EXPECTIFY(layer::gui::context::load_css));
+				vcontext->set_method_extern("ui_document load_document(const string_view&in, bool = false)", &VI_EXPECTIFY(layer::gui::context::load_document));
+				vcontext->set_method_extern("ui_document add_document(const string_view&in)", &VI_EXPECTIFY(layer::gui::context::add_document));
+				vcontext->set_method_extern("ui_document add_document_empty(const string_view&in = \"body\")", &VI_EXPECTIFY(layer::gui::context::add_document_empty));
 				vcontext->set_method<layer::gui::context, layer::gui::ielement_document, const std::string_view&>("ui_document get_document(const string_view&in)", &layer::gui::context::get_document);
 				vcontext->set_method<layer::gui::context, layer::gui::ielement_document, int>("ui_document get_document(int)", &layer::gui::context::get_document);
 				vcontext->set_method("int get_num_documents() const", &layer::gui::context::get_num_documents);
@@ -7122,7 +7122,7 @@ namespace vitex
 				vcontext->set_method("ui_element get_hover_element()", &layer::gui::context::get_hover_element);
 				vcontext->set_method("ui_element get_focus_element()", &layer::gui::context::get_focus_element);
 				vcontext->set_method("ui_element get_root_element()", &layer::gui::context::get_root_element);
-				vcontext->set_method_ex("ui_element get_element_at_point(const vector2 &in)", &context_get_focus_element);
+				vcontext->set_method_extern("ui_element get_element_at_point(const vector2 &in)", &context_get_focus_element);
 				vcontext->set_method("void pull_document_to_front(const ui_document &in)", &layer::gui::context::pull_document_to_front);
 				vcontext->set_method("void push_document_to_back(const ui_document &in)", &layer::gui::context::push_document_to_back);
 				vcontext->set_method("void unfocus_document(const ui_document &in)", &layer::gui::context::unfocus_document);
@@ -7200,12 +7200,12 @@ namespace vitex
 
 				vlistener->set_gc_constructor<model_listener, model_listener_name, asIScriptFunction*>("ui_listener@ f(model_listener_event@)");
 				vlistener->set_gc_constructor<model_listener, model_listener_name, const std::string_view&>("ui_listener@ f(const string_view&in)");
-				vlistener->set_enum_refs_ex<model_listener>([](model_listener* base, asIScriptEngine* vm)
+				vlistener->set_enum_refs_extern<model_listener>([](model_listener* base, asIScriptEngine* vm)
 				{
-					auto& delegatef = base->get_delegate();
-					function_factory::gc_enum_callback(vm, &delegatef);
+					auto& delegation = base->get_delegate();
+					function_factory::gc_enum_callback(vm, &delegation);
 				});
-				vlistener->set_release_refs_ex<model_listener>([](model_listener* base, asIScriptEngine*)
+				vlistener->set_release_refs_extern<model_listener>([](model_listener* base, asIScriptEngine*)
 				{
 					base->get_delegate().release();
 					base->~model_listener();
@@ -7366,7 +7366,7 @@ namespace vitex
 				velement->set_method("void click()", &layer::gui::ielement::click);
 				velement->set_method("void add_event_listener(const string_view&in, ui_listener@+, bool = false)", &layer::gui::ielement::add_event_listener);
 				velement->set_method("void remove_event_listener(const string_view&in, ui_listener@+, bool = false)", &layer::gui::ielement::remove_event_listener);
-				velement->set_method_ex("bool dispatch_event(const string_view&in, schema@+)", &ielement_document_dispatch_event);
+				velement->set_method_extern("bool dispatch_event(const string_view&in, schema@+)", &ielement_document_dispatch_event);
 				velement->set_method("void scroll_into_view(bool = true)", &layer::gui::ielement::scroll_into_view);
 				velement->set_method("ui_element append_child(const ui_element &in, bool = true)", &layer::gui::ielement::append_child);
 				velement->set_method("ui_element insert_before(const ui_element &in, const ui_element &in)", &layer::gui::ielement::insert_before);
@@ -7374,7 +7374,7 @@ namespace vitex
 				velement->set_method("ui_element remove_child(const ui_element &in)", &layer::gui::ielement::remove_child);
 				velement->set_method("bool has_child_nodes() const", &layer::gui::ielement::has_child_nodes);
 				velement->set_method("ui_element get_element_by_id(const string_view&in)", &layer::gui::ielement::get_element_by_id);
-				velement->set_method_ex("array<ui_element>@ query_selector_all(const string_view&in)", &ielement_document_query_selector_all);
+				velement->set_method_extern("array<ui_element>@ query_selector_all(const string_view&in)", &ielement_document_query_selector_all);
 				velement->set_method("bool cast_form_color(vector4 &out, bool)", &layer::gui::ielement::cast_form_color);
 				velement->set_method("bool cast_form_string(string &out)", &layer::gui::ielement::cast_form_string);
 				velement->set_method("bool cast_form_pointer(uptr@ &out)", &layer::gui::ielement::cast_form_pointer);
@@ -7473,7 +7473,7 @@ namespace vitex
 				vdocument->set_method("void click()", &layer::gui::ielement_document::click);
 				vdocument->set_method("void add_event_listener(const string_view&in, ui_listener@+, bool = false)", &layer::gui::ielement_document::add_event_listener);
 				vdocument->set_method("void remove_event_listener(const string_view&in, ui_listener@+, bool = false)", &layer::gui::ielement_document::remove_event_listener);
-				vdocument->set_method_ex("bool dispatch_event(const string_view&in, schema@+)", &ielement_document_dispatch_event);
+				vdocument->set_method_extern("bool dispatch_event(const string_view&in, schema@+)", &ielement_document_dispatch_event);
 				vdocument->set_method("void scroll_into_view(bool = true)", &layer::gui::ielement_document::scroll_into_view);
 				vdocument->set_method("ui_element append_child(const ui_element &in, bool = true)", &layer::gui::ielement_document::append_child);
 				vdocument->set_method("ui_element insert_before(const ui_element &in, const ui_element &in)", &layer::gui::ielement_document::insert_before);
@@ -7481,7 +7481,7 @@ namespace vitex
 				vdocument->set_method("ui_element remove_child(const ui_element &in)", &layer::gui::ielement_document::remove_child);
 				vdocument->set_method("bool has_child_nodes() const", &layer::gui::ielement_document::has_child_nodes);
 				vdocument->set_method("ui_element get_element_by_id(const string_view&in)", &layer::gui::ielement_document::get_element_by_id);
-				vdocument->set_method_ex("array<ui_element>@ query_selector_all(const string_view&in)", &ielement_document_query_selector_all);
+				vdocument->set_method_extern("array<ui_element>@ query_selector_all(const string_view&in)", &ielement_document_query_selector_all);
 				vdocument->set_method("bool cast_form_color(vector4 &out, bool)", &layer::gui::ielement_document::cast_form_color);
 				vdocument->set_method("bool cast_form_string(string &out)", &layer::gui::ielement_document::cast_form_string);
 				vdocument->set_method("bool cast_form_pointer(uptr@ &out)", &layer::gui::ielement_document::cast_form_pointer);
@@ -7528,16 +7528,16 @@ namespace vitex
 				vm->set_function_def("void ui_data_event(ui_event &in, array<variant>@+)");
 
 				auto vmodel = vm->set_class<layer::gui::data_model>("ui_model", false);
-				vmodel->set_method_ex("bool set(const string_view&in, schema@+)", &data_model_set);
-				vmodel->set_method_ex("bool set_var(const string_view&in, const variant &in)", &data_model_set_var);
-				vmodel->set_method_ex("bool set_string(const string_view&in, const string_view&in)", &data_model_set_string);
-				vmodel->set_method_ex("bool set_integer(const string_view&in, int64)", &data_model_set_integer);
-				vmodel->set_method_ex("bool set_float(const string_view&in, float)", &data_model_set_float);
-				vmodel->set_method_ex("bool set_double(const string_view&in, double)", &data_model_set_double);
-				vmodel->set_method_ex("bool set_boolean(const string_view&in, bool)", &data_model_set_boolean);
-				vmodel->set_method_ex("bool set_pointer(const string_view&in, uptr@)", &data_model_set_pointer);
-				vmodel->set_method_ex("bool set_callback(const string_view&in, ui_data_event@)", &data_model_set_callback);
-				vmodel->set_method_ex("schema@ get(const string_view&in)", &data_model_get);
+				vmodel->set_method_extern("bool set(const string_view&in, schema@+)", &data_model_set);
+				vmodel->set_method_extern("bool set_var(const string_view&in, const variant &in)", &data_model_set_var);
+				vmodel->set_method_extern("bool set_string(const string_view&in, const string_view&in)", &data_model_set_string);
+				vmodel->set_method_extern("bool set_integer(const string_view&in, int64)", &data_model_set_integer);
+				vmodel->set_method_extern("bool set_float(const string_view&in, float)", &data_model_set_float);
+				vmodel->set_method_extern("bool set_double(const string_view&in, double)", &data_model_set_double);
+				vmodel->set_method_extern("bool set_boolean(const string_view&in, bool)", &data_model_set_boolean);
+				vmodel->set_method_extern("bool set_pointer(const string_view&in, uptr@)", &data_model_set_pointer);
+				vmodel->set_method_extern("bool set_callback(const string_view&in, ui_data_event@)", &data_model_set_callback);
+				vmodel->set_method_extern("schema@ get(const string_view&in)", &data_model_get);
 				vmodel->set_method("string get_string(const string_view&in)", &layer::gui::data_model::get_string);
 				vmodel->set_method("int64 get_integer(const string_view&in)", &layer::gui::data_model::get_integer);
 				vmodel->set_method("float get_float(const string_view&in)", &layer::gui::data_model::get_float);

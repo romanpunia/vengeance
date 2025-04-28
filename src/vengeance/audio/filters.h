@@ -20,7 +20,7 @@ namespace vitex
 				expects_audio<void> synchronize() override;
 				void deserialize(core::schema* node) override;
 				void serialize(core::schema* node) const override;
-				core::unique<audio_filter> copy() const override;
+				audio_filter* copy() const override;
 
 			public:
 				VI_COMPONENT("lowpass_filter");
@@ -38,7 +38,7 @@ namespace vitex
 				expects_audio<void> synchronize() override;
 				void deserialize(core::schema* node) override;
 				void serialize(core::schema* node) const override;
-				core::unique<audio_filter> copy() const override;
+				audio_filter* copy() const override;
 
 			public:
 				VI_COMPONENT("highpass_filter");
@@ -57,7 +57,7 @@ namespace vitex
 				expects_audio<void> synchronize() override;
 				void deserialize(core::schema* node) override;
 				void serialize(core::schema* node) const override;
-				core::unique<audio_filter> copy() const override;
+				audio_filter* copy() const override;
 
 			public:
 				VI_COMPONENT("bandpass_filter");

@@ -3648,9 +3648,9 @@ namespace vitex
 					if (fSource.type_id != dest.type_id)
 						continue;
 
-					if (fSource.type_id < (int)scripting::type_id::boolf || fSource.type_id >(int)scripting::type_id::doublef)
+					if (fSource.type_id < (int)scripting::type_id::bool_t || fSource.type_id >(int)scripting::type_id::double_t)
 					{
-						scripting::typeinfo type = vm->get_type_info_by_id(fSource.type_id);
+						scripting::type_info type = vm->get_type_info_by_id(fSource.type_id);
 						if (fSource.pointer != nullptr && type.is_valid())
 						{
 							void* object = vm->create_object_copy(fSource.pointer, type);
@@ -3681,77 +3681,77 @@ namespace vitex
 
 						switch ((scripting::type_id)type_id)
 						{
-							case scripting::type_id::boolf:
+							case scripting::type_id::bool_t:
 							{
 								bool result = false;
 								if (series::unpack(var->find("data"), &result))
 									set_type_property_by_name(var->key.c_str(), result);
 								break;
 							}
-							case scripting::type_id::int8:
+							case scripting::type_id::int8_t:
 							{
 								int64_t result = 0;
 								if (series::unpack(var->find("data"), &result))
 									set_type_property_by_name(var->key.c_str(), (char)result);
 								break;
 							}
-							case scripting::type_id::int16:
+							case scripting::type_id::int16_t:
 							{
 								int64_t result = 0;
 								if (series::unpack(var->find("data"), &result))
 									set_type_property_by_name(var->key.c_str(), (short)result);
 								break;
 							}
-							case scripting::type_id::int32:
+							case scripting::type_id::int32_t:
 							{
 								int64_t result = 0;
 								if (series::unpack(var->find("data"), &result))
 									set_type_property_by_name(var->key.c_str(), (int)result);
 								break;
 							}
-							case scripting::type_id::int64:
+							case scripting::type_id::int64_t:
 							{
 								int64_t result = 0;
 								if (series::unpack(var->find("data"), &result))
 									set_type_property_by_name(var->key.c_str(), result);
 								break;
 							}
-							case scripting::type_id::uint8:
+							case scripting::type_id::uint8_t:
 							{
 								int64_t result = 0;
 								if (series::unpack(var->find("data"), &result))
 									set_type_property_by_name(var->key.c_str(), (uint8_t)result);
 								break;
 							}
-							case scripting::type_id::uint16:
+							case scripting::type_id::uint16_t:
 							{
 								int64_t result = 0;
 								if (series::unpack(var->find("data"), &result))
 									set_type_property_by_name(var->key.c_str(), (uint16_t)result);
 								break;
 							}
-							case scripting::type_id::uint32:
+							case scripting::type_id::uint32_t:
 							{
 								int64_t result = 0;
 								if (series::unpack(var->find("data"), &result))
 									set_type_property_by_name(var->key.c_str(), (uint32_t)result);
 								break;
 							}
-							case scripting::type_id::uint64:
+							case scripting::type_id::uint64_t:
 							{
 								int64_t result = 0;
 								if (series::unpack(var->find("data"), &result))
 									set_type_property_by_name(var->key.c_str(), (uint64_t)result);
 								break;
 							}
-							case scripting::type_id::floatf:
+							case scripting::type_id::float_t:
 							{
 								float result = 0.0f;
 								if (series::unpack(var->find("data"), &result))
 									set_type_property_by_name(var->key.c_str(), result);
 								break;
 							}
-							case scripting::type_id::doublef:
+							case scripting::type_id::double_t:
 							{
 								double result = 0.0;
 								if (series::unpack(var->find("data"), &result))
@@ -3797,42 +3797,42 @@ namespace vitex
 
 						switch ((scripting::type_id)result.type_id)
 						{
-							case scripting::type_id::boolf:
+							case scripting::type_id::bool_t:
 								series::pack(var->set("data"), *(bool*)result.pointer);
 								break;
-							case scripting::type_id::int8:
+							case scripting::type_id::int8_t:
 								series::pack(var->set("data"), (int64_t) * (char*)result.pointer);
 								break;
-							case scripting::type_id::int16:
+							case scripting::type_id::int16_t:
 								series::pack(var->set("data"), (int64_t) * (short*)result.pointer);
 								break;
-							case scripting::type_id::int32:
+							case scripting::type_id::int32_t:
 								series::pack(var->set("data"), (int64_t) * (int*)result.pointer);
 								break;
-							case scripting::type_id::int64:
+							case scripting::type_id::int64_t:
 								series::pack(var->set("data"), *(int64_t*)result.pointer);
 								break;
-							case scripting::type_id::uint8:
+							case scripting::type_id::uint8_t:
 								series::pack(var->set("data"), (int64_t) * (uint8_t*)result.pointer);
 								break;
-							case scripting::type_id::uint16:
+							case scripting::type_id::uint16_t:
 								series::pack(var->set("data"), (int64_t) * (uint16_t*)result.pointer);
 								break;
-							case scripting::type_id::uint32:
+							case scripting::type_id::uint32_t:
 								series::pack(var->set("data"), (int64_t) * (uint32_t*)result.pointer);
 								break;
-							case scripting::type_id::uint64:
+							case scripting::type_id::uint64_t:
 								series::pack(var->set("data"), (int64_t) * (uint64_t*)result.pointer);
 								break;
-							case scripting::type_id::floatf:
+							case scripting::type_id::float_t:
 								series::pack(var->set("data"), (double)*(float*)result.pointer);
 								break;
-							case scripting::type_id::doublef:
+							case scripting::type_id::double_t:
 								series::pack(var->set("data"), *(double*)result.pointer);
 								break;
 							default:
 							{
-								scripting::typeinfo type = get_compiler()->get_vm()->get_type_info_by_id(result.type_id);
+								scripting::type_info type = get_compiler()->get_vm()->get_type_info_by_id(result.type_id);
 								if (type.is_valid() && type.get_name() == "string")
 									series::pack(var->set("data"), *(core::string*)result.pointer);
 								else

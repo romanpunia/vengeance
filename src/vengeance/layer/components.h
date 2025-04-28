@@ -30,7 +30,7 @@ namespace vitex
 				void deactivate() override;
 				float get_visibility(const viewer& view, float distance) const override;
 				size_t get_unit_bounds(trigonometry::vector3& min, trigonometry::vector3& max) const override;
-				core::unique<component> copy(entity* init) const override;
+				component* copy(entity* init) const override;
 				void load(physics::hull_shape* shape, float anticipation = 0.0f);
 				void load(const std::string_view& path, float anticipation = 0.0f, std::function<void()>&& callback = nullptr);
 				void load_ellipsoid(const physics::soft_body::desc::cv::sellipsoid& shape, float anticipation = 0.0f);
@@ -69,7 +69,7 @@ namespace vitex
 				void serialize(core::schema* node) override;
 				void synchronize(core::timer* time) override;
 				void deactivate() override;
-				core::unique<component> copy(entity* init) const override;
+				component* copy(entity* init) const override;
 				void load(btCollisionShape* shape, float mass, float anticipation = 0.0f);
 				void load(const std::string_view& path, float mass, float anticipation = 0.0f, std::function<void()>&& callback = nullptr);
 				void clear();
@@ -96,7 +96,7 @@ namespace vitex
 				~slider_constraint() override;
 				void deserialize(core::schema* node) override;
 				void serialize(core::schema* node) override;
-				core::unique<component> copy(entity* init) const override;
+				component* copy(entity* init) const override;
 				void load(entity* other, bool is_ghosted, bool is_linear);
 				void clear();
 				physics::sconstraint* get_constraint() const;
@@ -125,7 +125,7 @@ namespace vitex
 				void serialize(core::schema* node) override;
 				void activate(component* init) override;
 				void update(core::timer* time) override;
-				core::unique<component> copy(entity* init) const override;
+				component* copy(entity* init) const override;
 				physics::rigid_body* get_body() const;
 
 			public:
@@ -147,8 +147,8 @@ namespace vitex
 				void serialize(core::schema* node) override;
 				float get_visibility(const viewer& view, float distance) const override;
 				size_t get_unit_bounds(trigonometry::vector3& min, trigonometry::vector3& max) const override;
-				core::unique<component> copy(entity* init) const override;
-				void set_drawable(core::unique<layer::model> drawable);
+				component* copy(entity* init) const override;
+				void set_drawable(layer::model* drawable);
 				void set_material_for(const std::string_view& name, material* value);
 				layer::model* get_drawable();
 				material* get_material_for(const std::string_view& name);
@@ -174,8 +174,8 @@ namespace vitex
 				void synchronize(core::timer* time) override;
 				float get_visibility(const viewer& view, float distance) const override;
 				size_t get_unit_bounds(trigonometry::vector3& min, trigonometry::vector3& max) const override;
-				core::unique<component> copy(entity* init) const override;
-				void set_drawable(core::unique<layer::skin_model> drawable);
+				component* copy(entity* init) const override;
+				void set_drawable(layer::skin_model* drawable);
 				void set_material_for(const std::string_view& name, material* value);
 				layer::skin_model* get_drawable();
 				material* get_material_for(const std::string_view& name);
@@ -202,7 +202,7 @@ namespace vitex
 				void serialize(core::schema* node) override;
 				void activate(component* init) override;
 				size_t get_unit_bounds(trigonometry::vector3& min, trigonometry::vector3& max) const override;
-				core::unique<component> copy(entity* init) const override;
+				component* copy(entity* init) const override;
 				graphics::instance_buffer* get_buffer();
 
 			public:
@@ -219,7 +219,7 @@ namespace vitex
 				void deserialize(core::schema* node) override;
 				void serialize(core::schema* node) override;
 				float get_visibility(const viewer& view, float distance) const override;
-				core::unique<component> copy(entity* init) const override;
+				component* copy(entity* init) const override;
 
 			public:
 				VI_COMPONENT("decal_component");
@@ -241,7 +241,7 @@ namespace vitex
 				void serialize(core::schema* node) override;
 				void activate(component* init) override;
 				void animate(core::timer* time) override;
-				core::unique<component> copy(entity* init) const override;
+				component* copy(entity* init) const override;
 				void set_animation(skin_animation* init);
 				void play(int64_t clip = -1, int64_t frame = -1);
 				void pause();
@@ -281,7 +281,7 @@ namespace vitex
 				void deserialize(core::schema* node) override;
 				void serialize(core::schema* node) override;
 				void animate(core::timer* time) override;
-				core::unique<component> copy(entity* init) const override;
+				component* copy(entity* init) const override;
 				void load_animation(const std::string_view& path, std::function<void(bool)>&& callback = nullptr);
 				void clear_animation();
 				void play(int64_t clip = -1, int64_t frame = -1);
@@ -322,7 +322,7 @@ namespace vitex
 				void serialize(core::schema* node) override;
 				void activate(component* init) override;
 				void animate(core::timer* time) override;
-				core::unique<component> copy(entity* init) const override;
+				component* copy(entity* init) const override;
 				emitter* get_emitter() const;
 
 			protected:
@@ -346,7 +346,7 @@ namespace vitex
 			public:
 				free_look(entity* ref);
 				void update(core::timer* time) override;
-				core::unique<component> copy(entity* init) const override;
+				component* copy(entity* init) const override;
 
 			public:
 				VI_COMPONENT("free_look_component");
@@ -380,7 +380,7 @@ namespace vitex
 			public:
 				fly(entity* ref);
 				void update(core::timer* time) override;
-				core::unique<component> copy(entity* init) const override;
+				component* copy(entity* init) const override;
 
 			private:
 				trigonometry::vector3 get_speed(graphics::activity* activity);
@@ -402,7 +402,7 @@ namespace vitex
 				void deserialize(core::schema* node) override;
 				void serialize(core::schema* node) override;
 				void synchronize(core::timer* time) override;
-				core::unique<component> copy(entity* init) const override;
+				component* copy(entity* init) const override;
 				void apply_playing_position();
 				audio::audio_source* get_source() const;
 				audio::audio_sync& get_sync();
@@ -426,7 +426,7 @@ namespace vitex
 				void serialize(core::schema* node) override;
 				void synchronize(core::timer* time) override;
 				void deactivate() override;
-				core::unique<component> copy(entity* init) const override;
+				component* copy(entity* init) const override;
 
 			public:
 				VI_COMPONENT("audio_listener_component");
@@ -462,7 +462,7 @@ namespace vitex
 				void message(const std::string_view& name, core::variant_args& args) override;
 				size_t get_unit_bounds(trigonometry::vector3& min, trigonometry::vector3& max) const override;
 				float get_visibility(const viewer& view, float distance) const override;
-				core::unique<component> copy(entity* init) const override;
+				component* copy(entity* init) const override;
 				void generate_origin();
 				void set_size(const attenuation& value);
 				const attenuation& get_size();
@@ -503,7 +503,7 @@ namespace vitex
 				void synchronize(core::timer* time) override;
 				size_t get_unit_bounds(trigonometry::vector3& min, trigonometry::vector3& max) const override;
 				float get_visibility(const viewer& view, float distance) const override;
-				core::unique<component> copy(entity* init) const override;
+				component* copy(entity* init) const override;
 				void generate_origin();
 				void set_size(const attenuation& value);
 				const attenuation& get_size();
@@ -552,7 +552,7 @@ namespace vitex
 				void deserialize(core::schema* node) override;
 				void serialize(core::schema* node) override;
 				void message(const std::string_view& name, core::variant_args& args) override;
-				core::unique<component> copy(entity* init) const override;
+				component* copy(entity* init) const override;
 				void generate_origin();
 
 			public:
@@ -590,8 +590,8 @@ namespace vitex
 				void serialize(core::schema* node) override;
 				size_t get_unit_bounds(trigonometry::vector3& min, trigonometry::vector3& max) const override;
 				float get_visibility(const viewer& view, float distance) const override;
-				core::unique<component> copy(entity* init) const override;
-				void set_probe_cache(core::unique<graphics::texture_cube> new_cache);
+				component* copy(entity* init) const override;
+				void set_probe_cache(graphics::texture_cube* new_cache);
 				void set_size(const attenuation& value);
 				bool set_diffuse_map(graphics::texture_2d* map);
 				bool set_diffuse_map(graphics::texture_2d* const map_x[2], graphics::texture_2d* const map_y[2], graphics::texture_2d* const map_z[2]);
@@ -634,7 +634,7 @@ namespace vitex
 				void deserialize(core::schema* node) override;
 				void serialize(core::schema* node) override;
 				void message(const std::string_view& name, core::variant_args& args) override;
-				core::unique<component> copy(entity* init) const override;
+				component* copy(entity* init) const override;
 
 			public:
 				VI_COMPONENT("illuminator_component");
@@ -669,7 +669,7 @@ namespace vitex
 				void serialize(core::schema* node) override;
 				void activate(component* init) override;
 				void synchronize(core::timer* time) override;
-				core::unique<component> copy(entity* init) const override;
+				component* copy(entity* init) const override;
 				void get_viewer(viewer* view);
 				void resize_buffers();
 				viewer& get_viewer();
@@ -737,7 +737,7 @@ namespace vitex
 				void deactivate() override;
 				void update(core::timer* time) override;
 				void message(const std::string_view& name, core::variant_args& args) override;
-				core::unique<component> copy(entity* init) const override;
+				component* copy(entity* init) const override;
 				scripting::expects_promise_vm<scripting::execution> call(const std::string_view& name, size_t args, scripting::args_callback&& on_args);
 				scripting::expects_promise_vm<scripting::execution> call(asIScriptFunction* entry, scripting::args_callback&& on_args);
 				scripting::expects_promise_vm<scripting::execution> call_entry(const std::string_view& name);

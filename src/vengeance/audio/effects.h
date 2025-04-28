@@ -44,7 +44,7 @@ namespace vitex
 				expects_audio<void> synchronize() override;
 				void deserialize(core::schema* node) override;
 				void serialize(core::schema* node) const override;
-				core::unique<audio_effect> copy() const override;
+				audio_effect* copy() const override;
 
 			public:
 				VI_COMPONENT("reverb_effect");
@@ -66,7 +66,7 @@ namespace vitex
 				expects_audio<void> synchronize() override;
 				void deserialize(core::schema* node) override;
 				void serialize(core::schema* node) const override;
-				core::unique<audio_effect> copy() const override;
+				audio_effect* copy() const override;
 
 			public:
 				VI_COMPONENT("chorus_effect");
@@ -87,7 +87,7 @@ namespace vitex
 				expects_audio<void> synchronize() override;
 				void deserialize(core::schema* node) override;
 				void serialize(core::schema* node) const override;
-				core::unique<audio_effect> copy() const override;
+				audio_effect* copy() const override;
 
 			public:
 				VI_COMPONENT("distortion_effect");
@@ -108,7 +108,7 @@ namespace vitex
 				expects_audio<void> synchronize() override;
 				void deserialize(core::schema* node) override;
 				void serialize(core::schema* node) const override;
-				core::unique<audio_effect> copy() const override;
+				audio_effect* copy() const override;
 
 			public:
 				VI_COMPONENT("echo_effect");
@@ -130,7 +130,7 @@ namespace vitex
 				expects_audio<void> synchronize() override;
 				void deserialize(core::schema* node) override;
 				void serialize(core::schema* node) const override;
-				core::unique<audio_effect> copy() const override;
+				audio_effect* copy() const override;
 
 			public:
 				VI_COMPONENT("flanger_effect");
@@ -149,7 +149,7 @@ namespace vitex
 				expects_audio<void> synchronize() override;
 				void deserialize(core::schema* node) override;
 				void serialize(core::schema* node) const override;
-				core::unique<audio_effect> copy() const override;
+				audio_effect* copy() const override;
 
 			public:
 				VI_COMPONENT("frequency_shifter_effect");
@@ -171,7 +171,7 @@ namespace vitex
 				expects_audio<void> synchronize() override;
 				void deserialize(core::schema* node) override;
 				void serialize(core::schema* node) const override;
-				core::unique<audio_effect> copy() const override;
+				audio_effect* copy() const override;
 
 			public:
 				VI_COMPONENT("vocal_morpher_effect");
@@ -189,7 +189,7 @@ namespace vitex
 				expects_audio<void> synchronize() override;
 				void deserialize(core::schema* node) override;
 				void serialize(core::schema* node) const override;
-				core::unique<audio_effect> copy() const override;
+				audio_effect* copy() const override;
 
 			public:
 				VI_COMPONENT("pitch_shifter_effect");
@@ -208,7 +208,7 @@ namespace vitex
 				expects_audio<void> synchronize() override;
 				void deserialize(core::schema* node) override;
 				void serialize(core::schema* node) const override;
-				core::unique<audio_effect> copy() const override;
+				audio_effect* copy() const override;
 
 			public:
 				VI_COMPONENT("ring_modulator_effect");
@@ -228,7 +228,7 @@ namespace vitex
 				expects_audio<void> synchronize() override;
 				void deserialize(core::schema* node) override;
 				void serialize(core::schema* node) const override;
-				core::unique<audio_effect> copy() const override;
+				audio_effect* copy() const override;
 
 			public:
 				VI_COMPONENT("autowah_effect");
@@ -242,7 +242,7 @@ namespace vitex
 				expects_audio<void> synchronize() override;
 				void deserialize(core::schema* node) override;
 				void serialize(core::schema* node) const override;
-				core::unique<audio_effect> copy() const override;
+				audio_effect* copy() const override;
 
 			public:
 				VI_COMPONENT("compressor_effect");
@@ -268,7 +268,7 @@ namespace vitex
 				expects_audio<void> synchronize() override;
 				void deserialize(core::schema* node) override;
 				void serialize(core::schema* node) const override;
-				core::unique<audio_effect> copy() const override;
+				audio_effect* copy() const override;
 
 			public:
 				VI_COMPONENT("equalizer_effect");

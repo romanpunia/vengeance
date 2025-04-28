@@ -8,10 +8,11 @@
 #endif
 #ifdef VI_SPIRV
 #include <glslang/Public/ShaderLang.h>
+#include <glslang/Public/ResourceLimits.h>
+#include <glslang/SPIRV/GlslangToSpv.h>
 #include <spirv_cross/spirv_glsl.hpp>
 #include <spirv_cross/spirv_hlsl.hpp>
 #include <spirv_cross/spirv_msl.hpp>
-#include <SPIRV/GlslangToSpv.h>
 #endif
 #ifdef VI_SDL2
 #include "internal/sdl2.hpp"
@@ -24,117 +25,6 @@
 namespace
 {
 #ifdef VI_SPIRV
-	static TBuiltInResource driver_limits = { };
-
-	static void prepare_driver_limits()
-	{
-		static bool is_ready = false;
-		if (is_ready)
-			return;
-
-		driver_limits.maxLights = 32;
-		driver_limits.maxClipPlanes = 6;
-		driver_limits.maxTextureUnits = 32;
-		driver_limits.maxTextureCoords = 32;
-		driver_limits.maxVertexAttribs = 64;
-		driver_limits.maxVertexUniformComponents = 4096;
-		driver_limits.maxVaryingFloats = 64;
-		driver_limits.maxVertexTextureImageUnits = 32;
-		driver_limits.maxCombinedTextureImageUnits = 80;
-		driver_limits.maxTextureImageUnits = 32;
-		driver_limits.maxFragmentUniformComponents = 4096;
-		driver_limits.maxDrawBuffers = 32;
-		driver_limits.maxVertexUniformVectors = 128;
-		driver_limits.maxVaryingVectors = 8;
-		driver_limits.maxFragmentUniformVectors = 16;
-		driver_limits.maxVertexOutputVectors = 16;
-		driver_limits.maxFragmentInputVectors = 15;
-		driver_limits.minProgramTexelOffset = -8;
-		driver_limits.maxProgramTexelOffset = 7;
-		driver_limits.maxClipDistances = 8;
-		driver_limits.maxComputeWorkGroupCountX = 65535;
-		driver_limits.maxComputeWorkGroupCountY = 65535;
-		driver_limits.maxComputeWorkGroupCountZ = 65535;
-		driver_limits.maxComputeWorkGroupSizeX = 1024;
-		driver_limits.maxComputeWorkGroupSizeY = 1024;
-		driver_limits.maxComputeWorkGroupSizeZ = 64;
-		driver_limits.maxComputeUniformComponents = 1024;
-		driver_limits.maxComputeTextureImageUnits = 16;
-		driver_limits.maxComputeImageUniforms = 8;
-		driver_limits.maxComputeAtomicCounters = 8;
-		driver_limits.maxComputeAtomicCounterBuffers = 1;
-		driver_limits.maxVaryingComponents = 60;
-		driver_limits.maxVertexOutputComponents = 64;
-		driver_limits.maxGeometryInputComponents = 64;
-		driver_limits.maxGeometryOutputComponents = 128;
-		driver_limits.maxFragmentInputComponents = 128;
-		driver_limits.maxImageUnits = 8;
-		driver_limits.maxCombinedImageUnitsAndFragmentOutputs = 8;
-		driver_limits.maxCombinedShaderOutputResources = 8;
-		driver_limits.maxImageSamples = 0;
-		driver_limits.maxVertexImageUniforms = 0;
-		driver_limits.maxTessControlImageUniforms = 0;
-		driver_limits.maxTessEvaluationImageUniforms = 0;
-		driver_limits.maxGeometryImageUniforms = 0;
-		driver_limits.maxFragmentImageUniforms = 8;
-		driver_limits.maxCombinedImageUniforms = 8;
-		driver_limits.maxGeometryTextureImageUnits = 16;
-		driver_limits.maxGeometryOutputVertices = 256;
-		driver_limits.maxGeometryTotalOutputComponents = 1024;
-		driver_limits.maxGeometryUniformComponents = 1024;
-		driver_limits.maxGeometryVaryingComponents = 64;
-		driver_limits.maxTessControlInputComponents = 128;
-		driver_limits.maxTessControlOutputComponents = 128;
-		driver_limits.maxTessControlTextureImageUnits = 16;
-		driver_limits.maxTessControlUniformComponents = 1024;
-		driver_limits.maxTessControlTotalOutputComponents = 4096;
-		driver_limits.maxTessEvaluationInputComponents = 128;
-		driver_limits.maxTessEvaluationOutputComponents = 128;
-		driver_limits.maxTessEvaluationTextureImageUnits = 16;
-		driver_limits.maxTessEvaluationUniformComponents = 1024;
-		driver_limits.maxTessPatchComponents = 120;
-		driver_limits.maxPatchVertices = 32;
-		driver_limits.maxTessGenLevel = 64;
-		driver_limits.maxViewports = 16;
-		driver_limits.maxVertexAtomicCounters = 0;
-		driver_limits.maxTessControlAtomicCounters = 0;
-		driver_limits.maxTessEvaluationAtomicCounters = 0;
-		driver_limits.maxGeometryAtomicCounters = 0;
-		driver_limits.maxFragmentAtomicCounters = 8;
-		driver_limits.maxCombinedAtomicCounters = 8;
-		driver_limits.maxAtomicCounterBindings = 1;
-		driver_limits.maxVertexAtomicCounterBuffers = 0;
-		driver_limits.maxTessControlAtomicCounterBuffers = 0;
-		driver_limits.maxTessEvaluationAtomicCounterBuffers = 0;
-		driver_limits.maxGeometryAtomicCounterBuffers = 0;
-		driver_limits.maxFragmentAtomicCounterBuffers = 1;
-		driver_limits.maxCombinedAtomicCounterBuffers = 1;
-		driver_limits.maxAtomicCounterBufferSize = 16384;
-		driver_limits.maxTransformFeedbackBuffers = 4;
-		driver_limits.maxTransformFeedbackInterleavedComponents = 64;
-		driver_limits.maxCullDistances = 8;
-		driver_limits.maxCombinedClipAndCullDistances = 8;
-		driver_limits.maxSamples = 4;
-		driver_limits.maxMeshOutputVerticesNV = 256;
-		driver_limits.maxMeshOutputPrimitivesNV = 512;
-		driver_limits.maxMeshWorkGroupSizeX_NV = 32;
-		driver_limits.maxMeshWorkGroupSizeY_NV = 1;
-		driver_limits.maxMeshWorkGroupSizeZ_NV = 1;
-		driver_limits.maxTaskWorkGroupSizeX_NV = 32;
-		driver_limits.maxTaskWorkGroupSizeY_NV = 1;
-		driver_limits.maxTaskWorkGroupSizeZ_NV = 1;
-		driver_limits.maxMeshViewCountNV = 4;
-		driver_limits.limits.nonInductiveForLoops = 1;
-		driver_limits.limits.whileLoops = 1;
-		driver_limits.limits.doWhileLoops = 1;
-		driver_limits.limits.generalUniformIndexing = 1;
-		driver_limits.limits.generalAttributeMatrixVectorIndexing = 1;
-		driver_limits.limits.generalVaryingIndexing = 1;
-		driver_limits.limits.generalSamplerIndexing = 1;
-		driver_limits.limits.generalVariableIndexing = 1;
-		driver_limits.limits.generalConstantMatrixVectorIndexing = 1;
-		is_ready = true;
-	}
 	static void prepare_combined_samplers(spirv_cross::Compiler* compiler)
 	{
 		compiler->build_dummy_sampler_for_combined_images();
@@ -1337,9 +1227,7 @@ namespace vitex
 			transpiler.setEntryPoint(entry.c_str());
 
 			EShMessages flags = (EShMessages)(EShMsgSpvRules | EShMsgReadHlsl | EShMsgHlslOffsets | EShMsgHlslLegalization | EShMsgKeepUncalled | EShMsgSuppressWarnings);
-			prepare_driver_limits();
-
-			if (!transpiler.parse(&driver_limits, 100, true, flags))
+			if (!transpiler.parse(GetDefaultResources(), 100, true, flags))
 			{
 				core::string message = transpiler.getInfoLog();
 				glslang::FinalizeProcess();

@@ -299,7 +299,7 @@ namespace vitex
 			virtual expects_audio<void> synchronize() = 0;
 			virtual void deserialize(core::schema* node) = 0;
 			virtual void serialize(core::schema* node) const = 0;
-			virtual core::unique<audio_filter> copy() const = 0;
+			virtual audio_filter* copy() const = 0;
 			audio_source* get_source() const;
 
 		protected:
@@ -328,7 +328,7 @@ namespace vitex
 			virtual expects_audio<void> synchronize() = 0;
 			virtual void deserialize(core::schema* node) = 0;
 			virtual void serialize(core::schema* node) const = 0;
-			virtual core::unique<audio_effect> copy() const = 0;
+			virtual audio_effect* copy() const = 0;
 			expects_audio<void> set_filter(audio_filter** filter);
 			audio_filter* get_filter() const;
 			audio_source* get_source() const;

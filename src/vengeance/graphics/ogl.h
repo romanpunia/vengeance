@@ -142,7 +142,7 @@ namespace vitex
 
 			public:
 				ogl_mesh_buffer(const desc& i);
-				core::unique<trigonometry::vertex> get_elements(graphics_device* device) const override;
+				trigonometry::vertex* get_elements(graphics_device* device) const override;
 			};
 
 			class ogl_skin_mesh_buffer final : public skin_mesh_buffer
@@ -151,7 +151,7 @@ namespace vitex
 
 			public:
 				ogl_skin_mesh_buffer(const desc& i);
-				core::unique<trigonometry::skin_vertex> get_elements(graphics_device* device) const override;
+				trigonometry::skin_vertex* get_elements(graphics_device* device) const override;
 			};
 
 			class ogl_instance_buffer final : public instance_buffer
@@ -502,34 +502,34 @@ namespace vitex
 				expects_graphics<void> generate_texture(texture_cube* resource) override;
 				expects_graphics<void> get_query_data(query* resource, size_t* result, bool flush) override;
 				expects_graphics<void> get_query_data(query* resource, bool* result, bool flush) override;
-				expects_graphics<core::unique<depth_stencil_state>> create_depth_stencil_state(const depth_stencil_state::desc& i) override;
-				expects_graphics<core::unique<blend_state>> create_blend_state(const blend_state::desc& i) override;
-				expects_graphics<core::unique<rasterizer_state>> create_rasterizer_state(const rasterizer_state::desc& i) override;
-				expects_graphics<core::unique<sampler_state>> create_sampler_state(const sampler_state::desc& i) override;
-				expects_graphics<core::unique<input_layout>> create_input_layout(const input_layout::desc& i) override;
-				expects_graphics<core::unique<shader>> create_shader(const shader::desc& i) override;
-				expects_graphics<core::unique<element_buffer>> create_element_buffer(const element_buffer::desc& i) override;
-				expects_graphics<core::unique<mesh_buffer>> create_mesh_buffer(const mesh_buffer::desc& i) override;
-				expects_graphics<core::unique<mesh_buffer>> create_mesh_buffer(element_buffer* vertex_buffer, element_buffer* index_buffer) override;
-				expects_graphics<core::unique<skin_mesh_buffer>> create_skin_mesh_buffer(const skin_mesh_buffer::desc& i) override;
-				expects_graphics<core::unique<skin_mesh_buffer>> create_skin_mesh_buffer(element_buffer* vertex_buffer, element_buffer* index_buffer) override;
-				expects_graphics<core::unique<instance_buffer>> create_instance_buffer(const instance_buffer::desc& i) override;
-				expects_graphics<core::unique<texture_2d>> create_texture_2d() override;
-				expects_graphics<core::unique<texture_2d>> create_texture_2d(const texture_2d::desc& i) override;
-				expects_graphics<core::unique<texture_3d>> create_texture_3d() override;
-				expects_graphics<core::unique<texture_3d>> create_texture_3d(const texture_3d::desc& i) override;
-				expects_graphics<core::unique<texture_cube>> create_texture_cube() override;
-				expects_graphics<core::unique<texture_cube>> create_texture_cube(const texture_cube::desc& i) override;
-				expects_graphics<core::unique<texture_cube>> create_texture_cube(texture_2d* resource[6]) override;
-				expects_graphics<core::unique<texture_cube>> create_texture_cube(texture_2d* resource) override;
-				expects_graphics<core::unique<depth_target_2d>> create_depth_target_2d(const depth_target_2d::desc& i) override;
-				expects_graphics<core::unique<depth_target_cube>> create_depth_target_cube(const depth_target_cube::desc& i) override;
-				expects_graphics<core::unique<render_target_2d>> create_render_target_2d(const render_target_2d::desc& i) override;
-				expects_graphics<core::unique<multi_render_target_2d>> create_multi_render_target_2d(const multi_render_target_2d::desc& i) override;
-				expects_graphics<core::unique<render_target_cube>> create_render_target_cube(const render_target_cube::desc& i) override;
-				expects_graphics<core::unique<multi_render_target_cube>> create_multi_render_target_cube(const multi_render_target_cube::desc& i) override;
-				expects_graphics<core::unique<cubemap>> create_cubemap(const cubemap::desc& i) override;
-				expects_graphics<core::unique<query>> create_query(const query::desc& i) override;
+				expects_graphics<depth_stencil_state*> create_depth_stencil_state(const depth_stencil_state::desc& i) override;
+				expects_graphics<blend_state*> create_blend_state(const blend_state::desc& i) override;
+				expects_graphics<rasterizer_state*> create_rasterizer_state(const rasterizer_state::desc& i) override;
+				expects_graphics<sampler_state*> create_sampler_state(const sampler_state::desc& i) override;
+				expects_graphics<input_layout*> create_input_layout(const input_layout::desc& i) override;
+				expects_graphics<shader*> create_shader(const shader::desc& i) override;
+				expects_graphics<element_buffer*> create_element_buffer(const element_buffer::desc& i) override;
+				expects_graphics<mesh_buffer*> create_mesh_buffer(const mesh_buffer::desc& i) override;
+				expects_graphics<mesh_buffer*> create_mesh_buffer(element_buffer* vertex_buffer, element_buffer* index_buffer) override;
+				expects_graphics<skin_mesh_buffer*> create_skin_mesh_buffer(const skin_mesh_buffer::desc& i) override;
+				expects_graphics<skin_mesh_buffer*> create_skin_mesh_buffer(element_buffer* vertex_buffer, element_buffer* index_buffer) override;
+				expects_graphics<instance_buffer*> create_instance_buffer(const instance_buffer::desc& i) override;
+				expects_graphics<texture_2d*> create_texture_2d() override;
+				expects_graphics<texture_2d*> create_texture_2d(const texture_2d::desc& i) override;
+				expects_graphics<texture_3d*> create_texture_3d() override;
+				expects_graphics<texture_3d*> create_texture_3d(const texture_3d::desc& i) override;
+				expects_graphics<texture_cube*> create_texture_cube() override;
+				expects_graphics<texture_cube*> create_texture_cube(const texture_cube::desc& i) override;
+				expects_graphics<texture_cube*> create_texture_cube(texture_2d* resource[6]) override;
+				expects_graphics<texture_cube*> create_texture_cube(texture_2d* resource) override;
+				expects_graphics<depth_target_2d*> create_depth_target_2d(const depth_target_2d::desc& i) override;
+				expects_graphics<depth_target_cube*> create_depth_target_cube(const depth_target_cube::desc& i) override;
+				expects_graphics<render_target_2d*> create_render_target_2d(const render_target_2d::desc& i) override;
+				expects_graphics<multi_render_target_2d*> create_multi_render_target_2d(const multi_render_target_2d::desc& i) override;
+				expects_graphics<render_target_cube*> create_render_target_cube(const render_target_cube::desc& i) override;
+				expects_graphics<multi_render_target_cube*> create_multi_render_target_cube(const multi_render_target_cube::desc& i) override;
+				expects_graphics<cubemap*> create_cubemap(const cubemap::desc& i) override;
+				expects_graphics<query*> create_query(const query::desc& i) override;
 				primitive_topology get_primitive_topology() const override;
 				shader_model get_supported_shader_model() const override;
 				void* get_device() const override;

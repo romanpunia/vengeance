@@ -13,7 +13,7 @@ namespace vitex
 			class model_listener : public core::reference<model_listener>
 			{
 			private:
-				function_delegate delegatef;
+				function_delegate delegation;
 				layer::gui::listener* base;
 
 			public:

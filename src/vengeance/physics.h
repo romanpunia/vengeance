@@ -230,7 +230,7 @@ namespace vitex
 
 		public:
 			~rigid_body() noexcept;
-			core::unique<rigid_body> copy();
+			rigid_body* copy();
 			void push(const trigonometry::vector3& velocity);
 			void push(const trigonometry::vector3& velocity, const trigonometry::vector3& torque);
 			void push(const trigonometry::vector3& velocity, const trigonometry::vector3& torque, const trigonometry::vector3& center);
@@ -423,7 +423,7 @@ namespace vitex
 
 		public:
 			~soft_body() noexcept;
-			core::unique<soft_body> copy();
+			soft_body* copy();
 			void activate(bool force);
 			void synchronize(trigonometry::transform* transform, bool kinematic);
 			void get_indices(core::vector<int>* indices) const;
@@ -529,7 +529,7 @@ namespace vitex
 
 		public:
 			virtual ~constraint() noexcept = default;
-			virtual core::unique<constraint> copy() const = 0;
+			virtual constraint* copy() const = 0;
 			virtual btTypedConstraint* get() const = 0;
 			virtual bool has_collisions() const = 0;
 			void set_breaking_impulse_threshold(float value);
@@ -566,7 +566,7 @@ namespace vitex
 
 		public:
 			~pconstraint() noexcept override;
-			core::unique<constraint> copy() const override;
+			constraint* copy() const override;
 			btTypedConstraint* get() const override;
 			bool has_collisions() const override;
 			void set_pivot_a(const trigonometry::vector3& value);
@@ -599,7 +599,7 @@ namespace vitex
 
 		public:
 			~hconstraint() noexcept override;
-			core::unique<constraint> copy() const override;
+			constraint* copy() const override;
 			btTypedConstraint* get() const override;
 			bool has_collisions() const override;
 			void enable_angular_motor(bool enable, float target_velocity, float max_motor_impulse);
@@ -656,7 +656,7 @@ namespace vitex
 
 		public:
 			~sconstraint() noexcept override;
-			core::unique<constraint> copy() const override;
+			constraint* copy() const override;
 			btTypedConstraint* get() const override;
 			bool has_collisions() const override;
 			void set_angular_motor_velocity(float value);
@@ -740,7 +740,7 @@ namespace vitex
 
 		public:
 			~ct_constraint() noexcept override;
-			core::unique<constraint> copy() const override;
+			constraint* copy() const override;
 			btTypedConstraint* get() const override;
 			bool has_collisions() const override;
 			void enable_motor(bool value);
@@ -799,7 +799,7 @@ namespace vitex
 
 		public:
 			~df6_constraint() noexcept override;
-			core::unique<constraint> copy() const override;
+			constraint* copy() const override;
 			btTypedConstraint* get() const override;
 			bool has_collisions() const override;
 			void enable_motor(int index, bool on_off);
@@ -896,15 +896,15 @@ namespace vitex
 			void simulate_step(float elapsed_time_seconds);
 			void find_contacts(rigid_body* body, int(*callback)(shape_contact*, const collision_body&, const collision_body&));
 			bool find_ray_contacts(const trigonometry::vector3& start, const trigonometry::vector3& end, int(*callback)(ray_contact*, const collision_body&));
-			core::unique<rigid_body> create_rigid_body(const rigid_body::desc& i);
-			core::unique<rigid_body> create_rigid_body(const rigid_body::desc& i, trigonometry::transform* transform);
-			core::unique<soft_body> create_soft_body(const soft_body::desc& i);
-			core::unique<soft_body> create_soft_body(const soft_body::desc& i, trigonometry::transform* transform);
-			core::unique<pconstraint> create_point2_point_constraint(const pconstraint::desc& i);
-			core::unique<hconstraint> create_hinge_constraint(const hconstraint::desc& i);
-			core::unique<sconstraint> create_slider_constraint(const sconstraint::desc& i);
-			core::unique<ct_constraint> create_cone_twist_constraint(const ct_constraint::desc& i);
-			core::unique<df6_constraint> create_6dof_constraint(const df6_constraint::desc& i);
+			rigid_body* create_rigid_body(const rigid_body::desc& i);
+			rigid_body* create_rigid_body(const rigid_body::desc& i, trigonometry::transform* transform);
+			soft_body* create_soft_body(const soft_body::desc& i);
+			soft_body* create_soft_body(const soft_body::desc& i, trigonometry::transform* transform);
+			pconstraint* create_point2_point_constraint(const pconstraint::desc& i);
+			hconstraint* create_hinge_constraint(const hconstraint::desc& i);
+			sconstraint* create_slider_constraint(const sconstraint::desc& i);
+			ct_constraint* create_cone_twist_constraint(const ct_constraint::desc& i);
+			df6_constraint* create_6dof_constraint(const df6_constraint::desc& i);
 			btCollisionShape* create_shape(shape type);
 			btCollisionShape* create_cube(const trigonometry::vector3& scale = trigonometry::vector3(1, 1, 1));
 			btCollisionShape* create_sphere(float radius = 1);
@@ -919,7 +919,7 @@ namespace vitex
 			btCollisionShape* create_convex_hull(btCollisionShape* from);
 			btCollisionShape* try_clone_shape(btCollisionShape* shape);
 			btCollisionShape* reuse_shape(btCollisionShape* shape);
-			void free_shape(core::unique<btCollisionShape*> value);
+			void free_shape(btCollisionShape** value);
 			core::vector<trigonometry::vector3> get_shape_vertices(btCollisionShape* shape) const;
 			size_t get_shape_vertices_count(btCollisionShape* shape) const;
 			float get_max_displacement() const;
