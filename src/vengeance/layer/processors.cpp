@@ -4,7 +4,7 @@
 #include <vitex/network/http.h>
 #ifdef VI_OPENAL
 #ifdef VI_AL_AT_OPENAL
-#include <open_al/al.h>
+#include <OpenAl/al.h>
 #else
 #include <AL/al.h>
 #endif

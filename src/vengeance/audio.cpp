@@ -3,8 +3,8 @@
 #include "audio/filters.h"
 #ifdef VI_OPENAL
 #ifdef VI_AL_AT_OPENAL
-#include <open_al/al.h>
-#include <open_al/alc.h>
+#include <OpenAL/al.h>
+#include <OpenAL/alc.h>
 #else
 #include <AL/al.h>
 #include <AL/alc.h>
